@@ -1,0 +1,25 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>共感娃娃 · 主动互动测试</title>
+<style>body{font:16px system-ui;max-width:760px;margin:32px auto;padding:20px;background:#f3f1e9;color:#263e33}section{background:white;padding:24px;margin:16px 0;border-radius:16px}button,input{font:inherit;padding:12px;border:1px solid #bdcbc0;border-radius:8px;margin:4px;box-sizing:border-box}button{background:#2b6249;color:white;cursor:pointer}button:disabled{opacity:.5}input{max-width:100%}label{display:block;margin:8px 0}#messages article{padding:14px;margin:10px 0;border-radius:10px;background:#edf4ed;overflow-wrap:anywhere}#error{color:#a1372a}.muted{color:#63736a}a{color:#2b6249}</style>
+<h1>共感娃娃 · 主动互动测试</h1><p><a href="/companion">通道与历史设置</a> · <a href="/install-guide">AI 接入说明</a></p>
+<section><p>此页验证“新按压自动进入当前窗口”。下方测试回执由程序生成，明确标注为演示，不是模型回复。自建应用可用同一事件接口连接自己选择的 AI。</p><button id="connect">开始主动互动</button><button id="disconnect" disabled>结束互动</button><p id="status">尚未订阅；普通状态只记录历史。</p><p id="error" role="alert"></p></section>
+<section><h2>反馈偏好</h2><label>希望 AI 如何回应 <input id="tone" value="温柔自然" maxlength="1000"></label><label>回复长度上限 <input id="length" type="number" min="20" max="2000" value="160"></label><label><input id="simulation" type="checkbox" checked>允许模拟输入触发测试</label><label><input id="temperature" type="checkbox">温度明显变化也触发反馈</label><button id="save">保存偏好</button><p class="muted">保存后下次开始互动生效。默认只响应压力开始，合并短时间内多个通道；释放、周期采样和震动输出不会重复触发。</p></section>
+<section><h2>模拟按压</h2><button id="press" disabled>模拟一次按压</button><p id="selected" class="muted"></p><p class="muted">此按钮使用当前启用的压力通道；也可在另一页面模拟按压，观察本窗口是否自动收到回执。</p></section>
+<section><h2>当前窗口反馈</h2><div id="messages" aria-live="polite"></div></section>
+<script src="/bridge-client.js"></script><script>
+const csrf='__CSRF__',el=id=>document.getElementById(id);let pressure=null,policy={};
+const chatKey='ai-doll-bridge-chat';let target=sessionStorage.getItem(chatKey);if(!target){target='demo:'+crypto.randomUUID();sessionStorage.setItem(chatKey,target)}
+const client=new DollBridgeClient({csrf,targetId:target,onStatus:msg=>el('status').textContent=msg,onInteraction:async event=>{
+  const labels=event.data.events.map(e=>e.body_part+' / '+e.sensor_type+' / '+e.source).join('、');
+  const text='已收到：'+labels+'。新事件已自动送到本窗口。';
+  return {text,source:'demo'};
+},onReply:(answer,event)=>{
+  const card=document.createElement('article');card.dataset.eventId=event.eventId;card.textContent='演示回执（非 AI） · '+answer.text;el('messages').append(card);
+}});
+async function run(id,fn){el(id).disabled=true;el('error').textContent='';try{await fn()}catch(e){el('error').textContent=e.message}finally{el(id).disabled=false;el('connect').disabled=client.running;el('disconnect').disabled=!client.running;el('press').disabled=!client.running||pressure===null}}
+el('connect').onclick=()=>run('connect',async()=>{await client.start();el('disconnect').disabled=false;el('press').disabled=pressure===null});
+el('disconnect').onclick=()=>run('disconnect',async()=>{await client.stop();el('press').disabled=true;el('disconnect').disabled=true});
+el('press').onclick=()=>run('press',async()=>{if(!client.running)throw Error('请先开始互动');await client.tool('doll_simulate_press',{channel:pressure,value:3200})});
+el('save').onclick=()=>run('save',async()=>{policy={...policy,allow_simulation:el('simulation').checked,temperature_enabled:el('temperature').checked};await client.api('/bridge/preferences',{policy,feedback:{tone:el('tone').value,max_characters:Number(el('length').value),language:'zh-CN'}});el('status').textContent='偏好已保存，下次开始互动生效。'});
+(async()=>{try{const prefs=await client.tool('get_feedback_preferences');policy=prefs.policy;el('tone').value=prefs.feedback.tone;el('length').value=prefs.feedback.max_characters;el('simulation').checked=policy.allow_simulation;el('temperature').checked=policy.temperature_enabled;const cfg=await client.tool('get_channel_config');pressure=cfg.channels.find(c=>c.type==='pressure'&&c.enabled)?.channel??null;el('selected').textContent=pressure===null?'没有启用的压力通道，请先配置。':'将模拟 CH'+pressure}catch(e){el('error').textContent=e.message}})();
+</script></html>

@@ -1,0 +1,33 @@
+{
+  "id": "req_875",
+  "ok": true,
+  "result": {
+    "passed": true,
+    "nativePassed": true,
+    "strict": false,
+    "fatal": 0,
+    "summary": {
+      "fatal": 0,
+      "error": 0,
+      "warn": 2,
+      "info": 0,
+      "unknown": 0,
+      "total": 2
+    },
+    "violations": [
+      {
+        "level": "warn",
+        "type": "warn",
+        "count": 2,
+        "raw": {
+          "count": 2,
+          "type": "warn"
+        }
+      }
+    ],
+    "countsAvailable": true,
+    "detailsAvailable": false
+  },
+  "type": "response",
+  "version": "v1"
+}

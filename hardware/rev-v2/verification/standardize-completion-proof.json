@@ -1,0 +1,51 @@
+{
+  "date": "2026-10-03",
+  "client": "EasyEDA Pro Windows 3.2.149",
+  "pcbComponentCount": 51,
+  "catalogPartCount": 45,
+  "pcbDimensionsMm": [
+    34.29,
+    44.45
+  ],
+  "physicalGeometryChangedRefs": [],
+  "designatorPoseChangedRefs": [],
+  "copperUnchanged": true,
+  "outlineUnchanged": true,
+  "catalogIdsMatchSchAndPcb": true,
+  "nativeExportZipIntegrity": true,
+  "projectSha256": "db951d535eb7247524c93115b581c76cec0b54b88bf63101ff8e8348e57002bf",
+  "pcbDrc": {
+    "passed": true,
+    "total": 0,
+    "counts": {},
+    "violations": []
+  },
+  "schematicNativeDrc": {
+    "passed": true,
+    "nativePassed": true,
+    "strict": false,
+    "fatal": 0,
+    "summary": {
+      "fatal": 0,
+      "error": 0,
+      "warn": 2,
+      "info": 0,
+      "unknown": 0,
+      "total": 2
+    },
+    "violations": [
+      {
+        "level": "warn",
+        "type": "warn",
+        "count": 2,
+        "raw": {
+          "count": 2,
+          "type": "warn"
+        }
+      }
+    ],
+    "countsAvailable": true,
+    "detailsAvailable": false
+  },
+  "exportRestoreTested": false
+}

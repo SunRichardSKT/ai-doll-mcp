@@ -1,0 +1,69 @@
+{
+  "count": 2,
+  "pours": [
+    {
+      "fillMethod": "solid",
+      "geometryAvailable": true,
+      "layer": 1,
+      "lineWidth": 0.2,
+      "locked": false,
+      "net": "GND",
+      "pourName": "GND_L1_ANTENNA_CLEAR",
+      "primitiveId": "21e26f92ec495614",
+      "priority": 1,
+      "source": [
+        10,
+        10,
+        "L",
+        10,
+        1740,
+        310,
+        1740,
+        310,
+        1490,
+        790,
+        1490,
+        790,
+        1740,
+        1340,
+        1740,
+        1340,
+        10,
+        10,
+        10
+      ]
+    },
+    {
+      "fillMethod": "solid",
+      "geometryAvailable": true,
+      "layer": 2,
+      "lineWidth": 0.2,
+      "locked": false,
+      "net": "GND",
+      "pourName": "GND_L2_ANTENNA_CLEAR",
+      "primitiveId": "699aaf0d17354637",
+      "priority": 1,
+      "source": [
+        10,
+        10,
+        "L",
+        10,
+        1740,
+        310,
+        1740,
+        310,
+        1490,
+        790,
+        1490,
+        790,
+        1740,
+        1340,
+        1740,
+        1340,
+        10,
+        10,
+        10
+      ]
+    }
+  ]
+}

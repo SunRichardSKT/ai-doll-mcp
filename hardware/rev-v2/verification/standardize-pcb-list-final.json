@@ -1,0 +1,3186 @@
+{
+  "id": "req_867",
+  "type": "response",
+  "version": "v1",
+  "createdAt": "2026-10-03T12:55:01.923062Z",
+  "ok": true,
+  "result": {
+    "components": [
+      {
+        "addIntoBom": true,
+        "designator": "C13",
+        "layer": 1,
+        "locked": false,
+        "manufacturerId": "CL31A476MQHNNNE",
+        "name": "AI_Doll_V2_CAP",
+        "pads": [
+          {
+            "height": 68,
+            "layer": 1,
+            "net": "GND",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "0ce13cf7986a2194e7",
+            "rotation": 0,
+            "shape": [
+              "RECT",
+              58.5,
+              68,
+              0
+            ],
+            "specialPad": [],
+            "width": 58.5,
+            "x": 1142.7,
+            "y": 1120
+          },
+          {
+            "height": 68,
+            "layer": 1,
+            "net": "SYS5V",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "0ce13cf7986a2194e8",
+            "rotation": 0,
+            "shape": [
+              "RECT",
+              58.5,
+              68,
+              0
+            ],
+            "specialPad": [],
+            "width": 58.5,
+            "x": 1017.3,
+            "y": 1120
+          }
+        ],
+        "primitiveId": "0ce13cf7986a2194",
+        "rotation": 0,
+        "supplierId": "C68361",
+        "uniqueId": "e7ba3aba9f9889c8",
+        "x": 1080,
+        "y": 1120
+      },
+      {
+        "addIntoBom": true,
+        "designator": "C14",
+        "layer": 1,
+        "locked": false,
+        "manufacturerId": "CL31B104KBCNNNC",
+        "name": "AI_Doll_V2_CAP",
+        "pads": [
+          {
+            "height": 68,
+            "layer": 1,
+            "net": "GND",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "f3df23f28ede9a97e7",
+            "rotation": 0,
+            "shape": [
+              "RECT",
+              58.5,
+              68,
+              0
+            ],
+            "specialPad": [],
+            "width": 58.5,
+            "x": 1114.7,
+            "y": 1300
+          },
+          {
+            "height": 68,
+            "layer": 1,
+            "net": "SYS5V",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "f3df23f28ede9a97e8",
+            "rotation": 0,
+            "shape": [
+              "RECT",
+              58.5,
+              68,
+              0
+            ],
+            "specialPad": [],
+            "width": 58.5,
+            "x": 989.3,
+            "y": 1300
+          }
+        ],
+        "primitiveId": "f3df23f28ede9a97",
+        "rotation": 0,
+        "supplierId": "C24497",
+        "uniqueId": "00361082df9d4549",
+        "x": 1052,
+        "y": 1300
+      },
+      {
+        "addIntoBom": true,
+        "designator": "J1",
+        "layer": 1,
+        "locked": false,
+        "manufacturerId": "MTP125-1102S1",
+        "name": "AI_Doll_V2_CONN2",
+        "pads": [
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "CH0",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "df577db36dd7f9b0e6",
+            "rotation": 90,
+            "shape": [
+              "ELLIPSE",
+              70.9,
+              70.9
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 80,
+            "y": 930
+          },
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "EXC0",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "df577db36dd7f9b0e7",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              70.9,
+              70.9,
+              0
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 80,
+            "y": 830
+          }
+        ],
+        "primitiveId": "df577db36dd7f9b0",
+        "rotation": 90,
+        "supplierId": "C358684",
+        "uniqueId": "51bfc0e5166a1c40",
+        "x": 80,
+        "y": 880
+      },
+      {
+        "addIntoBom": true,
+        "designator": "J2",
+        "layer": 1,
+        "locked": false,
+        "manufacturerId": "MTP125-1102S1",
+        "name": "AI_Doll_V2_CONN2",
+        "pads": [
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "CH1",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "d4e1111c0b1f9cd8e6",
+            "rotation": 90,
+            "shape": [
+              "ELLIPSE",
+              70.9,
+              70.9
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 80,
+            "y": 680
+          },
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "EXC1",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "d4e1111c0b1f9cd8e7",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              70.9,
+              70.9,
+              0
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 80,
+            "y": 580
+          }
+        ],
+        "primitiveId": "d4e1111c0b1f9cd8",
+        "rotation": 90,
+        "supplierId": "C358684",
+        "uniqueId": "1fb9863844ab5169",
+        "x": 80,
+        "y": 630
+      },
+      {
+        "addIntoBom": true,
+        "designator": "J3",
+        "layer": 1,
+        "locked": false,
+        "manufacturerId": "MTP125-1102S1",
+        "name": "AI_Doll_V2_CONN2",
+        "pads": [
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "CH2",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "86e3e97cb27710a2e6",
+            "rotation": 90,
+            "shape": [
+              "ELLIPSE",
+              70.9,
+              70.9
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 80,
+            "y": 430
+          },
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "EXC2",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "86e3e97cb27710a2e7",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              70.9,
+              70.9,
+              0
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 80,
+            "y": 330
+          }
+        ],
+        "primitiveId": "86e3e97cb27710a2",
+        "rotation": 90,
+        "supplierId": "C358684",
+        "uniqueId": "bd3ee0abdb58119f",
+        "x": 80,
+        "y": 380
+      },
+      {
+        "addIntoBom": true,
+        "designator": "J4",
+        "layer": 1,
+        "locked": false,
+        "manufacturerId": "MTP125-1102S1",
+        "name": "AI_Doll_V2_CONN2",
+        "pads": [
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "CH3",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "294069c80d68f9b6e6",
+            "rotation": 90,
+            "shape": [
+              "ELLIPSE",
+              70.9,
+              70.9
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 80,
+            "y": 180
+          },
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "EXC3",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "294069c80d68f9b6e7",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              70.9,
+              70.9,
+              0
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 80,
+            "y": 80
+          }
+        ],
+        "primitiveId": "294069c80d68f9b6",
+        "rotation": 90,
+        "supplierId": "C358684",
+        "uniqueId": "7aadee231938cadd",
+        "x": 80,
+        "y": 130
+      },
+      {
+        "addIntoBom": true,
+        "designator": "J5",
+        "layer": 1,
+        "locked": false,
+        "manufacturerId": "MTP125-1102S1",
+        "name": "AI_Doll_V2_CONN2",
+        "pads": [
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "CH4",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "27d3da338a8bc073e6",
+            "rotation": 90,
+            "shape": [
+              "ELLIPSE",
+              70.9,
+              70.9
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 1270,
+            "y": 930
+          },
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "EXC4",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "27d3da338a8bc073e7",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              70.9,
+              70.9,
+              0
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 1270,
+            "y": 830
+          }
+        ],
+        "primitiveId": "27d3da338a8bc073",
+        "rotation": 90,
+        "supplierId": "C358684",
+        "uniqueId": "188f82074eb8ca32",
+        "x": 1270,
+        "y": 880
+      },
+      {
+        "addIntoBom": true,
+        "designator": "J6",
+        "layer": 1,
+        "locked": false,
+        "manufacturerId": "MTP125-1102S1",
+        "name": "AI_Doll_V2_CONN2",
+        "pads": [
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "CH5",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "b70fa0c70875fa47e6",
+            "rotation": 90,
+            "shape": [
+              "ELLIPSE",
+              70.9,
+              70.9
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 1270,
+            "y": 680
+          },
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "EXC5",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "b70fa0c70875fa47e7",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              70.9,
+              70.9,
+              0
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 1270,
+            "y": 580
+          }
+        ],
+        "primitiveId": "b70fa0c70875fa47",
+        "rotation": 90,
+        "supplierId": "C358684",
+        "uniqueId": "be1703a8306ee88a",
+        "x": 1270,
+        "y": 630
+      },
+      {
+        "addIntoBom": true,
+        "designator": "J7",
+        "layer": 1,
+        "locked": false,
+        "manufacturerId": "MTP125-1102S1",
+        "name": "AI_Doll_V2_CONN2",
+        "pads": [
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "CH6",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "6e680020f2559515e6",
+            "rotation": 90,
+            "shape": [
+              "ELLIPSE",
+              70.9,
+              70.9
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 1270,
+            "y": 430
+          },
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "EXC6",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "6e680020f2559515e7",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              70.9,
+              70.9,
+              0
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 1270,
+            "y": 330
+          }
+        ],
+        "primitiveId": "6e680020f2559515",
+        "rotation": 90,
+        "supplierId": "C358684",
+        "uniqueId": "adeb8d5268617f3b",
+        "x": 1270,
+        "y": 380
+      },
+      {
+        "addIntoBom": true,
+        "designator": "J8",
+        "layer": 1,
+        "locked": false,
+        "manufacturerId": "MTP125-1102S1",
+        "name": "AI_Doll_V2_CONN2",
+        "pads": [
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "CH7",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "835352cb3941b9d8e6",
+            "rotation": 90,
+            "shape": [
+              "ELLIPSE",
+              70.9,
+              70.9
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 1270,
+            "y": 180
+          },
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "EXC7",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "835352cb3941b9d8e7",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              70.9,
+              70.9,
+              0
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 1270,
+            "y": 80
+          }
+        ],
+        "primitiveId": "835352cb3941b9d8",
+        "rotation": 90,
+        "supplierId": "C358684",
+        "uniqueId": "5c2e899d33916bcd",
+        "x": 1270,
+        "y": 130
+      },
+      {
+        "addIntoBom": true,
+        "designator": "J9",
+        "layer": 1,
+        "locked": false,
+        "manufacturerId": "MTP125-1102S1",
+        "name": "AI_Doll_V2_CONN2",
+        "pads": [
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "PWR5V_RAW",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "c7fadc2674bcaa50e6",
+            "rotation": 90,
+            "shape": [
+              "ELLIPSE",
+              70.9,
+              70.9
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 1252,
+            "y": 1400
+          },
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "GND",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "c7fadc2674bcaa50e7",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              70.9,
+              70.9,
+              0
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 1252,
+            "y": 1300
+          }
+        ],
+        "primitiveId": "c7fadc2674bcaa50",
+        "rotation": 90,
+        "supplierId": "C358684",
+        "uniqueId": "14b2f8436ec73be4",
+        "x": 1252,
+        "y": 1350
+      },
+      {
+        "addIntoBom": true,
+        "designator": "R1",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "0805W8F4701T5E",
+        "name": "AI_Doll_V2_RES",
+        "pads": [
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "EXC0",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "d092bf77264bd4abe10",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 260,
+            "y": 814.4
+          },
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "3V3",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "d092bf77264bd4abe11",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 260,
+            "y": 735.6
+          }
+        ],
+        "primitiveId": "d092bf77264bd4ab",
+        "rotation": 90,
+        "supplierId": "C17673",
+        "uniqueId": "353b166cc2dee846",
+        "x": 260,
+        "y": 775
+      },
+      {
+        "addIntoBom": true,
+        "designator": "R2",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "0805W8F4701T5E",
+        "name": "AI_Doll_V2_RES",
+        "pads": [
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "EXC1",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "c95dae830d7e5dc1e10",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 260,
+            "y": 599.4
+          },
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "3V3",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "c95dae830d7e5dc1e11",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 260,
+            "y": 520.6
+          }
+        ],
+        "primitiveId": "c95dae830d7e5dc1",
+        "rotation": 90,
+        "supplierId": "C17673",
+        "uniqueId": "6f63fc6711cfa315",
+        "x": 260,
+        "y": 560
+      },
+      {
+        "addIntoBom": true,
+        "designator": "R3",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "0805W8F4701T5E",
+        "name": "AI_Doll_V2_RES",
+        "pads": [
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "EXC2",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "7b4ab5a085c6d0ffe10",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 260,
+            "y": 384.4
+          },
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "3V3",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "7b4ab5a085c6d0ffe11",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 260,
+            "y": 305.6
+          }
+        ],
+        "primitiveId": "7b4ab5a085c6d0ff",
+        "rotation": 90,
+        "supplierId": "C17673",
+        "uniqueId": "fe89d0632cfce75f",
+        "x": 260,
+        "y": 345
+      },
+      {
+        "addIntoBom": true,
+        "designator": "R4",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "0805W8F4701T5E",
+        "name": "AI_Doll_V2_RES",
+        "pads": [
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "EXC3",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "364f396a229b5b98e10",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 260,
+            "y": 169.4
+          },
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "3V3",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "364f396a229b5b98e11",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 260,
+            "y": 90.6
+          }
+        ],
+        "primitiveId": "364f396a229b5b98",
+        "rotation": 90,
+        "supplierId": "C17673",
+        "uniqueId": "fdc86a4b576d9e98",
+        "x": 260,
+        "y": 130
+      },
+      {
+        "addIntoBom": true,
+        "designator": "R5",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "0805W8F4701T5E",
+        "name": "AI_Doll_V2_RES",
+        "pads": [
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "EXC4",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "4cd8bcc3593a2d1ae10",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 1070,
+            "y": 814.4
+          },
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "3V3",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "4cd8bcc3593a2d1ae11",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 1070,
+            "y": 735.6
+          }
+        ],
+        "primitiveId": "4cd8bcc3593a2d1a",
+        "rotation": 90,
+        "supplierId": "C17673",
+        "uniqueId": "9cdd622c9eeecfe7",
+        "x": 1070,
+        "y": 775
+      },
+      {
+        "addIntoBom": true,
+        "designator": "R6",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "0805W8F4701T5E",
+        "name": "AI_Doll_V2_RES",
+        "pads": [
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "EXC5",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "3517def7a5cf2bd1e10",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 1070,
+            "y": 599.4
+          },
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "3V3",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "3517def7a5cf2bd1e11",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 1070,
+            "y": 520.6
+          }
+        ],
+        "primitiveId": "3517def7a5cf2bd1",
+        "rotation": 90,
+        "supplierId": "C17673",
+        "uniqueId": "e06ccd13940482ac",
+        "x": 1070,
+        "y": 560
+      },
+      {
+        "addIntoBom": true,
+        "designator": "R7",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "0805W8F4701T5E",
+        "name": "AI_Doll_V2_RES",
+        "pads": [
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "EXC6",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "a32422df29e4ff32e10",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 1070,
+            "y": 384.4
+          },
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "3V3",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "a32422df29e4ff32e11",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 1070,
+            "y": 305.6
+          }
+        ],
+        "primitiveId": "a32422df29e4ff32",
+        "rotation": 90,
+        "supplierId": "C17673",
+        "uniqueId": "ba2c6d155e7fd301",
+        "x": 1070,
+        "y": 345
+      },
+      {
+        "addIntoBom": true,
+        "designator": "R8",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "0805W8F4701T5E",
+        "name": "AI_Doll_V2_RES",
+        "pads": [
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "EXC7",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "beebe288c4c4c470e10",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 1070,
+            "y": 169.4
+          },
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "3V3",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "beebe288c4c4c470e11",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 1070,
+            "y": 90.6
+          }
+        ],
+        "primitiveId": "beebe288c4c4c470",
+        "rotation": 90,
+        "supplierId": "C17673",
+        "uniqueId": "86d447fa2a9c8586",
+        "x": 1070,
+        "y": 130
+      },
+      {
+        "addIntoBom": true,
+        "designator": "R9",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "0805W8F1002T5E",
+        "name": "AI_Doll_V2_RES",
+        "pads": [
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "GND",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "74eb5371d67d376ce10",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 390,
+            "y": 814.4
+          },
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "CH0",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "74eb5371d67d376ce11",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 390,
+            "y": 735.6
+          }
+        ],
+        "primitiveId": "74eb5371d67d376c",
+        "rotation": 90,
+        "supplierId": "C17414",
+        "uniqueId": "1e1ffada38203b9e",
+        "x": 390,
+        "y": 775
+      },
+      {
+        "addIntoBom": true,
+        "designator": "R10",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "0805W8F1002T5E",
+        "name": "AI_Doll_V2_RES",
+        "pads": [
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "GND",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "8a6cbb8e428f3b3de10",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 390,
+            "y": 599.4
+          },
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "CH1",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "8a6cbb8e428f3b3de11",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 390,
+            "y": 520.6
+          }
+        ],
+        "primitiveId": "8a6cbb8e428f3b3d",
+        "rotation": 90,
+        "supplierId": "C17414",
+        "uniqueId": "41bc0941336b1513",
+        "x": 390,
+        "y": 560
+      },
+      {
+        "addIntoBom": true,
+        "designator": "R11",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "0805W8F1002T5E",
+        "name": "AI_Doll_V2_RES",
+        "pads": [
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "GND",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "219d42fe757c54c9e10",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 390,
+            "y": 384.4
+          },
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "CH2",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "219d42fe757c54c9e11",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 390,
+            "y": 305.6
+          }
+        ],
+        "primitiveId": "219d42fe757c54c9",
+        "rotation": 90,
+        "supplierId": "C17414",
+        "uniqueId": "763cf8d5648cb4fd",
+        "x": 390,
+        "y": 345
+      },
+      {
+        "addIntoBom": true,
+        "designator": "R12",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "0805W8F1002T5E",
+        "name": "AI_Doll_V2_RES",
+        "pads": [
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "GND",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "85c4448bad26bcd4e10",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 390,
+            "y": 169.4
+          },
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "CH3",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "85c4448bad26bcd4e11",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 390,
+            "y": 90.6
+          }
+        ],
+        "primitiveId": "85c4448bad26bcd4",
+        "rotation": 90,
+        "supplierId": "C17414",
+        "uniqueId": "15ac9218146e0f4b",
+        "x": 390,
+        "y": 130
+      },
+      {
+        "addIntoBom": true,
+        "designator": "R13",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "0805W8F1002T5E",
+        "name": "AI_Doll_V2_RES",
+        "pads": [
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "GND",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "780040d3c4da80a6e10",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 940,
+            "y": 814.4
+          },
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "CH4",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "780040d3c4da80a6e11",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 940,
+            "y": 735.6
+          }
+        ],
+        "primitiveId": "780040d3c4da80a6",
+        "rotation": 90,
+        "supplierId": "C17414",
+        "uniqueId": "ff4077a9ca69db92",
+        "x": 940,
+        "y": 775
+      },
+      {
+        "addIntoBom": true,
+        "designator": "R14",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "0805W8F1002T5E",
+        "name": "AI_Doll_V2_RES",
+        "pads": [
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "GND",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "7f89de7b57e514c9e10",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 940,
+            "y": 599.4
+          },
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "CH5",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "7f89de7b57e514c9e11",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 940,
+            "y": 520.6
+          }
+        ],
+        "primitiveId": "7f89de7b57e514c9",
+        "rotation": 90,
+        "supplierId": "C17414",
+        "uniqueId": "8b54177fc4d64d35",
+        "x": 940,
+        "y": 560
+      },
+      {
+        "addIntoBom": true,
+        "designator": "R15",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "0805W8F1002T5E",
+        "name": "AI_Doll_V2_RES",
+        "pads": [
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "GND",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "7dbe3f13904ea6b6e10",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 940,
+            "y": 384.4
+          },
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "CH6",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "7dbe3f13904ea6b6e11",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 940,
+            "y": 305.6
+          }
+        ],
+        "primitiveId": "7dbe3f13904ea6b6",
+        "rotation": 90,
+        "supplierId": "C17414",
+        "uniqueId": "feece054417b9159",
+        "x": 940,
+        "y": 345
+      },
+      {
+        "addIntoBom": true,
+        "designator": "R16",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "0805W8F1002T5E",
+        "name": "AI_Doll_V2_RES",
+        "pads": [
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "GND",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "366f02c66f04c1c8e10",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 940,
+            "y": 169.4
+          },
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "CH7",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "366f02c66f04c1c8e11",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 940,
+            "y": 90.6
+          }
+        ],
+        "primitiveId": "366f02c66f04c1c8",
+        "rotation": 90,
+        "supplierId": "C17414",
+        "uniqueId": "3c543c7c58e1cc80",
+        "x": 940,
+        "y": 130
+      },
+      {
+        "addIntoBom": true,
+        "designator": "R17",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "0805W8F1001T5E",
+        "name": "AI_Doll_V2_RES",
+        "pads": [
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "ADC_IN",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "739881109799a84ae10",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 115,
+            "y": 1539.4
+          },
+          {
+            "height": 44.6,
+            "layer": 2,
+            "net": "MUX_COM",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "739881109799a84ae11",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 54.2,
+            "x": 115,
+            "y": 1460.6
+          }
+        ],
+        "primitiveId": "739881109799a84a",
+        "rotation": 90,
+        "supplierId": "C17513",
+        "uniqueId": "6346d187b4e0bc9c",
+        "x": 115,
+        "y": 1500
+      },
+      {
+        "addIntoBom": true,
+        "designator": "R18",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "0805W8F1003T5E",
+        "name": "AI_Doll_V2_RES",
+        "pads": [
+          {
+            "height": 54.2,
+            "layer": 2,
+            "net": "GND",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "0bbe327c9b86c5dde10",
+            "rotation": 0,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 44.6,
+            "x": 439.4,
+            "y": 935
+          },
+          {
+            "height": 54.2,
+            "layer": 2,
+            "net": "S0",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "0bbe327c9b86c5dde11",
+            "rotation": 0,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 44.6,
+            "x": 360.6,
+            "y": 935
+          }
+        ],
+        "primitiveId": "0bbe327c9b86c5dd",
+        "rotation": 0,
+        "supplierId": "C149504",
+        "uniqueId": "5f673669f0d56d8f",
+        "x": 400,
+        "y": 935
+      },
+      {
+        "addIntoBom": true,
+        "designator": "R19",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "0805W8F1003T5E",
+        "name": "AI_Doll_V2_RES",
+        "pads": [
+          {
+            "height": 54.2,
+            "layer": 2,
+            "net": "GND",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "af161728bdfe059de10",
+            "rotation": 0,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 44.6,
+            "x": 649.4,
+            "y": 935
+          },
+          {
+            "height": 54.2,
+            "layer": 2,
+            "net": "S1",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "af161728bdfe059de11",
+            "rotation": 0,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 44.6,
+            "x": 570.6,
+            "y": 935
+          }
+        ],
+        "primitiveId": "af161728bdfe059d",
+        "rotation": 0,
+        "supplierId": "C149504",
+        "uniqueId": "a32210a39874d8f8",
+        "x": 610,
+        "y": 935
+      },
+      {
+        "addIntoBom": true,
+        "designator": "R20",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "0805W8F1003T5E",
+        "name": "AI_Doll_V2_RES",
+        "pads": [
+          {
+            "height": 54.2,
+            "layer": 2,
+            "net": "GND",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "057088c3971b35ede10",
+            "rotation": 0,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 44.6,
+            "x": 1069.4,
+            "y": 1030
+          },
+          {
+            "height": 54.2,
+            "layer": 2,
+            "net": "S2",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "057088c3971b35ede11",
+            "rotation": 0,
+            "shape": [
+              "RECT",
+              44.6,
+              54.2,
+              0
+            ],
+            "specialPad": [],
+            "width": 44.6,
+            "x": 990.6,
+            "y": 1030
+          }
+        ],
+        "primitiveId": "057088c3971b35ed",
+        "rotation": 0,
+        "supplierId": "C149504",
+        "uniqueId": "13e77c54ede4b306",
+        "x": 1030,
+        "y": 1030
+      },
+      {
+        "addIntoBom": true,
+        "designator": "SW1",
+        "layer": 1,
+        "locked": false,
+        "manufacturerId": "SS12D00G4",
+        "name": "AI_Doll_V2_SW_SPDT",
+        "pads": [
+          {
+            "height": 60,
+            "layer": 12,
+            "net": "",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "f84c5a337be018b2e10",
+            "rotation": 0,
+            "shape": [
+              "ELLIPSE",
+              60,
+              60
+            ],
+            "specialPad": [],
+            "width": 60,
+            "x": 1051.6,
+            "y": 1625
+          },
+          {
+            "height": 60,
+            "layer": 12,
+            "net": "SYS5V",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "f84c5a337be018b2e11",
+            "rotation": 0,
+            "shape": [
+              "ELLIPSE",
+              60,
+              60
+            ],
+            "specialPad": [],
+            "width": 60,
+            "x": 1150,
+            "y": 1625
+          },
+          {
+            "height": 60,
+            "layer": 12,
+            "net": "PWR5V_RAW",
+            "padNumber": "3",
+            "padType": 0,
+            "primitiveId": "f84c5a337be018b2e12",
+            "rotation": 0,
+            "shape": [
+              "ELLIPSE",
+              60,
+              60
+            ],
+            "specialPad": [],
+            "width": 60,
+            "x": 1248.4,
+            "y": 1625
+          }
+        ],
+        "primitiveId": "f84c5a337be018b2",
+        "rotation": 0,
+        "supplierId": "C50377148",
+        "uniqueId": "c39dab7994ba8bcb",
+        "x": 1150.005,
+        "y": 1625.0005
+      },
+      {
+        "addIntoBom": false,
+        "designator": "TP1",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "",
+        "name": "AI_Doll_V2_TESTPOINT",
+        "pads": [
+          {
+            "height": 78.7,
+            "layer": 2,
+            "net": "SYS5V",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "b3ab29aee11c4e935627d6a70ec1e531",
+            "rotation": 0,
+            "shape": [
+              "ELLIPSE",
+              78.7,
+              78.7
+            ],
+            "specialPad": [],
+            "width": 78.7,
+            "x": 1250,
+            "y": 1170
+          }
+        ],
+        "primitiveId": "b3ab29aee11c4e93",
+        "rotation": 0,
+        "supplierId": "1",
+        "uniqueId": "4726d92b84fba278",
+        "x": 1250,
+        "y": 1170
+      },
+      {
+        "addIntoBom": false,
+        "designator": "TP2",
+        "layer": 1,
+        "locked": false,
+        "manufacturerId": "",
+        "name": "AI_Doll_V2_TESTPOINT",
+        "pads": [
+          {
+            "height": 78.7,
+            "layer": 1,
+            "net": "3V3",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "c83a9a6af8ce9eb35627d6a70ec1e531",
+            "rotation": 0,
+            "shape": [
+              "ELLIPSE",
+              78.7,
+              78.7
+            ],
+            "specialPad": [],
+            "width": 78.7,
+            "x": 950,
+            "y": 700
+          }
+        ],
+        "primitiveId": "c83a9a6af8ce9eb3",
+        "rotation": 0,
+        "supplierId": "1",
+        "uniqueId": "21ffbae72f4f4154",
+        "x": 950,
+        "y": 700
+      },
+      {
+        "addIntoBom": false,
+        "designator": "TP3",
+        "layer": 1,
+        "locked": false,
+        "manufacturerId": "",
+        "name": "AI_Doll_V2_TESTPOINT",
+        "pads": [
+          {
+            "height": 78.7,
+            "layer": 1,
+            "net": "GND",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "49c51fa493e6b2945627d6a70ec1e531",
+            "rotation": 0,
+            "shape": [
+              "ELLIPSE",
+              78.7,
+              78.7
+            ],
+            "specialPad": [],
+            "width": 78.7,
+            "x": 1100,
+            "y": 740
+          }
+        ],
+        "primitiveId": "49c51fa493e6b294",
+        "rotation": 0,
+        "supplierId": "1",
+        "uniqueId": "8df4c48c9acaaf69",
+        "x": 1100,
+        "y": 740
+      },
+      {
+        "addIntoBom": false,
+        "designator": "TP4",
+        "layer": 1,
+        "locked": false,
+        "manufacturerId": "",
+        "name": "AI_Doll_V2_TESTPOINT",
+        "pads": [
+          {
+            "height": 78.7,
+            "layer": 1,
+            "net": "ADC_IN",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "35d36ccd147310e55627d6a70ec1e531",
+            "rotation": 0,
+            "shape": [
+              "ELLIPSE",
+              78.7,
+              78.7
+            ],
+            "specialPad": [],
+            "width": 78.7,
+            "x": 90,
+            "y": 1680
+          }
+        ],
+        "primitiveId": "35d36ccd147310e5",
+        "rotation": 0,
+        "supplierId": "1",
+        "uniqueId": "6410be24ff53b3b6",
+        "x": 90,
+        "y": 1680
+      },
+      {
+        "addIntoBom": false,
+        "designator": "TP5",
+        "layer": 1,
+        "locked": false,
+        "manufacturerId": "",
+        "name": "AI_Doll_V2_TESTPOINT",
+        "pads": [
+          {
+            "height": 78.7,
+            "layer": 1,
+            "net": "GPIO6_SPARE",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "d32b1c2a5fba0f435627d6a70ec1e531",
+            "rotation": 0,
+            "shape": [
+              "ELLIPSE",
+              78.7,
+              78.7
+            ],
+            "specialPad": [],
+            "width": 78.7,
+            "x": 1110,
+            "y": 1460
+          }
+        ],
+        "primitiveId": "d32b1c2a5fba0f43",
+        "rotation": 0,
+        "supplierId": "1",
+        "uniqueId": "f7ec211fb22f3ea3",
+        "x": 1110,
+        "y": 1460
+      },
+      {
+        "addIntoBom": true,
+        "designator": "U1",
+        "layer": 1,
+        "locked": false,
+        "manufacturerId": "",
+        "name": "AI_Doll_V2_ESP32_C3_SUPERMINI",
+        "pads": [
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "SYS5V",
+            "padNumber": "16",
+            "padType": 0,
+            "primitiveId": "b2eec8b939a4aadb04487b6cf9ab700a",
+            "rotation": 0,
+            "shape": [
+              "RECT",
+              70.9,
+              70.9,
+              0
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 250,
+            "y": 930
+          },
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "S2",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "b2eec8b939a4aadb2c65dbdbffebd8d5",
+            "rotation": 0,
+            "shape": [
+              "ELLIPSE",
+              70.9,
+              70.9
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 850,
+            "y": 930
+          },
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "GND",
+            "padNumber": "15",
+            "padType": 0,
+            "primitiveId": "b2eec8b939a4aadbd892f6a5d9d1ec02",
+            "rotation": 0,
+            "shape": [
+              "ELLIPSE",
+              70.9,
+              70.9
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 250,
+            "y": 1030
+          },
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "GPIO6_SPARE",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "b2eec8b939a4aadb60a64534d49af4d0",
+            "rotation": 0,
+            "shape": [
+              "ELLIPSE",
+              70.9,
+              70.9
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 850,
+            "y": 1030
+          },
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "3V3",
+            "padNumber": "14",
+            "padType": 0,
+            "primitiveId": "b2eec8b939a4aadb6a1fae0cc0b9d859",
+            "rotation": 0,
+            "shape": [
+              "ELLIPSE",
+              70.9,
+              70.9
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 250,
+            "y": 1130
+          },
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "",
+            "padNumber": "3",
+            "padType": 0,
+            "primitiveId": "b2eec8b939a4aadb0d419a5f33192ec8",
+            "rotation": 0,
+            "shape": [
+              "ELLIPSE",
+              70.9,
+              70.9
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 850,
+            "y": 1130
+          },
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "S1",
+            "padNumber": "13",
+            "padType": 0,
+            "primitiveId": "b2eec8b939a4aadb6aa067f78fe9aefa",
+            "rotation": 0,
+            "shape": [
+              "ELLIPSE",
+              70.9,
+              70.9
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 250,
+            "y": 1230
+          },
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "",
+            "padNumber": "4",
+            "padType": 0,
+            "primitiveId": "b2eec8b939a4aadbea5b289dfb10b6bb",
+            "rotation": 0,
+            "shape": [
+              "ELLIPSE",
+              70.9,
+              70.9
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 850,
+            "y": 1230
+          },
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "S0",
+            "padNumber": "12",
+            "padType": 0,
+            "primitiveId": "b2eec8b939a4aadb5bb349781039b924",
+            "rotation": 0,
+            "shape": [
+              "ELLIPSE",
+              70.9,
+              70.9
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 250,
+            "y": 1330
+          },
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "",
+            "padNumber": "5",
+            "padType": 0,
+            "primitiveId": "b2eec8b939a4aadb5406343ee21ded98",
+            "rotation": 0,
+            "shape": [
+              "ELLIPSE",
+              70.9,
+              70.9
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 850,
+            "y": 1330
+          },
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "",
+            "padNumber": "11",
+            "padType": 0,
+            "primitiveId": "b2eec8b939a4aadbfafeb298bed2ed09",
+            "rotation": 0,
+            "shape": [
+              "ELLIPSE",
+              70.9,
+              70.9
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 250,
+            "y": 1430
+          },
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "",
+            "padNumber": "6",
+            "padType": 0,
+            "primitiveId": "b2eec8b939a4aadb98278fd6d59cb7fa",
+            "rotation": 0,
+            "shape": [
+              "ELLIPSE",
+              70.9,
+              70.9
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 850,
+            "y": 1430
+          },
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "",
+            "padNumber": "10",
+            "padType": 0,
+            "primitiveId": "b2eec8b939a4aadb5bbfe636ea4b8c99",
+            "rotation": 0,
+            "shape": [
+              "ELLIPSE",
+              70.9,
+              70.9
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 250,
+            "y": 1530
+          },
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "",
+            "padNumber": "7",
+            "padType": 0,
+            "primitiveId": "b2eec8b939a4aadb08f2536debdda110",
+            "rotation": 0,
+            "shape": [
+              "ELLIPSE",
+              70.9,
+              70.9
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 850,
+            "y": 1530
+          },
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "ADC_IN",
+            "padNumber": "9",
+            "padType": 0,
+            "primitiveId": "b2eec8b939a4aadbfe5a3f4899d9d177",
+            "rotation": 0,
+            "shape": [
+              "ELLIPSE",
+              70.9,
+              70.9
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 250,
+            "y": 1630
+          },
+          {
+            "height": 70.9,
+            "layer": 12,
+            "net": "",
+            "padNumber": "8",
+            "padType": 0,
+            "primitiveId": "b2eec8b939a4aadb93cad206b4742ece",
+            "rotation": 0,
+            "shape": [
+              "ELLIPSE",
+              70.9,
+              70.9
+            ],
+            "specialPad": [],
+            "width": 70.9,
+            "x": 850,
+            "y": 1630
+          }
+        ],
+        "primitiveId": "b2eec8b939a4aadb",
+        "rotation": 180,
+        "supplierId": "1",
+        "uniqueId": "1bdc0ab44f99f92d",
+        "x": 550,
+        "y": 1280
+      },
+      {
+        "addIntoBom": true,
+        "designator": "U2",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "74HC4051D",
+        "name": "AI_Doll_V2_HC4051",
+        "pads": [
+          {
+            "height": 77.6,
+            "layer": 2,
+            "net": "CH4",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "9e25fc8e86dba365e36",
+            "rotation": 0,
+            "shape": [
+              "OVAL",
+              23.7,
+              77.6
+            ],
+            "specialPad": [],
+            "width": 23.7,
+            "x": 367,
+            "y": 1431.2
+          },
+          {
+            "height": 77.6,
+            "layer": 2,
+            "net": "CH6",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "9e25fc8e86dba365e37",
+            "rotation": 0,
+            "shape": [
+              "OVAL",
+              23.7,
+              77.6
+            ],
+            "specialPad": [],
+            "width": 23.7,
+            "x": 417,
+            "y": 1431.2
+          },
+          {
+            "height": 77.6,
+            "layer": 2,
+            "net": "MUX_COM",
+            "padNumber": "3",
+            "padType": 0,
+            "primitiveId": "9e25fc8e86dba365e38",
+            "rotation": 0,
+            "shape": [
+              "OVAL",
+              23.7,
+              77.6
+            ],
+            "specialPad": [],
+            "width": 23.7,
+            "x": 467,
+            "y": 1431.2
+          },
+          {
+            "height": 77.6,
+            "layer": 2,
+            "net": "CH7",
+            "padNumber": "4",
+            "padType": 0,
+            "primitiveId": "9e25fc8e86dba365e39",
+            "rotation": 0,
+            "shape": [
+              "OVAL",
+              23.7,
+              77.6
+            ],
+            "specialPad": [],
+            "width": 23.7,
+            "x": 517,
+            "y": 1431.2
+          },
+          {
+            "height": 77.6,
+            "layer": 2,
+            "net": "CH5",
+            "padNumber": "5",
+            "padType": 0,
+            "primitiveId": "9e25fc8e86dba365e40",
+            "rotation": 0,
+            "shape": [
+              "OVAL",
+              23.7,
+              77.6
+            ],
+            "specialPad": [],
+            "width": 23.7,
+            "x": 567,
+            "y": 1431.2
+          },
+          {
+            "height": 77.6,
+            "layer": 2,
+            "net": "GND",
+            "padNumber": "6",
+            "padType": 0,
+            "primitiveId": "9e25fc8e86dba365e41",
+            "rotation": 0,
+            "shape": [
+              "OVAL",
+              23.7,
+              77.6
+            ],
+            "specialPad": [],
+            "width": 23.7,
+            "x": 617,
+            "y": 1431.2
+          },
+          {
+            "height": 77.6,
+            "layer": 2,
+            "net": "GND",
+            "padNumber": "7",
+            "padType": 0,
+            "primitiveId": "9e25fc8e86dba365e42",
+            "rotation": 0,
+            "shape": [
+              "OVAL",
+              23.7,
+              77.6
+            ],
+            "specialPad": [],
+            "width": 23.7,
+            "x": 667,
+            "y": 1431.2
+          },
+          {
+            "height": 77.6,
+            "layer": 2,
+            "net": "GND",
+            "padNumber": "8",
+            "padType": 0,
+            "primitiveId": "9e25fc8e86dba365e43",
+            "rotation": 0,
+            "shape": [
+              "OVAL",
+              23.7,
+              77.6
+            ],
+            "specialPad": [],
+            "width": 23.7,
+            "x": 717,
+            "y": 1431.2
+          },
+          {
+            "height": 77.6,
+            "layer": 2,
+            "net": "3V3",
+            "padNumber": "16",
+            "padType": 0,
+            "primitiveId": "9e25fc8e86dba365e44",
+            "rotation": 0,
+            "shape": [
+              "OVAL",
+              23.7,
+              77.6
+            ],
+            "specialPad": [],
+            "width": 23.7,
+            "x": 367,
+            "y": 1215.8
+          },
+          {
+            "height": 77.6,
+            "layer": 2,
+            "net": "CH2",
+            "padNumber": "15",
+            "padType": 0,
+            "primitiveId": "9e25fc8e86dba365e45",
+            "rotation": 0,
+            "shape": [
+              "OVAL",
+              23.7,
+              77.6
+            ],
+            "specialPad": [],
+            "width": 23.7,
+            "x": 417,
+            "y": 1215.8
+          },
+          {
+            "height": 77.6,
+            "layer": 2,
+            "net": "CH1",
+            "padNumber": "14",
+            "padType": 0,
+            "primitiveId": "9e25fc8e86dba365e46",
+            "rotation": 0,
+            "shape": [
+              "OVAL",
+              23.7,
+              77.6
+            ],
+            "specialPad": [],
+            "width": 23.7,
+            "x": 467,
+            "y": 1215.8
+          },
+          {
+            "height": 77.6,
+            "layer": 2,
+            "net": "CH0",
+            "padNumber": "13",
+            "padType": 0,
+            "primitiveId": "9e25fc8e86dba365e47",
+            "rotation": 0,
+            "shape": [
+              "OVAL",
+              23.7,
+              77.6
+            ],
+            "specialPad": [],
+            "width": 23.7,
+            "x": 517,
+            "y": 1215.8
+          },
+          {
+            "height": 77.6,
+            "layer": 2,
+            "net": "CH3",
+            "padNumber": "12",
+            "padType": 0,
+            "primitiveId": "9e25fc8e86dba365e48",
+            "rotation": 0,
+            "shape": [
+              "OVAL",
+              23.7,
+              77.6
+            ],
+            "specialPad": [],
+            "width": 23.7,
+            "x": 567,
+            "y": 1215.8
+          },
+          {
+            "height": 77.6,
+            "layer": 2,
+            "net": "S0",
+            "padNumber": "11",
+            "padType": 0,
+            "primitiveId": "9e25fc8e86dba365e49",
+            "rotation": 0,
+            "shape": [
+              "OVAL",
+              23.7,
+              77.6
+            ],
+            "specialPad": [],
+            "width": 23.7,
+            "x": 617,
+            "y": 1215.8
+          },
+          {
+            "height": 77.6,
+            "layer": 2,
+            "net": "S1",
+            "padNumber": "10",
+            "padType": 0,
+            "primitiveId": "9e25fc8e86dba365e50",
+            "rotation": 0,
+            "shape": [
+              "OVAL",
+              23.7,
+              77.6
+            ],
+            "specialPad": [],
+            "width": 23.7,
+            "x": 667,
+            "y": 1215.8
+          },
+          {
+            "height": 77.6,
+            "layer": 2,
+            "net": "S2",
+            "padNumber": "9",
+            "padType": 0,
+            "primitiveId": "9e25fc8e86dba365e51",
+            "rotation": 0,
+            "shape": [
+              "OVAL",
+              23.7,
+              77.6
+            ],
+            "specialPad": [],
+            "width": 23.7,
+            "x": 717,
+            "y": 1215.8
+          }
+        ],
+        "primitiveId": "9e25fc8e86dba365",
+        "rotation": 0,
+        "supplierId": "C2673644",
+        "uniqueId": "48f0ae2437312dae",
+        "x": 542.0332,
+        "y": 1323.5217
+      },
+      {
+        "addIntoBom": true,
+        "designator": "C1",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "CC0805KRX7R9BB104",
+        "name": "={Value}",
+        "pads": [
+          {
+            "height": 55.5,
+            "layer": 2,
+            "net": "GND",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "2683aede7d861b4ce15",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              55.5,
+              53.1,
+              0
+            ],
+            "specialPad": [],
+            "width": 53.1,
+            "x": 520,
+            "y": 814.4
+          },
+          {
+            "height": 55.5,
+            "layer": 2,
+            "net": "CH0",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "2683aede7d861b4ce16",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              55.5,
+              53.1,
+              0
+            ],
+            "specialPad": [],
+            "width": 53.1,
+            "x": 520,
+            "y": 735.6
+          }
+        ],
+        "primitiveId": "2683aede7d861b4c",
+        "rotation": 90,
+        "supplierId": "C49678",
+        "uniqueId": "b4693cfd16d534cd",
+        "x": 520,
+        "y": 775
+      },
+      {
+        "addIntoBom": true,
+        "designator": "C2",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "CC0805KRX7R9BB104",
+        "name": "={Value}",
+        "pads": [
+          {
+            "height": 55.5,
+            "layer": 2,
+            "net": "GND",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "46a31fa3dfad9e0de15",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              55.5,
+              53.1,
+              0
+            ],
+            "specialPad": [],
+            "width": 53.1,
+            "x": 520,
+            "y": 599.4
+          },
+          {
+            "height": 55.5,
+            "layer": 2,
+            "net": "CH1",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "46a31fa3dfad9e0de16",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              55.5,
+              53.1,
+              0
+            ],
+            "specialPad": [],
+            "width": 53.1,
+            "x": 520,
+            "y": 520.6
+          }
+        ],
+        "primitiveId": "46a31fa3dfad9e0d",
+        "rotation": 90,
+        "supplierId": "C49678",
+        "uniqueId": "a2c5d49bc5dde298",
+        "x": 520,
+        "y": 560
+      },
+      {
+        "addIntoBom": true,
+        "designator": "C3",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "CC0805KRX7R9BB104",
+        "name": "={Value}",
+        "pads": [
+          {
+            "height": 55.5,
+            "layer": 2,
+            "net": "GND",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "262aabab6c4fa8f6e15",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              55.5,
+              53.1,
+              0
+            ],
+            "specialPad": [],
+            "width": 53.1,
+            "x": 520,
+            "y": 384.4
+          },
+          {
+            "height": 55.5,
+            "layer": 2,
+            "net": "CH2",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "262aabab6c4fa8f6e16",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              55.5,
+              53.1,
+              0
+            ],
+            "specialPad": [],
+            "width": 53.1,
+            "x": 520,
+            "y": 305.6
+          }
+        ],
+        "primitiveId": "262aabab6c4fa8f6",
+        "rotation": 90,
+        "supplierId": "C49678",
+        "uniqueId": "cc82bf2c2e22e605",
+        "x": 520,
+        "y": 345
+      },
+      {
+        "addIntoBom": true,
+        "designator": "C4",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "CC0805KRX7R9BB104",
+        "name": "={Value}",
+        "pads": [
+          {
+            "height": 55.5,
+            "layer": 2,
+            "net": "GND",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "e12db780928dfa74e15",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              55.5,
+              53.1,
+              0
+            ],
+            "specialPad": [],
+            "width": 53.1,
+            "x": 520,
+            "y": 169.4
+          },
+          {
+            "height": 55.5,
+            "layer": 2,
+            "net": "CH3",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "e12db780928dfa74e16",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              55.5,
+              53.1,
+              0
+            ],
+            "specialPad": [],
+            "width": 53.1,
+            "x": 520,
+            "y": 90.6
+          }
+        ],
+        "primitiveId": "e12db780928dfa74",
+        "rotation": 90,
+        "supplierId": "C49678",
+        "uniqueId": "3a68d3ddabf48558",
+        "x": 520,
+        "y": 130
+      },
+      {
+        "addIntoBom": true,
+        "designator": "C5",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "CC0805KRX7R9BB104",
+        "name": "={Value}",
+        "pads": [
+          {
+            "height": 55.5,
+            "layer": 2,
+            "net": "GND",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "34854a0093e85634e15",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              55.5,
+              53.1,
+              0
+            ],
+            "specialPad": [],
+            "width": 53.1,
+            "x": 810,
+            "y": 814.4
+          },
+          {
+            "height": 55.5,
+            "layer": 2,
+            "net": "CH4",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "34854a0093e85634e16",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              55.5,
+              53.1,
+              0
+            ],
+            "specialPad": [],
+            "width": 53.1,
+            "x": 810,
+            "y": 735.6
+          }
+        ],
+        "primitiveId": "34854a0093e85634",
+        "rotation": 90,
+        "supplierId": "C49678",
+        "uniqueId": "ddba3c46cf8b8e66",
+        "x": 810,
+        "y": 775
+      },
+      {
+        "addIntoBom": true,
+        "designator": "C6",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "CC0805KRX7R9BB104",
+        "name": "={Value}",
+        "pads": [
+          {
+            "height": 55.5,
+            "layer": 2,
+            "net": "GND",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "3004c61573c84812e15",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              55.5,
+              53.1,
+              0
+            ],
+            "specialPad": [],
+            "width": 53.1,
+            "x": 810,
+            "y": 599.4
+          },
+          {
+            "height": 55.5,
+            "layer": 2,
+            "net": "CH5",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "3004c61573c84812e16",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              55.5,
+              53.1,
+              0
+            ],
+            "specialPad": [],
+            "width": 53.1,
+            "x": 810,
+            "y": 520.6
+          }
+        ],
+        "primitiveId": "3004c61573c84812",
+        "rotation": 90,
+        "supplierId": "C49678",
+        "uniqueId": "ab4a8fe24fad9fe4",
+        "x": 810,
+        "y": 560
+      },
+      {
+        "addIntoBom": true,
+        "designator": "C7",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "CC0805KRX7R9BB104",
+        "name": "={Value}",
+        "pads": [
+          {
+            "height": 55.5,
+            "layer": 2,
+            "net": "GND",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "767a89ddd0105174e15",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              55.5,
+              53.1,
+              0
+            ],
+            "specialPad": [],
+            "width": 53.1,
+            "x": 810,
+            "y": 384.4
+          },
+          {
+            "height": 55.5,
+            "layer": 2,
+            "net": "CH6",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "767a89ddd0105174e16",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              55.5,
+              53.1,
+              0
+            ],
+            "specialPad": [],
+            "width": 53.1,
+            "x": 810,
+            "y": 305.6
+          }
+        ],
+        "primitiveId": "767a89ddd0105174",
+        "rotation": 90,
+        "supplierId": "C49678",
+        "uniqueId": "48d2dd422533522c",
+        "x": 810,
+        "y": 345
+      },
+      {
+        "addIntoBom": true,
+        "designator": "C8",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "CC0805KRX7R9BB104",
+        "name": "={Value}",
+        "pads": [
+          {
+            "height": 55.5,
+            "layer": 2,
+            "net": "GND",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "e1b9b5a1f477a783e15",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              55.5,
+              53.1,
+              0
+            ],
+            "specialPad": [],
+            "width": 53.1,
+            "x": 810,
+            "y": 169.4
+          },
+          {
+            "height": 55.5,
+            "layer": 2,
+            "net": "CH7",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "e1b9b5a1f477a783e16",
+            "rotation": 90,
+            "shape": [
+              "RECT",
+              55.5,
+              53.1,
+              0
+            ],
+            "specialPad": [],
+            "width": 53.1,
+            "x": 810,
+            "y": 90.6
+          }
+        ],
+        "primitiveId": "e1b9b5a1f477a783",
+        "rotation": 90,
+        "supplierId": "C49678",
+        "uniqueId": "80f3708378e3d903",
+        "x": 810,
+        "y": 130
+      },
+      {
+        "addIntoBom": true,
+        "designator": "C9",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "CL21B102KBCNNNC",
+        "name": "={Value}",
+        "pads": [
+          {
+            "height": 53.10000000000001,
+            "layer": 2,
+            "net": "GND",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "baec764065f81089e15",
+            "rotation": 180,
+            "shape": [
+              "RECT",
+              55.5,
+              53.1,
+              0
+            ],
+            "specialPad": [],
+            "width": 55.50000000000001,
+            "x": 75.6,
+            "y": 1680
+          },
+          {
+            "height": 53.10000000000001,
+            "layer": 2,
+            "net": "ADC_IN",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "baec764065f81089e16",
+            "rotation": 180,
+            "shape": [
+              "RECT",
+              55.5,
+              53.1,
+              0
+            ],
+            "specialPad": [],
+            "width": 55.50000000000001,
+            "x": 154.4,
+            "y": 1680
+          }
+        ],
+        "primitiveId": "baec764065f81089",
+        "rotation": 180,
+        "supplierId": "C46653",
+        "uniqueId": "7ddfd2f632a8b17d",
+        "x": 115,
+        "y": 1680
+      },
+      {
+        "addIntoBom": true,
+        "designator": "C10",
+        "layer": 2,
+        "locked": false,
+        "manufacturerId": "CC0805KRX7R9BB104",
+        "name": "={Value}",
+        "pads": [
+          {
+            "height": 53.1,
+            "layer": 2,
+            "net": "GND",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "65283b27d9a4d664e15",
+            "rotation": 0,
+            "shape": [
+              "RECT",
+              55.5,
+              53.1,
+              0
+            ],
+            "specialPad": [],
+            "width": 55.5,
+            "x": 406.4,
+            "y": 1090
+          },
+          {
+            "height": 53.1,
+            "layer": 2,
+            "net": "3V3",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "65283b27d9a4d664e16",
+            "rotation": 0,
+            "shape": [
+              "RECT",
+              55.5,
+              53.1,
+              0
+            ],
+            "specialPad": [],
+            "width": 55.5,
+            "x": 327.6,
+            "y": 1090
+          }
+        ],
+        "primitiveId": "65283b27d9a4d664",
+        "rotation": 0,
+        "supplierId": "C49678",
+        "uniqueId": "3e75135af30e0f04",
+        "x": 367,
+        "y": 1090
+      },
+      {
+        "addIntoBom": true,
+        "designator": "C11",
+        "layer": 1,
+        "locked": false,
+        "manufacturerId": "CL21A106KAYNNNE",
+        "name": "={Value}",
+        "pads": [
+          {
+            "height": 53.1,
+            "layer": 1,
+            "net": "GND",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "107bab8fa7c761efe15",
+            "rotation": 0,
+            "shape": [
+              "RECT",
+              55.5,
+              53.1,
+              0
+            ],
+            "specialPad": [],
+            "width": 55.5,
+            "x": 1119.4,
+            "y": 860
+          },
+          {
+            "height": 53.1,
+            "layer": 1,
+            "net": "3V3",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "107bab8fa7c761efe16",
+            "rotation": 0,
+            "shape": [
+              "RECT",
+              55.5,
+              53.1,
+              0
+            ],
+            "specialPad": [],
+            "width": 55.5,
+            "x": 1040.6,
+            "y": 860
+          }
+        ],
+        "primitiveId": "107bab8fa7c761ef",
+        "rotation": 0,
+        "supplierId": "C15850",
+        "uniqueId": "20764de07767b3a1",
+        "x": 1080,
+        "y": 860
+      },
+      {
+        "addIntoBom": true,
+        "designator": "C12",
+        "layer": 1,
+        "locked": false,
+        "manufacturerId": "CC0805KRX7R9BB104",
+        "name": "={Value}",
+        "pads": [
+          {
+            "height": 53.1,
+            "layer": 1,
+            "net": "GND",
+            "padNumber": "2",
+            "padType": 0,
+            "primitiveId": "c19a7fe8fc6eb81fe15",
+            "rotation": 0,
+            "shape": [
+              "RECT",
+              55.5,
+              53.1,
+              0
+            ],
+            "specialPad": [],
+            "width": 55.5,
+            "x": 1119.4,
+            "y": 980
+          },
+          {
+            "height": 53.1,
+            "layer": 1,
+            "net": "3V3",
+            "padNumber": "1",
+            "padType": 0,
+            "primitiveId": "c19a7fe8fc6eb81fe16",
+            "rotation": 0,
+            "shape": [
+              "RECT",
+              55.5,
+              53.1,
+              0
+            ],
+            "specialPad": [],
+            "width": 55.5,
+            "x": 1040.6,
+            "y": 980
+          }
+        ],
+        "primitiveId": "c19a7fe8fc6eb81f",
+        "rotation": 0,
+        "supplierId": "C49678",
+        "uniqueId": "26a39bcafcc8ce7c",
+        "x": 1080,
+        "y": 980
+      }
+    ],
+    "count": 51
+  },
+  "context": {
+    "projectUuid": "f01d21f2541bbd6ca60d00a7f801735f0f56135e5e0122f259757dea8f413b05",
+    "projectName": "AI_Doll_V2_KiCad5_import",
+    "documentUuid": "7255bf756e8f41cb",
+    "documentType": "pcb",
+    "tabId": "7255bf756e8f41cb@f01d21f2541bbd6ca60d00a7f801735f0f56135e5e0122f259757dea8f413b05"
+  },
+  "seq": 698,
+  "seqAbandoned": 1,
+  "abandonedIds": [
+    "req_644"
+  ]
+}

@@ -1,0 +1,14 @@
+﻿位号,每板数量,参数/用途,封装,品牌,制造商型号,立创编号,采购页,安装位置,说明
+"R1,R2,R3,R4,R5,R6,R7,R8",8,"4.7kΩ ±1%, 1/8W",0805,UNI-ROYAL,0805W8F4701T5E,C17673,https://www.lcsc.com/product-detail/C17673.html,板上,已核对库/目录/手册及现有焊盘
+"R9,R10,R11,R12,R13,R14,R15,R16",8,"10kΩ ±1%, 1/8W",0805,UNI-ROYAL,0805W8F1002T5E,C17414,https://www.lcsc.com/product-detail/C17414.html,板上,已核对库/目录/手册及现有焊盘
+R17,1,"1kΩ ±1%, 1/8W",0805,UNI-ROYAL,0805W8F1001T5E,C17513,https://www.lcsc.com/product-detail/C17513.html,板上,已核对库/目录/手册及现有焊盘
+"R18,R19,R20",3,"100kΩ ±1%, 1/8W",0805,UNI-ROYAL,0805W8F1003T5E,C149504,https://www.lcsc.com/product-detail/C149504.html,板上,已核对库/目录/手册及现有焊盘
+"C1,C2,C3,C4,C5,C6,C7,C8,C10,C12",10,"100nF ±10%, 50V, X7R",0805,YAGEO,CC0805KRX7R9BB104,C49678,https://www.lcsc.com/product-detail/C49678.html,板上,已核对库/目录/手册及现有焊盘
+C9,1,"1nF ±10%, 50V, X7R",0805,SAMSUNG,CL21B102KBCNNNC,C46653,https://www.lcsc.com/product-detail/C46653.html,板上,已核对库/目录/手册及现有焊盘
+C11,1,"10μF ±10%, 25V, X5R",0805,SAMSUNG,CL21A106KAYNNNE,C15850,https://www.lcsc.com/product-detail/C15850.html,板上,已核对库/目录/手册及现有焊盘
+C13,1,"47μF ±20%, 6.3V, X5R",1206,SAMSUNG,CL31A476MQHNNNE,C68361,https://www.lcsc.com/product-detail/C68361.html,板上,已核对库/目录/手册及现有焊盘
+C14,1,"100nF ±10%, 50V, X7R",1206,SAMSUNG,CL31B104KBCNNNC,C24497,https://www.lcsc.com/product-detail/C24497.html,板上,已核对库/目录/手册及现有焊盘
+U2,1,74HC4051，8:1 模拟多路复用器,SOIC-16,TOSHIBA,74HC4051D,C2673644,https://www.lcsc.com/product-detail/C2673644.html,板上,已核对库/目录/手册及现有焊盘
+"J1,J2,J3,J4,J5,J6,J7,J8,J9",9,1×2 排针，2.54mm 间距,插件,MINTRON,MTP125-1102S1,C358684,https://www.lcsc.com/product-detail/C358684.html,板上,已核对库/目录/手册及现有焊盘
+SW1,1,3 脚滑动开关，2.5mm 脚距,插件,YIZHI,SS12D00G4,C50377148,https://www.lcsc.com/product-detail/C50377148.html,板上,已核对库/目录/手册及现有焊盘
+U1,1,ESP32-C3 SuperMini 模块,专用 2×8 模块封装,,ESP32-C3 SuperMini,,,板上,自行采购；保留原封装，未分配虚构 C 号

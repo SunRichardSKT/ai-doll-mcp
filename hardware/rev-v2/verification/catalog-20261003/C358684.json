@@ -1,0 +1,362 @@
+{
+  "code": 200,
+  "msg": null,
+  "result": {
+    "parentCatalogList": [
+      {
+        "catalogId": 10,
+        "catalogNameEn": "Connectors, Interconnects"
+      },
+      {
+        "catalogId": 170,
+        "catalogNameEn": "Rectangular Connectors"
+      }
+    ],
+    "isCableCategory": true,
+    "productId": 333684,
+    "productCode": "C358684",
+    "productModel": "MTP125-1102S1",
+    "productNameEn": "CONN HEADER 2POS 2.54mm SINGLE ROW TH",
+    "productKeyAttributes": "CONN HEADER 2POS 2.54mm SINGLE ROW TH",
+    "parentCatalogId": 365,
+    "parentCatalogName": "Connectors",
+    "catalogId": 792,
+    "catalogName": "Headers, Male Pins",
+    "brandId": 11880,
+    "brandNameEn": "MINTRON",
+    "encapStandard": "Through Hole,P=2.54mm",
+    "split": 50,
+    "productUnit": "Piece",
+    "minPacketUnit": "Bag",
+    "minBuyNumber": 50,
+    "maxBuyNumber": -1,
+    "minPacketNumber": 1000,
+    "isEnvironment": true,
+    "allHotLevel": null,
+    "isHot": false,
+    "isPreSale": false,
+    "isReel": false,
+    "reelPrice": 0,
+    "stockNumber": 211300,
+    "stockSz": 211300,
+    "domesticStockVO": {
+      "total": 211300,
+      "shipImmediately": 211300,
+      "ship3Days": 0
+    },
+    "overseasStockVO": {
+      "total": 211300,
+      "shipImmediately": 211300,
+      "ship3Days": 0
+    },
+    "productPriceList": [
+      {
+        "ladder": 50,
+        "productPrice": "0.0091",
+        "usdPrice": 0.0091,
+        "cnyProductPriceList": null,
+        "discountRate": "1",
+        "currencyPrice": 0.0091,
+        "currencySymbol": "$",
+        "isForeignDiscount": null,
+        "ladderLevel": null
+      },
+      {
+        "ladder": 500,
+        "productPrice": "0.0072",
+        "usdPrice": 0.0072,
+        "cnyProductPriceList": null,
+        "discountRate": "1",
+        "currencyPrice": 0.0072,
+        "currencySymbol": "$",
+        "isForeignDiscount": null,
+        "ladderLevel": null
+      },
+      {
+        "ladder": 2000,
+        "productPrice": "0.0058",
+        "usdPrice": 0.0058,
+        "cnyProductPriceList": null,
+        "discountRate": "1",
+        "currencyPrice": 0.0058,
+        "currencySymbol": "$",
+        "isForeignDiscount": null,
+        "ladderLevel": null
+      },
+      {
+        "ladder": 5000,
+        "productPrice": "0.0052",
+        "usdPrice": 0.0052,
+        "cnyProductPriceList": null,
+        "discountRate": "1",
+        "currencyPrice": 0.0052,
+        "currencySymbol": "$",
+        "isForeignDiscount": null,
+        "ladderLevel": null
+      },
+      {
+        "ladder": 25000,
+        "productPrice": "0.0046",
+        "usdPrice": 0.0046,
+        "cnyProductPriceList": null,
+        "discountRate": "1",
+        "currencyPrice": 0.0046,
+        "currencySymbol": "$",
+        "isForeignDiscount": null,
+        "ladderLevel": null
+      },
+      {
+        "ladder": 50000,
+        "productPrice": "0.0043",
+        "usdPrice": 0.0043,
+        "cnyProductPriceList": null,
+        "discountRate": "1",
+        "currencyPrice": 0.0043,
+        "currencySymbol": "$",
+        "isForeignDiscount": null,
+        "ladderLevel": null
+      }
+    ],
+    "productImages": [
+      "https://assets.lcsc.com/images/lcsc/900x900/20190121_MINTRON-MTP125-1102S1_C358684_front.jpg",
+      "https://assets.lcsc.com/images/lcsc/900x900/20190121_MINTRON-MTP125-1102S1_C358684_back.jpg",
+      "https://assets.lcsc.com/images/lcsc/900x900/20190121_MINTRON-MTP125-1102S1_C358684_blank.jpg"
+    ],
+    "edaSvgInfo": {
+      "schSvg": "//image.easyeda.com/component_svgs/prod/fb65121d6fc1463fb70c33161400bc13.svg?t=1741164943",
+      "pcbSvg": "//image.easyeda.com/component_svgs/prod/7ae61b24ec5d431087f34ea7cfebbd9e.svg?t=1741164943"
+    },
+    "faqs": null,
+    "pdfUrl": "https://datasheet.lcsc.com/datasheet/pdf/c770dcf403378f74c093abc24875eae4.pdf?productCode=C358684",
+    "authenticationList": [
+      "ROHS 认证"
+    ],
+    "isRohsCert": true,
+    "rohsCertType": "ROHS",
+    "rohsCertList": [
+      {
+        "fileCode": "wj1694002",
+        "fileName": "排针原材料_ROHS认证_MINTRON(明硕).zip",
+        "url": "https://datasheet.lcsc.com/certification/rohs/2df537d124655af198f042717fff985d.zip"
+      }
+    ],
+    "productDescEn": "Pin Header 2 Position 2.54mm Pitch Single Row Through Hole -40℃~+105℃",
+    "productIntroEn": "Pin Header 2 Position 2.54mm Pitch Single Row Through Hole -40℃~+105℃",
+    "paramVOList": [
+      {
+        "paramCode": "param_13482",
+        "paramName": "连接器类型",
+        "paramNameEn": "Connector Type",
+        "paramValue": "直插",
+        "paramValueEn": "Through Hole",
+        "paramValueEnForSearch": -1.0,
+        "isMain": true,
+        "sortNumber": 1,
+        "sort": 2
+      },
+      {
+        "paramCode": "param_13360_n",
+        "paramName": "额定电压",
+        "paramNameEn": "Voltage Rating (Max)",
+        "paramValue": "-",
+        "paramValueEn": "-",
+        "paramValueEnForSearch": null,
+        "isMain": true,
+        "sortNumber": 1,
+        "sort": 9
+      },
+      {
+        "paramCode": "param_27359",
+        "paramName": "触头材质",
+        "paramNameEn": "Contact Material",
+        "paramValue": "黄铜",
+        "paramValueEn": "Brass",
+        "paramValueEnForSearch": -1.0,
+        "isMain": false,
+        "sortNumber": 1,
+        "sort": 26
+      },
+      {
+        "paramCode": "param_13356_n",
+        "paramName": "排数",
+        "paramNameEn": "Number of Rows",
+        "paramValue": "单排",
+        "paramValueEn": "1",
+        "paramValueEnForSearch": null,
+        "isMain": true,
+        "sortNumber": 1,
+        "sort": 7
+      },
+      {
+        "paramCode": "param_13357_n",
+        "paramName": "间距",
+        "paramNameEn": "Pitch",
+        "paramValue": "2.54mm",
+        "paramValueEn": "2.54mm",
+        "paramValueEnForSearch": 2.54,
+        "isMain": true,
+        "sortNumber": 1,
+        "sort": 2
+      },
+      {
+        "paramCode": "param_10868",
+        "paramName": "圆针/方针",
+        "paramNameEn": "Circluar Pins/Square Pins",
+        "paramValue": "方针",
+        "paramValueEn": "Square pin",
+        "paramValueEnForSearch": -1.0,
+        "isMain": true,
+        "sortNumber": 1,
+        "sort": 66
+      },
+      {
+        "paramCode": "param_13359_n",
+        "paramName": "额定电流",
+        "paramNameEn": "Current Rating",
+        "paramValue": "3A",
+        "paramValueEn": "3A",
+        "paramValueEnForSearch": 3.0,
+        "isMain": true,
+        "sortNumber": 1,
+        "sort": 8
+      },
+      {
+        "paramCode": "param_10872_n",
+        "paramName": "塑高",
+        "paramNameEn": "Insulation Height",
+        "paramValue": "2.5mm",
+        "paramValueEn": "2.5mm",
+        "paramValueEnForSearch": 2.5,
+        "isMain": true,
+        "sortNumber": 1,
+        "sort": 125
+      },
+      {
+        "paramCode": "param_10871_n",
+        "paramName": "配合针长度",
+        "paramNameEn": "Length of Mating Pin",
+        "paramValue": "6mm",
+        "paramValueEn": "6mm",
+        "paramValueEnForSearch": 6.0,
+        "isMain": true,
+        "sortNumber": 1,
+        "sort": 119
+      },
+      {
+        "paramCode": "param_14716",
+        "paramName": "总PIN数",
+        "paramNameEn": "Number of PINs",
+        "paramValue": "2P",
+        "paramValueEn": "2P",
+        "paramValueEnForSearch": -1.0,
+        "isMain": true,
+        "sortNumber": 1,
+        "sort": 5
+      },
+      {
+        "paramCode": "param_14723_s",
+        "paramName": "工作温度",
+        "paramNameEn": "Operating Temperature",
+        "paramValue": "-40℃~+105℃",
+        "paramValueEn": "-40℃~+105℃",
+        "paramValueEnForSearch": null,
+        "isMain": true,
+        "sortNumber": 1,
+        "sort": 32
+      },
+      {
+        "paramCode": "param_10873_n",
+        "paramName": "端接针长度",
+        "paramNameEn": "Length of End Connection Pin",
+        "paramValue": "3mm",
+        "paramValueEn": "3mm",
+        "paramValueEnForSearch": 3.0,
+        "isMain": true,
+        "sortNumber": 1,
+        "sort": 131
+      },
+      {
+        "paramCode": "param_13664",
+        "paramName": "触头镀层",
+        "paramNameEn": "Contact Plating",
+        "paramValue": "-",
+        "paramValueEn": "-",
+        "paramValueEnForSearch": -1.0,
+        "isMain": true,
+        "sortNumber": 1,
+        "sort": 10
+      },
+      {
+        "paramCode": "param_13406",
+        "paramName": "颜色",
+        "paramNameEn": "Color",
+        "paramValue": "黑色",
+        "paramValueEn": "Black",
+        "paramValueEnForSearch": -1.0,
+        "isMain": true,
+        "sortNumber": 1,
+        "sort": 3
+      },
+      {
+        "paramCode": "param_10864",
+        "paramName": "插针结构",
+        "paramNameEn": "Pin Structure",
+        "paramValue": "1x2P",
+        "paramValueEn": "1x2P",
+        "paramValueEnForSearch": -1.0,
+        "isMain": true,
+        "sortNumber": 1,
+        "sort": 4
+      },
+      {
+        "paramCode": "param_10866_n",
+        "paramName": "行距",
+        "paramNameEn": "Row Spacing",
+        "paramValue": "-",
+        "paramValueEn": "-",
+        "paramValueEnForSearch": null,
+        "isMain": true,
+        "sortNumber": 1,
+        "sort": 56
+      }
+    ],
+    "wmCatalogId": 792,
+    "wmCatalogNameEn": "Headers, Male Pins",
+    "productArrange": "Bag-packed",
+    "productWeight": 0.00011,
+    "foreignWeight": 0.0,
+    "isForeignOnsale": true,
+    "isForeignDisplay": true,
+    "isNotOverstock": false,
+    "productCycle": "normal",
+    "isHasBattery": false,
+    "pdfLinkUrl": null,
+    "isShowForeignPrice": true,
+    "isRealPrice": true,
+    "productLadderPrice": null,
+    "ladderDiscountRate": null,
+    "eccn": null,
+    "currencyType": "USD",
+    "currencySymbol": "$",
+    "title": "MINTRON MTP125-1102S1",
+    "weight": 0.11,
+    "hasThirdPartyStock": false,
+    "flashSaleProductPO": null,
+    "htsMap": {
+      "BR": "85369010",
+      "TARIC": "8536901000",
+      "IN": "85369010",
+      "CN": "8536901100",
+      "MX": "8536.90.11",
+      "CA": "8536900090",
+      "US": "8536908585"
+    },
+    "isAsianBrand": true,
+    "isMro": false,
+    "isInfringement": false,
+    "isSample": false,
+    "sampleNumber": null,
+    "alternatePartList": []
+  },
+  "ok": true
+}

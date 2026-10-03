@@ -1,0 +1,147 @@
+{
+  "code": 200,
+  "msg": null,
+  "result": {
+    "parentCatalogList": [
+      {
+        "catalogId": 1729,
+        "catalogNameEn": "Maintenance, Repair & Operations"
+      },
+      {
+        "catalogId": 2503,
+        "catalogNameEn": "Switches"
+      }
+    ],
+    "isCableCategory": false,
+    "productId": 52993511,
+    "productCode": "C50377148",
+    "productModel": "SS12D00G4",
+    "productNameEn": "Slide Switch SPDT 3 Pin Vertical Through Hole SS12D00G4",
+    "productKeyAttributes": "",
+    "parentCatalogId": 11315,
+    "parentCatalogName": "Industrial control electrical",
+    "catalogId": 2524,
+    "catalogName": "Slide Switches",
+    "brandId": 18649,
+    "brandNameEn": "YIZHI",
+    "encapStandard": "-",
+    "split": 20,
+    "productUnit": "Piece",
+    "minPacketUnit": "Bag",
+    "minBuyNumber": 20,
+    "maxBuyNumber": -1,
+    "minPacketNumber": 2000,
+    "isEnvironment": false,
+    "allHotLevel": null,
+    "isHot": false,
+    "isPreSale": false,
+    "isReel": false,
+    "reelPrice": 0,
+    "stockNumber": 2020,
+    "stockSz": 2020,
+    "domesticStockVO": {
+      "total": 2020,
+      "shipImmediately": 2020,
+      "ship3Days": 0
+    },
+    "overseasStockVO": {
+      "total": 2020,
+      "shipImmediately": 2020,
+      "ship3Days": 0
+    },
+    "productPriceList": [
+      {
+        "ladder": 20,
+        "productPrice": "0.0167",
+        "usdPrice": 0.0167,
+        "cnyProductPriceList": null,
+        "discountRate": "1",
+        "currencyPrice": 0.0167,
+        "currencySymbol": "$",
+        "isForeignDiscount": null,
+        "ladderLevel": null
+      },
+      {
+        "ladder": 200,
+        "productPrice": "0.0157",
+        "usdPrice": 0.0157,
+        "cnyProductPriceList": null,
+        "discountRate": "1",
+        "currencyPrice": 0.0157,
+        "currencySymbol": "$",
+        "isForeignDiscount": null,
+        "ladderLevel": null
+      },
+      {
+        "ladder": 4000,
+        "productPrice": "0.0133",
+        "usdPrice": 0.0133,
+        "cnyProductPriceList": null,
+        "discountRate": "1",
+        "currencyPrice": 0.0133,
+        "currencySymbol": "$",
+        "isForeignDiscount": null,
+        "ladderLevel": null
+      },
+      {
+        "ladder": 20000,
+        "productPrice": "0.0128",
+        "usdPrice": 0.0128,
+        "cnyProductPriceList": null,
+        "discountRate": "1",
+        "currencyPrice": 0.0128,
+        "currencySymbol": "$",
+        "isForeignDiscount": null,
+        "ladderLevel": null
+      }
+    ],
+    "productImages": [
+      "https://assets.lcsc.com/images/lcsc/900x900/20250913_YIZHI-SS12D00G4_C50377148_front.jpg",
+      "https://assets.lcsc.com/images/lcsc/900x900/20250913_YIZHI-SS12D00G4_C50377148_back.jpg",
+      "https://assets.lcsc.com/images/lcsc/900x900/20250913_YIZHI-SS12D00G4_C50377148_blank.jpg"
+    ],
+    "edaSvgInfo": {
+      "schSvg": "//image.easyeda.com/component_svgs/prod/5360c8186d4f44708a30d09ca401c6e5.svg?t=1758353467",
+      "pcbSvg": "//image.easyeda.com/component_svgs/prod/a176a9f63b064442a98e298c6b325726.svg?t=1758353467"
+    },
+    "faqs": null,
+    "pdfUrl": "https://datasheet.lcsc.com/datasheet/pdf/1840d3a363bf4dd0cdddef8312aa8104.pdf?productCode=C50377148",
+    "authenticationList": null,
+    "isRohsCert": null,
+    "rohsCertType": null,
+    "rohsCertList": null,
+    "productDescEn": null,
+    "productIntroEn": "Slide Switches ",
+    "paramVOList": null,
+    "wmCatalogId": 2524,
+    "wmCatalogNameEn": "Slide Switches",
+    "productArrange": "Bag-packed",
+    "productWeight": 0.00027545,
+    "foreignWeight": null,
+    "isForeignOnsale": false,
+    "isForeignDisplay": true,
+    "isNotOverstock": false,
+    "productCycle": "normal",
+    "isHasBattery": false,
+    "pdfLinkUrl": null,
+    "isShowForeignPrice": true,
+    "isRealPrice": true,
+    "productLadderPrice": null,
+    "ladderDiscountRate": null,
+    "eccn": "-",
+    "currencyType": "USD",
+    "currencySymbol": "$",
+    "title": "YIZHI SS12D00G4",
+    "weight": 0.275,
+    "hasThirdPartyStock": false,
+    "flashSaleProductPO": null,
+    "htsMap": null,
+    "isAsianBrand": true,
+    "isMro": true,
+    "isInfringement": false,
+    "isSample": false,
+    "sampleNumber": null,
+    "alternatePartList": []
+  },
+  "ok": true
+}

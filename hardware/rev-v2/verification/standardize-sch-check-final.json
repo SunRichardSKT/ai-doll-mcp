@@ -1,0 +1,772 @@
+{
+  "id": "req_876",
+  "ok": true,
+  "result": {
+    "passed": false,
+    "summary": {
+      "floatingPins": 0,
+      "componentsWithFloating": 0,
+      "geomNetMismatches": 22,
+      "netMarkerMismatches": 0,
+      "multiNetWires": 0,
+      "wireCrossings": 0,
+      "wireOverPins": 0,
+      "zeroLengthWires": 0,
+      "danglingWires": 0,
+      "duplicateNetMarkers": 0,
+      "titleblockOverlaps": 0,
+      "markerOverlaps": 0,
+      "missingPartitions": 0,
+      "redundantNetMarkers": 0,
+      "foldedNetLabels": 0,
+      "reversedNetFlags": 0,
+      "polarityConventionOutliers": 0,
+      "total": 84
+    },
+    "findings": [
+      {
+        "type": "geom-net-mismatch",
+        "level": "warn",
+        "designator": "FS2",
+        "primitiveId": "ie281",
+        "pins": [
+          "1"
+        ],
+        "message": "导线触碰该引脚但网表未将其归入任何 net(疑似漏连:未编译网表或仅几何贴合未真正连通)",
+        "at": {
+          "x": 623,
+          "y": -393.99999999999994
+        }
+      },
+      {
+        "type": "geom-net-mismatch",
+        "level": "warn",
+        "designator": "FS2",
+        "primitiveId": "ie281",
+        "pins": [
+          "2"
+        ],
+        "message": "导线触碰该引脚但网表未将其归入任何 net(疑似漏连:未编译网表或仅几何贴合未真正连通)",
+        "at": {
+          "x": 657,
+          "y": -393.99999999999994
+        }
+      },
+      {
+        "type": "geom-net-mismatch",
+        "level": "warn",
+        "designator": "FS3",
+        "primitiveId": "ie327",
+        "pins": [
+          "1"
+        ],
+        "message": "导线触碰该引脚但网表未将其归入任何 net(疑似漏连:未编译网表或仅几何贴合未真正连通)",
+        "at": {
+          "x": 1003,
+          "y": -394
+        }
+      },
+      {
+        "type": "geom-net-mismatch",
+        "level": "warn",
+        "designator": "FS3",
+        "primitiveId": "ie327",
+        "pins": [
+          "2"
+        ],
+        "message": "导线触碰该引脚但网表未将其归入任何 net(疑似漏连:未编译网表或仅几何贴合未真正连通)",
+        "at": {
+          "x": 1037,
+          "y": -394
+        }
+      },
+      {
+        "type": "geom-net-mismatch",
+        "level": "warn",
+        "designator": "FS4",
+        "primitiveId": "ie373",
+        "pins": [
+          "1"
+        ],
+        "message": "导线触碰该引脚但网表未将其归入任何 net(疑似漏连:未编译网表或仅几何贴合未真正连通)",
+        "at": {
+          "x": 1383,
+          "y": -394.00000000000006
+        }
+      },
+      {
+        "type": "geom-net-mismatch",
+        "level": "warn",
+        "designator": "FS4",
+        "primitiveId": "ie373",
+        "pins": [
+          "2"
+        ],
+        "message": "导线触碰该引脚但网表未将其归入任何 net(疑似漏连:未编译网表或仅几何贴合未真正连通)",
+        "at": {
+          "x": 1417,
+          "y": -394.00000000000006
+        }
+      },
+      {
+        "type": "geom-net-mismatch",
+        "level": "warn",
+        "designator": "FS5",
+        "primitiveId": "ie419",
+        "pins": [
+          "1"
+        ],
+        "message": "导线触碰该引脚但网表未将其归入任何 net(疑似漏连:未编译网表或仅几何贴合未真正连通)",
+        "at": {
+          "x": 242.99999999999994,
+          "y": -694
+        }
+      },
+      {
+        "type": "geom-net-mismatch",
+        "level": "warn",
+        "designator": "FS5",
+        "primitiveId": "ie419",
+        "pins": [
+          "2"
+        ],
+        "message": "导线触碰该引脚但网表未将其归入任何 net(疑似漏连:未编译网表或仅几何贴合未真正连通)",
+        "at": {
+          "x": 276.99999999999994,
+          "y": -694
+        }
+      },
+      {
+        "type": "geom-net-mismatch",
+        "level": "warn",
+        "designator": "FS6",
+        "primitiveId": "ie465",
+        "pins": [
+          "1"
+        ],
+        "message": "导线触碰该引脚但网表未将其归入任何 net(疑似漏连:未编译网表或仅几何贴合未真正连通)",
+        "at": {
+          "x": 622.9999999999999,
+          "y": -693.9999999999999
+        }
+      },
+      {
+        "type": "geom-net-mismatch",
+        "level": "warn",
+        "designator": "FS6",
+        "primitiveId": "ie465",
+        "pins": [
+          "2"
+        ],
+        "message": "导线触碰该引脚但网表未将其归入任何 net(疑似漏连:未编译网表或仅几何贴合未真正连通)",
+        "at": {
+          "x": 656.9999999999999,
+          "y": -693.9999999999999
+        }
+      },
+      {
+        "type": "geom-net-mismatch",
+        "level": "warn",
+        "designator": "FS7",
+        "primitiveId": "ie511",
+        "pins": [
+          "1"
+        ],
+        "message": "导线触碰该引脚但网表未将其归入任何 net(疑似漏连:未编译网表或仅几何贴合未真正连通)",
+        "at": {
+          "x": 1002.9999999999999,
+          "y": -693.9999999999999
+        }
+      },
+      {
+        "type": "geom-net-mismatch",
+        "level": "warn",
+        "designator": "FS7",
+        "primitiveId": "ie511",
+        "pins": [
+          "2"
+        ],
+        "message": "导线触碰该引脚但网表未将其归入任何 net(疑似漏连:未编译网表或仅几何贴合未真正连通)",
+        "at": {
+          "x": 1037,
+          "y": -693.9999999999999
+        }
+      },
+      {
+        "type": "geom-net-mismatch",
+        "level": "warn",
+        "designator": "FS8",
+        "primitiveId": "ie557",
+        "pins": [
+          "1"
+        ],
+        "message": "导线触碰该引脚但网表未将其归入任何 net(疑似漏连:未编译网表或仅几何贴合未真正连通)",
+        "at": {
+          "x": 1383,
+          "y": -694
+        }
+      },
+      {
+        "type": "geom-net-mismatch",
+        "level": "warn",
+        "designator": "FS8",
+        "primitiveId": "ie557",
+        "pins": [
+          "2"
+        ],
+        "message": "导线触碰该引脚但网表未将其归入任何 net(疑似漏连:未编译网表或仅几何贴合未真正连通)",
+        "at": {
+          "x": 1417,
+          "y": -694
+        }
+      },
+      {
+        "type": "geom-net-mismatch",
+        "level": "warn",
+        "designator": "FS1",
+        "primitiveId": "f38cf574cbba0f41",
+        "pins": [
+          "1"
+        ],
+        "message": "导线触碰该引脚但网表未将其归入任何 net(疑似漏连:未编译网表或仅几何贴合未真正连通)",
+        "at": {
+          "x": 242.99999999999994,
+          "y": -393.99999999999994
+        }
+      },
+      {
+        "type": "geom-net-mismatch",
+        "level": "warn",
+        "designator": "FS1",
+        "primitiveId": "f38cf574cbba0f41",
+        "pins": [
+          "2"
+        ],
+        "message": "导线触碰该引脚但网表未将其归入任何 net(疑似漏连:未编译网表或仅几何贴合未真正连通)",
+        "at": {
+          "x": 276.99999999999994,
+          "y": -393.99999999999994
+        }
+      },
+      {
+        "type": "geom-net-mismatch",
+        "level": "warn",
+        "designator": "BT1",
+        "primitiveId": "831429b7176639e3",
+        "pins": [
+          "1"
+        ],
+        "message": "导线触碰该引脚但网表未将其归入任何 net(疑似漏连:未编译网表或仅几何贴合未真正连通)",
+        "at": {
+          "x": 73,
+          "y": -160
+        }
+      },
+      {
+        "type": "geom-net-mismatch",
+        "level": "warn",
+        "designator": "BT1",
+        "primitiveId": "831429b7176639e3",
+        "pins": [
+          "2"
+        ],
+        "message": "导线触碰该引脚但网表未将其归入任何 net(疑似漏连:未编译网表或仅几何贴合未真正连通)",
+        "at": {
+          "x": 107,
+          "y": -160
+        }
+      },
+      {
+        "type": "geom-net-mismatch",
+        "level": "warn",
+        "designator": "U3",
+        "primitiveId": "e7258f4e4ebbf0b7",
+        "pins": [
+          "1"
+        ],
+        "message": "导线触碰该引脚但网表未将其归入任何 net(疑似漏连:未编译网表或仅几何贴合未真正连通)",
+        "at": {
+          "x": 190,
+          "y": -170
+        }
+      },
+      {
+        "type": "geom-net-mismatch",
+        "level": "warn",
+        "designator": "U3",
+        "primitiveId": "e7258f4e4ebbf0b7",
+        "pins": [
+          "2"
+        ],
+        "message": "导线触碰该引脚但网表未将其归入任何 net(疑似漏连:未编译网表或仅几何贴合未真正连通)",
+        "at": {
+          "x": 190,
+          "y": -150
+        }
+      },
+      {
+        "type": "geom-net-mismatch",
+        "level": "warn",
+        "designator": "U3",
+        "primitiveId": "e7258f4e4ebbf0b7",
+        "pins": [
+          "3"
+        ],
+        "message": "导线触碰该引脚但网表未将其归入任何 net(疑似漏连:未编译网表或仅几何贴合未真正连通)",
+        "at": {
+          "x": 250,
+          "y": -170
+        }
+      },
+      {
+        "type": "geom-net-mismatch",
+        "level": "warn",
+        "designator": "U3",
+        "primitiveId": "e7258f4e4ebbf0b7",
+        "pins": [
+          "4"
+        ],
+        "message": "导线触碰该引脚但网表未将其归入任何 net(疑似漏连:未编译网表或仅几何贴合未真正连通)",
+        "at": {
+          "x": 250,
+          "y": -150
+        }
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "R19",
+        "primitiveId": "ie143",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "R20",
+        "primitiveId": "ie152",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "R17",
+        "primitiveId": "ie161",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "R1",
+        "primitiveId": "ie217",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "R9",
+        "primitiveId": "ie244",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "R2",
+        "primitiveId": "ie263",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "R10",
+        "primitiveId": "ie290",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "R3",
+        "primitiveId": "ie309",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "R11",
+        "primitiveId": "ie336",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "R4",
+        "primitiveId": "ie355",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "R12",
+        "primitiveId": "ie382",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "R5",
+        "primitiveId": "ie401",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "R13",
+        "primitiveId": "ie428",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "R6",
+        "primitiveId": "ie447",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "R14",
+        "primitiveId": "ie474",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "R7",
+        "primitiveId": "ie493",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "R15",
+        "primitiveId": "ie520",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "R8",
+        "primitiveId": "ie539",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "R16",
+        "primitiveId": "ie566",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "R18",
+        "primitiveId": "5b81b866d944e605",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "TP1",
+        "primitiveId": "ie179",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "TP2",
+        "primitiveId": "ie188",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "TP3",
+        "primitiveId": "ie197",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "TP4",
+        "primitiveId": "ie206",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "TP5",
+        "primitiveId": "a7a3d79c53dc3b99",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "J1",
+        "primitiveId": "ie226",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "J2",
+        "primitiveId": "ie272",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "J3",
+        "primitiveId": "ie318",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "J4",
+        "primitiveId": "ie364",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "J5",
+        "primitiveId": "ie410",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "J6",
+        "primitiveId": "ie456",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "J7",
+        "primitiveId": "ie502",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "J8",
+        "primitiveId": "ie548",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "J9",
+        "primitiveId": "c202bebe525dedda",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "FS2",
+        "primitiveId": "ie281",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "FS3",
+        "primitiveId": "ie327",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "FS4",
+        "primitiveId": "ie373",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "FS5",
+        "primitiveId": "ie419",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "FS6",
+        "primitiveId": "ie465",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "FS7",
+        "primitiveId": "ie511",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "FS8",
+        "primitiveId": "ie557",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "FS1",
+        "primitiveId": "f38cf574cbba0f41",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "BT1",
+        "primitiveId": "831429b7176639e3",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "U3",
+        "primitiveId": "e7258f4e4ebbf0b7",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "SW1",
+        "primitiveId": "24c83110594573d1",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "U1",
+        "primitiveId": "4515cb254e153a51",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "U2",
+        "primitiveId": "2378b87c8d14bcb2",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "C14",
+        "primitiveId": "5b5598d3f1953139",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "C13",
+        "primitiveId": "7ea27e17eb1db02b",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "C1",
+        "primitiveId": "08d7da73f641a763",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "C2",
+        "primitiveId": "b2a1e8459cd38c62",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "C3",
+        "primitiveId": "91fc105cb6163bc0",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "C4",
+        "primitiveId": "23901b8bb086a8c6",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "C5",
+        "primitiveId": "0a1d4c3fa13f0a5b",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "C6",
+        "primitiveId": "ad3596534daca4fa",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "C7",
+        "primitiveId": "6563eff8c48b4b73",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "C8",
+        "primitiveId": "7ed7b41fe7532940",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "C10",
+        "primitiveId": "91d0d0065b169249",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "C12",
+        "primitiveId": "c8a8e1f6e986baf3",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "C9",
+        "primitiveId": "8b9b15ed09733fc7",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "part-frame-unresolved",
+        "level": "ERROR",
+        "designator": "C11",
+        "primitiveId": "db6a2fd7c94f61dc",
+        "message": "body must belong to exactly one live module frame"
+      },
+      {
+        "type": "titleblock-key-absent",
+        "level": "info",
+        "count": 1,
+        "message": "这一页的图签模板没有这些明细项:Drawed —— 写入会被拒(`sch titleblock` 只接受当前页已有的 key)。本页可用 key:Add into BOM, Comment1, Comment2, Comment3, Comment4, Comp, Date, Description, Designator, Device, File, Footprint, ID, Id, Name, Origin Footprint, Rev, Sheet, Size, Symbol, Title, Type"
+      }
+    ]
+  },
+  "type": "response",
+  "version": "v1"
+}
