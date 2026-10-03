@@ -1,4 +1,4 @@
-"""Loopback-only USB provisioning page. Wi-Fi password is forwarded, never logged/saved on PC."""
+"""Loopback companion UI; device transport may be USB or authenticated LAN Wi-Fi."""
 from http.server import ThreadingHTTPServer,BaseHTTPRequestHandler
 import json,secrets,threading,time,os,hmac,traceback
 import asyncio
@@ -8,10 +8,12 @@ from webhook_delivery import webhook_worker
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 from companion import Companion
-from device_lab import SerialLink,CONFIG,WORK
-SERIAL_LINK=SerialLink(os.environ.get("DOLL_SERIAL_PORT","COM3"))
+from device_lab import WORK
+from device_transport import VERSION,create_device_link
+DEVICE_LINK=None
+CONNECTION=None
 def exchange(command):
-    return SERIAL_LINK.exchange(command)
+    return DEVICE_LINK.exchange(command)
 COMPANION=None
 COMPANION_TOKEN=""
 EVENTS_ADAPTER=None
@@ -35,6 +37,14 @@ def bridge_subscribe(data):
     if data['device_id']!=status['device_id']:raise ValueError('Unknown device')
     return COMPANION.bridge.subscribe('local-owner',**data)
 PAGE=r'''<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>共感娃娃 USB 配网</title><style>body{font:17px system-ui;max-width:650px;margin:50px auto;padding:24px;background:#f3f1e9;color:#263e33}section{background:white;padding:28px;border-radius:20px}input,select,button{width:100%;box-sizing:border-box;padding:14px;margin:8px 0;border:1px solid #bccabe;border-radius:8px}button{background:#2b6249;color:white;cursor:pointer}pre{white-space:pre-wrap;overflow-wrap:anywhere}</style><section><h1>共感娃娃 · USB 配网</h1><p><a href="/companion">打开互动记录与部位设置</a></p><p>ESP32-C3 已接入电脑。请输入 2.4 GHz Wi-Fi 信息。</p><button id="scan" onclick="scanWifi()">扫描附近 Wi-Fi</button><select id="networks" onchange="document.querySelector('#ssid').value=this.value"><option value="">请选择网络，或在下方手动输入</option></select><small id="scanHint">由设备扫描附近的 2.4 GHz Wi-Fi。</small><input id="ssid" placeholder="Wi-Fi 名称（也可手动输入）" maxlength="32"><input id="password" type="password" placeholder="Wi-Fi 密码" maxlength="63"><button id="save" onclick="join()">保存到设备并连接</button><p>密码直接通过 USB 发给设备，电脑不保存，也不输出到日志。</p><pre id="status">读取设备状态…</pre><h2>MCP 实机测试</h2><button onclick="simulateHug()">模拟一次拥抱</button><button onclick="test('doll_set_led',{on:true})">点亮板载灯</button><button onclick="test('doll_set_led',{on:false})">关闭板载灯</button><pre id="result"></pre><p><a id="device" href="#" target="_blank">打开设备网页设置</a></p><p id="login"></p><small>此页的测试按钮通过 USB 调用设备工具。局域网 HTTP MCP 另行实测。</small></section><script>const csrf='__CSRF__';async function api(path,data){let r=await fetch(path,{method:data?'POST':'GET',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:data?JSON.stringify(data):undefined});let d=await r.json();if(!r.ok)throw Error(d.error||'请求失败');return d}async function refresh(){try{let d=await api('/status');document.querySelector('#status').textContent=d.wifi_connected?'✅ 已连接 '+d.ssid+'\nIP：'+d.ip+'\nMCP：http://'+d.ip+'/mcp':'尚未连接 Wi-Fi（状态 '+d.wifi_status+'），请完成配网。';document.querySelector('#device').href='http://'+(d.wifi_connected?d.ip:d.ap_ip)+'/'}catch(e){document.querySelector('#status').textContent=e.message}}async function scanWifi(){const b=document.querySelector('#scan'),list=document.querySelector('#networks'),hint=document.querySelector('#scanHint');b.disabled=true;hint.textContent='正在扫描，请稍候…';try{let d=await api('/scan',{start:true});for(let i=0;d.scanning&&i<25;i++){await new Promise(r=>setTimeout(r,800));d=await api('/scan',{start:false})}if(d.error)throw Error(d.error);if(d.scanning)throw Error('扫描超时，请重新扫描');list.replaceChildren(new Option('请选择网络，或手动输入隐藏网络',''));for(const n of d.networks){list.add(new Option(n.ssid+' · '+n.rssi+' dBm'+(n.secure?' · 需密码':' · 开放网络'),n.ssid))}hint.textContent=d.networks.length?'找到 '+d.networks.length+' 个网络，请选择后输入密码。':'未发现网络，可重新扫描或手动输入。'}catch(e){hint.textContent=e.message}finally{b.disabled=false}}async function join(){try{document.querySelector('#save').disabled=true;await api('/wifi',{ssid:document.querySelector('#ssid').value,password:document.querySelector('#password').value});document.querySelector('#password').value='';document.querySelector('#status').textContent='正在连接…'}catch(e){alert(e.message)}finally{document.querySelector('#save').disabled=false}}async function simulateHug(){try{const r=await api('/rpc',{jsonrpc:'2.0',id:2,method:'tools/call',params:{name:'get_channel_config',arguments:{}}});if(r.error||r.result?.isError)throw Error('无法读取通道配置');const data=r.result?.structuredContent||JSON.parse(r.result.content.find(x=>x.type==='text').text);const channels=data.channels||data.result?.channels||[];const ch=channels.find(c=>c.channel===3&&c.type==='pressure'&&c.enabled)||channels.find(c=>c.type==='pressure'&&c.enabled);if(!ch)throw Error('请先在互动页面添加并启用压力通道');await test('doll_simulate_press',{channel:ch.channel,value:3200})}catch(e){document.querySelector('#result').textContent=e.message}}async function test(name,args){try{let r=await api('/rpc',{jsonrpc:'2.0',id:1,method:'tools/call',params:{name,arguments:args}});document.querySelector('#result').textContent=JSON.stringify(r,null,2)}catch(e){alert(e.message)}}(async()=>{let d=await api('/setup');document.querySelector('#login').textContent='设备网页账号：admin；密码：'+d.ap_password;await refresh();setInterval(refresh,4000)})();</script></html>'''.replace('__CSRF__',CSRF)
+
+PAGE=PAGE.replace('共感娃娃 USB 配网','共感娃娃连接设置').replace('共感娃娃 · USB 配网','共感娃娃 · 连接设置')
+PAGE=PAGE.replace('ESP32-C3 已接入电脑。请输入 2.4 GHz Wi-Fi 信息。','设备可通过 USB 或局域网 Wi-Fi 连接。无线模式仍需电池或独立电源供电。')
+PAGE=PAGE.replace('密码直接通过 USB 发给设备，电脑不保存，也不输出到日志。','密码通过当前连接方式发送到设备，电脑不保存，也不输出到日志。')
+PAGE=PAGE.replace('此页的测试按钮通过 USB 调用设备工具。局域网 HTTP MCP 另行实测。','此页的按钮使用当前设备连接方式；无线模式不占用 USB 串口。')
+PAGE=PAGE.replace('<pre id="status">','<p id="connection"></p><pre id="status">')
+PAGE=PAGE.replace("'设备网页账号：admin；密码：'+d.ap_password","(d.ap_password?'设备网页账号：admin；密码：'+d.ap_password:'管理密码未配对，请使用设备设置页')")
+PAGE=PAGE.replace('</html>',"<script>(async()=>{try{const c=await api('/connection');document.getElementById('connection').textContent=c.transport==='wifi'?'当前连接：Wi-Fi · '+c.device_host+'（无需 USB 数据连接）':'当前连接：USB · '+c.serial_port;}catch(e){document.getElementById('connection').textContent='连接信息暂不可用';}})();</script></html>")
 
 class Handler(BaseHTTPRequestHandler):
     def log_message(self,*args):pass
@@ -104,6 +114,9 @@ class Handler(BaseHTTPRequestHandler):
             raw=(Path(__file__).with_name('companion.html').read_text(encoding='utf-8').replace('__CSRF__',CSRF)).encode();self.send_response(200);self.send_header('Content-Type','text/html; charset=utf-8');self.send_header('Cache-Control','no-store');self.send_header('Content-Length',str(len(raw)));self.end_headers();self.wfile.write(raw);return
         if self.path=='/':
             raw=PAGE.encode();self.send_response(200);self.send_header('Content-Type','text/html; charset=utf-8');self.send_header('Content-Length',str(len(raw)));self.send_header('Cache-Control','no-store');self.end_headers();self.wfile.write(raw);return
+        if self.path=='/connection':
+            if not self.authorized():return self.send(403,{'error':'Forbidden'})
+            return self.send(200,dict(CONNECTION,collector_error=COMPANION.error,last_sync=COMPANION.last_sync))
         if self.headers.get('X-CSRF-Token')!=CSRF:return self.send(403,{'error':'Forbidden'})
         if self.path=='/companion/state':
             return self.send(200,{'active_session':COMPANION.active(),'collector_error':COMPANION.error,'last_sync':COMPANION.last_sync,'persona':COMPANION.setting('persona')})
@@ -114,7 +127,7 @@ class Handler(BaseHTTPRequestHandler):
                 else:return self.send(404,{'error':'Not found'})
             if self.path=='/status':(WORK/'latest-status.json').write_text(json.dumps(r,ensure_ascii=False),encoding='utf-8')
             self.send(200,r)
-        except Exception:return self.send(503,{'error':'设备串口暂时不可用，请关闭其他串口工具后重试。'})
+        except Exception:return self.send(503,{'error':'设备连接暂不可用。无线模式请检查供电、IP 和局域网；USB 模式请检查串口占用。'})
     def do_POST(self):
         bearer=hmac.compare_digest(self.headers.get('Authorization',''),'Bearer '+COMPANION_TOKEN) if COMPANION_TOKEN else False
         csrf=self.headers.get('X-CSRF-Token')==CSRF
@@ -152,6 +165,7 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__=='__main__':
     WORK.mkdir(parents=True,exist_ok=True)
+    DEVICE_LINK,CONNECTION=create_device_link()
     private=WORK/'companion-private.json'
     if not private.exists():private.write_text(json.dumps({'token':secrets.token_hex(32)}),encoding='utf-8')
     COMPANION_TOKEN=json.loads(private.read_text(encoding='utf-8'))['token']
@@ -161,6 +175,6 @@ if __name__=='__main__':
     server=ThreadingHTTPServer(('127.0.0.1',8768),Handler)
     threading.Thread(target=COMPANION.collect,daemon=True).start()
     threading.Thread(target=webhook_worker,args=(COMPANION.bridge,COMPANION.stop),daemon=True).start()
-    print('USB setup: http://127.0.0.1:8768',flush=True)
+    print(VERSION+' '+CONNECTION['transport']+' companion: http://127.0.0.1:8768',flush=True)
     try:server.serve_forever()
-    finally:COMPANION.stop.set();server.server_close();SERIAL_LINK.close()
+    finally:COMPANION.stop.set();server.server_close();DEVICE_LINK.close()

@@ -11,7 +11,7 @@ import secrets
 import time
 import uuid
 
-VERSION = 'doll-bridge-2.3.0'
+VERSION = 'doll-bridge-2.4.0'
 DEFAULT_POLICY = dict(merge_ms=300, cooldown_ms=1500, max_age_sec=30,
                       allow_simulation=True, temperature_enabled=False,
                       temperature_delta_c=1.0)

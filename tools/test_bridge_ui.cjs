@@ -1,4 +1,4 @@
-/* Real USB press -> archive/outbox -> pushed event -> demo response -> ACK. */
+/* Real selected device transport -> archive/outbox -> pushed demo response -> ACK. */
 const fs=require('fs'),path=require('path');const {chromium}=require('playwright');
 (async()=>{
  const executable=[chromium.executablePath(),'C:/Program Files/Google/Chrome/Application/chrome.exe','C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'].find(fs.existsSync);
@@ -8,6 +8,7 @@ const fs=require('fs'),path=require('path');const {chromium}=require('playwright
  let connected=false;
  try{
   await page.goto('http://127.0.0.1:8768/bridge');
+  const connection=await page.evaluate(()=>client.api('/connection'));
   await page.waitForFunction(()=>document.querySelector('#selected').textContent.includes('CH'));
   const current=await page.evaluate(()=>client.tool('get_interaction_status'));
   if(current.active_session)throw Error('Do not interrupt another active user interaction');
@@ -31,7 +32,7 @@ const fs=require('fs'),path=require('path');const {chromium}=require('playwright
   await page.evaluate(()=>client.stop());connected=false;
   const state=await page.evaluate(()=>client.api('/bridge/status'));if(state.subscriptions.some(s=>s.active))throw Error('Unsubscribe failed');
   if(errors.length)throw Error(errors.join('\n'));
-  const report={passed:true,bridge:'2.3.0',at:new Date().toISOString(),checks:['refresh resumes same subscription','separate window simulated USB pressure','automatic pushed event without receiving chat user message','explicit simulation/demo labels','durable reply and delivery ACK','release does not duplicate feedback','unsubscribe and ordinary archive restored','390px mobile layout/no JS errors']};
+  const report={passed:true,bridge:'2.4.0',transport:connection.transport,at:new Date().toISOString(),checks:['refresh resumes same subscription','separate window simulated pressure over '+connection.transport,'automatic pushed event without receiving chat user message','explicit simulation/demo labels','durable reply and delivery ACK','release does not duplicate feedback','unsubscribe and ordinary archive restored','390px mobile layout/no JS errors']};
   fs.writeFileSync(path.join(root,'build/device-lab/bridge-live-test.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));
   await sender.close();
  }finally{if(connected)await page.evaluate(()=>client.stop()).catch(()=>{});await browser.close()}

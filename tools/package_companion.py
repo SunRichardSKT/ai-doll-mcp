@@ -16,8 +16,9 @@ TOOLS = (
     'interaction_bridge.py', 'webhook_delivery.py', 'mcp_events_adapter.py',
     'bridge_client.js', 'bridge_demo.html', 'install_bridge.ps1',
     'test_interaction_bridge.py', 'test_bridge_ui.cjs', 'test_bridge_protocol.py', 'test_bridge_client.cjs',
+    'device_transport.py', 'pair_wifi_device.py', 'test_device_transport.py', 'test_wifi_companion.py',
 )
-DOCS = ('AI_INSTALL.md', 'USER_GUIDE.md', 'DEVICE_LAB_TEST_REPORT.md', 'SENSOR_CHANNELS.md', 'PROACTIVE_INTERACTION.md', 'CHAT_MCP.md')
+DOCS = ('AI_INSTALL.md', 'USER_GUIDE.md', 'DEVICE_LAB_TEST_REPORT.md', 'SENSOR_CHANNELS.md', 'PROACTIVE_INTERACTION.md', 'CHAT_MCP.md', 'WIFI_CONNECTION.md')
 SOURCE = ('lab_main.cpp', 'device_page.h', 'touch_events.h', 'network_state.h',
           'channel_devices.h', 'channel_rpc.h', 'channel_editor_asset.h')
 PREBUILT = ('firmware.bin', 'bootloader.bin', 'partitions.bin', 'boot_app0.bin', 'FLASH_MANIFEST.json', 'README.md')
@@ -31,13 +32,14 @@ PROOF = (
     'standardize-pcb-20261003-before.json', 'standardize-pcb-drc-final.json',
     'standardize-sch-drc-final.json', 'standardize-sch-check-final.json',
 )
-CODE_README = '''# AI 共感娃娃代码 · Bridge v2.3.0 / 固件 v2.2.0
+CODE_README = '''# AI 共感娃娃代码 · Bridge v2.4.0 / 固件 v2.2.0
 
 ESP32-C3 SuperMini + 74HC4051。保留现有八路压力接口，支持最多 16 个可配置逻辑通道；预设压力、NTC 温度输入和震动输出。本机 STDIO MCP 提供 27 个工具，开发板 HTTP MCP 提供 16 个工具。电脑桥接服务增加会话绑定事件、可靠投递、SSE 接入与 MCP Events 适配。
 
 - 日常操作：[使用指南](docs/USER_GUIDE.md)。
 - 通道配置与扩展接线：[多传感器指南](docs/SENSOR_CHANNELS.md)。
 - 用户自选 AI 接入：[AI 安装文档](docs/AI_INSTALL.md)。
+- 无需电脑 USB 数据连接：[Wi-Fi 无线采集](docs/WIFI_CONNECTION.md)。设备独立供电，电脑服务通过局域网保存历史。
 - 新建普通聊天与远程连接：[Chat 窗口 MCP 接入指南](docs/CHAT_MCP.md)。GitHub 仓库地址不能代替 MCP 服务地址。
 - 主动反馈与统一安装：[事件桥接指南](docs/PROACTIVE_INTERACTION.md)。运行 `tools/install_bridge.ps1`，或使用原入口启动服务。
 - 编译目标：`firmware/platformio.ini` 中的 `supermini-lab`。
@@ -46,7 +48,7 @@ ESP32-C3 SuperMini + 74HC4051。保留现有八路压力接口，支持最多 16
 - 依赖：Python 3.12，`python -m pip install -r requirements-companion.txt`；编译另需 PlatformIO。
 - 本包不包含 Wi-Fi 配置、访问令牌、个人历史或本机依赖。运行数据会在本机 `build/device-lab/` 创建。
 
-默认关闭真实输入和真实输出。真实 ADC 需在传感器电路接好后启用；震动电机需外置驱动电路并单独确认启用，不能直接接 GPIO 或 4051。现有 PCB 没有增加物理端口。电脑长期历史通过 USB 采集。普通模式安静归档；主动反馈需要订阅，并由支持事件的宿主或用户 API 应用调用模型。演示页只生成明确标记的测试回执，未选择任何模型或部署公网服务。
+默认关闭真实输入和真实输出。真实 ADC 需在传感器电路接好后启用；震动电机需外置驱动电路并单独确认启用，不能直接接 GPIO 或 4051。现有 PCB 没有增加物理端口。电脑长期历史支持 Wi-Fi 或 USB 采集，服务需保持运行。普通模式安静归档；主动反馈需要订阅，并由支持事件的宿主或用户 API 应用调用模型。演示页只生成明确标记的测试回执，未选择任何模型或部署公网服务。
 
 每个文件的 SHA-256 见 `MANIFEST.json`。解压后可运行 `python tools/test_companion.py` 检查归档逻辑；设备测试会产生明确标记的模拟记录，使用前请读安装文档。
 '''
@@ -103,7 +105,7 @@ def main():
     files += [ROOT/'docs'/name for name in DOCS]
     files += [ROOT/'firmware/src'/name for name in SOURCE]
     files += [ROOT/'firmware/prebuilt'/name for name in PREBUILT]
-    outputs = [package(delivery/'AI_Doll_Code_v2.3.0.zip', files, CODE_README, 'doll-bridge-2.3.0')]
+    outputs = [package(delivery/'AI_Doll_Code_v2.4.0.zip', files, CODE_README, 'doll-bridge-2.4.0')]
     hardware = ROOT/'hardware/rev-v2'
     if hardware.exists():
         pcb = [hardware/name for name in PCB_FILES]
@@ -114,7 +116,7 @@ def main():
         pcb += [p for p in preview.iterdir() if p.is_file() and p.suffix in {'.png','.json'}]
         outputs.append(package(delivery/'AI_Doll_PCB_V2_20261003.zip', pcb, PCB_README, 'AI_Doll_V2-standardized-20261003'))
     (delivery/'DELIVERY_MANIFEST.json').write_text(json.dumps({'packages': outputs}, ensure_ascii=False, indent=2), encoding='utf-8')
-    readme = '# AI 共感娃娃交付说明\n\n更新日期：2026-10-04。电脑 Bridge v2.3，已测试开发板固件仍为 v2.2。请直接发送下面的 ZIP 包；接收者按包内 README 使用。\n\n'
+    readme = '# AI 共感娃娃交付说明\n\n更新日期：2026-10-04。电脑 Bridge v2.4 支持 Wi-Fi 采集，已测试开发板固件仍为 v2.2。请直接发送下面的 ZIP 包；接收者按包内 README 使用。\n\n'
     for item in outputs:
         readme += f"- [{item['file']}]({item['file']})：{item['files']} 个公开文件，{item['bytes']/1048576:.2f} MiB。\n"
     readme += '\n代码包包含当前源码、电脑事件桥、27 工具通用 MCP、MCP Events 适配、统一安装入口、已测试 v2.2 固件四个烧录文件、使用文档及接入指南。PCB 包包含最终嘉立创 EDA 工程、采购 BOM、原下单 Gerber 和检查证据。本次扩展为电脑软件升级，PCB 仍为八路模拟接口，实际温度探头与震动驱动需按指南接线。两者无需本机 `.tools` 或历史版本即可解压阅读；编译/运行依赖按代码包说明另行安装。\n\n'

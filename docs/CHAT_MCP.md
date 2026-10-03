@@ -14,10 +14,10 @@
 
 ## 用户所在电脑的准备
 
-1. 下载仓库或克隆代码。安装 Python 3.12，将 ESP32-C3 通过 USB 连接电脑。
-2. 在项目目录运行 `tools/install_bridge.ps1 -Platform generic -Port COM3`；串口号按设备实际修改。依赖已安装时可加 `-SkipDependencies`。
+1. 下载仓库或克隆代码。安装 Python 3.12，设备接通电源并配网。按 [无线连接指南](WIFI_CONNECTION.md) 配对即可无需电脑 USB；USB 方式仍保留。
+2. 无线配对后运行 `tools/install_bridge.ps1 -Platform generic -DeviceHost 192.168.1.50`，替换实际 IP。USB 方式用 `-Transport usb -Port COM3`。依赖已安装时可加 `-SkipDependencies`。
 3. 打开 `http://127.0.0.1:8768/companion`，确认设备连接、采集正常。已有服务时复用，不重复占用串口。
-4. 当前固件为 `doll-lab-2.2.0`、电脑 Bridge 为 `2.3.0`。这一步不需要重新烧录、清空 Wi-Fi 或互动历史。
+4. 当前固件为 `doll-lab-2.2.0`、电脑 Bridge 为 `2.4.0`。这一步不需要重新烧录、清空 Wi-Fi 或互动历史。
 
 详细步骤见 [本机 AI 安装文档](AI_INSTALL.md) 与 [主动互动指南](PROACTIVE_INTERACTION.md)。本机运行配置和个人数据保存在 `build/device-lab/`，不上传仓库。
 

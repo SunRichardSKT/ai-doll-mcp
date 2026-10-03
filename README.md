@@ -2,7 +2,7 @@
 
 当前版本：固件 **doll-lab-2.2.0**；硬件 **AI_Doll_V2 / ESP32-C3 SuperMini + 74HC4051 / 八路模拟接口**。最多 16 个逻辑通道，预设压力、NTC 温度输入及震动输出；用户自行选择 AI 平台，通过通用 MCP 接入。
 
-电脑服务已升级为 **Bridge v2.3.0**，本机 STDIO MCP 为 **27 个工具**。增加持久事件投递、会话目标绑定、自建应用 SSE 适配、反馈偏好与 MCP Events 协议适配；开发板不需重新烧录。接入边界和统一安装见 [主动互动指南](docs/PROACTIVE_INTERACTION.md)。
+电脑服务为 **Bridge v2.4.0**，本机 STDIO MCP 为 **27 个工具**。支持局域网 Wi-Fi 采集，保留持久事件投递、会话目标绑定、自建应用 SSE、反馈偏好与 MCP Events；开发板不需重新烧录。无需电脑 USB 数据连接的运行方式见 [无线连接指南](docs/WIFI_CONNECTION.md)，跨平台接入见 [主动互动指南](docs/PROACTIVE_INTERACTION.md)。
 
 ## 在新的聊天窗口接入
 
@@ -19,12 +19,12 @@
 ## 使用
 
 1. 阅读 [使用指南](docs/USER_GUIDE.md) 和 [多传感器通道指南](docs/SENSOR_CHANNELS.md)。本地 Word v2.1 手册仅作旧版基本操作参考。
-2. 将 ESP32-C3 用 USB 接到电脑，运行 `tools/start_companion.ps1 -Port COM3`；串口号按实际修改。
+2. 设备已联网且配对时，独立供电并运行 `tools/start_companion.ps1 -DeviceHost 192.168.1.50`（替换实际 IP）。首次配对见 [无线连接指南](docs/WIFI_CONNECTION.md)。USB 方式仍可运行 `tools/start_companion.ps1 -Transport usb -Port COM3`。
 3. 打开 <http://127.0.0.1:8768/companion> 设置通道类型、部位、驱动与参数，设置人设、查询混合传感器历史及模拟测试。
 4. 让用户选择的 AI 阅读 [AI 安装文档](docs/AI_INSTALL.md)，安装通用 STDIO MCP。
 5. 主动推送测试打开 <http://127.0.0.1:8768/bridge>；页面显示明确标记的演示回执。自建模型应用接入事件回调，ChatGPT Work 接入需要支持事件的账号和远程连接／隧道。
 
-固件启动时关闭真实输入和真实输出。接好传感器后手动启用真实输入；震动电机必须接外置驱动电路并确认启用输出。16 个逻辑通道不代表 16 个物理 ADC，现有 PCB 保持八路。BOOT 运行中长按约 3 秒重新配网；RST 重启并保留配置。长期历史当前由 USB 采集服务保存。
+固件启动时关闭真实输入和真实输出。接好传感器后手动启用真实输入；震动电机必须接外置驱动电路并确认启用输出。16 个逻辑通道不代表 16 个物理 ADC，现有 PCB 保持八路。BOOT 运行中长按约 3 秒重新配网；RST 重启并保留配置。长期历史由电脑采集服务保存，可通过 Wi-Fi 或 USB 连接设备；电脑服务需保持运行。
 
 ## 编译和测试
 
