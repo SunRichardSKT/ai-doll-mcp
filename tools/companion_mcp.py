@@ -334,5 +334,15 @@ def get_installation_status(client_kind: Literal['unknown','stdio','events','api
     return call('get_installation_status',dict(client_kind=client_kind))
 
 
+@mcp.tool()
+def discover_paired_device(update_connection: bool = False) -> dict:
+    """Find only the already-paired ESP32 on the local LAN using authenticated UDP replies.
+    No token is broadcast. Default is read-only. Set update_connection=true to save
+    its verified new IP. Does not pair strangers, switch to USB, or replay outputs.
+    Requires firmware v2.4+, Wi-Fi transport and LAN broadcast access.
+    """
+    return call('discover_paired_device', dict(update_connection=update_connection))
+
+
 if __name__ == '__main__':
     mcp.run(transport='stdio')

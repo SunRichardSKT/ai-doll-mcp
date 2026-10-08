@@ -6,9 +6,9 @@
 
 ## 两个运行部分
 
-2026-10-09 更新：电脑服务为 Bridge v2.6，本机 STDIO 为 35 工具；固件为 v2.3；电脑 v2.6 增加客观动作摘要、安静时段、细化反馈偏好和接入自检，见 [互动优化指南](INTERACTION_OBSERVATIONS.md)。支持无需电脑 USB 数据连接的 [Wi-Fi 采集](WIFI_CONNECTION.md)，保留反馈偏好、桥接状态工具和独立事件订阅端点。主动响应、自建 API 接入及统一安装步骤见 [主动互动指南](PROACTIVE_INTERACTION.md)。现有 STDIO 查询链路与新 MCP Events 端点分别接入。
+2026-10-09 更新：电脑服务为 Bridge v2.7，本机 STDIO 为 36 工具；固件为 v2.4；电脑 v2.6 增加客观动作摘要、安静时段、细化反馈偏好和接入自检，见 [互动优化指南](INTERACTION_OBSERVATIONS.md)。支持无需电脑 USB 数据连接的 [Wi-Fi 采集](WIFI_CONNECTION.md)，保留反馈偏好、桥接状态工具和独立事件订阅端点。主动响应、自建 API 接入及统一安装步骤见 [主动互动指南](PROACTIVE_INTERACTION.md)。现有 STDIO 查询链路与新 MCP Events 端点分别接入。
 
-1. ESP32-C3 固件 `doll-lab-2.3.0`：保存最多 16 个逻辑通道的类型、部位及参数，预设压力、NTC 温度输入和震动输出，提供 Wi-Fi 设置和 22 工具设备 MCP。
+1. ESP32-C3 固件 `doll-lab-2.4.0`：保存最多 16 个逻辑通道的类型、部位及参数，预设压力、NTC 温度输入和震动输出，提供 Wi-Fi 设置和 22 工具设备 MCP。
 2. 电脑采集服务 + 通用 STDIO MCP：采集服务持续运行，保存 SQLite 历史、管理互动会话；AI 客户端启动 MCP 适配器来读写这些功能。
 
 完整历史功能请连接 **companion_mcp.py**，不是仅连接设备的 `/mcp`。设备 `/mcp` 只有设备设置和短期事件队列，不保存长期历史。采集服务可通过 Wi-Fi 或 USB 连接设备；Wi-Fi 模式不打开串口，设备仍需独立供电，电脑服务仍需运行。
@@ -25,7 +25,7 @@ python -m venv .venv
 
 保持采集服务运行，关闭其他占用同一串口的软件。USB 页面是 http://127.0.0.1:8768/ ，互动页面是 http://127.0.0.1:8768/companion 。服务只监听本机。
 
-无线模式在已有配对后运行 `tools/start_companion.ps1 -DeviceHost 192.168.1.50`（替换实际 IP），页面和 35 工具配置不变；新电脑可在终端隐藏输入令牌配对，不要求 USB。见 [无线连接指南](WIFI_CONNECTION.md)。已有服务须先关闭再切换方式，不要启动两个采集服务。
+无线模式在已有配对后运行 `tools/start_companion.ps1 -DeviceHost 192.168.1.50`（替换实际 IP），页面和 36 工具配置不变；新电脑可在终端隐藏输入令牌配对，不要求 USB。见 [无线连接指南](WIFI_CONNECTION.md)。已有服务须先关闭再切换方式，不要启动两个采集服务。
 
 当前开发电脑已安装依赖，也可直接运行 `tools/start_companion.ps1`；它会优先选择项目虚拟环境，其次选择本机已有开发运行环境。
 
@@ -46,6 +46,10 @@ python -m venv .venv
 该命令只替换 `ai_doll` 项，并保留其他配置。首次替换前保存 `~/.codex/config.toml.before-companion`。之后在客户端重新加载 MCP；不要重复启动采集服务或覆盖整个客户端配置。
 
 远程网页 AI 若不支持本机 STDIO，无法直接使用这份配置。需要该平台提供本地连接器或由用户授权部署网关；不要擅自把本地端口公开到互联网。
+
+## 无线地址恢复与后台运行
+
+电脑 MCP 的 `discover_paired_device` 默认只查找。用户要求更新连接时设置 `update_connection=true`；只采用通过当前配对密钥验证的同一设备回复。读取失败后的自动恢复不会重发输出命令。支持 `start_companion.ps1 -Background` 和用户自行选择的 Windows 登录启动；步骤见 [无线恢复指南](WIRELESS_RECOVERY.md)。不要默认为用户启用登录启动。
 
 ## AI 的交互约定
 
@@ -87,7 +91,7 @@ v2.3 固件增加六个工具：`get_operating_mode`、`set_operating_mode`、`c
 
 Bridge v2.3 在原 24 个工具之外增加 `get_feedback_preferences`、`set_feedback_preferences` 和 `get_reply_bridge_status`。这些工具不自行创建订阅或启用真实输出。反馈偏好需按用户要求设置，事件投递需另外订阅并绑定会话。
 
-v2.2 新增下列 10 个设备及归档工具继续保留。完整配置示例及参数见 [多传感器指南](SENSOR_CHANNELS.md)。重新连接 AI 客户端后刷新工具列表；当前本机 STDIO 有 35 个工具，连接开发板 HTTP 有 22 个设备工具。
+v2.2 新增下列 10 个设备及归档工具继续保留。完整配置示例及参数见 [多传感器指南](SENSOR_CHANNELS.md)。重新连接 AI 客户端后刷新工具列表；当前本机 STDIO 有 36 个工具，连接开发板 HTTP 有 22 个设备工具。
 
 | 工具 | 用途 |
 |---|---|

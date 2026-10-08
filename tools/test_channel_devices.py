@@ -12,17 +12,17 @@ async def main():
  params=StdioServerParameters(command=sys.executable,args=[str(ROOT/'tools/companion_mcp.py')])
  async with stdio_client(params) as (read,write):
   async with ClientSession(read,write,read_timeout_seconds=datetime.timedelta(seconds=60)) as session:
-   await session.initialize();listed=await session.list_tools();assert len(listed.tools)==35
+   await session.initialize();listed=await session.list_tools();assert len(listed.tools)==36
    async def call(name,args=None,error=False):
     r=await session.call_tool(name,args or {})
     if error:assert r.isError,(name,r);return
     assert not r.isError,(name,r);return json.loads(r.content[0].text)
-   status=await call('doll_get_status');assert status['firmware']=='doll-lab-2.3.0'
+   status=await call('doll_get_status');assert status['firmware']=='doll-lab-2.4.0'
    assert not (await call('get_interaction_status'))['active_session'],'Do not interrupt a user interaction'
    assert not (await call('get_sensor_config'))['enabled'],'Disable assembled input sampling before simulation tests'
    caps=await call('get_channel_capabilities');assert caps['max_channels']==16 and caps['mux_ports']==8
    assert {t['type'] for t in caps['types']}=={'pressure','temperature','vibration'}
-   assert not caps['physical_outputs_enabled'];checks.append('35 STDIO tools, typed capabilities and safe boot defaults')
+   assert not caps['physical_outputs_enabled'];checks.append('36 STDIO tools, typed capabilities and safe boot defaults')
    original=await call('get_channel_config');sid=None
    try:
     mixed=[dict(c) for c in original['channels']]
@@ -121,7 +121,7 @@ async def main():
     await call('set_channel_config',{'channels':original['channels']})
    assert (await call('get_channel_config'))['channels']==original['channels']
    checks.append('original channel config restored after tests')
- report={'passed':True,'firmware':'doll-lab-2.3.0','at':datetime.datetime.now().astimezone().isoformat(),'checks':checks,
+ report={'passed':True,'firmware':'doll-lab-2.4.0','at':datetime.datetime.now().astimezone().isoformat(),'checks':checks,
          'not_tested':['Physical NTC probe','Physical vibration motor/driver and timer cutoff','Physical FSR ADC measurements']}
  (work/'channel-device-test.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
  print(json.dumps(report,ensure_ascii=False,indent=2))

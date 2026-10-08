@@ -10,6 +10,7 @@ ROOT=Path(__file__).resolve().parents[1]
 from companion import Companion
 from device_lab import WORK
 from device_transport import VERSION,create_device_link
+from service_lifecycle import ServiceLease,ServiceAlreadyRunning,ExclusiveLoopbackServer
 DEVICE_LINK=None
 CONNECTION=None
 def exchange(command):
@@ -44,7 +45,13 @@ PAGE=PAGE.replace('密码直接通过 USB 发给设备，电脑不保存，也�
 PAGE=PAGE.replace('此页的测试按钮通过 USB 调用设备工具。局域网 HTTP MCP 另行实测。','此页的按钮使用当前设备连接方式；无线模式不占用 USB 串口。')
 PAGE=PAGE.replace('<pre id="status">','<p id="connection"></p><pre id="status">')
 PAGE=PAGE.replace("'设备网页账号：admin；密码：'+d.ap_password","(d.ap_password?'设备网页账号：admin；密码：'+d.ap_password:'管理密码未配对，请使用设备设置页')")
-PAGE=PAGE.replace('</html>',"<script>(async()=>{try{const c=await api('/connection');document.getElementById('connection').textContent=c.transport==='wifi'?'当前连接：Wi-Fi · '+c.device_host+'（无需 USB 数据连接）':'当前连接：USB · '+c.serial_port;}catch(e){document.getElementById('connection').textContent='连接信息暂不可用';}})();</script></html>")
+PAGE=PAGE.replace('<pre id="status">','<button id="discover" onclick="discoverDevice()">查找已配对娃娃并更新地址</button><p id="discoveryHint">路由器更换设备 IP 后可重新查找。仅识别本机已配对的设备。</p><pre id="status">')
+PAGE=PAGE.replace('</html>',"""<script>
+let discovering=false;
+async function refreshConnection(){try{const c=await api('/connection');document.getElementById('connection').textContent=c.transport==='wifi'?'当前连接：Wi-Fi · '+c.device_host+'（无需 USB 数据连接）':'当前连接：USB · '+c.serial_port;document.getElementById('discover').disabled=discovering||c.transport!=='wifi';}catch(e){document.getElementById('connection').textContent='连接信息暂不可用';}}
+async function discoverDevice(){if(discovering)return;discovering=true;const b=document.getElementById('discover'),h=document.getElementById('discoveryHint');b.disabled=true;h.textContent='正在查找…';try{const d=await api('/companion/tool',{name:'discover_paired_device',arguments:{update_connection:true}});h.textContent=d.found?'已验证 '+d.device_id+' · '+d.device_host+(d.updated?'，地址已更新。':'，当前地址有效。'):'未收到已配对设备回复。请检查供电、同一局域网、MCP 开关和 UDP 广播权限。';await refresh();}catch(e){h.textContent=e.message;}finally{discovering=false;await refreshConnection();}}
+refreshConnection();setInterval(refreshConnection,4000);
+</script></html>""")
 
 class Handler(BaseHTTPRequestHandler):
     def log_message(self,*args):pass
@@ -163,22 +170,42 @@ class Handler(BaseHTTPRequestHandler):
             traceback.print_exc()
             return self.send(503,{'error':'请求失败，请检查设备连接。'})
 
-if __name__=='__main__':
-    WORK.mkdir(parents=True,exist_ok=True)
+def run_service():
+    global DEVICE_LINK,CONNECTION,COMPANION_TOKEN,COMPANION,EVENTS_ADAPTER
+    # Bind before opening serial, migrating archives or changing saved settings.
+    server=ExclusiveLoopbackServer(('127.0.0.1',8768),Handler)
+    try:
+        initialize_service(server)
+    finally:
+        if COMPANION:COMPANION.stop.set()
+        server.server_close()
+        if DEVICE_LINK:DEVICE_LINK.close()
+
+def initialize_service(server):
+    global DEVICE_LINK,CONNECTION,COMPANION_TOKEN,COMPANION,EVENTS_ADAPTER
     DEVICE_LINK,CONNECTION=create_device_link()
     private=WORK/'companion-private.json'
     if not private.exists():private.write_text(json.dumps({'token':secrets.token_hex(32)}),encoding='utf-8')
     COMPANION_TOKEN=json.loads(private.read_text(encoding='utf-8'))['token']
     COMPANION=Companion(WORK/'interactions.sqlite3',exchange,LOCK)
+    COMPANION.discovery_callback=getattr(DEVICE_LINK,'discover',None)
     COMPANION.runtime_info=dict(transport=CONNECTION['transport'],service_address='http://127.0.0.1:8768',
                                device_endpoint='authenticated LAN HTTP MCP' if CONNECTION['transport']=='wifi' else 'USB serial',
                                local_mcp_auth='Bearer')
     EVENTS_ADAPTER=MCPEventsAdapter(COMPANION,bridge_tools)
     bridge_tools()  # Build schemas once before requests can race initialization.
     COMPANION.runtime_info['tool_count']=len(TOOLS_CACHE)
-    server=ThreadingHTTPServer(('127.0.0.1',8768),Handler)
     threading.Thread(target=COMPANION.collect,daemon=True).start()
     threading.Thread(target=webhook_worker,args=(COMPANION.bridge,COMPANION.stop),daemon=True).start()
     print(VERSION+' '+CONNECTION['transport']+' companion: http://127.0.0.1:8768',flush=True)
-    try:server.serve_forever()
-    finally:COMPANION.stop.set();server.server_close();DEVICE_LINK.close()
+    server.serve_forever()
+
+if __name__=='__main__':
+    try:
+        with ServiceLease(WORK/'companion.lock'):
+            run_service()
+    except ServiceAlreadyRunning as exc:
+        print(str(exc)+'; open http://127.0.0.1:8768',flush=True)
+    except OSError:
+        print('Companion could not start: its local port is occupied or inaccessible',flush=True)
+        raise SystemExit(1)

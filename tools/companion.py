@@ -252,6 +252,12 @@ class Companion:
             return history
         if name == 'get_installation_status':
             return self.installation_status(**args)
+        if name == 'discover_paired_device':
+            callback = getattr(self, 'discovery_callback', None)
+            if callback is None:
+                return {'found': False, 'updated': False, 'message': 'Discovery is available in Wi-Fi transport only'}
+            with self.serial_lock:
+                return callback(**args)
         if name == 'set_persona':
             persona = args.get('persona')
             if not isinstance(persona, str) or len(persona) > 4000:

@@ -13,7 +13,7 @@ const fs=require('fs'),path=require('path'),{chromium}=require('playwright');
   await page.reload();await page.waitForFunction(()=>document.querySelector('#selected').textContent.includes('CH'));
   if(await page.inputValue('#address')!=='测试称呼'||!(await page.inputValue('#avoid')).includes('<文字不是 HTML>'))throw Error('Preference persistence/text safety failed');
   if(!(await page.locator('#quietEnabled').isChecked()))throw Error('Quiet switch did not persist');
-  await page.click('#checkConnection');await page.waitForFunction(()=>document.querySelector('#checkStatus').textContent.includes('可用工具：35'));
+  await page.click('#checkConnection');await page.waitForFunction(()=>document.querySelector('#checkStatus').textContent.includes('可用工具：36'));
   const check=await page.textContent('#checkStatus');if(!check.includes('设备在线')||!check.includes('Wi-Fi')||!check.includes('暂停主动反馈')||!check.includes('客户端支持'))throw Error('Selfcheck is incomplete');
   await page.fill('#quietZone','Unknown/Zone');await page.click('#save');await page.waitForFunction(()=>document.querySelector('#error').textContent.includes('timezone'));
   const prefs=await page.evaluate(()=>client.tool('get_feedback_preferences'));if(prefs.policy.quiet_hours.timezone!=='Asia/Shanghai')throw Error('Invalid timezone overwrote valid preferences');

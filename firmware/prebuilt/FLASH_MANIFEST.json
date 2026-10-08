@@ -1,5 +1,5 @@
 {
-  "firmware": "doll-lab-2.3.0",
+  "firmware": "doll-lab-2.4.0",
   "chip": "esp32c3",
   "flashSize": "4MB",
   "flashMode": "dio",
@@ -26,8 +26,8 @@
     {
       "file": "firmware.bin",
       "offset": "0x10000",
-      "bytes": 937232,
-      "sha256": "dd430277fc56a992f5796368606fb13f14d7f203b1c6fb4a840b5f5174515b9a"
+      "bytes": 941936,
+      "sha256": "6b863bd8deca51ec12079c4cb0f6bf323331c8526f2d978757d9f6a4b11a3189"
     }
   ]
 }

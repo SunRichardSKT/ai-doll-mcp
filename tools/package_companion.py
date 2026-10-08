@@ -20,10 +20,13 @@ TOOLS = (
     'device_transport.py', 'pair_wifi_device.py', 'test_device_transport.py', 'test_wifi_companion.py',
     'input_observations.py', 'test_input_observations.py',
     'test_feedback_features.py', 'test_feedback_features_ui.cjs',
+    'device_discovery.py', 'discover_device.py', 'service_lifecycle.py',
+    'run_background.py', 'configure_startup.py', 'test_device_discovery.py',
+    'test_service_lifecycle.py', 'test_wireless_recovery.py', 'test_wireless_recovery_ui.cjs',
 )
-DOCS = ('AI_INSTALL.md', 'USER_GUIDE.md', 'DEVICE_LAB_TEST_REPORT.md', 'SENSOR_CHANNELS.md', 'PROACTIVE_INTERACTION.md', 'CHAT_MCP.md', 'WIFI_CONNECTION.md', 'CALIBRATION_AND_DAILY_MODE.md', 'DEVELOPMENT_PLAN.md', 'INTERACTION_OBSERVATIONS.md')
+DOCS = ('AI_INSTALL.md', 'USER_GUIDE.md', 'DEVICE_LAB_TEST_REPORT.md', 'SENSOR_CHANNELS.md', 'PROACTIVE_INTERACTION.md', 'CHAT_MCP.md', 'WIFI_CONNECTION.md', 'CALIBRATION_AND_DAILY_MODE.md', 'DEVELOPMENT_PLAN.md', 'INTERACTION_OBSERVATIONS.md', 'WIRELESS_RECOVERY.md')
 SOURCE = ('lab_main.cpp', 'device_page.h', 'touch_events.h', 'network_state.h',
-          'channel_devices.h', 'channel_rpc.h', 'channel_editor_asset.h', 'pressure_calibration.h')
+          'channel_devices.h', 'channel_rpc.h', 'channel_editor_asset.h', 'pressure_calibration.h', 'device_discovery.h')
 PREBUILT = ('firmware.bin', 'bootloader.bin', 'partitions.bin', 'boot_app0.bin', 'FLASH_MANIFEST.json', 'README.md')
 PCB_FILES = (
     'AI_Doll_V2_标准化完成_20261003.epro2', 'AI_Doll_V2_标准化采购BOM_20261003.csv',
@@ -35,15 +38,16 @@ PROOF = (
     'standardize-pcb-20261003-before.json', 'standardize-pcb-drc-final.json',
     'standardize-sch-drc-final.json', 'standardize-sch-check-final.json',
 )
-CODE_README = '''# AI 共感娃娃代码 · Bridge v2.6.0 / 固件 v2.3.0
+CODE_README = '''# AI 共感娃娃代码 · Bridge v2.7.0 / 固件 v2.4.0
 
-ESP32-C3 SuperMini + 74HC4051。保留现有八路压力接口，支持最多 16 个可配置逻辑通道；预设压力、NTC 温度输入和震动输出。本机 STDIO MCP 提供 35 个工具，开发板 HTTP MCP 提供 22 个工具。电脑桥接服务增加会话绑定事件、可靠投递、SSE 接入与 MCP Events 适配。
+ESP32-C3 SuperMini + 74HC4051。保留现有八路压力接口，支持最多 16 个可配置逻辑通道；预设压力、NTC 温度输入和震动输出。本机 STDIO MCP 提供 36 个工具，开发板 HTTP MCP 提供 22 个工具。电脑桥接服务增加会话绑定事件、可靠投递、SSE 接入与 MCP Events 适配。
 
 - 日常操作：[使用指南](docs/USER_GUIDE.md)。
 - 压力校准、启动恢复及曲线：[校准指南](docs/CALIBRATION_AND_DAILY_MODE.md)。
 - 动作摘要、安静时段和安装自检：[互动优化指南](docs/INTERACTION_OBSERVATIONS.md)。
 - 通道配置与扩展接线：[多传感器指南](docs/SENSOR_CHANNELS.md)。
 - 用户自选 AI 接入：[AI 安装文档](docs/AI_INSTALL.md)。
+- 已配对设备发现、IP 恢复及可选登录启动：[无线恢复指南](docs/WIRELESS_RECOVERY.md)。
 - 无需电脑 USB 数据连接：[Wi-Fi 无线采集](docs/WIFI_CONNECTION.md)。设备独立供电，电脑服务通过局域网保存历史。
 - 新建普通聊天与远程连接：[Chat 窗口 MCP 接入指南](docs/CHAT_MCP.md)。GitHub 仓库地址不能代替 MCP 服务地址。
 - 主动反馈与统一安装：[事件桥接指南](docs/PROACTIVE_INTERACTION.md)。运行 `tools/install_bridge.ps1`，或使用原入口启动服务。
@@ -88,6 +92,20 @@ def package(output, files, readme, version):
         p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in files}}
     manifest['files']['README.md'] = hashlib.sha256(readme.encode()).hexdigest()
     output.parent.mkdir(parents=True, exist_ok=True)
+    # Keep an unchanged verified package byte-identical, including its ZIP dates.
+    # This avoids republishing the PCB merely because code was updated.
+    if output.exists() and zipfile.is_zipfile(output):
+        try:
+            with zipfile.ZipFile(output) as archive:
+                cached = json.loads(archive.read('MANIFEST.json'))
+                expected = set(manifest['files']) | {'MANIFEST.json'}
+                if (cached == manifest and set(archive.namelist()) == expected and
+                        archive.testzip() is None and all(hashlib.sha256(archive.read(name)).hexdigest() == digest
+                        for name, digest in manifest['files'].items())):
+                    return {'file': output.name, 'files': len(manifest['files']), 'bytes': output.stat().st_size,
+                            'sha256': hashlib.sha256(output.read_bytes()).hexdigest()}
+        except (OSError, ValueError, KeyError, zipfile.BadZipFile):
+            pass
     with zipfile.ZipFile(output, 'w', zipfile.ZIP_DEFLATED) as archive:
         for p in files:
             archive.write(p, p.relative_to(ROOT).as_posix())
@@ -110,7 +128,7 @@ def main():
     files += [ROOT/'docs'/name for name in DOCS]
     files += [ROOT/'firmware/src'/name for name in SOURCE]
     files += [ROOT/'firmware/prebuilt'/name for name in PREBUILT]
-    outputs = [package(delivery/'AI_Doll_Code_v2.6.0.zip', files, CODE_README, 'doll-bridge-2.6.0')]
+    outputs = [package(delivery/'AI_Doll_Code_v2.7.0.zip', files, CODE_README, 'doll-bridge-2.7.0')]
     hardware = ROOT/'hardware/rev-v2'
     if hardware.exists():
         pcb = [hardware/name for name in PCB_FILES]
@@ -121,10 +139,10 @@ def main():
         pcb += [p for p in preview.iterdir() if p.is_file() and p.suffix in {'.png','.json'}]
         outputs.append(package(delivery/'AI_Doll_PCB_V2_20261003.zip', pcb, PCB_README, 'AI_Doll_V2-standardized-20261003'))
     (delivery/'DELIVERY_MANIFEST.json').write_text(json.dumps({'packages': outputs}, ensure_ascii=False, indent=2), encoding='utf-8')
-    readme = '# AI 共感娃娃交付说明\n\n更新日期：2026-10-09。电脑 Bridge v2.6 支持 Wi-Fi 采集，已测试开发板固件为 v2.3。请直接发送下面的 ZIP 包；接收者按包内 README 使用。\n\n'
+    readme = '# AI 共感娃娃交付说明\n\n更新日期：2026-10-09。电脑 Bridge v2.7 支持 Wi-Fi 采集，已测试开发板固件为 v2.4。请直接发送下面的 ZIP 包；接收者按包内 README 使用。\n\n'
     for item in outputs:
         readme += f"- [{item['file']}]({item['file']})：{item['files']} 个公开文件，{item['bytes']/1048576:.2f} MiB。\n"
-    readme += '\n代码包包含当前源码、电脑事件桥、35 工具通用 MCP、MCP Events 适配、统一安装入口、已测试 v2.3 固件四个烧录文件、使用文档及接入指南。PCB 包包含最终嘉立创 EDA 工程、采购 BOM、原下单 Gerber 和检查证据。Bridge v2.6 增加动作摘要、安静时段与自检；校准和日常模式需使用固件 v2.3；PCB 仍为八路模拟接口，实际温度探头与震动驱动需按指南接线。两者无需本机 `.tools` 或历史版本即可解压阅读；编译/运行依赖按代码包说明另行安装。\n\n'
+    readme += '\n代码包包含当前源码、电脑事件桥、36 工具通用 MCP、MCP Events 适配、统一安装入口、已测试 v2.4 固件四个烧录文件、使用文档及接入指南。PCB 包包含最终嘉立创 EDA 工程、采购 BOM、原下单 Gerber 和检查证据。Bridge v2.7 增加已配对设备发现、旧 IP 恢复、单实例保护和可选登录启动；保留动作摘要、安静时段与自检；校准和日常模式需使用固件 v2.4；PCB 仍为八路模拟接口，实际温度探头与震动驱动需按指南接线。两者无需本机 `.tools` 或历史版本即可解压阅读；编译/运行依赖按代码包说明另行安装。\n\n'
     readme += '交付包不含本机 Wi-Fi 配置、设备访问密钥或个人互动数据库。完整文件校验值在各包的 `MANIFEST.json`；ZIP 校验值在 `DELIVERY_MANIFEST.json`。\n\n'
     for item in outputs:
         readme += f"`{item['file']}` SHA-256：`{item['sha256']}`。\n\n"

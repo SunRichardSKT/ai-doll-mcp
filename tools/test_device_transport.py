@@ -73,7 +73,7 @@ class TransportTests(unittest.TestCase):
         self.thread.start()
         self.host = '127.0.0.1:'+str(self.server.server_port)
         self.config = {'mcp_token':TOKEN,'device_id':self.device}
-        self.link = WifiLink(self.host,self.config,timeout=.5)
+        self.link = WifiLink(self.host,self.config,timeout=.5,discovery=lambda config:None)
 
     def tearDown(self):
         self.server.shutdown()

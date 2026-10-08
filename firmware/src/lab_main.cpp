@@ -17,7 +17,7 @@ static int pressChannel=-1, pressValue=0, lastWifi=-1;
 static constexpr int LED_PIN=8; // Common SuperMini blue LED, active low.
 static bool scanBusy=false;
 static uint32_t scanStartedAt=0;
-static const char* VERSION="doll-lab-2.3.0";
+static const char* VERSION="doll-lab-2.4.0";
 static const char* PROTOCOL="2025-11-25";
 
 static String encode(const JsonDocument &d){String s;serializeJson(d,s);return s;}
@@ -28,6 +28,7 @@ static String randomHex(){char b[33];snprintf(b,sizeof(b),"%08lx%08lx%08lx%08lx"
 #include "channel_rpc.h"
 static void setLed(bool on){led=on;digitalWrite(LED_PIN,on?LOW:HIGH);}
 #include "network_state.h"
+#include "device_discovery.h"
 static void status(JsonObject o){
  o["network_mode"]=networkModeName();o["config_ap_open"]=configAP;o["setup_button_gpio"]=SETUP_BUTTON_PIN;
  o["boot_id"]=touchBoot;o["event_cursor"]=touchSeq;
@@ -35,6 +36,7 @@ static void status(JsonObject o){
  o["wifi_connected"]=WiFi.status()==WL_CONNECTED;o["wifi_status"]=(int)WiFi.status();o["ssid"]=ssid;
  o["ip"]=WiFi.localIP().toString();o["ap_ip"]=WiFi.softAPIP().toString();o["ap_ssid"]=apName;
  o["mcp_enabled"]=mcpEnabled;o["mcp_path"]="/mcp";o["protocol_version"]=PROTOCOL;
+ o["discovery_protocol"]=DISCOVERY_PROTOCOL;o["discovery_port"]=DISCOVERY_PORT;o["discovery_active"]=discoveryActive;
  o["led_on"]=led;o["led_gpio_level"]=digitalRead(LED_PIN);o["sensor_mode"]=sensorEnabled?"sensor":"simulation";o["sensor_count"]=channelCount();o["max_channels"]=MAX_CHANNELS;o["physical_outputs_enabled"]=outputEnabled;
  o["pressed_channel"]=pressChannel;o["pressure"]=pressValue;
  o["reaction"]=pressValue>=2500?"抱抱收到啦！":pressValue>=700?"我感受到你的轻轻按压了。":"安静等待触摸";
@@ -213,6 +215,7 @@ void loop(){
  web.handleClient();if(configAP)dns.processNextRequest();
  while(Serial.available()){char c=Serial.read();if(c=='\n'){if(serialLine.length())serialCommand(serialLine);serialLine="";}else if(c!='\r'){if(serialLine.length()<16384)serialLine+=c;else serialLine="";}}
  networkTick();
+ discoveryTick();
  int state=WiFi.status();if(state!=lastWifi){lastWifi=state;JsonDocument d;d["event"]="wifi";d["status"]=state;d["ip"]=WiFi.localIP().toString();serialJson(d);}
  if(pressChannel>=0&&(int32_t)(millis()-pressUntil)>=0){pressChannel=-1;pressValue=0;Serial.println("{\"event\":\"simulated_release\"}");}
  delay(1);
