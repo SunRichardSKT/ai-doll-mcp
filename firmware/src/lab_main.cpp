@@ -17,7 +17,7 @@ static int pressChannel=-1, pressValue=0, lastWifi=-1;
 static constexpr int LED_PIN=8; // Common SuperMini blue LED, active low.
 static bool scanBusy=false;
 static uint32_t scanStartedAt=0;
-static const char* VERSION="doll-lab-2.2.0";
+static const char* VERSION="doll-lab-2.3.0";
 static const char* PROTOCOL="2025-11-25";
 
 static String encode(const JsonDocument &d){String s;serializeJson(d,s);return s;}
@@ -124,6 +124,12 @@ static JsonDocument rpc(const JsonDocument &in){
   else if(name=="set_channel_config"){String error;if(!saveChannels(a,error)){rpcError(out,-32602,error.c_str());return out;}encodeChannels(data.to<JsonObject>());}
   else if(name=="read_channel_values"){readChannels(data.to<JsonObject>());}
   else if(name=="set_input_enabled"){String error;if(!setInputEnabled(a,error)){rpcError(out,-32602,error.c_str());return out;}readChannels(data.to<JsonObject>());}
+  else if(name=="get_operating_mode"){operatingMode(data.to<JsonObject>());}
+  else if(name=="set_operating_mode"){String error;if(!setOperatingMode(a,error)){rpcError(out,-32602,error.c_str());return out;}operatingMode(data.to<JsonObject>());}
+  else if(name=="capture_pressure_calibration"){String error;if(!captureCalibration(a,error)){rpcError(out,-32602,error.c_str());return out;}calibrationStatus(data.to<JsonObject>());}
+  else if(name=="get_pressure_calibration"){calibrationStatus(data.to<JsonObject>());}
+  else if(name=="apply_pressure_calibration"){String error;if(!applyCalibration(error)){rpcError(out,-32602,error.c_str());return out;}calibrationStatus(data.to<JsonObject>());}
+  else if(name=="cancel_pressure_calibration"){calibration.engaged=false;calibration.capturing=false;calibrationStatus(data.to<JsonObject>());}
   else if(name=="simulate_channel_input"){String error;if(!simulateInput(a,error)){rpcError(out,-32602,error.c_str());return out;}readChannels(data.to<JsonObject>());}
   else if(name=="set_output_enabled"){String error;if(!armOutputs(a,error)){rpcError(out,-32602,error.c_str());return out;}readChannels(data.to<JsonObject>());}
   else if(name=="set_vibration"){String error;if(!vibrate(a,error)){rpcError(out,-32602,error.c_str());return out;}readChannels(data.to<JsonObject>());}
@@ -199,7 +205,7 @@ void setup(){
  web.on("/mcp",HTTP_GET,[]{if(!originOK()){web.send(403,"text/plain","Invalid Origin");return;}web.sendHeader("Allow","POST");web.send(405,"text/plain","SSE stream not offered; use POST");});
  web.onNotFound([]{web.sendHeader("Location","http://"+(configAP?WiFi.softAPIP():WiFi.localIP()).toString()+"/");web.send(302,"text/plain","");});web.begin();
 
- JsonDocument boot;boot["event"]="boot";boot["firmware"]=VERSION;boot["sensor_mode"]="simulation";serialJson(boot);
+ JsonDocument boot;boot["event"]="boot";boot["firmware"]=VERSION;boot["sensor_mode"]=sensorEnabled?"sensor":"simulation";serialJson(boot);
 }
 void loop(){
  touchTick();

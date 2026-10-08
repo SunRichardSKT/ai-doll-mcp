@@ -20,8 +20,8 @@ async def main():
         async with ClientSession(read, write, read_timeout_seconds=datetime.timedelta(seconds=50)) as session:
             await session.initialize()
             tools = await session.list_tools()
-            assert len(tools.tools) == 27
-            checks.append('official SDK handshake and 27 tools')
+            assert len(tools.tools) == 33
+            checks.append('official SDK handshake and 33 tools')
 
             async def call(name, args=None, error=False):
                 reply = await session.call_tool(name, args or {})
@@ -32,7 +32,7 @@ async def main():
                 return json.loads(reply.content[0].text)
 
             status = await call('doll_get_status')
-            assert status['firmware'] == 'doll-lab-2.2.0'
+            assert status['firmware'] == 'doll-lab-2.3.0'
             assert not (await call('get_interaction_status'))['active_session'], 'End your active session before running tests'
             assert not (await call('get_sensor_config'))['enabled']
             await call('set_sensor_config', {'enabled': False, 'press_threshold': 100, 'release_threshold': 200}, error=True)

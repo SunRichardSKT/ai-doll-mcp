@@ -26,7 +26,7 @@ if($SkipDependencies){
 if($LASTEXITCODE -ne 0){throw 'MCP configuration generation failed'}
 $work=Join-Path $root 'build\device-lab'
 $config=[ordered]@{
-    bridge_version='2.4.0';platform=$Platform;serial_port=$Port
+    bridge_version='2.5.0';platform=$Platform;serial_port=$Port
     transport=$Transport;device_host=$DeviceHost
     local_page='http://127.0.0.1:8768/bridge'
     native_mcp_events='http://127.0.0.1:8768/bridge/mcp'

@@ -206,7 +206,9 @@ class Companion:
             raise ValueError('arguments must be an object')
         if name in ('doll_get_status', 'doll_set_led', 'doll_simulate_press', 'get_body_map', 'set_body_map', 'get_touch_events', 'get_sensor_config', 'set_sensor_config',
                     'get_channel_capabilities', 'get_channel_config', 'set_channel_config', 'read_channel_values',
-                    'simulate_channel_input', 'set_input_enabled', 'set_output_enabled', 'set_vibration'):
+                    'simulate_channel_input', 'set_input_enabled', 'set_output_enabled', 'set_vibration',
+                    'get_operating_mode', 'set_operating_mode', 'capture_pressure_calibration',
+                    'get_pressure_calibration', 'apply_pressure_calibration', 'cancel_pressure_calibration'):
             return self.device(name, args)
         if name == 'get_interaction_status':
             return {'active_session': self.active(), 'collector_error': self.error, 'last_sync': self.last_sync}

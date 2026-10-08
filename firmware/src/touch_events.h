@@ -1,6 +1,8 @@
 #pragma once
 #include <esp_timer.h>
+#include "pressure_calibration.h"
 static bool sensorEnabled=false;
+static bool resumeInputs=false;
 static int sensorOn=1200,sensorOff=800;
 #include "channel_devices.h"
 
@@ -27,6 +29,15 @@ struct TouchState {
 static TouchState touches[MAX_CHANNELS];
 static int sensorRaw[MAX_CHANNELS]={};
 static uint8_t sensorDebounce[MAX_CHANNELS]={};
+struct PressureCalibration {
+ int channel=-1,stage=-1;
+ bool engaged=false,capturing=false,applied=false;
+ uint64_t deadline=0,expires=0;
+ PressureSamples stages[3];
+ String error;
+ void reset(){channel=-1;stage=-1;engaged=false;capturing=false;applied=false;deadline=expires=0;error="";for(auto &s:stages)s.reset();}
+};
+static PressureCalibration calibration;
 struct OutputState {
  bool active=false,physical=false;
  volatile bool expired=false;
@@ -74,18 +85,25 @@ static void initOutputPins(){
   if(c.configured&&c.driver==ChannelDriver::GPIO_PWM){pinMode(c.gpio,OUTPUT);digitalWrite(c.gpio,LOW);s.pwm=c.gpio==6?0:c.gpio==7?1:2;}
  }
 }
-static bool persistChannels(const ChannelConfig *next,String &error){
+static void applyInputEnabled(bool enabled){
+ for(int i=0;i<MAX_CHANNELS;i++){if(touches[i].active)touchInject(i,0);sensorDebounce[i]=0;}
+ sensorEnabled=enabled;
+ if(enabled){pinMode(3,OUTPUT);pinMode(4,OUTPUT);pinMode(5,OUTPUT);analogReadResolution(12);analogSetPinAttenuation(0,ADC_11db);analogSetPinAttenuation(1,ADC_11db);}
+ else{pinMode(3,INPUT);pinMode(4,INPUT);pinMode(5,INPUT);calibration.engaged=false;calibration.capturing=false;}
+}
+static bool persistChannels(const ChannelConfig *next,String &error,bool restore=resumeInputs){
  JsonDocument d;encodeChannels(d.to<JsonObject>(),next);
+ d["resume_inputs"]=restore;
  String payload=encode(d);
  // NVS strings are limited to 4000 bytes; expanded configurations use an atomic blob.
  if(prefs.putBytes("chcfg_blob",payload.c_str(),payload.length())!=payload.length()){error="Unable to save channel configuration";return false;}return true;
 }
-static bool saveChannels(JsonVariantConst a,String &error){
+static __attribute__((noinline)) bool saveChannels(JsonVariantConst a,String &error){
  ChannelConfig next[MAX_CHANNELS];if(!parseChannels(a,next,error))return false;
- if(!persistChannels(next,error))return false;
+ if(!persistChannels(next,error,false))return false;
  // Close events with their old names/types before applying new configuration.
  for(int i=0;i<MAX_CHANNELS;i++)if(touches[i].active)touchInject(i,0);
- disarmOutputs();sensorEnabled=false;pressChannel=-1;pressValue=0;
+ disarmOutputs();sensorEnabled=false;resumeInputs=false;calibration.reset();pressChannel=-1;pressValue=0;
  for(int i=0;i<MAX_CHANNELS;i++){
   if(channels[i].configured&&channels[i].driver==ChannelDriver::GPIO_PWM){ledcDetachPin(channels[i].gpio);pinMode(channels[i].gpio,INPUT);}
   channels[i]=next[i];readings[i]=ChannelReading();sensorRaw[i]=0;sensorDebounce[i]=0;
@@ -99,15 +117,19 @@ static void touchInit(){
  size_t bytes=prefs.isKey("chcfg_blob")?prefs.getBytesLength("chcfg_blob"):0;
  if(bytes&&bytes<=16384){char* data=(char*)malloc(bytes+1);if(data){if(prefs.getBytes("chcfg_blob",data,bytes)==bytes){data[bytes]=0;saved=String(data);}free(data);}}
  if(!deserializeJson(stored,saved)&&stored["channels"].is<JsonArray>()){
-  ChannelConfig next[MAX_CHANNELS];String error;if(parseChannels(stored.as<JsonVariantConst>(),next,error))for(int i=0;i<MAX_CHANNELS;i++)channels[i]=next[i];
+  ChannelConfig next[MAX_CHANNELS];String error;if(parseChannels(stored.as<JsonVariantConst>(),next,error)){
+   for(int i=0;i<MAX_CHANNELS;i++)channels[i]=next[i];
+   resumeInputs=stored["resume_inputs"].is<bool>()&&stored["resume_inputs"].as<bool>();
+  }
  }
  // No actuator can resume automatically after reboot.
  initOutputPins();
+ if(resumeInputs)applyInputEnabled(true);
 }
 static void bodyMap(JsonObject out){
  JsonArray a=out["parts"].to<JsonArray>();for(int i=0;i<MAX_CHANNELS;i++)if(channels[i].configured){JsonObject p=a.add<JsonObject>();p["channel"]=i;p["name"]=channels[i].name;}
 }
-static bool saveBodyMap(JsonVariantConst a,String &error){
+static __attribute__((noinline)) bool saveBodyMap(JsonVariantConst a,String &error){
  if(!a["parts"].is<JsonArrayConst>()||a["parts"].size()!=channelCount()){error="Provide names for all configured channels";return false;}
  ChannelConfig next[MAX_CHANNELS];for(int i=0;i<MAX_CHANNELS;i++)next[i]=channels[i];bool seen[MAX_CHANNELS]={};
  for(JsonObjectConst p:a["parts"].as<JsonArrayConst>()){
@@ -125,9 +147,10 @@ static void readChannels(JsonObject out){
  JsonArray a=out["values"].to<JsonArray>();uint64_t now=touchNow();
  for(int ch=0;ch<MAX_CHANNELS;ch++)if(channels[ch].configured){
   auto &c=channels[ch];auto &s=readings[ch];JsonObject p=a.add<JsonObject>();p["channel"]=ch;p["name"]=c.name;p["type"]=kindName(c.kind);p["direction"]=c.kind==DeviceKind::VIBRATION?"output":"input";p["driver"]=driverName(c.driver);p["unit"]=unitName(c.kind);p["source"]=s.source;p["uptime_ms"]=s.at;
-  String quality=!c.enabled?"disabled":!s.sampled?"not_sampled":!s.valid?s.fault:((s.source=="sensor"&&now-s.at>max(5000,c.sampleMs*3))?"stale":"ok");p["quality"]=quality;
-  if(c.enabled&&s.valid&&s.sampled)p["value"]=s.value;else p["value"]=nullptr;
+  String quality=!c.enabled?"disabled":!s.sampled?"not_sampled":(s.source=="sensor"&&!sensorEnabled)?"inputs_disabled":!s.valid?s.fault:((s.source=="sensor"&&now-s.at>max(5000,c.sampleMs*3))?"stale":"ok");p["quality"]=quality;
+  if(quality=="ok")p["value"]=s.value;else p["value"]=nullptr;
   p["raw"]=s.raw;if(s.mv>=0)p["adc_mv"]=s.mv;else p["adc_mv"]=nullptr;if(c.kind==DeviceKind::VIBRATION){p["active"]=outputs[ch].active;p["feedback"]="commanded_state_only";}
+  if(c.kind==DeviceKind::PRESSURE){p["active"]=touches[ch].active;p["press_threshold"]=c.on;p["release_threshold"]=c.off;p["calibrating"]=calibration.engaged&&calibration.channel==ch;}
  }
 }
 static bool ntcValue(int ch,float mv,float &celsius,String &fault){
@@ -164,6 +187,7 @@ static bool simulateInput(JsonVariantConst a,String &error){
 static bool armOutputs(JsonVariantConst a,String &error){
  if(!a["enabled"].is<bool>()){error="enabled boolean required";return false;}
  if(!a["enabled"].as<bool>()){disarmOutputs();return true;}
+ if(calibration.engaged){error="Finish or cancel calibration before enabling physical outputs";return false;}
  if(!a["external_driver_confirmed"].is<bool>()||!a["external_driver_confirmed"].as<bool>()){error="Confirm an external motor driver before enabling physical outputs";return false;}
  if(outputEnabled)return true;
  for(int ch=0;ch<MAX_CHANNELS;ch++)if(channels[ch].configured&&channels[ch].enabled&&channels[ch].driver==ChannelDriver::GPIO_PWM){
@@ -176,6 +200,7 @@ static bool vibrate(JsonVariantConst a,String &error){
  int ch=a["channel"],intensity=a["intensity"],duration=a["duration_ms"];
  if(!validChannel(ch)||channels[ch].kind!=DeviceKind::VIBRATION||intensity<0||intensity>100||duration<1||duration>5000){error="Enabled vibration channel; intensity 0..100, duration 1..5000 ms";return false;}
  bool physical=channels[ch].driver==ChannelDriver::GPIO_PWM;
+ if(physical&&intensity&&calibration.engaged){error="Physical vibration is disabled during calibration";return false;}
  if(physical&&!outputEnabled&&intensity){error="Physical outputs are disabled; confirm external driver and enable first";return false;}
  stopOutput(ch);auto &s=outputs[ch];s.physical=physical;
  if(!intensity)return true;
@@ -192,22 +217,65 @@ static void sensorConfig(JsonObject out){
 static bool setSensors(JsonVariantConst a,String &error){
  if(!a["enabled"].is<bool>()||!a["press_threshold"].is<int>()||!a["release_threshold"].is<int>()){error="enabled and integer thresholds required";return false;}
  int on=a["press_threshold"],off=a["release_threshold"];if(off<0||on>4095||on<=off){error="0 <= release_threshold < press_threshold <= 4095";return false;}
- for(int i=0;i<MAX_CHANNELS;i++){if(touches[i].active)touchInject(i,0);sensorDebounce[i]=0;}
- sensorEnabled=a["enabled"];sensorOn=on;sensorOff=off;
+ applyInputEnabled(a["enabled"]);calibration.reset();sensorOn=on;sensorOff=off;
  // Legacy threshold settings are session overrides; channel thresholds persist separately.
  for(auto &c:channels)if(c.kind==DeviceKind::PRESSURE){c.on=on;c.off=off;}
- if(sensorEnabled){pinMode(3,OUTPUT);pinMode(4,OUTPUT);pinMode(5,OUTPUT);analogReadResolution(12);analogSetPinAttenuation(0,ADC_11db);analogSetPinAttenuation(1,ADC_11db);}
- else{pinMode(3,INPUT);pinMode(4,INPUT);pinMode(5,INPUT);}return true;
+ return true;
 }
 static bool setInputEnabled(JsonVariantConst a,String &error){
  if(!a["enabled"].is<bool>()){error="enabled boolean required";return false;}
- for(int i=0;i<MAX_CHANNELS;i++){if(touches[i].active)touchInject(i,0);sensorDebounce[i]=0;}
- sensorEnabled=a["enabled"];
- if(sensorEnabled){pinMode(3,OUTPUT);pinMode(4,OUTPUT);pinMode(5,OUTPUT);analogReadResolution(12);analogSetPinAttenuation(0,ADC_11db);analogSetPinAttenuation(1,ADC_11db);}
- else{pinMode(3,INPUT);pinMode(4,INPUT);pinMode(5,INPUT);}return true;
+ applyInputEnabled(a["enabled"]);return true;
+}
+static void operatingMode(JsonObject out){
+ out["mode"]=resumeInputs?"daily":"manual";out["resume_inputs_after_reboot"]=resumeInputs;
+ out["physical_inputs_enabled"]=sensorEnabled;out["physical_outputs_enabled"]=outputEnabled;
+ out["outputs_resume_after_reboot"]=false;
+}
+static bool setOperatingMode(JsonVariantConst a,String &error){
+ if(!a["mode"].is<String>()||(a["mode"]!="daily"&&a["mode"]!="manual")){error="mode must be daily or manual";return false;}
+ bool daily=a["mode"]=="daily";
+ if(daily&&(!a["hardware_confirmed"].is<bool>()||!a["hardware_confirmed"].as<bool>())){error="Confirm assembled sensor hardware before daily mode";return false;}
+ if(daily){bool physical=false;for(auto &c:channels)if(c.configured&&c.enabled&&(c.driver==ChannelDriver::MUX_ADC||c.driver==ChannelDriver::GPIO_ADC))physical=true;
+  if(!physical){error="Daily mode requires an enabled physical input";return false;}}
+ if(!persistChannels(channels,error,daily))return false;
+ resumeInputs=daily;disarmOutputs();applyInputEnabled(daily);return true;
+}
+static __attribute__((noinline)) void calibrationStatus(JsonObject out){
+ out["channel"]=calibration.channel;out["capturing"]=calibration.capturing;out["engaged"]=calibration.engaged;out["applied"]=calibration.applied;
+ out["source"]="sensor";out["stage"]=calibration.stage;out["error"]=calibration.error;
+ uint64_t now=touchNow();out["remaining_ms"]=calibration.capturing&&calibration.deadline>now?calibration.deadline-now:0;
+ JsonArray stages=out["stages"].to<JsonArray>();for(int i=0;i<3;i++){auto &s=calibration.stages[i];JsonObject v=stages.add<JsonObject>();v["stage"]=i;v["samples"]=s.count;v["p20"]=s.percentile(20);v["median"]=s.percentile(50);v["p95"]=s.percentile(95);}
+ auto recommended=pressureThresholds(calibration.stages);out["ready"]=calibration.engaged&&!calibration.capturing&&recommended.valid;out["reason"]=recommended.reason;
+ if(recommended.valid){out["press_threshold"]=recommended.on;out["release_threshold"]=recommended.off;}
+}
+static __attribute__((noinline)) bool captureCalibration(JsonVariantConst a,String &error){
+ if(!a["channel"].is<int>()||!a["stage"].is<int>()||(!a["duration_ms"].isNull()&&!a["duration_ms"].is<int>())){error="channel/stage and optional duration_ms integers required";return false;}
+ int ch=a["channel"],stage=a["stage"],duration=a["duration_ms"]|3000;
+ if(!validChannel(ch)||channels[ch].kind!=DeviceKind::PRESSURE||channels[ch].driver==ChannelDriver::SIMULATION||!sensorEnabled){error="Calibration requires enabled physical pressure sampling";return false;}
+ if(stage<0||stage>2||duration<500||duration>10000){error="stage 0..2; duration_ms 500..10000";return false;}
+ if(calibration.capturing){error="Wait for current capture or cancel calibration";return false;}
+ if(stage==0){calibration.reset();calibration.channel=ch;calibration.engaged=true;
+  disarmOutputs();
+  if(touches[ch].active)touchInject(ch,0);
+  sensorDebounce[ch]=0;}
+ else if(!calibration.engaged||calibration.channel!=ch||calibration.stages[stage-1].count<20){error="Capture idle, light and strong stages in order on one channel";return false;}
+ for(int i=stage;i<3;i++)calibration.stages[i].reset();
+ calibration.stage=stage;calibration.capturing=true;calibration.applied=false;calibration.error="";
+ calibration.deadline=touchNow()+duration;calibration.expires=touchNow()+60000;return true;
+}
+static __attribute__((noinline)) bool applyCalibration(String &error){
+ auto recommended=pressureThresholds(calibration.stages);
+ if(!calibration.engaged||calibration.capturing||!recommended.valid){error=String("Calibration cannot be saved: ")+recommended.reason;return false;}
+ ChannelConfig next[MAX_CHANNELS];for(int i=0;i<MAX_CHANNELS;i++)next[i]=channels[i];
+ next[calibration.channel].on=recommended.on;next[calibration.channel].off=recommended.off;
+ if(!persistChannels(next,error))return false;
+ channels[calibration.channel]=next[calibration.channel];sensorDebounce[calibration.channel]=0;
+ calibration.applied=true;calibration.engaged=false;return true;
 }
 static void touchTick(){
  uint64_t now=touchNow();
+ if(calibration.capturing&&now>=calibration.deadline)calibration.capturing=false;
+ if(calibration.engaged&&now>=calibration.expires){calibration.engaged=false;calibration.capturing=false;calibration.error="Calibration expired; start again";}
  for(int ch=0;ch<MAX_CHANNELS;ch++){
   if(touches[ch].active&&touches[ch].simulated&&now>=touches[ch].deadline)touchInject(ch,0);
   if(outputs[ch].active&&(outputs[ch].expired||now>=outputs[ch].deadline))stopOutput(ch);
@@ -226,6 +294,7 @@ static void touchTick(){
    float value=0;String fault;bool valid=ntcValue(ch,v.mv,value,fault);if(raw<=5||raw>=4090){valid=false;fault="adc_saturated";}temperatureRecord(ch,value,valid,"sensor",fault);continue;
   }
   v.sampled=true;v.valid=true;v.value=raw;v.at=now;v.source="sensor";
+  if(calibration.engaged&&calibration.channel==ch){if(calibration.capturing)calibration.stages[calibration.stage].add(raw);sensorDebounce[ch]=0;continue;}
   TouchState &s=touches[ch];bool transition=s.active?raw<=c.off:raw>=c.on;if(s.active){s.raw=raw;s.peak=max(s.peak,raw);}
   if(!transition){sensorDebounce[ch]=0;continue;}if(++sensorDebounce[ch]>=3){sensorDebounce[ch]=0;touchInject(ch,s.active?0:raw,false);}
  }

@@ -183,7 +183,7 @@ def set_channel_config(channels: list[ChannelConfig], schema_version: int = 1) -
     vibration: output using simulation or gpio_pwm(GPIO6/7/10 unique), requires external motor driver.
     Temperature preset NTC10k B3950, options r0_ohm/beta_kelvin/pull_down_ohm/series_ohm/supply_mv/offset_c/sample_ms/report_ms.
     Existing V2 MUX branch has 4.7k series and 10k pull-down. pressure options press_threshold/release_threshold.
-    Save disables all physical sampling/output and stops active commands; boot starts disabled. Unknown types/drivers are rejected.
+    Save disables all physical sampling/output and stops active commands; returns startup policy to manual. Unknown types/drivers are rejected.
     """
     return call('set_channel_config', {'schema_version': schema_version,
                  'channels': [c.model_dump(exclude_none=True) for c in channels]})
@@ -197,8 +197,46 @@ def read_channel_values() -> dict:
 
 @mcp.tool()
 def set_input_enabled(enabled: bool) -> dict:
-    """Enable installed physical input drivers without overriding per-channel thresholds/calibration. Only after user confirms assembled hardware. Reboot disables."""
+    """Temporarily enable physical input after hardware confirmation. Saved daily startup policy is separate; this does not change it."""
     return call('set_input_enabled', {'enabled': enabled})
+
+
+@mcp.tool()
+def get_operating_mode() -> dict:
+    """Read manual/daily startup policy and current input/output state. Outputs never auto resume."""
+    return call('get_operating_mode', {})
+
+
+@mcp.tool()
+def set_operating_mode(mode: Literal['manual', 'daily'], hardware_confirmed: bool = False) -> dict:
+    """Persist daily input startup only after user confirms assembled sensors. Manual disables sampling. Both stop outputs; saving channel config returns to manual."""
+    return call('set_operating_mode', dict(mode=mode, hardware_confirmed=hardware_confirmed))
+
+
+@mcp.tool()
+def capture_pressure_calibration(channel: int = Field(ge=0, le=15),
+                                 stage: int = Field(ge=0, le=2),
+                                 duration_ms: int = Field(default=3000, ge=500, le=10000)) -> dict:
+    """Capture real pressure: idle stage 0, light stage 1, strong stage 2. Requires physical sampling. Selected channel touch events suppressed until apply/cancel/60s expiry; no automatic threshold save."""
+    return call('capture_pressure_calibration', dict(channel=channel, stage=stage, duration_ms=duration_ms))
+
+
+@mcp.tool()
+def get_pressure_calibration() -> dict:
+    """Read calibration progress, statistics and proposed thresholds; never describe these as calibrated Newtons."""
+    return call('get_pressure_calibration', {})
+
+
+@mcp.tool()
+def apply_pressure_calibration() -> dict:
+    """Explicitly persist valid calibration thresholds for the selected channel only."""
+    return call('apply_pressure_calibration', {})
+
+
+@mcp.tool()
+def cancel_pressure_calibration() -> dict:
+    """Cancel sampling without saving thresholds and resume ordinary event generation."""
+    return call('cancel_pressure_calibration', {})
 
 
 @mcp.tool()
