@@ -28,17 +28,17 @@ async def main():
  async with stdio_client(StdioServerParameters(command=sys.executable,args=[str(ROOT/'tools/companion_mcp.py')])) as (r,w):
   async with ClientSession(r,w) as client:
    await client.initialize();names={t.name for t in (await client.list_tools()).tools}
-   assert len(names)==36 and {'summarize_interactions','get_installation_status'}<=names
+   assert len(names)==37 and {'summarize_interactions','get_installation_status'}<=names
    async def call(name,args=None):
     result=await client.call_tool(name,args or {});assert not result.isError,(name,result)
     return json.loads(result.content[0].text)
    assert not (await call('get_interaction_status'))['active_session'],'Do not interrupt another chat'
    mode=await call('get_operating_mode');assert mode['mode']=='manual' and not mode['physical_inputs_enabled'] and not mode['physical_outputs_enabled']
    status=await call('get_installation_status',dict(client_kind='stdio'))
-   assert status['bridge']=='doll-bridge-2.7.0' and status['runtime']['transport']=='wifi'
-   assert status['runtime']['tool_count']==36 and status['device']['firmware']=='doll-lab-2.4.0'
+   assert status['bridge']=='doll-bridge-2.8.0' and status['runtime']['transport']=='wifi'
+   assert status['runtime']['tool_count']==37 and status['device']['firmware']=='doll-lab-2.5.0'
    assert status['client_registration']=='not_inspected' and status['host_event_support']=='not_verified'
-   checks.append('36 official SDK tools; runtime/device selfcheck works and does not claim host capability')
+   checks.append('37 official SDK tools; runtime/device selfcheck works and does not claim host capability')
    cfg=await call('get_channel_config');ch=next(c['channel'] for c in cfg['channels'] if c['enabled'] and c['type']=='pressure')
    original=await call('get_feedback_preferences');sid=sub=None
    try:
@@ -86,7 +86,7 @@ async def main():
    assert (await call('get_feedback_preferences'))==original
    assert (await call('get_channel_config'))==cfg and (await call('get_operating_mode'))==mode
    checks.append('original preferences and channels preserved; session/subscription ended; physical inputs/outputs remain off')
- report=dict(passed=True,bridge='2.7.0',firmware='2.4.0',at=datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat(),checks=checks,
+ report=dict(passed=True,bridge='2.8.0',firmware='2.5.0',at=datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat(),checks=checks,
              not_tested=['Physical sensor pressure','User model generation or official chat event support'])
  (ROOT/'build/device-lab/feedback-features-test.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
  print(json.dumps(report,ensure_ascii=False))

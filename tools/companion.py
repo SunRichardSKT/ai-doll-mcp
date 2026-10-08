@@ -29,6 +29,8 @@ class Companion:
           PRIMARY KEY(device,boot));
         CREATE TABLE IF NOT EXISTS sessions(id TEXT PRIMARY KEY,chat_id TEXT,started REAL,
           ended REAL,last_activity REAL,timeout INTEGER,reason TEXT);
+        CREATE TABLE IF NOT EXISTS session_boundaries(session_id TEXT PRIMARY KEY,
+          device TEXT,boot TEXT,seq INTEGER);
         CREATE TABLE IF NOT EXISTS touches(id INTEGER PRIMARY KEY AUTOINCREMENT,
           device TEXT,touch_id TEXT,channel INTEGER,body_part TEXT,source TEXT,
           started REAL,ended REAL,duration_ms INTEGER,peak_raw INTEGER,session_id TEXT,
@@ -37,6 +39,8 @@ class Companion:
           device TEXT,boot TEXT,seq INTEGER,at REAL,payload TEXT,
           UNIQUE(device,boot,seq));
         CREATE TABLE IF NOT EXISTS notices(id INTEGER PRIMARY KEY,at REAL,message TEXT);
+        CREATE TABLE IF NOT EXISTS storage_cursors(device TEXT,epoch TEXT,cursor INTEGER,
+          lost INTEGER,corrupt INTEGER,failures INTEGER,last_boot TEXT,PRIMARY KEY(device,epoch));
         ''')
         # Upgrade existing archives in place; no table is replaced or history removed.
         if 'session_id' not in {row['name'] for row in self.db.execute('PRAGMA table_info(events)')}:
@@ -47,11 +51,14 @@ class Companion:
                                         (row['device'], payload.get('touch_id'))).fetchone()
                 if touch and touch['session_id']:
                     self.db.execute('UPDATE events SET session_id=? WHERE id=?', (touch['session_id'],row['id']))
+        if 'time_quality' not in {row['name'] for row in self.db.execute('PRAGMA table_info(touches)')}:
+            self.db.execute("ALTER TABLE touches ADD COLUMN time_quality TEXT DEFAULT 'legacy_estimate'")
         self.db.commit()
         self.error = None
         self.last_sync = None
         self.stop = threading.Event()
         self.sync_lock = threading.Lock()
+        self.last_clock_sync = 0
         self.bridge = EventBridge(self)
 
     def setting(self, key, default=''):
@@ -80,67 +87,163 @@ class Companion:
                         'WHERE ended IS NULL AND last_activity+timeout<?', (now,))
 
     def ingest(self, batch, received=None):
-        received = received or utcnow()
+        received = utcnow() if received is None else received
         device, boot = batch['device_id'], batch['boot_id']
         with self.lock, self.db:
             row = self.db.execute('SELECT * FROM boots WHERE device=? AND boot=?', (device, boot)).fetchone()
-            offset = row['offset'] if row else received-batch['uptime_ms']/1000
+            offset = row['offset'] if row and row['offset'] is not None else received-batch['uptime_ms']/1000
             cursor = row['cursor'] if row else 0
-            if batch.get('gap') and batch['oldest_seq']-1 > cursor:
+            storage = batch.get('event_storage')
+            if batch.get('gap') and batch['oldest_seq']-1 > cursor and not (storage and storage.get('available')):
                 self.db.execute('INSERT INTO notices(at,message) VALUES(?,?)',
                                 (received, 'Device queue overflow: some touch events were lost.'))
+            # Persistent cursors are independent of RAM sequence cursors. A RAM page
+            # can contain later events while earlier flash pages still await recovery.
+            if storage and storage.get('available'):
+                epoch = storage.get('storage_epoch')
+                if not isinstance(epoch,str) or not re.fullmatch('[0-9a-f]{32}',epoch):
+                    raise ValueError('Invalid persistent storage epoch')
+                old = self.db.execute('SELECT * FROM storage_cursors WHERE device=? AND epoch=?',(device,epoch)).fetchone()
+                stored_cursor = old['cursor'] if old else 0
+                seen = 0
+                entries = batch.get('persistent_events',[])
+                if not isinstance(entries,list) or len(entries)>24:
+                    raise ValueError('Invalid persistent page')
+                for entry in entries:
+                    ident, event_boot, event = entry.get('storage_id'), entry.get('boot_id'), entry.get('event')
+                    if (type(ident) is not int or not seen < ident <= 9007199254740991 or
+                            not isinstance(event_boot,str) or not 1<=len(event_boot)<=128 or not isinstance(event,dict)):
+                        raise ValueError('Invalid persistent event identity/order')
+                    seen = ident
+                    if ident<=stored_cursor:
+                        continue
+                    prior = self.db.execute('SELECT * FROM boots WHERE device=? AND boot=?',(device,event_boot)).fetchone()
+                    anchor = offset if event_boot==boot else (prior['offset'] if prior else None)
+                    event = dict(event,storage_id=ident,storage_epoch=epoch,boot_id=event_boot)
+                    at, quality = self.event_time(event,anchor)
+                    replay = (event_boot!=boot or not 0<=batch['uptime_ms']-event.get('uptime_ms',0)<=5000)
+                    event.update(time_quality=quality,delivery_quality='offline_replay' if replay else 'live',received_at=received)
+                    self.archive_event(device,event_boot,event,at,received)
+                    if not prior and event_boot!=boot:
+                        self.db.execute('INSERT INTO boots VALUES(?,?,?,?)',(device,event_boot,anchor,0))
+                    stored_cursor=ident
+                reported=batch.get('storage_cursor',0)
+                if type(reported) is not int or reported!=seen:
+                    raise ValueError('Persistent page cursor does not match its events')
+                counts=[]
+                for key,column in [('lost_records','lost'),('corrupt_records','corrupt'),('write_failures_since_boot','failures')]:
+                    value=storage.get(key,0)
+                    if type(value) is not int or value<0:raise ValueError('Invalid storage counters')
+                    previous=old[column] if old and (column!='failures' or old['last_boot']==boot) else 0
+                    if value>previous:
+                        self.db.execute('INSERT INTO notices(at,message) VALUES(?,?)',
+                            (received,f'Device persistent queue {key}: {value-previous} additional records affected.'))
+                    counts.append(value)
+                self.db.execute('INSERT OR REPLACE INTO storage_cursors VALUES(?,?,?,?,?,?,?)',
+                    (device,epoch,stored_cursor,*counts,boot))
             for event in batch['events']:
                 seq = event['seq']
                 if seq <= cursor:
                     continue
-                at = offset+event['uptime_ms']/1000
-                # Preserve occurrence-time ownership for every type; a pressure release keeps
-                # the session of its start even if the chat ended while it was held.
-                pressure = event.get('sensor_type', 'pressure') == 'pressure'
-                session = self.db.execute('SELECT id FROM sessions WHERE started<=? '
-                    'AND (ended IS NULL OR ended>?) AND last_activity+timeout>=? '
-                    'ORDER BY started DESC LIMIT 1', (at, at, at)).fetchone()
-                sid = session[0] if session else None
-                if pressure and event['phase'] == 'end':
-                    start = self.db.execute('SELECT session_id FROM touches WHERE device=? AND touch_id=?',
-                                           (device, event.get('touch_id'))).fetchone()
-                    sid = start[0] if start else None
-                inserted = self.db.execute('INSERT OR IGNORE INTO events(device,boot,seq,at,payload,session_id) VALUES(?,?,?,?,?,?)',
-                    (device, boot, seq, at, json.dumps(event, ensure_ascii=False), sid))
-                if not inserted.rowcount:
-                    continue
-                if pressure and event['phase'] == 'start':
-                    # Use occurrence time, not collection time, to exclude old buffered touches.
-                    self.db.execute('INSERT OR IGNORE INTO touches(device,touch_id,channel,body_part,source,started,peak_raw,session_id) '
-                        'VALUES(?,?,?,?,?,?,?,?)', (device, event['touch_id'], event['channel'], event['body_part'],
-                        event['source'], at, event['peak_raw'], sid))
-                    if sid:
-                        self.db.execute('UPDATE sessions SET last_activity=MAX(last_activity,?) WHERE id=?', (at, sid))
-                elif pressure and event['phase'] == 'end':
-                    self.db.execute('UPDATE touches SET ended=?,duration_ms=?,peak_raw=? WHERE device=? AND touch_id=?',
-                        (at, event['duration_ms'], event['peak_raw'], device, event['touch_id']))
-                # Periodic temperature samples and AI output commands do not prolong
-                # an idle interaction indefinitely. Pressure starts remain activity.
-                self.bridge.enqueue(inserted.lastrowid, device, at, sid, event, received)
+                at, quality = self.event_time(event,offset)
+                event=dict(event,time_quality=quality,received_at=received)
+                if storage is not None:
+                    replay=not 0<=batch['uptime_ms']-event['uptime_ms']<=5000
+                    event['delivery_quality']='offline_replay' if replay else 'live'
+                self.archive_event(device,boot,event,at,received)
             self.db.execute('INSERT OR REPLACE INTO boots VALUES(?,?,?,?)',
                             (device, boot, offset, max(cursor, batch['next_cursor'])))
+            self.db.execute('INSERT OR REPLACE INTO settings VALUES(?,?)',('collector_last_boot',boot))
+            self.db.execute('INSERT OR REPLACE INTO settings VALUES(?,?)',('collector_last_device',device))
+            self.db.execute('INSERT OR REPLACE INTO settings VALUES(?,?)',('collector_last_seq',str(batch['latest_seq'])))
             self.expire(received)
         self.last_sync, self.error = received, None
+
+    @staticmethod
+    def event_time(event,offset):
+        uptime=event.get('uptime_ms')
+        if type(uptime) is not int or uptime<0:
+            raise ValueError('Invalid event uptime')
+        clock=event.get('device_time_ms')
+        if event.get('time_quality')=='device_clock':
+            if type(clock) is not int or not 1704067200000<=clock<=4102444800000:
+                raise ValueError('Invalid device clock timestamp')
+            return clock/1000,'device_clock'
+        if offset is not None:
+            return offset+uptime/1000,'estimated_from_boot_anchor'
+        return None,'unknown'
+
+    def archive_event(self,device,boot,event,at,received):
+        seq=event['seq']
+        if type(seq) is not int or seq<=0:
+            raise ValueError('Invalid event sequence')
+        pressure=event.get('sensor_type','pressure')=='pressure'
+        session=self.db.execute('SELECT id FROM sessions WHERE started<=? '
+            'AND (ended IS NULL OR ended>?) AND last_activity+timeout>=? '
+            'ORDER BY started DESC LIMIT 1',(at,at,at)).fetchone() if at is not None else None
+        sid=session[0] if session else None
+        if sid:
+            boundary=self.db.execute('SELECT * FROM session_boundaries WHERE session_id=?',(sid,)).fetchone()
+            if boundary and boundary['device']==device and boundary['boot']==boot and seq<=boundary['seq']:
+                sid=None
+        if sid is None and at is not None and event.get('delivery_quality')=='live':
+            # Device UTC can lag the host by a small transport delay. A new
+            # sequence after an explicit session boundary proves membership;
+            # preserve its original timestamp rather than rewriting history.
+            boundary=self.db.execute('SELECT s.id,s.started,b.seq FROM sessions s JOIN session_boundaries b '
+                'ON b.session_id=s.id WHERE s.ended IS NULL AND b.device=? AND b.boot=? '
+                'AND b.seq<? AND s.started>? AND s.started<=? AND s.started<=? '
+                'AND s.last_activity+s.timeout>=? ORDER BY s.started DESC LIMIT 1',
+                (device,boot,seq,at,at+2,received,received)).fetchone()
+            if boundary:sid=boundary['id'];event=dict(event,session_time_quality='sequence_boundary')
+        if pressure and event['phase']=='end':
+            start=self.db.execute('SELECT session_id FROM touches WHERE device=? AND touch_id=?',
+                                  (device,event.get('touch_id'))).fetchone()
+            sid=start[0] if start else None
+        inserted=self.db.execute('INSERT OR IGNORE INTO events(device,boot,seq,at,payload,session_id) VALUES(?,?,?,?,?,?)',
+            (device,boot,seq,at,json.dumps(event,ensure_ascii=False),sid))
+        if not inserted.rowcount:return
+        if pressure and event['phase']=='start':
+            self.db.execute('INSERT OR IGNORE INTO touches(device,touch_id,channel,body_part,source,started,peak_raw,session_id,time_quality) VALUES(?,?,?,?,?,?,?,?,?)',
+                (device,event['touch_id'],event['channel'],event['body_part'],event['source'],at,event['peak_raw'],sid,event.get('time_quality','legacy_estimate')))
+            if sid and event.get('delivery_quality')!='offline_replay':
+                self.db.execute('UPDATE sessions SET last_activity=MAX(last_activity,?) WHERE id=?',(at,sid))
+        elif pressure and event['phase']=='end':
+            self.db.execute('UPDATE touches SET ended=?,duration_ms=?,peak_raw=? WHERE device=? AND touch_id=?',
+                (at,event['duration_ms'],event['peak_raw'],device,event['touch_id']))
+        self.bridge.enqueue(inserted.lastrowid,device,at,sid,event,received)
 
     def sync(self):
         with self.sync_lock:
             # Persist each page before advancing the cursor, so reconnects cannot duplicate history.
             with self.lock:
-                row = self.db.execute('SELECT * FROM boots ORDER BY offset DESC LIMIT 1').fetchone()
+                row = self.db.execute('SELECT * FROM boots WHERE boot=? ORDER BY offset DESC LIMIT 1',
+                                      (self.setting('collector_last_boot'),)).fetchone()
+                if row is None:row=self.db.execute('SELECT * FROM boots ORDER BY offset DESC LIMIT 1').fetchone()
             boot, after = (row['boot'], row['cursor']) if row else ('', 0)
             for _ in range(8):
                 with self.serial_lock:
                     batch = self.exchange({'cmd': 'events', 'boot_id': boot, 'after': after})
                 if 'events' not in batch:
-                    raise ValueError('Firmware does not provide touch events; update firmware first')
-                self.ingest(batch)
+                    raise ValueError('Expected an event page; received fields: '+','.join(sorted(batch)))
+                received=utcnow()
+                self.ingest(batch,received)
+                storage=batch.get('event_storage',{})
+                if storage.get('available') and batch.get('storage_cursor'):
+                    # Commit has completed above. A lost ACK only causes deduplicated replay.
+                    with self.serial_lock:
+                        ack=self.exchange(dict(cmd='ack_events',boot_id=batch['boot_id'],
+                            storage_epoch=storage['storage_epoch'],storage_cursor=batch['storage_cursor']))
+                    if ack.get('error'):raise ValueError('Persistent event acknowledgement failed')
+                if storage and (not storage.get('clock_synced') or time.monotonic()-self.last_clock_sync>60):
+                    clock=storage.get('device_time_ms',0)
+                    if not storage.get('clock_synced') or abs(received*1000-clock)>2000:
+                        with self.serial_lock:
+                            timed=self.exchange(dict(cmd='sync_time',boot_id=batch['boot_id'],unix_time_ms=round(utcnow()*1000)))
+                        if timed.get('error'):raise ValueError('Device clock synchronization failed')
+                    self.last_clock_sync=time.monotonic()
                 boot, after = batch['boot_id'], batch['next_cursor']
-                if after >= batch['latest_seq']:
+                if after >= batch['latest_seq'] and not batch.get('storage_has_more'):
                     break
 
     def collect(self):
@@ -172,10 +275,15 @@ class Companion:
             now, sid = utcnow(), uuid.uuid4().hex
             self.db.execute('INSERT INTO sessions VALUES(?,?,?,NULL,?,?,NULL)',
                             (sid, chat_id, now, now, idle_timeout_sec))
+            device,boot=self.setting('collector_last_device'),self.setting('collector_last_boot')
+            seq=self.setting('collector_last_seq')
+            if device and boot and seq.isdigit():
+                self.db.execute('INSERT INTO session_boundaries VALUES(?,?,?,?)',(sid,device,boot,int(seq)))
             return dict(self.db.execute('SELECT * FROM sessions WHERE id=?', (sid,)).fetchone())
 
     def end(self, session_id):
-        self.sync()
+        try:self.sync()
+        except Exception:self.error='Device offline; ending interaction with archived data'
         with self.lock, self.db:
             if not self.db.execute('SELECT id FROM sessions WHERE id=?', (session_id,)).fetchone():
                 raise ValueError('Unknown session_id')
@@ -211,7 +319,8 @@ class Companion:
                     'get_channel_capabilities', 'get_channel_config', 'set_channel_config', 'read_channel_values',
                     'simulate_channel_input', 'set_input_enabled', 'set_output_enabled', 'set_vibration',
                     'get_operating_mode', 'set_operating_mode', 'capture_pressure_calibration',
-                    'get_pressure_calibration', 'apply_pressure_calibration', 'cancel_pressure_calibration'):
+                    'get_pressure_calibration', 'apply_pressure_calibration', 'cancel_pressure_calibration',
+                    'get_event_storage_status'):
             return self.device(name, args)
         if name == 'get_interaction_status':
             return {'active_session': self.active(), 'collector_error': self.error, 'last_sync': self.last_sync}
@@ -314,6 +423,7 @@ class Companion:
             for row in rows[:limit]:
                 payload=json.loads(row['payload']);payload.setdefault('sensor_type','pressure');payload.setdefault('direction','input')
                 payload.setdefault('unit','adc_raw');payload.setdefault('quality','ok')
+                payload.setdefault('time_quality','legacy_estimate')
                 entries.append(dict(payload,id=row['id'],device=row['device'],at=row['at'],session_id=row['session_id']))
             notices=[dict(r) for r in self.db.execute('SELECT * FROM notices ORDER BY id DESC LIMIT 5')]
         return {'events':entries,'next_cursor':entries[-1]['id'] if entries else after,'has_more':len(rows)>limit,

@@ -12,17 +12,17 @@ async def main():
  params=StdioServerParameters(command=sys.executable,args=[str(ROOT/'tools/companion_mcp.py')])
  async with stdio_client(params) as (read,write):
   async with ClientSession(read,write,read_timeout_seconds=datetime.timedelta(seconds=60)) as session:
-   await session.initialize();listed=await session.list_tools();assert len(listed.tools)==36
+   await session.initialize();listed=await session.list_tools();assert len(listed.tools)==37
    async def call(name,args=None,error=False):
     r=await session.call_tool(name,args or {})
     if error:assert r.isError,(name,r);return
     assert not r.isError,(name,r);return json.loads(r.content[0].text)
-   status=await call('doll_get_status');assert status['firmware']=='doll-lab-2.4.0'
+   status=await call('doll_get_status');assert status['firmware']=='doll-lab-2.5.0'
    assert not (await call('get_interaction_status'))['active_session'],'Do not interrupt a user interaction'
    assert not (await call('get_sensor_config'))['enabled'],'Disable assembled input sampling before simulation tests'
    caps=await call('get_channel_capabilities');assert caps['max_channels']==16 and caps['mux_ports']==8
    assert {t['type'] for t in caps['types']}=={'pressure','temperature','vibration'}
-   assert not caps['physical_outputs_enabled'];checks.append('36 STDIO tools, typed capabilities and safe boot defaults')
+   assert not caps['physical_outputs_enabled'];checks.append('37 STDIO tools, typed capabilities and safe boot defaults')
    original=await call('get_channel_config');sid=None
    try:
     mixed=[dict(c) for c in original['channels']]
@@ -92,14 +92,18 @@ async def main():
      if not port:raise AssertionError('Wi-Fi regression needs explicit DOLL_TEST_REBOOT_PORT for the maintenance reboot')
      from device_lab import SerialLink
      link=SerialLink(port)
-     try:assert link.exchange({'cmd':'reboot'})['ok']
+     previous_boot=status['boot_id']
+     try:
+      try:assert link.exchange({'cmd':'reboot'})['ok']
+      except TimeoutError:pass  # Do not resend: verify the new boot over Wi-Fi below.
      finally:link.close()
     else:assert json.load(opener.open(req))['ok']
     for _ in range(30):
      await asyncio.sleep(.5)
      try:
       restored=await call('get_channel_config')
-      if restored['channels']==sixteen['channels']:break
+      current=await call('doll_get_status')
+      if restored['channels']==sixteen['channels'] and (connection['transport']!='wifi' or current['boot_id']!=previous_boot):break
      except AssertionError:continue
     else:raise AssertionError('Expanded NVS config did not restore')
     assert not (await call('get_channel_capabilities'))['physical_inputs_enabled']
@@ -111,17 +115,17 @@ async def main():
     async with httpx.AsyncClient(headers={'Authorization':'Bearer '+private['mcp_token']},trust_env=False,timeout=30) as client:
      async with streamable_http_client('http://'+status['ip']+'/mcp',http_client=client) as (r,w,_):
       async with ClientSession(r,w) as http:
-       await http.initialize();tools=await http.list_tools();assert len(tools.tools)==22
+       await http.initialize();tools=await http.list_tools();assert len(tools.tools)==25
        response=await http.call_tool('get_channel_capabilities');assert not response.isError
        assert json.loads(response.content[0].text)['max_channels']==16
-    checks.append('22 device HTTP MCP tools and matching typed capability discovery over Wi-Fi')
+    checks.append('25 device HTTP MCP tools and matching typed capability discovery over Wi-Fi')
    finally:
     if sid:await call('end_interaction',{'session_id':sid})
     await call('set_output_enabled',{'enabled':False})
     await call('set_channel_config',{'channels':original['channels']})
    assert (await call('get_channel_config'))['channels']==original['channels']
    checks.append('original channel config restored after tests')
- report={'passed':True,'firmware':'doll-lab-2.4.0','at':datetime.datetime.now().astimezone().isoformat(),'checks':checks,
+ report={'passed':True,'firmware':'doll-lab-2.5.0','at':datetime.datetime.now().astimezone().isoformat(),'checks':checks,
          'not_tested':['Physical NTC probe','Physical vibration motor/driver and timer cutoff','Physical FSR ADC measurements']}
  (work/'channel-device-test.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
  print(json.dumps(report,ensure_ascii=False,indent=2))

@@ -12,7 +12,7 @@ import urllib.request
 from device_lab import CONFIG, WORK, SerialLink
 from device_discovery import discover_paired_device
 
-VERSION = 'doll-bridge-2.7.0'
+VERSION = 'doll-bridge-2.8.0'
 PROTOCOL = '2025-11-25'
 
 
@@ -111,7 +111,7 @@ class WifiLink:
         if self.initialized:
             return
         reply = self._rpc('initialize', {'protocolVersion': PROTOCOL, 'capabilities': {},
-                                       'clientInfo': {'name': 'ai-doll-wifi-collector', 'version': '2.7.0'}})
+                                       'clientInfo': {'name': 'ai-doll-wifi-collector', 'version': '2.8.0'}})
         if reply.get('result', {}).get('protocolVersion') != PROTOCOL:
             raise DeviceConnectionError('Device MCP initialization failed')
         self._request('/mcp', {'jsonrpc': '2.0', 'method': 'notifications/initialized'})
@@ -162,7 +162,7 @@ class WifiLink:
                 request.get('params', {}).get('name') in {
                     'doll_get_status', 'get_touch_events', 'get_body_map', 'get_sensor_config',
                     'get_channel_capabilities', 'get_channel_config', 'read_channel_values',
-                    'get_operating_mode', 'get_pressure_calibration'})
+                    'get_operating_mode', 'get_pressure_calibration', 'get_event_storage_status'})
 
     def exchange(self, command, timeout=None):
         try:
@@ -197,7 +197,11 @@ class WifiLink:
                 return self._tool('doll_get_status', {})
             if cmd == 'events':
                 return self._tool('get_touch_events', {'boot_id': command.get('boot_id', ''),
-                                                       'after': command.get('after', 0)})
+                                                       'after': command.get('after', 0), 'include_persistent':True})
+            if cmd == 'ack_events':
+                return self._tool('acknowledge_events', {k:command.get(k) for k in ('boot_id','storage_epoch','storage_cursor')})
+            if cmd == 'sync_time':
+                return self._tool('set_device_time', {k:command.get(k) for k in ('boot_id','unix_time_ms')})
             if cmd == 'rpc':
                 request = command['request']
                 response = self._rpc(request['method'], request.get('params'))

@@ -17,7 +17,7 @@ static int pressChannel=-1, pressValue=0, lastWifi=-1;
 static constexpr int LED_PIN=8; // Common SuperMini blue LED, active low.
 static bool scanBusy=false;
 static uint32_t scanStartedAt=0;
-static const char* VERSION="doll-lab-2.4.0";
+static const char* VERSION="doll-lab-2.5.0";
 static const char* PROTOCOL="2025-11-25";
 
 static String encode(const JsonDocument &d){String s;serializeJson(d,s);return s;}
@@ -37,6 +37,7 @@ static void status(JsonObject o){
  o["ip"]=WiFi.localIP().toString();o["ap_ip"]=WiFi.softAPIP().toString();o["ap_ssid"]=apName;
  o["mcp_enabled"]=mcpEnabled;o["mcp_path"]="/mcp";o["protocol_version"]=PROTOCOL;
  o["discovery_protocol"]=DISCOVERY_PROTOCOL;o["discovery_port"]=DISCOVERY_PORT;o["discovery_active"]=discoveryActive;
+ eventStorageStatus(o["event_storage"].to<JsonObject>());
  o["led_on"]=led;o["led_gpio_level"]=digitalRead(LED_PIN);o["sensor_mode"]=sensorEnabled?"sensor":"simulation";o["sensor_count"]=channelCount();o["max_channels"]=MAX_CHANNELS;o["physical_outputs_enabled"]=outputEnabled;
  o["pressed_channel"]=pressChannel;o["pressure"]=pressValue;
  o["reaction"]=pressValue>=2500?"抱抱收到啦！":pressValue>=700?"我感受到你的轻轻按压了。":"安静等待触摸";
@@ -110,6 +111,7 @@ static JsonDocument rpc(const JsonDocument &in){
   item["properties"]["name"]["type"]="string";item["required"].to<JsonArray>().add("channel");item["required"].as<JsonArray>().add("name");
   mapTool["inputSchema"]["required"].to<JsonArray>().add("parts");
   JsonObject et=add("get_touch_events","Read bounded device RAM queue. Use companion MCP for persistent history and interaction sessions.");
+  et["inputSchema"]["properties"]["include_persistent"]["type"]="boolean";
   et["inputSchema"]["properties"]["after"]["type"]="integer";et["inputSchema"]["properties"]["after"]["minimum"]=0;
   et["inputSchema"]["properties"]["boot_id"]["type"]="string";
   add("doll_get_status","Read device Wi-Fi, uptime, LED and simulated pressure state.");
@@ -119,6 +121,14 @@ static JsonDocument rpc(const JsonDocument &in){
   t["inputSchema"]["required"].to<JsonArray>().add("channel");t["inputSchema"]["required"].as<JsonArray>().add("value");
   t=add("doll_set_led","Set the SuperMini active-low GPIO8 LED for a visible hardware test.");t["inputSchema"]["properties"]["on"]["type"]="boolean";t["inputSchema"]["required"].to<JsonArray>().add("on");
   addChannelTools(tools);
+  add("get_event_storage_status","Read bounded flash backlog, loss counters and clock quality; no event contents.");
+  t=add("acknowledge_events","Internal collector operation: acknowledge only AFTER durable database commit. Never replay output commands.");
+  t["inputSchema"]["properties"]["storage_cursor"]["type"]="integer";
+  t["inputSchema"]["properties"]["storage_epoch"]["type"]="string";t["inputSchema"]["properties"]["boot_id"]["type"]="string";
+  JsonArray required=t["inputSchema"]["required"].to<JsonArray>();required.add("storage_cursor");required.add("storage_epoch");required.add("boot_id");
+  t=add("set_device_time","Internal collector operation: synchronize device clock from authenticated computer UTC time. Old events remain unchanged.");
+  t["inputSchema"]["properties"]["unix_time_ms"]["type"]="integer";t["inputSchema"]["properties"]["boot_id"]["type"]="string";
+  required=t["inputSchema"]["required"].to<JsonArray>();required.add("unix_time_ms");required.add("boot_id");
  }else if(method=="tools/call"){
   String name=in["params"]["name"]|"";JsonVariantConst a=in["params"]["arguments"];JsonDocument data;
   if(name=="get_channel_capabilities"){channelCapabilities(data.to<JsonObject>());}
@@ -139,7 +149,13 @@ static JsonDocument rpc(const JsonDocument &in){
   else if(name=="set_sensor_config"){String error;if(!setSensors(a,error)){rpcError(out,-32602,error.c_str());return out;}sensorConfig(data.to<JsonObject>());}
   else if(name=="get_body_map"){bodyMap(data.to<JsonObject>());}
   else if(name=="set_body_map"){String error;if(!saveBodyMap(a,error)){rpcError(out,-32602,error.c_str());return out;}bodyMap(data.to<JsonObject>());}
-  else if(name=="get_touch_events"){if(!a["after"].isNull()&&!a["after"].is<uint32_t>()){rpcError(out,-32602,"after must be nonnegative integer");return out;}touchRead(data.to<JsonObject>(),a["after"]|0U,a["boot_id"]|"");}
+  else if(name=="get_touch_events"){
+   if((!a["after"].isNull()&&!a["after"].is<uint32_t>())||(!a["include_persistent"].isNull()&&!a["include_persistent"].is<bool>())){rpcError(out,-32602,"after nonnegative integer; include_persistent boolean");return out;}
+   touchRead(data.to<JsonObject>(),a["after"]|0U,a["boot_id"]|"",a["include_persistent"]|false);
+  }
+  else if(name=="get_event_storage_status"){eventStorageStatus(data.to<JsonObject>());}
+  else if(name=="acknowledge_events"){String error;if(!acknowledgeStoredEvents(a,error)){rpcError(out,-32602,error.c_str());return out;}eventStorageStatus(data.to<JsonObject>());}
+  else if(name=="set_device_time"){String error;if(!syncDeviceClock(a,error)){rpcError(out,-32602,error.c_str());return out;}eventStorageStatus(data.to<JsonObject>());}
   else if(name=="doll_get_status"){status(data.to<JsonObject>());}
   else if(name=="doll_set_led"){
    if(!a["on"].is<bool>()){rpcError(out,-32602,"on must be boolean");return out;}setLed(a["on"].as<bool>());ledOverrideUntil=millis()+3000;status(data.to<JsonObject>());
@@ -163,15 +179,21 @@ static void serialCommand(const String &line){
  JsonDocument in,out;if(deserializeJson(in,line)){out["error"]="invalid JSON";serialJson(out);return;}
  String cmd=in["cmd"]|"";
  if(cmd=="status")status(out.to<JsonObject>());
- else if(cmd=="events")touchRead(out.to<JsonObject>(),in["after"]|0U,in["boot_id"]|"");
+ else if(cmd=="events")touchRead(out.to<JsonObject>(),in["after"]|0U,in["boot_id"]|"",true);
+ else if(cmd=="ack_events"){String error;out["ok"]=acknowledgeStoredEvents(in.as<JsonVariantConst>(),error);if(error.length())out["error"]=error;}
+ else if(cmd=="sync_time"){String error;out["ok"]=syncDeviceClock(in.as<JsonVariantConst>(),error);if(error.length())out["error"]=error;}
  else if(cmd=="setup_mode"){openConfigAP(NetworkMode::SETUP);out["ok"]=true;}
  else if(cmd=="scan")scanWifi(out.to<JsonObject>(),in["start"]|false);
  else if(cmd=="setup"){out["ap_ssid"]=apName;out["ap_password"]=apPass;out["admin_user"]="admin";out["mcp_token"]=token;}
  else if(cmd=="wifi"){String error;out["ok"]=provision(in.as<JsonVariantConst>(),error);if(error.length())out["error"]=error;}
  else if(cmd=="mcp"){if(!in["enabled"].is<bool>()){out["error"]="enabled must be boolean";}else{mcpEnabled=in["enabled"];prefs.putBool("mcp",mcpEnabled);out["ok"]=true;}}
  else if(cmd=="rpc"){if(!mcpEnabled){out["error"]="MCP disabled";}else{JsonDocument req;req.set(in["request"]);out=rpc(req);}}
- else if(cmd=="reboot"){Serial.println("{\"ok\":true,\"reboot\":true}");Serial.flush();delay(100);ESP.restart();}
+ else if(cmd=="reboot"){
+  out["ok"]=true;out["reboot"]=true;if(in["serial_request_id"].is<String>())out["serial_request_id"]=in["serial_request_id"];
+  serialJson(out);delay(100);ESP.restart();return;
+ }
  else out["error"]="unknown command";
+ if(in["serial_request_id"].is<String>())out["serial_request_id"]=in["serial_request_id"];
  serialJson(out);
 }
 
@@ -181,7 +203,7 @@ void setup(){
  apPass=prefs.getString("apkey","");if(apPass.isEmpty()){apPass="Doll-"+randomHex().substring(0,10);prefs.putString("apkey",apPass);}
  token=prefs.getString("token","");if(token.isEmpty()){token=randomHex();prefs.putString("token",token);}
  ssid=prefs.getString("ssid","");password=prefs.getString("pass","");mcpEnabled=prefs.getBool("mcp",true);
- networkInit();
+ eventStorageInit();networkInit();
  const char* headers[]={"Authorization","Origin","X-Setup-Token","MCP-Protocol-Version"};web.collectHeaders(headers,4);
  web.on("/",HTTP_GET,[]{if(admin())web.send_P(200,"text/html; charset=utf-8",PAGE);});
  web.on("/channel-editor.js",HTTP_GET,[]{if(admin())web.send_P(200,"application/javascript; charset=utf-8",CHANNEL_EDITOR_JS);});

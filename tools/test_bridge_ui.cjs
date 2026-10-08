@@ -34,7 +34,7 @@ const fs=require('fs'),path=require('path');const {chromium}=require('playwright
   await page.evaluate(()=>client.stop());connected=false;
   const state=await page.evaluate(()=>client.api('/bridge/status'));if(state.subscriptions.some(s=>s.active))throw Error('Unsubscribe failed');
   if(errors.length)throw Error(errors.join('\n'));
-  const report={passed:true,bridge:'2.7.0',transport:connection.transport,at:new Date().toISOString(),checks:['refresh resumes same subscription','separate window simulated pressure over '+connection.transport,'automatic pushed event without receiving chat user message','explicit simulation/demo labels','durable reply and delivery ACK','release does not duplicate feedback','unsubscribe and ordinary archive restored','390px mobile layout/no JS errors']};
+  const report={passed:true,bridge:'2.8.0',transport:connection.transport,at:new Date().toISOString(),checks:['refresh resumes same subscription','separate window simulated pressure over '+connection.transport,'automatic pushed event without receiving chat user message','explicit simulation/demo labels','durable reply and delivery ACK','release does not duplicate feedback','unsubscribe and ordinary archive restored','390px mobile layout/no JS errors']};
   fs.writeFileSync(path.join(root,'build/device-lab/bridge-live-test.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));
   await sender.close();
  }finally{if(connected)await page.evaluate(()=>client.stop()).catch(()=>{});if(originalPrefs)await page.evaluate(prefs=>client.tool('set_feedback_preferences',prefs),originalPrefs);await browser.close()}

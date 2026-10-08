@@ -1,5 +1,5 @@
 """Serial setup and real-device HTTP MCP smoke test. Secrets stay in ignored build/."""
-import argparse, base64, json, pathlib, sys, time, urllib.request, urllib.error
+import argparse, base64, json, pathlib, sys, time, urllib.request, urllib.error, secrets
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'.tools/python-packages'))
 import serial
@@ -10,6 +10,7 @@ class SerialLink:
     """Keep CDC open for the collector; callers serialize requests with one lock."""
     def __init__(self,port='COM3'):
         self.port=port;self.connection=None
+        self.require_request_id=False
 
     def close(self):
         if self.connection is not None:
@@ -17,12 +18,26 @@ class SerialLink:
 
     def exchange(self,command,timeout=8):
         try:
+            return self._exchange_once(command,timeout)
+        except (TimeoutError,serial.SerialException):
+            # A disconnected CDC link can recover on the next open. Retry only
+            # immutable reads; never repeat an ACK, output, reboot or setting.
+            if command.get('cmd') not in ('status','events'):
+                raise
+            time.sleep(.5)
+            return self._exchange_once(command,timeout)
+
+    def _exchange_once(self,command,timeout=8):
+        try:
             if self.connection is None:
                 s=serial.Serial(port=None,baudrate=115200,timeout=.3)
                 s.dtr=False;s.rts=False;s.port=self.port;s.open()
                 self.connection=s;time.sleep(.5)
             s=self.connection;s.reset_input_buffer()
-            wire=(json.dumps(command,ensure_ascii=True)+'\n').encode()
+            ident=secrets.token_hex(12)
+            line=json.dumps(dict(command,serial_request_id=ident),ensure_ascii=True)
+            if (len(line)+1)%64==0:line+=' '
+            wire=(line+'\n').encode()
             for offset in range(0,len(wire),64):
                 s.write(wire[offset:offset+64]);s.flush();time.sleep(.004)
             end=time.monotonic()+timeout
@@ -33,7 +48,14 @@ class SerialLink:
                     line,pending=pending.split(b'\n',1);frames.append(len(line))
                     try:r=json.loads(line)
                     except (ValueError,UnicodeDecodeError):continue
-                    if 'event' not in r:return r
+                    if not isinstance(r,dict) or 'event' in r:continue
+                    echo=r.get('serial_request_id')
+                    if echo==ident:
+                        self.require_request_id=True
+                        r.pop('serial_request_id',None)
+                        return r
+                    if echo is not None or self.require_request_id:continue
+                    return r  # Compatibility with old firmware without echo support.
             raise TimeoutError('No serial JSON reply; bytes='+str(received)+' frames='+str(frames))
         except Exception:
             self.close();raise

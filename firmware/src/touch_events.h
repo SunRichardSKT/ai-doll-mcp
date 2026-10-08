@@ -11,7 +11,7 @@ static uint32_t touchSeq=0;
 static constexpr int TOUCH_CAP=128;
 struct TouchRecord {
  uint32_t seq=0,touch=0;
- uint64_t at=0,duration=0;
+ uint64_t at=0,duration=0,wall=0;
  int channel=0,raw=0,peak=0,mv=-1;
  float value=0;
  bool valid=true;
@@ -48,15 +48,29 @@ struct OutputState {
 };
 static OutputState outputs[MAX_CHANNELS];
 static uint64_t touchNow(){return esp_timer_get_time()/1000ULL;}
+static void encodeTouchRecord(JsonObject e,const TouchRecord &r,const String &boot){
+ e["seq"]=r.seq;e["event_id"]=boot+"-"+String(r.seq);
+ if(r.kind==DeviceKind::PRESSURE)e["touch_id"]=boot+"-"+String(r.touch);
+ e["uptime_ms"]=r.at;e["phase"]=r.phase;e["channel"]=r.channel;e["body_part"]=r.body;
+ e["sensor_type"]=kindName(r.kind);e["direction"]=r.kind==DeviceKind::VIBRATION?"output":"input";
+ e["driver"]=r.driver;e["unit"]=unitName(r.kind);e["quality"]=r.quality;
+ if(r.valid)e["value"]=r.value;else e["value"]=nullptr;
+ if(r.mv>=0)e["adc_mv"]=r.mv;else e["adc_mv"]=nullptr;
+ e["raw"]=r.raw;e["peak_raw"]=r.peak;e["duration_ms"]=r.duration;e["source"]=r.source;
+ e["time_quality"]=r.wall?"device_clock":"unknown";
+ if(r.wall)e["device_time_ms"]=r.wall;else e["device_time_ms"]=nullptr;
+}
+#include "event_storage.h"
 static TouchRecord &newRecord(int ch,const String &phase){
  uint32_t seq=++touchSeq;TouchRecord &r=touchQueue[(seq-1)%TOUCH_CAP];r=TouchRecord();
- r.seq=seq;r.at=touchNow();r.channel=ch;r.body=channels[ch].name;r.kind=channels[ch].kind;
+ r.seq=seq;r.at=touchNow();r.wall=deviceWallTime();r.channel=ch;r.body=channels[ch].name;r.kind=channels[ch].kind;
  r.phase=phase;r.driver=driverName(channels[ch].driver);r.quality="ok";return r;
 }
 static void touchEmit(int ch,bool ended){
  TouchState &s=touches[ch];TouchRecord &r=newRecord(ch,ended?"end":"start");
  r.kind=DeviceKind::PRESSURE;r.touch=s.id;r.duration=r.at-s.started;r.body=s.body;r.driver=s.driver;
  r.raw=ended?0:s.raw;r.peak=s.peak;r.value=r.raw;r.source=s.simulated?"simulation":"sensor";
+ persistTouchRecord(r);
 }
 static void touchInject(int ch,int value,bool simulated=true){
  TouchState &s=touches[ch];auto &v=readings[ch];v.sampled=true;v.valid=true;v.value=value;v.raw=value;v.at=touchNow();v.source=simulated?"simulation":"sensor";v.fault="";
@@ -74,7 +88,7 @@ static void motorDeadline(void* argument){
 static void stopOutput(int ch,bool record=true){
  auto &s=outputs[ch];if(s.timer)esp_timer_stop(s.timer);
  if(s.physical&&s.pwm>=0)ledcWrite(s.pwm,0);
- if(s.active&&record){auto &r=newRecord(ch,"stop");r.body=s.body;r.driver=s.driver;r.source=s.physical?"actuator":"simulation";r.duration=r.at-s.started;r.value=0;}
+ if(s.active&&record){auto &r=newRecord(ch,"stop");r.body=s.body;r.driver=s.driver;r.source=s.physical?"actuator":"simulation";r.duration=r.at-s.started;r.value=0;persistTouchRecord(r);}
  s.active=false;s.intensity=0;s.expired=false;
  auto &v=readings[ch];v.value=0;v.valid=true;v.sampled=true;v.at=touchNow();v.source=s.physical?"actuator":"simulation";
 }
@@ -164,6 +178,7 @@ static void temperatureRecord(int ch,float value,bool valid,const String &source
  auto &s=readings[ch];bool unchangedQuality=s.sampled&&s.valid==valid&&s.fault==fault;s.sampled=true;s.valid=valid;s.value=value;s.at=touchNow();s.source=source;s.fault=fault;
  if(source=="sensor"&&unchangedQuality&&s.lastReport&&s.at-s.lastReport<(uint64_t)channels[ch].reportMs&&(valid?fabsf(value-s.reported)<0.2f:true))return;
  auto &r=newRecord(ch,"sample");r.value=value;r.valid=valid;r.source=source;r.quality=valid?"ok":fault;r.raw=s.raw;r.mv=s.mv;
+ persistTouchRecord(r);
  s.lastReport=s.at;s.reported=value;
 }
 static bool simulateInput(JsonVariantConst a,String &error){
@@ -208,7 +223,7 @@ static bool vibrate(JsonVariantConst a,String &error){
  s.started=touchNow();s.deadline=s.started+duration;s.intensity=intensity;s.active=true;s.expired=false;s.body=channels[ch].name;s.driver=driverName(channels[ch].driver);
  if(physical){ledcWrite(s.pwm,lroundf(intensity*255.0f/100));if(esp_timer_start_once(s.timer,duration*1000ULL)!=ESP_OK){stopOutput(ch,false);error="Output timer failed";return false;}}
  auto &v=readings[ch];v.sampled=true;v.valid=true;v.at=s.started;v.value=intensity;v.source=physical?"actuator":"simulation";
- auto &r=newRecord(ch,"output");r.value=intensity;r.source=v.source;r.duration=duration;return true;
+ auto &r=newRecord(ch,"output");r.value=intensity;r.source=v.source;r.duration=duration;persistTouchRecord(r);return true;
 }
 static void sensorConfig(JsonObject out){
  out["enabled"]=sensorEnabled;out["press_threshold"]=sensorOn;out["release_threshold"]=sensorOff;out["adc_gpio"]=0;out["mux_select_gpio"]="3,4,5";
@@ -299,16 +314,13 @@ static void touchTick(){
   if(!transition){sensorDebounce[ch]=0;continue;}if(++sensorDebounce[ch]>=3){sensorDebounce[ch]=0;touchInject(ch,s.active?0:raw,false);}
  }
 }
-static void touchRead(JsonObject out,uint32_t after,const String &boot){
+static void touchRead(JsonObject out,uint32_t after,const String &boot,bool includePersistent=false){
  uint32_t oldest=touchSeq>=TOUCH_CAP?touchSeq-TOUCH_CAP+1:1;bool reset=boot.length()&&boot!=touchBoot;if(reset)after=0;
- out["schema_version"]=2;out["boot_id"]=touchBoot;out["device_id"]=apName;out["uptime_ms"]=touchNow();out["boot_changed"]=reset;out["latest_seq"]=touchSeq;out["oldest_seq"]=oldest;
+ out["schema_version"]=3;out["boot_id"]=touchBoot;out["device_id"]=apName;out["uptime_ms"]=touchNow();out["boot_changed"]=reset;out["latest_seq"]=touchSeq;out["oldest_seq"]=oldest;
  out["gap"]=after<oldest-1;out["next_cursor"]=after;JsonArray events=out["events"].to<JsonArray>();
- for(uint32_t seq=max(after+1,oldest);seq<=touchSeq&&events.size()<24;seq++){
-  TouchRecord &r=touchQueue[(seq-1)%TOUCH_CAP];JsonObject e=events.add<JsonObject>();e["seq"]=r.seq;e["event_id"]=touchBoot+"-"+String(r.seq);
-  if(r.kind==DeviceKind::PRESSURE)e["touch_id"]=touchBoot+"-"+String(r.touch);
-  e["uptime_ms"]=r.at;e["phase"]=r.phase;e["channel"]=r.channel;e["body_part"]=r.body;e["sensor_type"]=kindName(r.kind);e["direction"]=r.kind==DeviceKind::VIBRATION?"output":"input";e["driver"]=r.driver;e["unit"]=unitName(r.kind);e["quality"]=r.quality;
-  if(r.valid)e["value"]=r.value;else e["value"]=nullptr;
-  if(r.mv>=0)e["adc_mv"]=r.mv;else e["adc_mv"]=nullptr;
-  e["raw"]=r.raw;e["peak_raw"]=r.peak;e["duration_ms"]=r.duration;e["source"]=r.source;out["next_cursor"]=seq;
+ if(includePersistent)readEventBacklog(out);else eventStorageStatus(out["event_storage"].to<JsonObject>());
+ size_t persistentCount=out["persistent_events"].size();
+ for(uint32_t seq=max(after+1,oldest);seq<=touchSeq&&events.size()+persistentCount<24;seq++){
+  TouchRecord &r=touchQueue[(seq-1)%TOUCH_CAP];encodeTouchRecord(events.add<JsonObject>(),r,touchBoot);out["next_cursor"]=seq;
  }
 }
