@@ -12,7 +12,7 @@ async def main():
  params=StdioServerParameters(command=sys.executable,args=[str(ROOT/'tools/companion_mcp.py')])
  async with stdio_client(params) as (read,write):
   async with ClientSession(read,write,read_timeout_seconds=datetime.timedelta(seconds=60)) as session:
-   await session.initialize();listed=await session.list_tools();assert len(listed.tools)==33
+   await session.initialize();listed=await session.list_tools();assert len(listed.tools)==35
    async def call(name,args=None,error=False):
     r=await session.call_tool(name,args or {})
     if error:assert r.isError,(name,r);return
@@ -22,7 +22,7 @@ async def main():
    assert not (await call('get_sensor_config'))['enabled'],'Disable assembled input sampling before simulation tests'
    caps=await call('get_channel_capabilities');assert caps['max_channels']==16 and caps['mux_ports']==8
    assert {t['type'] for t in caps['types']}=={'pressure','temperature','vibration'}
-   assert not caps['physical_outputs_enabled'];checks.append('33 STDIO tools, typed capabilities and safe boot defaults')
+   assert not caps['physical_outputs_enabled'];checks.append('35 STDIO tools, typed capabilities and safe boot defaults')
    original=await call('get_channel_config');sid=None
    try:
     mixed=[dict(c) for c in original['channels']]

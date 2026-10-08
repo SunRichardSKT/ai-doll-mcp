@@ -1,17 +1,19 @@
 /* Real selected device transport -> archive/outbox -> pushed demo response -> ACK. */
 const fs=require('fs'),path=require('path');const {chromium}=require('playwright');
 (async()=>{
- const executable=[chromium.executablePath(),'C:/Program Files/Google/Chrome/Application/chrome.exe','C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'].find(fs.existsSync);
+ const executable=[chromium.executablePath(),'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe','C:/Program Files/Google/Chrome/Application/chrome.exe'].find(fs.existsSync);
  const browser=await chromium.launch({headless:true,executablePath:executable});
  const root=path.resolve(__dirname,'..'),page=await browser.newPage({viewport:{width:1100,height:1000}}),errors=[];
  page.on('pageerror',e=>errors.push(e.message));
- let connected=false;
+ let connected=false,originalPrefs=null;
  try{
   await page.goto('http://127.0.0.1:8768/bridge');
   const connection=await page.evaluate(()=>client.api('/connection'));
   await page.waitForFunction(()=>document.querySelector('#selected').textContent.includes('CH'));
   const current=await page.evaluate(()=>client.tool('get_interaction_status'));
   if(current.active_session)throw Error('Do not interrupt another active user interaction');
+  originalPrefs=await page.evaluate(()=>client.tool('get_feedback_preferences'));
+  await page.evaluate(prefs=>client.tool('set_feedback_preferences',{policy:{...prefs.policy,notify_pressure_patterns:false,quiet_hours:{...prefs.policy.quiet_hours,enabled:false}},feedback:prefs.feedback}),originalPrefs);
   await page.click('#connect');await page.waitForFunction(()=>client.running&&document.querySelector('#press').disabled===false);connected=true;
   const originalSub=await page.evaluate(()=>client.sub.id);
   await page.reload();await page.waitForFunction(()=>document.querySelector('#selected').textContent.includes('CH'));
@@ -32,8 +34,8 @@ const fs=require('fs'),path=require('path');const {chromium}=require('playwright
   await page.evaluate(()=>client.stop());connected=false;
   const state=await page.evaluate(()=>client.api('/bridge/status'));if(state.subscriptions.some(s=>s.active))throw Error('Unsubscribe failed');
   if(errors.length)throw Error(errors.join('\n'));
-  const report={passed:true,bridge:'2.5.0',transport:connection.transport,at:new Date().toISOString(),checks:['refresh resumes same subscription','separate window simulated pressure over '+connection.transport,'automatic pushed event without receiving chat user message','explicit simulation/demo labels','durable reply and delivery ACK','release does not duplicate feedback','unsubscribe and ordinary archive restored','390px mobile layout/no JS errors']};
+  const report={passed:true,bridge:'2.6.0',transport:connection.transport,at:new Date().toISOString(),checks:['refresh resumes same subscription','separate window simulated pressure over '+connection.transport,'automatic pushed event without receiving chat user message','explicit simulation/demo labels','durable reply and delivery ACK','release does not duplicate feedback','unsubscribe and ordinary archive restored','390px mobile layout/no JS errors']};
   fs.writeFileSync(path.join(root,'build/device-lab/bridge-live-test.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));
   await sender.close();
- }finally{if(connected)await page.evaluate(()=>client.stop()).catch(()=>{});await browser.close()}
+ }finally{if(connected)await page.evaluate(()=>client.stop()).catch(()=>{});if(originalPrefs)await page.evaluate(prefs=>client.tool('set_feedback_preferences',prefs),originalPrefs);await browser.close()}
 })().catch(e=>{console.error(e.message);process.exitCode=1});

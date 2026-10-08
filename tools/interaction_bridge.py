@@ -7,15 +7,22 @@ import datetime as dt
 import hashlib
 import json
 import math
+import re
 import secrets
 import time
 import uuid
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+from input_observations import pressure_observations
 
-VERSION = 'doll-bridge-2.5.0'
+VERSION = 'doll-bridge-2.6.0'
+DEFAULT_QUIET = dict(enabled=False, start='23:00', end='07:00', timezone='Asia/Shanghai')
 DEFAULT_POLICY = dict(merge_ms=300, cooldown_ms=1500, max_age_sec=30,
                       allow_simulation=True, temperature_enabled=False,
-                      temperature_delta_c=1.0)
-DEFAULT_FEEDBACK = dict(tone='温柔自然', max_characters=160, language='zh-CN')
+                      temperature_delta_c=1.0, notify_pressure_patterns=True,
+                      long_press_ms=1500, tap_max_ms=600, tap_gap_ms=600,
+                      simultaneous_ms=300, quiet_hours=DEFAULT_QUIET)
+DEFAULT_FEEDBACK = dict(tone='温柔自然', max_characters=160, language='zh-CN',
+                        preferred_address='', avoid_phrases=[])
 
 
 def text(value, field, maximum=128):
@@ -28,16 +35,43 @@ def validated_policy(value):
     if not isinstance(value, dict) or set(value)-set(DEFAULT_POLICY):
         raise ValueError('Unknown feedback policy fields')
     result = dict(DEFAULT_POLICY, **value)
-    for k, lo, hi in [('merge_ms', 0, 1000), ('cooldown_ms', 0, 30000), ('max_age_sec', 1, 120)]:
+    for k, lo, hi in [('merge_ms', 0, 1000), ('cooldown_ms', 0, 30000), ('max_age_sec', 1, 120),
+                      ('long_press_ms', 500, 30000), ('tap_max_ms', 50, 2000),
+                      ('tap_gap_ms', 50, 5000), ('simultaneous_ms', 0, 1000)]:
         if type(result[k]) is not int or not lo <= result[k] <= hi:
             raise ValueError(f'{k} outside supported range')
-    for k in ['allow_simulation', 'temperature_enabled']:
+    for k in ['allow_simulation', 'temperature_enabled', 'notify_pressure_patterns']:
         if type(result[k]) is not bool:
             raise ValueError(k+' must be boolean')
     v = result['temperature_delta_c']
     if type(v) not in (int, float) or not math.isfinite(v) or not .1 <= v <= 30:
         raise ValueError('temperature_delta_c must be .1..30')
+    if result['long_press_ms'] <= result['tap_max_ms']:
+        raise ValueError('long_press_ms must exceed tap_max_ms')
+    quiet = result['quiet_hours']
+    if not isinstance(quiet, dict) or set(quiet)-set(DEFAULT_QUIET):
+        raise ValueError('Unknown quiet_hours fields')
+    quiet = dict(DEFAULT_QUIET, **quiet)
+    if type(quiet['enabled']) is not bool:
+        raise ValueError('quiet_hours.enabled must be boolean')
+    for k in ['start', 'end']:
+        if not isinstance(quiet[k], str) or not re.fullmatch(r'(?:[01][0-9]|2[0-3]):[0-5][0-9]', quiet[k]):
+            raise ValueError('quiet_hours times must be HH:MM')
+    text(quiet['timezone'], 'quiet_hours.timezone', 64)
+    try: ZoneInfo(quiet['timezone'])
+    except (ZoneInfoNotFoundError, ValueError):
+        raise ValueError('Unknown IANA timezone; install the tzdata dependency') from None
+    result['quiet_hours'] = quiet
     return result
+
+
+def quiet_status(policy, now):
+    quiet = policy['quiet_hours']
+    local = dt.datetime.fromtimestamp(now, ZoneInfo(quiet['timezone']))
+    minute = local.strftime('%H:%M')
+    start, end = quiet['start'], quiet['end']
+    within = start == end or (start <= minute < end if start < end else minute >= start or minute < end)
+    return dict(active=quiet['enabled'] and within, local_time=local.isoformat(), **quiet)
 
 
 def validated_feedback(value):
@@ -47,6 +81,12 @@ def validated_feedback(value):
     text(result['tone'], 'tone', 1000); text(result['language'], 'language', 32)
     if type(result['max_characters']) is not int or not 20 <= result['max_characters'] <= 2000:
         raise ValueError('max_characters must be 20..2000')
+    if not isinstance(result['preferred_address'], str) or len(result['preferred_address']) > 80:
+        raise ValueError('preferred_address must be text up to 80 characters')
+    if not isinstance(result['avoid_phrases'], list) or len(result['avoid_phrases']) > 20:
+        raise ValueError('avoid_phrases must contain at most 20 phrases')
+    for phrase in result['avoid_phrases']:text(phrase, 'avoid_phrases entry', 100)
+    result['avoid_phrases'] = list(result['avoid_phrases'])
     return result
 
 
@@ -90,6 +130,9 @@ class EventBridge:
         with self.lock, self.db:
             for k, v in [('bridge_policy', policy), ('bridge_feedback', feedback)]:
                 self.db.execute('INSERT OR REPLACE INTO settings VALUES(?,?)', (k, json.dumps(v, ensure_ascii=False)))
+            self.db.execute('UPDATE bridge_subscriptions SET policy=?,feedback=? WHERE active=1',
+                            (json.dumps(policy), json.dumps(feedback, ensure_ascii=False)))
+            self._expire(time.time())
         return dict(policy=policy, feedback=feedback)
 
     def _expire(self, now):
@@ -101,6 +144,22 @@ class EventBridge:
           (SELECT id FROM bridge_subscriptions WHERE active=1))''', (now,))
         self.db.execute("UPDATE bridge_outbox SET state='pending',lease=NULL WHERE state='sending' AND lease_until<=?", (now,))
         self.db.execute("UPDATE bridge_outbox SET state='expired',lease=NULL WHERE state='pending' AND expires<=?", (now,))
+        for sub in self.db.execute('SELECT id,policy FROM bridge_subscriptions WHERE active=1').fetchall():
+            if quiet_status(validated_policy(json.loads(sub['policy'])), now)['active']:
+                self.db.execute("UPDATE bridge_outbox SET state='suppressed',lease=NULL WHERE subscription_id=? AND state IN ('pending','sending')", (sub['id'],))
+
+    def observations(self, session_id, device, end, policy, focus=None, channels=None):
+        window = max(10, policy['long_press_ms']/1000 + policy['tap_gap_ms']/1000)
+        params = [session_id, device, end-window, end]
+        where = 'session_id=? AND device=? AND at>=? AND at<=?'
+        if channels:
+            where += " AND json_extract(payload,'$.channel') IN ("+','.join('?' for _ in channels)+')'
+            params.extend(channels)
+        rows = self.db.execute('SELECT * FROM events WHERE '+where+' ORDER BY at DESC,id DESC LIMIT 201',params).fetchall()
+        values = [dict(json.loads(r['payload']), id=r['id'], device=r['device'], boot=r['boot'], at=r['at']) for r in reversed(rows[:200])]
+        result = pressure_observations(values, policy, focus)
+        result.update(context_window_seconds=window, truncated=len(rows)>200)
+        return result
 
     @staticmethod
     def public_subscription(row):
@@ -156,14 +215,24 @@ class EventBridge:
         if event.get('direction', 'input') != 'input':
             return
         kind = event.get('sensor_type', 'pressure')
-        if kind not in ('pressure', 'temperature') or (kind == 'pressure' and event.get('phase') != 'start'):
+        if kind not in ('pressure', 'temperature') or (kind == 'pressure' and event.get('phase') not in ('start','end')):
+            return
+        if kind == 'pressure' and (event.get('quality','ok') != 'ok' or event.get('source') not in ('sensor','simulation')):
             return
         for sub in self.db.execute('SELECT * FROM bridge_subscriptions WHERE active=1 AND session_id=? AND device_id=?', (session_id, device)).fetchall():
-            policy = json.loads(sub['policy'])
+            policy = validated_policy(json.loads(sub['policy']))
             if sub['expires'] <= now or at < sub['created'] or now-at > policy['max_age_sec'] or at-now > 2:
                 continue
             if event.get('source') == 'simulation' and not policy['allow_simulation']:
                 continue
+            if quiet_status(policy, now)['active'] or quiet_status(policy, at)['active']:
+                continue
+            if kind == 'pressure' and event.get('phase') == 'end':
+                if not policy['notify_pressure_patterns']:
+                    continue
+                observed = self.observations(session_id, device, at, policy, {row_id})
+                if not any(o['kind'] in ('completed_long_press', 'repeated_short_presses') for o in observed['observations']):
+                    continue
             if kind == 'temperature':
                 value = event.get('value')
                 baseline = self.db.execute('SELECT value FROM bridge_temperature_baselines WHERE subscription_id=? AND channel=?', (sub['id'],event.get('channel'))).fetchone()
@@ -174,7 +243,7 @@ class EventBridge:
             inserted = self.db.execute('INSERT OR IGNORE INTO bridge_seen VALUES(?,?)', (sub['id'], row_id)).rowcount
             if not inserted:
                 continue
-            snapshot = dict(event, sensor_type=kind, direction='input', at=at, device_id=device)
+            snapshot = dict(event, sensor_type=kind, direction='input', at=at, device_id=device, archive_event_id=row_id)
             args = json.loads(sub['arguments'])
             if args.get('channels') and event.get('channel') not in args['channels']:
                 continue
@@ -215,10 +284,21 @@ class EventBridge:
               JOIN bridge_subscriptions s ON s.id=o.subscription_id WHERE '''+' AND '.join(where)+' ORDER BY o.id LIMIT 1', params).fetchone()
             if not row:
                 return None
+            payload = json.loads(row['payload'])
+            if row['attempts'] == 0:
+                sub = self.db.execute('SELECT * FROM bridge_subscriptions WHERE id=?', (row['subscription_id'],)).fetchone()
+                policy = validated_policy(json.loads(sub['policy']))
+                selected = {e['archive_event_id'] for e in payload['data']['events'] if 'archive_event_id' in e}
+                allowed = json.loads(sub['arguments']).get('channels')
+                summary = self.observations(sub['session_id'], sub['device_id'],
+                    max(e['at'] for e in payload['data']['events']), policy, selected, allowed)
+                payload['data']['summary'] = summary
+                payload['data']['feedback'] = validated_feedback(json.loads(sub['feedback']))
+                self.db.execute('UPDATE bridge_outbox SET payload=? WHERE id=?', (json.dumps(payload,ensure_ascii=False),row['id']))
             lease = secrets.token_hex(24)
             # Stream consumers renew this lease during model generation.
             self.db.execute("UPDATE bridge_outbox SET state='sending',lease=?,lease_until=?,attempts=attempts+1 WHERE id=?", (lease, now+15, row['id']))
-            return dict(row, lease=lease, payload=json.loads(row['payload']), attempts=row['attempts']+1)
+            return dict(row, lease=lease, payload=payload, attempts=row['attempts']+1)
 
     def renew(self, owner, subscription_id, event_id, lease, now=None):
         now = time.time() if now is None else now
@@ -274,4 +354,6 @@ class EventBridge:
               JOIN bridge_subscriptions s ON s.id=o.subscription_id WHERE s.owner=? GROUP BY o.state''', (owner,)))
             replies = [dict(r) for r in self.db.execute('''SELECT r.event_id,r.text,r.source,r.created FROM bridge_replies r
               JOIN bridge_subscriptions s ON s.id=r.subscription_id WHERE s.owner=? ORDER BY r.id DESC LIMIT 20''', (owner,))]
-        return dict(version=VERSION, subscriptions=subs, deliveries=counts, replies=replies, preferences=self.preferences())
+        preferences = self.preferences()
+        return dict(version=VERSION, subscriptions=subs, deliveries=counts, replies=replies, preferences=preferences,
+                    quiet_hours=quiet_status(preferences['policy'],time.time()))

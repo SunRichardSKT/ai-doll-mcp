@@ -170,8 +170,12 @@ if __name__=='__main__':
     if not private.exists():private.write_text(json.dumps({'token':secrets.token_hex(32)}),encoding='utf-8')
     COMPANION_TOKEN=json.loads(private.read_text(encoding='utf-8'))['token']
     COMPANION=Companion(WORK/'interactions.sqlite3',exchange,LOCK)
+    COMPANION.runtime_info=dict(transport=CONNECTION['transport'],service_address='http://127.0.0.1:8768',
+                               device_endpoint='authenticated LAN HTTP MCP' if CONNECTION['transport']=='wifi' else 'USB serial',
+                               local_mcp_auth='Bearer')
     EVENTS_ADAPTER=MCPEventsAdapter(COMPANION,bridge_tools)
     bridge_tools()  # Build schemas once before requests can race initialization.
+    COMPANION.runtime_info['tool_count']=len(TOOLS_CACHE)
     server=ThreadingHTTPServer(('127.0.0.1',8768),Handler)
     threading.Thread(target=COMPANION.collect,daemon=True).start()
     threading.Thread(target=webhook_worker,args=(COMPANION.bridge,COMPANION.stop),daemon=True).start()

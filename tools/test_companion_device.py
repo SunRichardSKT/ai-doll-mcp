@@ -20,8 +20,8 @@ async def main():
         async with ClientSession(read, write, read_timeout_seconds=datetime.timedelta(seconds=50)) as session:
             await session.initialize()
             tools = await session.list_tools()
-            assert len(tools.tools) == 33
-            checks.append('official SDK handshake and 33 tools')
+            assert len(tools.tools) == 35
+            checks.append('official SDK handshake and 35 tools')
 
             async def call(name, args=None, error=False):
                 reply = await session.call_tool(name, args or {})

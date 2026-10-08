@@ -2,7 +2,7 @@
 
 当前版本：固件 **doll-lab-2.3.0**；硬件 **AI_Doll_V2 / ESP32-C3 SuperMini + 74HC4051 / 八路模拟接口**。最多 16 个逻辑通道，预设压力、NTC 温度输入及震动输出；用户自行选择 AI 平台，通过通用 MCP 接入。
 
-电脑服务为 **Bridge v2.5.0**，本机 STDIO MCP 为 **33 个工具**。支持局域网 Wi-Fi 采集，保留持久事件投递、会话目标绑定、自建应用 SSE、反馈偏好与 MCP Events；新增压力校准、日常模式及实时诊断，需要升级固件至 v2.3。无需电脑 USB 数据连接的运行方式见 [无线连接指南](docs/WIFI_CONNECTION.md)，跨平台接入见 [主动互动指南](docs/PROACTIVE_INTERACTION.md)。
+电脑服务为 **Bridge v2.6.0**，本机 STDIO MCP 为 **35 个工具**。支持局域网 Wi-Fi 采集，保留持久事件投递、会话目标绑定、自建应用 SSE、反馈偏好与 MCP Events；新增压力校准、日常模式及实时诊断，需要升级固件至 v2.3。Bridge v2.6 另加入客观动作摘要、安静时段、称呼/避用词和安装自检；这部分无需重新烧录已升级的 v2.3 设备，见 [互动优化指南](docs/INTERACTION_OBSERVATIONS.md)。无需电脑 USB 数据连接的运行方式见 [无线连接指南](docs/WIFI_CONNECTION.md)，跨平台接入见 [主动互动指南](docs/PROACTIVE_INTERACTION.md)。
 
 ## 在新的聊天窗口接入
 

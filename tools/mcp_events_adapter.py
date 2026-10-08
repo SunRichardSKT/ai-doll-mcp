@@ -20,7 +20,7 @@ EVENT_DEFINITION = dict(name=EVENT_NAME,
     payloadSchema=dict(type='object', properties={
         'device_id': {'type':'string'}, 'session_id': {'type':'string'},
         'events': {'type':'array','items':{'type':'object'}},
-        'feedback': {'type':'object'}, 'persona': {'type':'string'}
+        'feedback': {'type':'object'}, 'persona': {'type':'string'}, 'summary': {'type':'object'}
     }, required=['device_id','session_id','events','feedback','persona'], additionalProperties=False))
 
 
@@ -54,7 +54,7 @@ class MCPEventsAdapter:
     def execute(self, method, params, owner):
         if method == 'server/discover':
             return dict(supportedVersions=[PROTOCOL], capabilities=dict(tools={},events={}),
-                        serverInfo=dict(name='ai-doll-event-bridge',version='2.5.0'))
+                        serverInfo=dict(name='ai-doll-event-bridge',version='2.6.0'))
         if method == 'ping': return {}
         if method == 'events/list':
             return dict(events=[EVENT_DEFINITION])

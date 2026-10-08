@@ -6,7 +6,10 @@ import threading
 import time
 import uuid
 import re
+import sys
+from importlib.metadata import version as package_version, PackageNotFoundError
 from interaction_bridge import EventBridge
+from input_observations import pressure_observations
 
 
 def utcnow():
@@ -234,6 +237,21 @@ class Companion:
             return self.bridge.save_preferences(**args)
         if name == 'get_reply_bridge_status':
             return self.bridge.state()
+        if name == 'summarize_interactions':
+            try:self.sync()
+            except Exception:self.error = 'Device offline; returning archived history'
+            history = self.device_history(**args)
+            # Boot boundaries are required even when the usual public event view omits them.
+            with self.lock:
+                values = []
+                for entry in history['events']:
+                    row = self.db.execute('SELECT boot FROM events WHERE id=?',(entry['id'],)).fetchone()
+                    values.append(dict(entry,boot=row['boot']))
+            history['summary'] = pressure_observations(values,self.bridge.preferences()['policy'])
+            history['summary']['scope'] = 'returned_page'
+            return history
+        if name == 'get_installation_status':
+            return self.installation_status(**args)
         if name == 'set_persona':
             persona = args.get('persona')
             if not isinstance(persona, str) or len(persona) > 4000:
@@ -241,6 +259,33 @@ class Companion:
             self.set_setting('persona', persona)
             return {'persona': persona}
         raise ValueError('Unknown tool')
+
+    def installation_status(self, client_kind='unknown'):
+        if client_kind not in ('unknown','stdio','events','api'):
+            raise ValueError('client_kind must be unknown, stdio, events or api')
+        dependencies = {}
+        for package in ('mcp','pyserial','tzdata'):
+            try:dependencies[package] = package_version(package)
+            except PackageNotFoundError:dependencies[package] = None
+        live, error = None, None
+        try:
+            status = self.device('doll_get_status',{})
+            live = {k:status.get(k) for k in ('device_id','firmware','wifi_connected','sensor_mode','physical_outputs_enabled')}
+        except Exception:error = 'Device unavailable; verify power, transport and LAN/serial connection'
+        runtime = dict(getattr(self,'runtime_info',{}))
+        with self.lock:
+            self.db.execute('SELECT COUNT(*) FROM settings').fetchone()
+        bridge = self.bridge.state()
+        return dict(bridge=bridge['version'], python=sys.version.split()[0],
+            dependencies=dependencies, database_open=True, runtime=runtime,
+            device=live, device_error=error, collector_error=self.error,last_sync=self.last_sync,
+            quiet_hours=bridge['quiet_hours'],
+            client_kind=client_kind, client_registration='not_inspected', host_event_support='not_verified',
+            next_steps=['Reconnect the AI client to refresh its advertised tool list.',
+                'STDIO clients query or perform bounded waits; an idle chat is not awakened by a tool server.',
+                'Events/API hosts must create a session and bind a subscription to the current target.',
+                'Remote web AI needs an authenticated reachable endpoint; GitHub is documentation, not that endpoint.'],
+            secrets_included=False)
 
     def device_history(self, date=None, body_part=None, sensor_type=None, direction=None,
                        session_id=None, after=0, limit=50):
