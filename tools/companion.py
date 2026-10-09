@@ -7,6 +7,7 @@ import time
 import uuid
 import re
 import sys
+from contextlib import contextmanager
 from importlib.metadata import version as package_version, PackageNotFoundError
 from interaction_bridge import EventBridge
 from input_observations import pressure_observations
@@ -14,6 +15,22 @@ from input_observations import pressure_observations
 
 def utcnow():
     return time.time()
+
+
+class DeviceBusyError(TimeoutError):
+    """An operation was not started because the device connection is occupied."""
+
+
+@contextmanager
+def bounded_device_lock(lock):
+    # A waiting HTTP/MCP request must expire before it becomes a late output.
+    # This bounds queue time, not the transport's own in-flight network timeout.
+    if not lock.acquire(timeout=2):
+        raise DeviceBusyError('Device connection busy; operation was not started')
+    try:
+        yield
+    finally:
+        lock.release()
 
 
 class Companion:
@@ -73,8 +90,11 @@ class Companion:
         with self.lock, self.db:
             self.db.execute('INSERT OR REPLACE INTO settings VALUES(?,?)', (key, value))
 
+    def device_connection(self):
+        return bounded_device_lock(self.serial_lock)
+
     def device(self, name, args):
-        with self.serial_lock:
+        with self.device_connection():
             r = self.exchange({'cmd': 'rpc', 'request': {'jsonrpc': '2.0', 'id': 1,
                 'method': 'tools/call', 'params': {'name': name, 'arguments': args}}})
         if 'error' in r:
@@ -223,7 +243,7 @@ class Companion:
         self.bridge.enqueue(inserted.lastrowid,device,at,sid,event,received)
 
     def sync(self):
-        with self.sync_lock:
+        with bounded_device_lock(self.sync_lock):
             # Persist each page before advancing the cursor, so reconnects cannot duplicate history.
             with self.lock:
                 row = self.db.execute('SELECT * FROM boots WHERE boot=? ORDER BY offset DESC LIMIT 1',
@@ -231,7 +251,7 @@ class Companion:
                 if row is None:row=self.db.execute('SELECT * FROM boots ORDER BY offset DESC LIMIT 1').fetchone()
             boot, after = (row['boot'], row['cursor']) if row else ('', 0)
             for _ in range(8):
-                with self.serial_lock:
+                with self.device_connection():
                     batch = self.exchange({'cmd': 'events', 'boot_id': boot, 'after': after})
                 if 'events' not in batch:
                     raise ValueError('Expected an event page; received fields: '+','.join(sorted(batch)))
@@ -240,14 +260,14 @@ class Companion:
                 storage=batch.get('event_storage',{})
                 if storage.get('available') and batch.get('storage_cursor'):
                     # Commit has completed above. A lost ACK only causes deduplicated replay.
-                    with self.serial_lock:
+                    with self.device_connection():
                         ack=self.exchange(dict(cmd='ack_events',boot_id=batch['boot_id'],
                             storage_epoch=storage['storage_epoch'],storage_cursor=batch['storage_cursor']))
                     if ack.get('error'):raise ValueError('Persistent event acknowledgement failed')
                 if storage and (not storage.get('clock_synced') or time.monotonic()-self.last_clock_sync>60):
                     clock=storage.get('device_time_ms',0)
                     if not storage.get('clock_synced') or abs(received*1000-clock)>2000:
-                        with self.serial_lock:
+                        with self.device_connection():
                             timed=self.exchange(dict(cmd='sync_time',boot_id=batch['boot_id'],unix_time_ms=round(utcnow()*1000)))
                         if timed.get('error'):raise ValueError('Device clock synchronization failed')
                     self.last_clock_sync=time.monotonic()
@@ -297,6 +317,7 @@ class Companion:
 
     def end(self, session_id):
         try:self.sync()
+        except DeviceBusyError:self.error='Device connection busy; ending interaction with archived data'
         except Exception:self.error='Device offline; ending interaction with archived data'
         with self.lock, self.db:
             if not self.db.execute('SELECT id FROM sessions WHERE id=?', (session_id,)).fetchone():
@@ -355,6 +376,8 @@ class Companion:
                         raise ValueError('Known session_id required')
             try:
                 self.sync()
+            except DeviceBusyError:
+                self.error = 'Device connection busy; returning archived history'
             except Exception:
                 self.error = 'Device offline; returning archived history'
             return self.device_history(**args) if name in ('query_device_history','get_interaction_device_events') else self.history(**args)
@@ -368,6 +391,7 @@ class Companion:
             return self.bridge.state()
         if name == 'summarize_interactions':
             try:self.sync()
+            except DeviceBusyError:self.error = 'Device connection busy; returning archived history'
             except Exception:self.error = 'Device offline; returning archived history'
             history = self.device_history(**args)
             # Boot boundaries are required even when the usual public event view omits them.
@@ -385,7 +409,7 @@ class Companion:
             callback = getattr(self, 'discovery_callback', None)
             if callback is None:
                 return {'found': False, 'updated': False, 'message': 'Discovery is available in Wi-Fi transport only'}
-            with self.serial_lock:
+            with self.device_connection():
                 return callback(**args)
         if name == 'set_persona':
             persona = args.get('persona')
@@ -406,6 +430,7 @@ class Companion:
         try:
             status = self.device('doll_get_status',{})
             live = {k:status.get(k) for k in ('device_id','firmware','wifi_connected','sensor_mode','physical_outputs_enabled')}
+        except DeviceBusyError:error = 'Device connection busy; status was not refreshed'
         except Exception:error = 'Device unavailable; verify power, transport and LAN/serial connection'
         runtime = dict(getattr(self,'runtime_info',{}))
         with self.lock:

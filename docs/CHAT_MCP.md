@@ -16,6 +16,8 @@
 
 未接传感器时保持模拟模式：在 `/companion` 模拟按压，再让 AI 查询历史和人设。互动测试使用 `start_interaction` 与 `get_interaction_device_events`，单次最多等待 20 秒；结束调用 `end_interaction`。这验证当前运行任务内的反馈，不等同于唤醒空闲聊天。
 
+对于只使用本机/局域网 MCP 的用户，这就是安装路径，不必创建 OpenAI 隧道。当前 Work 已实际通过两个状态查询和模拟按压反馈。采集、归档和 MCP 在本机，供云端 AI 阅读的事件仍进入该平台的对话上下文；完全离线还需要使用本地模型。下面的账号侧连接属于普通 Chat 的另一条路径，不能替换本机客户端的设置。
+
 ## ChatGPT 普通 Chat 的操作
 
 OpenAI 官方文档说明，安装后的插件可以向 Chat 和 Work 提供工具；本机 Codex MCP 配置与托管插件连接是不同的安装路径。见 [插件说明](https://learn.chatgpt.com/docs/plugins) 和 [MCP 配置说明](https://learn.chatgpt.com/docs/extend/mcp)。本项目已验证本机 Work 的 STDIO 工具。2026-10-10 已核实桌面缓存安装了 AI Doll Local 0.1.0，配置与测试包一致；用户在普通 Chat 中用 `@` 选择它后，工具清单和搜索仍没有 ai_doll，两个状态工具未能调用。因此这条 ZIP 路径在该普通 Chat 上未接通，不应继续重复上传或只改提示词。

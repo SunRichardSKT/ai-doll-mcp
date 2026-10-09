@@ -7,7 +7,7 @@ from mcp_events_adapter import MCPEventsAdapter
 from webhook_delivery import webhook_worker
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
-from companion import Companion
+from companion import Companion,DeviceBusyError
 from device_lab import WORK
 from device_transport import VERSION,create_device_link
 from service_lifecycle import ServiceLease,ServiceAlreadyRunning,ExclusiveLoopbackServer
@@ -128,12 +128,13 @@ class Handler(BaseHTTPRequestHandler):
         if self.path=='/companion/state':
             return self.send(200,{'active_session':COMPANION.active(),'collector_error':COMPANION.error,'last_sync':COMPANION.last_sync,'persona':COMPANION.setting('persona')})
         try:
-            with LOCK:
+            with COMPANION.device_connection():
                 if self.path=='/status':r=exchange({'cmd':'status'})
                 elif self.path=='/setup':r=exchange({'cmd':'setup'})
                 else:return self.send(404,{'error':'Not found'})
             if self.path=='/status':(WORK/'latest-status.json').write_text(json.dumps(r,ensure_ascii=False),encoding='utf-8')
             self.send(200,r)
+        except DeviceBusyError:return self.send(503,{'error':'设备连接正忙，状态尚未刷新。','code':'device_busy'})
         except Exception:return self.send(503,{'error':'设备连接暂不可用。无线模式请检查供电、IP 和局域网；USB 模式请检查串口占用。'})
     def do_POST(self):
         bearer=hmac.compare_digest(self.headers.get('Authorization',''),'Bearer '+COMPANION_TOKEN) if COMPANION_TOKEN else False
@@ -163,8 +164,9 @@ class Handler(BaseHTTPRequestHandler):
             elif self.path=='/rpc':cmd={'cmd':'rpc','request':d}
             elif self.path=='/reboot':cmd={'cmd':'reboot'}
             else:return self.send(404,{'error':'Not found'})
-            with LOCK:r=exchange(cmd)
+            with COMPANION.device_connection():r=exchange(cmd)
             self.send(400 if r.get('error') else 200,r)
+        except DeviceBusyError:return self.send(503,{'error':'设备连接正忙，本次操作未发送。请稍后重试。','code':'device_busy'})
         except (ValueError,TypeError) as exc:return self.send(400,{'error':str(exc)})
         except Exception:
             traceback.print_exc()
