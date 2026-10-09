@@ -10,7 +10,7 @@ class ImageValidationTests(unittest.TestCase):
         self.image[0] = 0xe9
         self.image[12] = 5
         self.image[32:36] = bytes.fromhex('3254cdab')
-        self.manifest = {'target': 'ai-doll-supermini-v1', 'chip': 'esp32c3', 'firmware': 'doll-lab-2.6.0',
+        self.manifest = {'target': 'ai-doll-supermini-v1', 'chip': 'esp32c3', 'firmware': 'doll-lab-2.7.0',
                          'images': [{'file': 'firmware.bin', 'bytes': 512,
                                      'sha256': hashlib.sha256(self.image).hexdigest()}]}
 

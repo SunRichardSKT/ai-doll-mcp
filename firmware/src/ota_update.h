@@ -7,7 +7,7 @@
 // Arduino otherwise confirms a pending image before our setup has run.
 extern "C" bool verifyRollbackLater(){return true;}
 static bool otaActive=false,otaWriting=false,otaCommitted=false,otaVerified=false;
-static bool otaSavedSleep=true;
+static wifi_ps_type_t otaSavedSleep=WIFI_PS_MIN_MODEM;
 static esp_ota_handle_t otaHandle=0;
 static const esp_partition_t* otaPartition=nullptr;
 static uint32_t otaSize=0,otaReceived=0,otaLast=0,otaRebootAt=0;

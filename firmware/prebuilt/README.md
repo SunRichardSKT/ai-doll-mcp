@@ -1,18 +1,16 @@
-# 已测试的 ESP32-C3 固件 v2.6.0
+# ESP32-C3 交付固件 2.7.0
 
-这些镜像来自 2026-10-09 裸开发板及局域网模拟验收版本；应用为 1046624 bytes，SHA-256 为 `c366d6e9ed885d1ad52631a0b7254712e8ef953d3e00b37ea9335db8980a97bf`。不包含设备 NVS、Wi-Fi 密码或个人历史。
+应用镜像 1056672 bytes，SHA-256 `59359b796c57be778b7915b9c2f6434ae6968fc52a837bd67030a17c192f42eb`。该镜像已在裸开发板通过实际 Wi-Fi 上传、启动确认、MCP 配置及软件重启测试。未包含 Wi-Fi、NVS、个人日志或模型密钥。
 
-首次烧录推荐使用 `tools/build_lab.ps1 -Upload -Port COM3`，由 PlatformIO 处理编译、引导程序及分区表。烧录前关闭采集服务和其他串口工具。
+首次安装选择 ESP32-C3、4MB、DIO、80MHz，按 `FLASH_MANIFEST.json` 烧录四个文件：
 
-若使用已有的 ESP32 烧录工具，选择 ESP32-C3、4MB Flash；以下是本项目引导文件的地址配置，详见 `FLASH_MANIFEST.json`：
-
-| 文件 | Flash 地址 |
+| 文件 | 地址 |
 |---|---|
 | bootloader.bin | 0x0000 |
 | partitions.bin | 0x8000 |
 | boot_app0.bin | 0xe000 |
 | firmware.bin | 0x10000 |
 
-镜像头部对应 DIO、80MHz。`firmware.bin` 是应用分区镜像，不可单独写到 0x0000。无需为了常规升级擦除整片 Flash；全片擦除会删除设备保存的 Wi-Fi、通道配置和离线待补传记录。现有分区表保持不变；不要烧录空白文件系统覆盖待补传记录。
+应用不能单独写到 0x0000。常规安装无需全片擦除；擦除会丢失网络、通道和待补传记录。不要写空白文件系统覆盖记录。首次烧录也可按 [根 README](../../README.md) 编译并使用 `tools/build_lab.ps1 -Upload -Port COM3`，先关闭串口占用。
 
-新增带校验、超时取消与延后启动确认的局域网 OTA，见 [无线升级指南](../../docs/OTA_UPDATE.md)。保留 256 条 Flash 离线事件缓存，见 [离线记录指南](../../docs/OFFLINE_RECORDS.md)。最多 16 个逻辑通道，预设压力、NTC 温度输入及震动输出；现有 4051 PCB 仍有八路物理输入。默认手动模式重启关闭真实输入；确认接线后可保存日常模式恢复输入，输出始终不恢复。压力校准见 [校准指南](../../docs/CALIBRATION_AND_DAILY_MODE.md)。震动必须接外置驱动并确认启用。实际温度探头与电机未验收。详见 [实测范围](../../docs/DEVICE_LAB_TEST_REPORT.md) 与 [扩展接线](../../docs/SENSOR_CHANNELS.md)。
+配网和 BOOT 按钮见 [使用指南](../../docs/USER_GUIDE.md)。联网后可 [无线升级](../../docs/OTA_UPDATE.md)。默认手动模式，不开启裸板真实输入；FSR 接好后逐路 [校准](../../docs/CALIBRATION_AND_DAILY_MODE.md)。温度和电机接线见 [通道指南](../../docs/SENSOR_CHANNELS.md)。实际传感器、温度精度及震动尚未实物验收。

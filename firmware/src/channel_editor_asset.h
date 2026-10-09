@@ -3,14 +3,15 @@
 static const char CHANNEL_EDITOR_JS[] PROGMEM=R"CHANNEL_JS(// Shared by the ESP32 portal and the computer page; labels are always rendered as text.
 let channelDraft=[],channelCapabilities={};
 const channelTypeLabels={pressure:'压力输入',temperature:'温度输入',vibration:'震动输出'};
-const channelDriverLabels={simulation:'仅模拟',mux_adc:'4051 模拟输入',gpio_adc:'独立 ADC',gpio_pwm:'独立 GPIO PWM'};
+const channelDriverLabels={simulation:'仅模拟',mux_adc:'4051 模拟输入',gpio_adc:'独立 ADC',gpio_pwm:'独立 GPIO PWM',ds18b20:'DS18B20 数字温度'};
 function readChannelDraft(){
  return channelDraft.map(c=>{
   const type=$('type'+c.channel).value,driver=$('driver'+c.channel).value;
   const result={channel:c.channel,name:$('part'+c.channel).value,type,driver,enabled:$('channelEnabled'+c.channel).checked,
    options:JSON.parse($('options'+c.channel).value||'{}')};
   if(driver==='mux_adc')result.mux_port=Number($('binding'+c.channel).value);
-  if(driver==='gpio_adc'||driver==='gpio_pwm')result.gpio=Number($('binding'+c.channel).value);
+  if(driver==='gpio_adc'||driver==='gpio_pwm'||driver==='ds18b20')result.gpio=Number($('binding'+c.channel).value);
+  if(driver==='ds18b20')result.rom=$('rom'+c.channel).value.trim();
   return result;
  });
 }
@@ -27,11 +28,12 @@ function fillChannelSelects(){
 function inputTypeChanged(){
  const c=channelDraft.find(c=>c.channel===Number($('channel').value));
  const temp=c&&c.type==='temperature',input=$('pressure');
- input.min=temp?-40:0;input.max=temp?125:4095;input.step=temp?.1:1;
+ input.min=temp?(c.driver==='ds18b20'?-55:-40):0;input.max=temp?125:4095;input.step=temp?.1:1;
  input.value=temp?32:3200;if($('inputUnit'))$('inputUnit').textContent=temp?'模拟温度（℃）':'压力原始值（0 表示释放）';
  if($('release'))$('release').disabled=!c||temp;
 }
 function renderChannelEditor(){
+ if(!document.getElementById('channelLayout')){const style=document.createElement('style');style.id='channelLayout';style.textContent='@media(max-width:600px){#parts{grid-template-columns:minmax(0,1fr)}}';document.head.append(style)}
  $('parts').replaceChildren();
  for(const c of channelDraft){
   const box=document.createElement('div');box.className='channel-card';
@@ -43,12 +45,23 @@ function renderChannelEditor(){
   for(const d of channelCapabilities.types.find(t=>t.type===c.type).drivers)driver.add(new Option(channelDriverLabels[d]||d,d));driver.value=c.driver;box.append(driver);
   const bindingLabel=document.createElement('label'),binding=document.createElement('input');binding.id='binding'+c.channel;binding.type='number';binding.step=1;binding.value=c.mux_port??c.gpio??0;
   const caption=document.createElement('span');bindingLabel.append(caption,binding);box.append(bindingLabel);
-  const updateBinding=()=>{caption.textContent=driver.value==='mux_adc'?'4051 端口（0～7）':'GPIO 编号';bindingLabel.hidden=driver.value==='simulation';};updateBinding();
+  const romBox=document.createElement('div'),romLabel=document.createElement('label'),rom=document.createElement('input');
+  rom.id='rom'+c.channel;rom.value=c.rom||'';rom.maxLength=16;rom.style.fontFamily='monospace';rom.setAttribute('aria-label','CH'+c.channel+' 探头地址');romLabel.append(document.createTextNode('探头地址（16 位十六进制）'),rom);romBox.append(romLabel);
+  const scan=document.createElement('button'),found=document.createElement('select'),scanNote=document.createElement('small');scan.type='button';scan.textContent='扫描数字温度探头';found.setAttribute('aria-label','CH'+c.channel+' 扫描到的探头');found.add(new Option('扫描后选择地址',''));romBox.append(scan,found,scanNote);box.append(romBox);
+  found.onchange=()=>{if(found.value)rom.value=found.value};
+  scan.onclick=async()=>{scan.disabled=true;try{const result=await tool('scan_input_devices',{driver:'ds18b20',gpio:Number(binding.value)});found.replaceChildren(new Option('选择探头地址',''));for(const probe of result.devices)found.add(new Option(probe.rom,probe.rom));scanNote.textContent=result.devices.length?'找到 '+result.devices.length+' 个探头；选择地址并保存。':'未发现探头，请检查外部 3.3V 供电、上拉和接线。';if(result.truncated)scanNote.textContent+=' 扫描达到上限。'}catch(e){scanNote.textContent=e.message}finally{scan.disabled=false}};
+  const updateBinding=()=>{caption.textContent=driver.value==='mux_adc'?'4051 端口（0～7）':'GPIO 编号';bindingLabel.hidden=driver.value==='simulation';romBox.hidden=driver.value!=='ds18b20';};updateBinding();
   const enabledLabel=document.createElement('label'),enabled=document.createElement('input');enabled.type='checkbox';enabled.id='channelEnabled'+c.channel;enabled.checked=c.enabled;enabledLabel.append(enabled,document.createTextNode(' 启用此通道'));box.append(enabledLabel);
   const advanced=document.createElement('details'),summary=document.createElement('summary'),options=document.createElement('textarea');summary.textContent='阈值 / 温度参数';options.id='options'+c.channel;options.value=JSON.stringify(c.options||{},null,2);options.rows=5;advanced.append(summary,options);box.append(advanced);
   const remove=document.createElement('button');remove.type='button';remove.textContent='移除此通道';remove.disabled=channelDraft.length<=1;
   remove.onclick=()=>{try{channelDraft=readChannelDraft().filter(x=>x.channel!==c.channel);renderChannelEditor()}catch(e){$('error').textContent=e.message}};box.append(remove);
-  driver.onchange=()=>{if(driver.value==='gpio_adc')binding.value=1;if(driver.value==='gpio_pwm')binding.value=10;updateBinding()};
+  driver.onchange=()=>{try{
+   if(driver.value==='gpio_adc'||driver.value==='ds18b20')binding.value=1;if(driver.value==='gpio_pwm')binding.value=10;
+   const current=JSON.parse(options.value||'{}');
+   if(driver.value==='ds18b20'){options.value=JSON.stringify({model:'ds18b20',offset_c:current.offset_c??0,sample_ms:Math.max(1000,current.sample_ms??1000),report_ms:Math.max(1000,current.report_ms??30000)},null,2)}
+   else if(current.model==='ds18b20')options.value=JSON.stringify({offset_c:current.offset_c??0,sample_ms:current.sample_ms??1000,report_ms:current.report_ms??30000},null,2);
+   updateBinding();
+  }catch(e){$('error').textContent=e.message}};
   type.onchange=()=>{try{channelDraft=readChannelDraft();const next=channelDraft.find(x=>x.channel===c.channel);next.driver='simulation';next.options={};delete next.mux_port;delete next.gpio;renderChannelEditor()}catch(e){$('error').textContent=e.message}};
   $('parts').append(box);
  }

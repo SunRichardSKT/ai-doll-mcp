@@ -1,6 +1,6 @@
 # 事件摘要、安静时段与接入自检
 
-动作摘要、安静时段和反馈偏好于 Bridge v2.6 加入，不要求升级当时的 v2.3 固件。当前 Bridge v2.10 / 固件 v2.6，电脑 MCP 44 个、设备 MCP 25 个工具；新增无线设备发现需固件 v2.4。用户自行选择 AI，项目不要求模型密钥，也不替用户注册远程聊天连接。
+软件提供客观压力摘要、反馈偏好、安静时段和安装自检。用户自行选择 AI；模型和客户端连接按 [安装指南](AI_INSTALL.md) 配置。
 
 ## 客观动作摘要
 
@@ -30,9 +30,9 @@ AI 应结合用户设置的人设、称呼、当前聊天内容以及摘要作�
 
 参数由服务提供给所选模型；称呼、禁用词与长度不是对所有模型输出的硬性保证，自建应用可在模型返回后另做检查。语言仍可通过 `feedback.language` 设置，页面保存不会覆盖已有语言。
 
-`set_feedback_preferences(policy, feedback)` 保持原接口；旧偏好缺少的新字段会使用默认值。保存原子校验，非法时区或参数不会覆盖原配置。保存后同步更新当前活跃订阅；已送出的消息不撤回。
+`set_feedback_preferences(policy, feedback)` 使用完整校验；缺少可选字段时使用默认值。保存原子校验，非法时区或参数不会覆盖原配置。保存后同步更新当前活跃订阅；已送出的消息不撤回。
 
-`policy` 新字段：`notify_pressure_patterns`、`long_press_ms`、`tap_max_ms`、`tap_gap_ms`、`simultaneous_ms`、`quiet_hours`。长按阈值必须大于短按上限。`feedback` 新字段：`preferred_address` 和 `avoid_phrases`（最多 20 条，每条最多 100 字符）。
+`policy` 参数：`notify_pressure_patterns`、`long_press_ms`、`tap_max_ms`、`tap_gap_ms`、`simultaneous_ms`、`quiet_hours`。长按阈值必须大于短按上限。`feedback` 参数：`preferred_address` 和 `avoid_phrases`（最多 20 条，每条最多 100 字符）。
 
 ## 安静时段
 
@@ -55,7 +55,7 @@ AI 应结合用户设置的人设、称呼、当前聊天内容以及摘要作�
 自检不扫描其他客户端配置，不把“设备在线”当成“AI 已注册”，也不把用户声明 events 当作宿主真的支持主动唤醒。`client_registration=not_inspected` 和 `host_event_support=not_verified` 表示仍需在实际客户端验收。返回内容不含密码、令牌、人设或个人历史。
 
 1. 在 `/bridge` 点击“检查连接”，先确认设备和采集服务正常。
-2. 在所选 AI 中重连 MCP，刷新工具列表至 35 个。
+2. 在所选 AI 中重连 MCP，刷新工具列表至 45 个。
 3. 让 AI 调用自检和 `doll_get_status`，确认它实际能调用。
 4. 请求一个短互动会话，再用 `/companion` 模拟按压，读取事件或接收绑定到当前窗口的订阅。
 5. 按已保存的人设回答，区分 simulation。测试结束关闭会话/订阅。

@@ -1,16 +1,18 @@
 #pragma once
 #include <math.h>
+#include "digital_temperature.h"
 
 // Logical IDs are independent of physical MUX ports. New drivers extend this registry.
 static constexpr int MAX_CHANNELS=16;
 enum class DeviceKind { PRESSURE, TEMPERATURE, VIBRATION };
-enum class ChannelDriver { MUX_ADC, GPIO_ADC, SIMULATION, GPIO_PWM };
+enum class ChannelDriver { MUX_ADC, GPIO_ADC, SIMULATION, GPIO_PWM, DS18B20 };
 struct ChannelConfig {
  bool configured=false,enabled=true;
  String name;
  DeviceKind kind=DeviceKind::PRESSURE;
  ChannelDriver driver=ChannelDriver::MUX_ADC;
  int mux=-1,gpio=-1,on=1200,off=800;
+ uint8_t rom[8]={};
  float r0=10000,beta=3950,pullDown=10000,series=4700,vcc=3300,offset=0;
  int sampleMs=1000,reportMs=30000;
 };
@@ -27,7 +29,8 @@ static ChannelReading readings[MAX_CHANNELS];
 static bool outputEnabled=false;
 static int channelCount(){int n=0;for(auto &c:channels)if(c.configured)n++;return n;}
 static const char* kindName(DeviceKind k){return k==DeviceKind::PRESSURE?"pressure":k==DeviceKind::TEMPERATURE?"temperature":"vibration";}
-static const char* driverName(ChannelDriver d){switch(d){case ChannelDriver::MUX_ADC:return "mux_adc";case ChannelDriver::GPIO_ADC:return "gpio_adc";case ChannelDriver::GPIO_PWM:return "gpio_pwm";default:return "simulation";}}
+static const char* driverName(ChannelDriver d){switch(d){case ChannelDriver::MUX_ADC:return "mux_adc";case ChannelDriver::GPIO_ADC:return "gpio_adc";case ChannelDriver::GPIO_PWM:return "gpio_pwm";case ChannelDriver::DS18B20:return "ds18b20";default:return "simulation";}}
+static String digitalRomName(const uint8_t* rom){char text[17];for(int i=0;i<8;i++)snprintf(text+i*2,3,"%02x",rom[i]);return String(text);}
 static const char* unitName(DeviceKind k){return k==DeviceKind::PRESSURE?"adc_raw":k==DeviceKind::TEMPERATURE?"degC":"percent";}
 static bool validChannel(int ch){return ch>=0&&ch<MAX_CHANNELS&&channels[ch].configured&&channels[ch].enabled;}
 static void encodeChannels(JsonObject out,const ChannelConfig *list=channels){
@@ -38,10 +41,15 @@ static void encodeChannels(JsonObject out,const ChannelConfig *list=channels){
   p["channel"]=i;p["name"]=c.name;p["type"]=kindName(c.kind);p["enabled"]=c.enabled;
   p["direction"]=c.kind==DeviceKind::VIBRATION?"output":"input";p["driver"]=driverName(c.driver);
   if(c.driver==ChannelDriver::MUX_ADC)p["mux_port"]=c.mux;
-  if(c.driver==ChannelDriver::GPIO_ADC||c.driver==ChannelDriver::GPIO_PWM)p["gpio"]=c.gpio;
+  if(c.driver==ChannelDriver::GPIO_ADC||c.driver==ChannelDriver::GPIO_PWM||c.driver==ChannelDriver::DS18B20)p["gpio"]=c.gpio;
+  if(c.driver==ChannelDriver::DS18B20)p["rom"]=digitalRomName(c.rom);
   JsonObject a=p["options"].to<JsonObject>();
   if(c.kind==DeviceKind::PRESSURE){a["press_threshold"]=c.on;a["release_threshold"]=c.off;}
-  if(c.kind==DeviceKind::TEMPERATURE){a["model"]="ntc_b3950";a["r0_ohm"]=c.r0;a["beta_kelvin"]=c.beta;a["pull_down_ohm"]=c.pullDown;a["series_ohm"]=c.series;a["supply_mv"]=c.vcc;a["offset_c"]=c.offset;a["sample_ms"]=c.sampleMs;a["report_ms"]=c.reportMs;}
+  if(c.kind==DeviceKind::TEMPERATURE){
+   a["model"]=c.driver==ChannelDriver::DS18B20?"ds18b20":"ntc_b3950";
+   if(c.driver!=ChannelDriver::DS18B20){a["r0_ohm"]=c.r0;a["beta_kelvin"]=c.beta;a["pull_down_ohm"]=c.pullDown;a["series_ohm"]=c.series;a["supply_mv"]=c.vcc;}
+   a["offset_c"]=c.offset;a["sample_ms"]=c.sampleMs;a["report_ms"]=c.reportMs;
+  }
  }
 }
 static bool numberOption(JsonObjectConst o,const char* key,float &dst,float lo,float hi,String &error){
@@ -58,6 +66,7 @@ static bool parseChannels(JsonVariantConst a,ChannelConfig *next,String &error){
  if(!a["channels"].is<JsonArrayConst>()||a["channels"].size()<1||a["channels"].size()>MAX_CHANNELS){error="Provide 1..16 channel configurations";return false;}
  if(!a["schema_version"].isNull()&&(!a["schema_version"].is<int>()||a["schema_version"].as<int>()!=1)){error="Unsupported schema_version";return false;}
  bool muxUsed[8]={},gpioUsed[22]={};
+ bool digitalUsed=false;
  for(JsonVariantConst entry:a["channels"].as<JsonArrayConst>()){
   if(!entry.is<JsonObjectConst>()){error="Each channel must be an object";return false;}
   JsonObjectConst p=entry.as<JsonObjectConst>();
@@ -74,6 +83,7 @@ static bool parseChannels(JsonVariantConst a,ChannelConfig *next,String &error){
   else if(driver=="mux_adc"&&c.kind!=DeviceKind::VIBRATION)c.driver=ChannelDriver::MUX_ADC;
   else if(driver=="gpio_adc"&&c.kind!=DeviceKind::VIBRATION)c.driver=ChannelDriver::GPIO_ADC;
   else if(driver=="gpio_pwm"&&c.kind==DeviceKind::VIBRATION)c.driver=ChannelDriver::GPIO_PWM;
+  else if(driver=="ds18b20"&&c.kind==DeviceKind::TEMPERATURE)c.driver=ChannelDriver::DS18B20;
   else{error="Driver is unsupported or incompatible with direction/type";return false;}
   if(!p["direction"].isNull()&&p["direction"].as<String>()!=(c.kind==DeviceKind::VIBRATION?"output":"input")){error="direction conflicts with type";return false;}
   if(c.driver==ChannelDriver::MUX_ADC){
@@ -83,14 +93,21 @@ static bool parseChannels(JsonVariantConst a,ChannelConfig *next,String &error){
   if(c.driver==ChannelDriver::GPIO_ADC||c.driver==ChannelDriver::GPIO_PWM){
    if(!p["gpio"].is<int>()){error="gpio required";return false;}c.gpio=p["gpio"];
    bool allowed=c.driver==ChannelDriver::GPIO_ADC?c.gpio==1:(c.gpio==6||c.gpio==7||c.gpio==10);
-   if(!allowed||gpioUsed[c.gpio]){error="GPIO ADC:1; PWM:6/7/10, unique. Reserved pins forbidden";return false;}gpioUsed[c.gpio]=true;
+   if(!allowed||gpioUsed[c.gpio]||(c.driver==ChannelDriver::GPIO_ADC&&digitalUsed)){error="GPIO ADC:1; PWM:6/7/10, unique. ADC1 conflicts with digital temperature bus";return false;}gpioUsed[c.gpio]=true;
+  }
+  if(c.driver==ChannelDriver::DS18B20){
+   if(!p["gpio"].is<int>()||p["gpio"].as<int>()!=1||gpioUsed[1]){error="DS18B20 bus uses GPIO1; cannot share with ADC";return false;}
+   if(!p["rom"].is<String>()){error="DS18B20 requires a scanned 16-hex ROM address";return false;}
+   String rom=p["rom"].as<String>();if(!ds18Rom(rom.c_str(),rom.length(),c.rom)){error="Invalid DS18B20 ROM family, hexadecimal or CRC";return false;}
+   for(int otherId=0;otherId<MAX_CHANNELS;otherId++){const auto &other=next[otherId];if(other.configured&&other.driver==ChannelDriver::DS18B20&&!memcmp(other.rom,c.rom,8)){error="Duplicate DS18B20 ROM binding";return false;}}
+   c.gpio=1;digitalUsed=true;
   }
   if(!p["options"].isNull()&&!p["options"].is<JsonObjectConst>()){error="options must be object";return false;}
   JsonObjectConst o=p["options"].as<JsonObjectConst>();
   for(JsonPairConst option:o){
    String key=option.key().c_str();
    bool known=c.kind==DeviceKind::PRESSURE?(key=="press_threshold"||key=="release_threshold"):
-    c.kind==DeviceKind::TEMPERATURE?(key=="model"||key=="r0_ohm"||key=="beta_kelvin"||key=="pull_down_ohm"||key=="series_ohm"||key=="supply_mv"||key=="offset_c"||key=="sample_ms"||key=="report_ms"):false;
+    c.kind==DeviceKind::TEMPERATURE?(key=="model"||key=="offset_c"||key=="sample_ms"||key=="report_ms"||(c.driver!=ChannelDriver::DS18B20&&(key=="r0_ohm"||key=="beta_kelvin"||key=="pull_down_ohm"||key=="series_ohm"||key=="supply_mv"))):false;
    if(!known){error="Unknown option for selected type: "+key;return false;}
   }
   if(c.kind==DeviceKind::PRESSURE){
@@ -98,14 +115,15 @@ static bool parseChannels(JsonVariantConst a,ChannelConfig *next,String &error){
    if(c.off>=c.on){error="release_threshold must be below press_threshold";return false;}
   }
   if(c.kind==DeviceKind::TEMPERATURE){
-   if(!o["model"].isNull()&&o["model"]!="ntc_b3950"){error="Only ntc_b3950 temperature model is installed";return false;}
+   if(!o["model"].isNull()&&o["model"]!=(c.driver==ChannelDriver::DS18B20?"ds18b20":"ntc_b3950")){error="Temperature model must match installed driver";return false;}
    if(c.driver==ChannelDriver::GPIO_ADC)c.series=0;
    if(!numberOption(o,"r0_ohm",c.r0,100,1000000,error)||!numberOption(o,"beta_kelvin",c.beta,1000,6000,error)||!numberOption(o,"pull_down_ohm",c.pullDown,100,1000000,error)||!numberOption(o,"series_ohm",c.series,0,100000,error)||!numberOption(o,"supply_mv",c.vcc,1000,3600,error)||!numberOption(o,"offset_c",c.offset,-30,30,error)||!intOption(o,"sample_ms",c.sampleMs,500,60000,error)||!intOption(o,"report_ms",c.reportMs,1000,60000,error))return false;
    if(c.reportMs<c.sampleMs){error="report_ms must be >= sample_ms";return false;}
+   if(c.driver==ChannelDriver::DS18B20&&c.sampleMs<1000){error="Digital temperature sample_ms must be >=1000";return false;}
   }
   // Reject silently misspelled fields rather than saving an ineffective binding.
-  for(JsonPairConst prop:p){String key=prop.key().c_str();if(key!="channel"&&key!="name"&&key!="type"&&key!="driver"&&key!="direction"&&key!="enabled"&&key!="mux_port"&&key!="gpio"&&key!="options"){error="Unknown channel field: "+key;return false;}}
-  if((!p["gpio"].isNull()&&c.driver!=ChannelDriver::GPIO_ADC&&c.driver!=ChannelDriver::GPIO_PWM)||(!p["mux_port"].isNull()&&c.driver!=ChannelDriver::MUX_ADC)){error="Remove binding fields unused by the selected driver";return false;}
+  for(JsonPairConst prop:p){String key=prop.key().c_str();if(key!="channel"&&key!="name"&&key!="type"&&key!="driver"&&key!="direction"&&key!="enabled"&&key!="mux_port"&&key!="gpio"&&key!="rom"&&key!="options"){error="Unknown channel field: "+key;return false;}}
+  if((!p["gpio"].isNull()&&c.driver!=ChannelDriver::GPIO_ADC&&c.driver!=ChannelDriver::GPIO_PWM&&c.driver!=ChannelDriver::DS18B20)||(!p["mux_port"].isNull()&&c.driver!=ChannelDriver::MUX_ADC)||(!p["rom"].isNull()&&c.driver!=ChannelDriver::DS18B20)){error="Remove binding fields unused by the selected driver";return false;}
   next[id]=c;
  }
  return true;
@@ -118,10 +136,12 @@ static void channelCapabilities(JsonObject out){
  for(auto kind:{DeviceKind::PRESSURE,DeviceKind::TEMPERATURE,DeviceKind::VIBRATION}){
   JsonObject t=types.add<JsonObject>();t["type"]=kindName(kind);t["direction"]=kind==DeviceKind::VIBRATION?"output":"input";t["unit"]=unitName(kind);
   t["model"]=kind==DeviceKind::PRESSURE?"fsr_adc":kind==DeviceKind::TEMPERATURE?"ntc_b3950":"erm_pwm";
-  JsonArray d=t["drivers"].to<JsonArray>();d.add("simulation");if(kind==DeviceKind::VIBRATION)d.add("gpio_pwm");else{d.add("mux_adc");d.add("gpio_adc");}
+  JsonArray d=t["drivers"].to<JsonArray>();d.add("simulation");if(kind==DeviceKind::VIBRATION)d.add("gpio_pwm");else{d.add("mux_adc");d.add("gpio_adc");if(kind==DeviceKind::TEMPERATURE)d.add("ds18b20");}
+  if(kind==DeviceKind::TEMPERATURE){JsonArray models=t["models"].to<JsonArray>();models.add("ntc_b3950");models.add("ds18b20");}
  }
  JsonArray gpio=out["pwm_gpio"].to<JsonArray>();gpio.add(6);gpio.add(7);gpio.add(10);
  out["direct_adc_gpio"]=1;out["max_vibration_ms"]=5000;
+ out["digital_temperature_gpio"]=1;out["digital_temperature_rom_required"]=true;out["digital_temperature_parasite_power"]=false;
  out["temperature_wiring"]="3V3 -> series resistor -> NTC -> ADC node -> pull-down -> GND; configurable resistor values";
  out["expansion"]="16 logical slots; 8 unique physical 4051 inputs. Additional protocols require a new driver/hardware, not renaming a type.";
  out["vibration_wiring"]="Independent GPIO and external transistor/MOSFET motor driver; never motor direct to MCU or 4051.";

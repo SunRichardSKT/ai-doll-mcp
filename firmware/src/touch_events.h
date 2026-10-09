@@ -1,10 +1,33 @@
 #pragma once
 #include <esp_timer.h>
+#include <OneWire.h>
 #include "pressure_calibration.h"
 static bool sensorEnabled=false;
 static bool resumeInputs=false;
 static int sensorOn=1200,sensorOff=800;
 #include "channel_devices.h"
+static OneWire digitalWire;
+static DigitalTemperatureCycle digitalCycles[MAX_CHANNELS];
+static bool digitalReady=false;
+static void stopDigitalInputs(){
+ for(auto &cycle:digitalCycles)cycle.reset();
+ if(digitalReady){digitalWire.depower();pinMode(1,INPUT);digitalReady=false;}
+}
+static bool scanInputDevices(JsonVariantConst args,JsonObject out,String &error){
+ if(args["driver"]!="ds18b20"||!args["gpio"].is<int>()||args["gpio"].as<int>()!=1){error="Installed scan driver: ds18b20 on GPIO1";return false;}
+ if(sensorEnabled){error="Disable physical sampling before scanning the digital bus";return false;}
+ for(const auto &c:channels)if(c.configured&&c.driver==ChannelDriver::GPIO_ADC&&c.gpio==1){error="GPIO1 is reserved by an ADC channel; remove that binding before scanning";return false;}
+ digitalWire.begin(1);digitalWire.reset_search();uint8_t rom[8];int searched=0,invalid=0,other=0;
+ JsonArray devices=out["devices"].to<JsonArray>();
+ while(searched<32&&digitalWire.search(rom)){
+  searched++;if(ds18Crc(rom,7)!=rom[7]){invalid++;continue;}if(rom[0]!=0x28){other++;continue;}
+  JsonObject found=devices.add<JsonObject>();found["rom"]=digitalRomName(rom);found["driver"]="ds18b20";found["gpio"]=1;
+ }
+ digitalWire.reset_search();digitalWire.depower();pinMode(1,INPUT);
+ out["driver"]="ds18b20";out["gpio"]=1;out["invalid_roms"]=invalid;out["unsupported_families"]=other;out["truncated"]=searched>=32;
+ out["quality"]=devices.size()?"ok":"no_device_found";out["physical_sampling_enabled"]=false;
+ return true;
+}
 
 static String touchBoot;
 static uint32_t touchSeq=0;
@@ -100,10 +123,12 @@ static void initOutputPins(){
  }
 }
 static void applyInputEnabled(bool enabled){
+ stopDigitalInputs();
  for(int i=0;i<MAX_CHANNELS;i++){if(touches[i].active)touchInject(i,0);sensorDebounce[i]=0;}
  sensorEnabled=enabled;
  if(enabled){pinMode(3,OUTPUT);pinMode(4,OUTPUT);pinMode(5,OUTPUT);analogReadResolution(12);analogSetPinAttenuation(0,ADC_11db);analogSetPinAttenuation(1,ADC_11db);}
  else{pinMode(3,INPUT);pinMode(4,INPUT);pinMode(5,INPUT);calibration.engaged=false;calibration.capturing=false;}
+ if(enabled)for(const auto &c:channels)if(c.configured&&c.enabled&&c.driver==ChannelDriver::DS18B20){digitalWire.begin(1);digitalReady=true;break;}
 }
 static bool persistChannels(const ChannelConfig *next,String &error,bool restore=resumeInputs){
  JsonDocument d;encodeChannels(d.to<JsonObject>(),next);
@@ -117,7 +142,7 @@ static __attribute__((noinline)) bool saveChannels(JsonVariantConst a,String &er
  if(!persistChannels(next,error,false))return false;
  // Close events with their old names/types before applying new configuration.
  for(int i=0;i<MAX_CHANNELS;i++)if(touches[i].active)touchInject(i,0);
- disarmOutputs();sensorEnabled=false;resumeInputs=false;calibration.reset();pressChannel=-1;pressValue=0;
+ disarmOutputs();stopDigitalInputs();sensorEnabled=false;resumeInputs=false;calibration.reset();pressChannel=-1;pressValue=0;
  for(int i=0;i<MAX_CHANNELS;i++){
   if(channels[i].configured&&channels[i].driver==ChannelDriver::GPIO_PWM){ledcDetachPin(channels[i].gpio);pinMode(channels[i].gpio,INPUT);}
   channels[i]=next[i];readings[i]=ChannelReading();sensorRaw[i]=0;sensorDebounce[i]=0;
@@ -175,7 +200,7 @@ static bool ntcValue(int ch,float mv,float &celsius,String &fault){
  if(!isfinite(celsius)||celsius< -40||celsius>125){fault="temperature_out_of_range";return false;}return true;
 }
 static void temperatureRecord(int ch,float value,bool valid,const String &source,const String &fault=""){
- auto &s=readings[ch];bool unchangedQuality=s.sampled&&s.valid==valid&&s.fault==fault;s.sampled=true;s.valid=valid;s.value=value;s.at=touchNow();s.source=source;s.fault=fault;
+ auto &s=readings[ch];bool unchangedQuality=s.sampled&&s.valid==valid&&s.fault==fault&&s.source==source;s.sampled=true;s.valid=valid;s.value=value;s.at=touchNow();s.source=source;s.fault=fault;
  if(source=="sensor"&&unchangedQuality&&s.lastReport&&s.at-s.lastReport<(uint64_t)channels[ch].reportMs&&(valid?fabsf(value-s.reported)<0.2f:true))return;
  auto &r=newRecord(ch,"sample");r.value=value;r.valid=valid;r.source=source;r.quality=valid?"ok":fault;r.raw=s.raw;r.mv=s.mv;
  persistTouchRecord(r);
@@ -193,8 +218,9 @@ static bool simulateInput(JsonVariantConst a,String &error){
   if(unit!="adc_raw"||value<0||value>4095||floorf(value)!=value){error="Pressure: adc_raw integer 0..4095";return false;}
   touchInject(ch,(int)value);pressValue=value;pressChannel=value?ch:-1;pressUntil=millis()+5000;
  }else if(unit=="degC"){
-  if(value< -40||value>125){error="Temperature: -40..125 degC";return false;}readings[ch].mv=-1;readings[ch].raw=0;temperatureRecord(ch,value,true,"simulation");
+  if(value<(channels[ch].driver==ChannelDriver::DS18B20?-55:-40)||value>125){error="Temperature outside installed model range";return false;}readings[ch].mv=-1;readings[ch].raw=0;temperatureRecord(ch,value,true,"simulation");
  }else if(unit=="millivolt"){
+  if(channels[ch].driver==ChannelDriver::DS18B20){error="Digital temperature has no millivolt conversion";return false;}
   if(value<0||value>channels[ch].vcc){error="millivolt must be 0..supply_mv";return false;}String fault;float temp=0;readings[ch].mv=lroundf(value);bool valid=ntcValue(ch,value,temp,fault);temperatureRecord(ch,temp,valid,"simulation",fault);
  }else{error="Temperature unit: degC or millivolt";return false;}
  return true;
@@ -250,7 +276,7 @@ static bool setOperatingMode(JsonVariantConst a,String &error){
  if(!a["mode"].is<String>()||(a["mode"]!="daily"&&a["mode"]!="manual")){error="mode must be daily or manual";return false;}
  bool daily=a["mode"]=="daily";
  if(daily&&(!a["hardware_confirmed"].is<bool>()||!a["hardware_confirmed"].as<bool>())){error="Confirm assembled sensor hardware before daily mode";return false;}
- if(daily){bool physical=false;for(auto &c:channels)if(c.configured&&c.enabled&&(c.driver==ChannelDriver::MUX_ADC||c.driver==ChannelDriver::GPIO_ADC))physical=true;
+ if(daily){bool physical=false;for(auto &c:channels)if(c.configured&&c.enabled&&c.kind!=DeviceKind::VIBRATION&&c.driver!=ChannelDriver::SIMULATION)physical=true;
   if(!physical){error="Daily mode requires an enabled physical input";return false;}}
  if(!persistChannels(channels,error,daily))return false;
  resumeInputs=daily;disarmOutputs();applyInputEnabled(daily);return true;
@@ -299,6 +325,18 @@ static void touchTick(){
  for(int ch=0;ch<MAX_CHANNELS;ch++){
   auto &c=channels[ch];auto &v=readings[ch];
   if(!c.configured||!c.enabled||c.kind==DeviceKind::VIBRATION||c.driver==ChannelDriver::SIMULATION)continue;
+  if(c.driver==ChannelDriver::DS18B20){
+   DigitalTemperature sample;
+   bool wasPending=digitalCycles[ch].pending;
+   bool ready=digitalReady&&digitalCycles[ch].tick(digitalWire,c.rom,touchNow(),c.sampleMs,c.offset,sample);
+   // Start the wait after the actual command, including bus transmission time.
+   if(!wasPending&&digitalCycles[ch].pending)digitalCycles[ch].started=touchNow();
+   if(ready){
+    v.raw=sample.raw;v.mv=-1;v.lastSample=now;sensorRaw[ch]=sample.raw;
+    temperatureRecord(ch,sample.celsius,sample.valid,"sensor",sample.fault);
+   }
+   continue;
+  }
   if(c.kind==DeviceKind::TEMPERATURE&&now-v.lastSample<(uint64_t)c.sampleMs)continue;
   v.lastSample=now;
   int gpio=c.driver==ChannelDriver::MUX_ADC?0:c.gpio;

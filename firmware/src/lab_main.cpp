@@ -17,7 +17,7 @@ static int pressChannel=-1, pressValue=0, lastWifi=-1;
 static constexpr int LED_PIN=8; // Common SuperMini blue LED, active low.
 static bool scanBusy=false;
 static uint32_t scanStartedAt=0;
-static const char* VERSION="doll-lab-2.6.0";
+static const char* VERSION="doll-lab-2.7.0";
 static const char* PROTOCOL="2025-11-25";
 
 static String encode(const JsonDocument &d){String s;serializeJson(d,s);return s;}
@@ -139,6 +139,7 @@ static JsonDocument rpc(const JsonDocument &in){
    rpcError(out,-32602,"Upgrade in progress; channel changes and simulation paused");return out;
   }
   if(name=="get_channel_capabilities"){channelCapabilities(data.to<JsonObject>());}
+  else if(name=="scan_input_devices"){String error;if(!scanInputDevices(a,data.to<JsonObject>(),error)){rpcError(out,-32602,error.c_str());return out;}}
   else if(name=="get_channel_config"){encodeChannels(data.to<JsonObject>());}
   else if(name=="set_channel_config"){String error;if(!saveChannels(a,error)){rpcError(out,-32602,error.c_str());return out;}encodeChannels(data.to<JsonObject>());}
   else if(name=="read_channel_values"){readChannels(data.to<JsonObject>());}

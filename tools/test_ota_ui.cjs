@@ -19,7 +19,7 @@ const {chromium} = require('playwright');
       window.api = async (path, body) => {
         window.testCalls.push({path, action: body?.action});
         if (path === '/api/status') return {boot_id: finished ? 'new-boot' : 'old-boot',
-          firmware: 'doll-lab-2.6.0', ota: {pending_verification: false}};
+          firmware: 'doll-lab-2.7.0', ota: {pending_verification: false}};
         if (body.action === 'start') return {ticket: 'fixture-ticket', chunk_bytes: 3072};
         if (body.action === 'chunk') return {received_bytes: body.offset + atob(body.data).length};
         if (body.action === 'finish') { finished = true; return {ok: true}; }
@@ -32,7 +32,7 @@ const {chromium} = require('playwright');
     if (await page.evaluate(() => testCalls.length)) throw Error('Empty selection wrote API');
     const image = Buffer.alloc(4096); image[0] = 0xe9; image[12] = 5;
     Buffer.from('3254cdab', 'hex').copy(image, 32);
-    const manifest = {target: 'ai-doll-supermini-v1', chip: 'esp32c3', firmware: 'doll-lab-2.6.0',
+    const manifest = {target: 'ai-doll-supermini-v1', chip: 'esp32c3', firmware: 'doll-lab-2.7.0',
       images: [{file: 'firmware.bin', bytes: image.length, sha256: 'a'.repeat(64)}]};
     await page.setInputFiles('#otaFile', {name: 'firmware.bin', mimeType: 'application/octet-stream', buffer: image});
     await page.setInputFiles('#otaManifest', {name: 'FLASH_MANIFEST.json', mimeType: 'application/json',

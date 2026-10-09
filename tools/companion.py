@@ -336,7 +336,7 @@ class Companion:
         if name in history_methods:
             return getattr(self.history_manager,history_methods[name])(**args)
         if name in ('doll_get_status', 'doll_set_led', 'doll_simulate_press', 'get_body_map', 'set_body_map', 'get_touch_events', 'get_sensor_config', 'set_sensor_config',
-                    'get_channel_capabilities', 'get_channel_config', 'set_channel_config', 'read_channel_values',
+                    'get_channel_capabilities', 'get_channel_config', 'set_channel_config', 'read_channel_values', 'scan_input_devices',
                     'simulate_channel_input', 'set_input_enabled', 'set_output_enabled', 'set_vibration',
                     'get_operating_mode', 'set_operating_mode', 'capture_pressure_calibration',
                     'get_pressure_calibration', 'apply_pressure_calibration', 'cancel_pressure_calibration',

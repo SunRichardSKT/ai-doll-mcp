@@ -25,11 +25,14 @@ static void addChannelTools(JsonArray tools){
  JsonArray types=p["type"]["enum"].to<JsonArray>();types.add("pressure");types.add("temperature");types.add("vibration");
  p["driver"]["type"]="string";JsonArray drivers=p["driver"]["enum"].to<JsonArray>();for(auto v:{"simulation","mux_adc","gpio_adc","gpio_pwm"})drivers.add(v);
  p["enabled"]["type"]="boolean";p["direction"]["type"]="string";JsonArray directions=p["direction"]["enum"].to<JsonArray>();directions.add("input");directions.add("output");
- p["mux_port"]["type"]="integer";p["mux_port"]["minimum"]=0;p["mux_port"]["maximum"]=7;p["gpio"]["type"]="integer";p["options"]["type"]="object";
+ p["mux_port"]["type"]="integer";p["mux_port"]["minimum"]=0;p["mux_port"]["maximum"]=7;p["gpio"]["type"]="integer";p["options"]["type"]="object";p["rom"]["type"]="string";p["rom"]["pattern"]="^[a-fA-F0-9]{16}$";
  JsonArray required=item["required"].to<JsonArray>();for(auto k:{"channel","name","type","driver"})required.add(k);s["required"].to<JsonArray>().add("channels");
  s=add("simulate_channel_input","Inject pressure adc_raw (0 releases) or temperature degC/-40..125. millivolt temperature mode exercises NTC conversion/fault detection. Not a physical reading.");
  s["properties"]["channel"]["type"]="integer";s["properties"]["channel"]["minimum"]=0;s["properties"]["channel"]["maximum"]=15;s["properties"]["value"]["type"]="number";s["properties"]["unit"]["type"]="string";
  required=s["required"].to<JsonArray>();required.add("channel");required.add("value");
+ s=add("scan_input_devices","Read DS18B20 ROMs on GPIO1. Physical sampling must be disabled and GPIO1 cannot belong to ADC. No channel assignment or output activation.");
+ s["properties"]["driver"]["type"]="string";s["properties"]["driver"]["enum"].to<JsonArray>().add("ds18b20");s["properties"]["gpio"]["type"]="integer";s["properties"]["gpio"]["enum"].to<JsonArray>().add(1);
+ required=s["required"].to<JsonArray>();required.add("driver");required.add("gpio");
  s=add("set_output_enabled","Enable physical PWM only after user confirms external motor driver. Disabled on reboot/config changes. false stops all outputs. Simulation does not require arming.");
  s["properties"]["enabled"]["type"]="boolean";s["properties"]["external_driver_confirmed"]["type"]="boolean";s["required"].to<JsonArray>().add("enabled");
  s=add("set_vibration","Command an enabled vibration output 0..100 percent for 1..5000 ms, automatically stops; intensity=0 stops immediately. Never evidence of motor movement or touch.");

@@ -175,6 +175,7 @@ class ChannelConfig(BaseModel):
     direction: Literal['input', 'output'] | None = None
     mux_port: int | None = Field(default=None, ge=0, le=7, strict=True)
     gpio: int | None = Field(default=None, ge=0, le=21, strict=True)
+    rom: str | None = Field(default=None, pattern=r'^[a-fA-F0-9]{16}$', strict=True)
     options: dict = Field(default_factory=dict)
 
 
@@ -184,6 +185,7 @@ def set_channel_config(channels: list[ChannelConfig], schema_version: int = 1) -
     pressure/temperature: input using simulation, mux_adc(port 0..7 unique) or gpio_adc(GPIO1).
     vibration: output using simulation or gpio_pwm(GPIO6/7/10 unique), requires external motor driver.
     Temperature preset NTC10k B3950, options r0_ohm/beta_kelvin/pull_down_ohm/series_ohm/supply_mv/offset_c/sample_ms/report_ms.
+    DS18B20 digital temperature uses driver=ds18b20, GPIO1 plus a CRC-valid scanned ROM, external 3.3V power. Multiple unique ROMs share GPIO1; ADC1 cannot. Options model=ds18b20, offset_c/sample_ms/report_ms.
     Existing V2 MUX branch has 4.7k series and 10k pull-down. pressure options press_threshold/release_threshold.
     Save disables all physical sampling/output and stops active commands; returns startup policy to manual. Unknown types/drivers are rejected.
     """
@@ -195,6 +197,16 @@ def set_channel_config(channels: list[ChannelConfig], schema_version: int = 1) -
 def read_channel_values() -> dict:
     """Read typed values with unit, source, timestamp and quality. not_sampled/fault returns null; output reports commanded state only."""
     return call('read_channel_values', {})
+
+
+@mcp.tool(annotations={'readOnlyHint': True, 'destructiveHint': False})
+def scan_input_devices(driver: Literal['ds18b20'] = 'ds18b20',
+                       gpio: int = Field(default=1, ge=1, le=1, strict=True)) -> dict:
+    """Read DS18B20 ROM addresses on GPIO1 without assigning channels or enabling sampling.
+    Disable physical inputs first; ADC1 binding must be removed. Use scanned ROMs
+    for explicit channel bindings. An empty list means no detected probe, not a temperature.
+    """
+    return call('scan_input_devices', {'driver': driver, 'gpio': gpio})
 
 
 @mcp.tool()

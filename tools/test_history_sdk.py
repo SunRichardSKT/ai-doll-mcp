@@ -17,19 +17,19 @@ async def main():
     async with stdio_client(StdioServerParameters(command=sys.executable,args=[str(ROOT/'tools/companion_mcp.py')])) as (r,w):
         async with ClientSession(r,w) as client:
             await client.initialize();tools={t.name:t for t in (await client.list_tools()).tools}
-            assert len(tools)==44
+            assert len(tools)==45
             for name in ('export_history','get_history_statistics','preview_history_deletion','get_history_retention','preview_history_retention'):
                 assert tools[name].annotations.readOnlyHint and not tools[name].annotations.destructiveHint
             for name in ('delete_history','set_history_retention'):
                 assert tools[name].annotations.destructiveHint and not tools[name].annotations.readOnlyHint
-            checks.append('Official SDK discovers 44 tools and correct history read/destructive annotations')
+            checks.append('Official SDK discovers 45 tools and correct history read/destructive annotations')
             async def call(name,args=None):
                 result=await client.call_tool(name,args or {});assert not result.isError,name
                 return json.loads(result.content[0].text)
             policy=await call('get_history_retention');assert policy['enabled'] is False
             status=await call('get_installation_status',dict(client_kind='stdio'))
-            assert status['bridge']=='doll-bridge-2.10.0' and status['runtime']['tool_count']==44
-            assert status['runtime']['transport']=='wifi' and status['device']['firmware']=='doll-lab-2.6.0'
+            assert status['bridge']=='doll-bridge-2.11.0' and status['runtime']['tool_count']==45
+            assert status['runtime']['transport']=='wifi' and status['device']['firmware']=='doll-lab-2.7.0'
             first=await call('export_history',dict(filters=dict(source='simulation',time_scope='all'),limit=2))
             assert first['count']<=2 and first['format']=='json'
             if first['has_more']:
@@ -47,7 +47,7 @@ async def main():
             checks.append('Retention preview is read-only; owner policy remains disabled')
             assert not (await call('get_interaction_status'))['active_session']
     report=dict(passed=True,at=datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat(),
-        bridge='2.10.0',firmware='2.6.0',checks=checks,owner_history_deleted=False,retention_enabled=False,
+        bridge='2.11.0',firmware='2.7.0',checks=checks,owner_history_deleted=False,retention_enabled=False,
         limits=['Actual deletion/retention tested only against disposable archives; existing owner history preserved.',
                 'Physical sensors, battery/power-failure and user model generation not tested.'])
     (ROOT/'build/device-lab/history-sdk-test.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')

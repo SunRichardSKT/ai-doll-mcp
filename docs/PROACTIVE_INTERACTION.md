@@ -1,6 +1,6 @@
-# 主动互动与跨平台接入（Bridge v2.10）
+# 主动互动与聊天应用接入
 
-更新日期：2026-10-09。电脑服务 `doll-bridge-2.10.0`，开发板为 `doll-lab-2.6.0`。从 v2.2 升级需要重新烧录；新增功能见 [校准与日常模式](CALIBRATION_AND_DAILY_MODE.md)。保留压力、NTC 温度输入与震动输出、16 个逻辑通道和历史。可通过 [Wi-Fi 无线采集](WIFI_CONNECTION.md) 解除电脑 USB 数据连接；v2.6 加入动作摘要和安静时段，见 [互动优化指南](INTERACTION_OBSERVATIONS.md)。
+普通聊天期间安静记录；用户开始互动后，将新输入发送到绑定的聊天，由用户选择的模型结合当前上下文、人设和部位反馈。电脑事件桥持续接收设备数据，不要求用户每次发消息查询。安装见 [AI 安装指南](AI_INSTALL.md)，设备可通过 [Wi-Fi](WIFI_CONNECTION.md) 独立供电运行。
 
 ## 已实现和使用边界
 
@@ -11,7 +11,7 @@
 - 模拟输入带 simulation 标签，可在反馈偏好中禁止触发；数据、部位名称不是模型指令。
 - 提供本机认证 SSE 流、自建应用浏览器适配器，以及 MCP 2.0 的事件发现／订阅／取消和签名 webhook 投递适配。
 - 实测验证了本机页面自动接收真实 USB 链路的模拟按压。页面的“演示回执”是程序测试反馈，不是模型生成。
-- v2.4 在实际 Wi-Fi 采集链路上重复验证页面推送、ACK 和会话结束；USB 串口独占且不发数据时，Wi-Fi 历史与互动仍通过。
+- 实际 Wi-Fi 采集链路已经验证页面推送、ACK 和会话结束；USB 串口独占且不发数据时，Wi-Fi 历史与互动仍通过。
 - 尚未验证用户账号里的 ChatGPT Work 订阅；需要可用入口、平台权限、认证远程连接／隧道和实际回调后才能验收。没有宣称能向任意 ChatGPT／Claude 网页聊天主动写消息。
 
 ## 统一入口
@@ -32,7 +32,7 @@
 
 可选平台：`generic`、`claude-desktop`、`chatgpt-work`、`api`。入口创建／使用项目 Python 环境，生成通用 STDIO 配置及桥接说明，按需启动服务；不自动修改 AI 客户端账号、配置文件，不部署公网服务。不同平台仍需完成其自身的连接授权。
 
-只生成配置、不启动服务：加 `-NoStart`。如果旧服务占用 8768，先关闭旧服务，避免两个程序抢占 COM3。脚本不会自动终止其他进程。
+只生成配置、不启动服务：加 `-NoStart`。如果其他服务占用 8768，先关闭旧服务，避免两个程序抢占 COM3。脚本不会自动终止其他进程。
 
 生成的 `build/device-lab/bridge-install.json` 与 `mcp-client-config.json` 为本机信息；密钥、订阅签名秘密和历史都在 `build/`，不要分享。
 
@@ -95,9 +95,9 @@ HTTP 接口都只监听本机，要求现有 Host／Origin 校验及 Bearer 或 
 
 ## ChatGPT MCP Events
 
-独立端点：`POST /bridge/mcp`，强制 Bearer 认证。现有设备 `/mcp` 和本机 STDIO 继续支持旧协议；不要修改 ESP32 的协议版本来冒充事件支持。
+独立端点：`POST /bridge/mcp`，强制 Bearer 认证。设备 `/mcp` 和本机 STDIO 提供工具调用；事件订阅由电脑端点实现，不由 ESP32 提供。
 
-新端点按 `2026-07-28` 提供 `server/discover`、`tools/list`、`tools/call`、`events/list`、`events/subscribe`、`events/unsubscribe` 与 `ping`。普通请求使用 `_meta.io.modelcontextprotocol/protocolVersion`；不支持的版本或头部／元数据冲突会拒绝。
+该端点按 `2026-07-28` 提供 `server/discover`、`tools/list`、`tools/call`、`events/list`、`events/subscribe`、`events/unsubscribe` 与 `ping`。普通请求使用 `_meta.io.modelcontextprotocol/protocolVersion`；不支持的版本或头部／元数据冲突会拒绝。
 
 事件名为 `doll.interaction`。先通过工具读取设备 ID、调用 `start_interaction` 获得会话 ID，再由宿主订阅：
 
@@ -120,7 +120,7 @@ HTTP 接口都只监听本机，要求现有 Host／Origin 校验及 Bearer 或 
 
 官方支持场景及接入要求见 [OpenAI MCP Events](https://developers.openai.com/plugins/build/mcp-events) 和 [插件连接测试](https://developers.openai.com/plugins/deploy/connect-chatgpt)。本机端点需要用户配置认证 HTTPS 网关或平台支持的 Secure MCP Tunnel；本次没有发布或打通该远程连接。当前为单用户安装，Bearer 对应本机唯一主体；商业多用户云网关仍需独立账号认证、租户隔离和设备配对，不能将此单用户服务直接作为多用户后台。
 
-webhook 返回 2xx 只代表平台接收，不代表模型已经生成或展示回复；应在实际 Work 聊天里核验。Claude／其他只支持工具查询的客户端可以继续使用 44 工具 STDIO MCP，主动响应取决于宿主是否有对应事件机制，不做统一保证。
+webhook 返回 2xx 只代表平台接收，不代表模型已经生成或展示回复；应在实际 Work 聊天里核验。Claude／其他只支持工具查询的客户端可以继续使用 45 工具 STDIO MCP，主动响应取决于宿主是否有对应事件机制，不做统一保证。
 
 自行配置 HTTPS 反向代理时，只转发事件端点，并让上游 Host 为 `127.0.0.1:8768`，保留 Bearer 认证头。此本机服务不接受任意公网 Host／Origin；其他管理页面不要随端点一起公开。正式平台接入还需满足所用连接方式的认证要求，当前服务没有实现多用户 OAuth 授权服务器。
 
@@ -142,4 +142,4 @@ python tools/test_interaction_bridge.py
 node tools/test_bridge_ui.cjs
 ```
 
-测试覆盖事务回滚、事件合并、旧记录排除、租约与 ACK、取消／到期、重启、温度分路基线、输出不回触摸、原生事件订阅和签名／私网回调拒绝。远程回调使用测试替身，真实 ChatGPT／Claude 账号与模型 API 调用不属于本次验收。
+测试覆盖事务回滚、事件合并、过期记录排除、租约与 ACK、取消／到期、重启、温度分路基线、输出不回触摸、原生事件订阅和签名／私网回调拒绝。远程回调使用测试替身，真实 ChatGPT／Claude 账号与模型 API 调用不属于本次验收。
