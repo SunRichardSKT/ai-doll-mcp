@@ -6,6 +6,7 @@ import zipfile
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 TOOLS = (
+    'chat_mcp_gateway.py', 'test_chat_gateway.py', 'verify_mcp_connection.py',
     'test_bridge_lifecycle.cjs', 'test_bridge_lifecycle_device.cjs',
     'conversation_queue.js', 'test_conversation_queue.cjs',
     'test_existing_chat_mcp.py', 'test_device_contention.py', 'package_chatgpt_plugin.py', 'launch_companion_mcp.ps1',

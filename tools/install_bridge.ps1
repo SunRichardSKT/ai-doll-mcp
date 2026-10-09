@@ -3,12 +3,15 @@ param(
     [string]$Port='COM3',
     [ValidateSet('saved','usb','wifi')][string]$Transport='saved',
     [string]$DeviceHost='',
+    [switch]$AutoDetectDevice,
+    [switch]$VerifyConnection,
     [switch]$SkipDependencies,
     [switch]$NoStart
 )
 $ErrorActionPreference='Stop'
 $root=Split-Path -Parent $PSScriptRoot
 if($DeviceHost -and $Transport -eq 'usb'){throw 'DeviceHost cannot be used with USB transport'}
+if($NoStart -and ($VerifyConnection -or $AutoDetectDevice)){throw 'Verification requires a running collector; omit NoStart'}
 $python=Join-Path $root '.venv\Scripts\python.exe'
 if($SkipDependencies){
     if(!(Test-Path -LiteralPath $python)){$python=Join-Path $env:USERPROFILE '.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'}
@@ -21,6 +24,10 @@ if($SkipDependencies){
     }
     & $python -m pip install -r (Join-Path $root 'requirements-companion.txt')
     if($LASTEXITCODE -ne 0){throw 'Dependency installation failed'}
+}
+if($DeviceHost -and !(Test-Path -LiteralPath (Join-Path $root 'build\device-lab\device-private.json'))){
+    & $python (Join-Path $PSScriptRoot 'pair_wifi_device.py') --host $DeviceHost
+    if($LASTEXITCODE -ne 0){throw 'Device pairing failed; no MCP connection was verified'}
 }
 & $python (Join-Path $PSScriptRoot 'install_companion_mcp.py')
 if($LASTEXITCODE -ne 0){throw 'MCP configuration generation failed'}
@@ -63,6 +70,13 @@ if(!$NoStart){
         }
         if(!$started){throw 'Bridge startup timed out; inspect its local error log'}
     }
+}
+if($VerifyConnection -or $AutoDetectDevice){
+    if($NoStart){throw 'Verification requires a running collector; omit NoStart'}
+    $verifyArguments=@((Join-Path $PSScriptRoot 'verify_mcp_connection.py'),'--transport','stdio')
+    if($AutoDetectDevice){$verifyArguments+='--recover-device'}
+    & $python @verifyArguments
+    if($LASTEXITCODE -ne 0){throw 'MCP or device verification failed; see build/device-lab/mcp-deployment-check.json'}
 }
 if($NoStart){Write-Output ('Configuration ready for '+$Platform+'. Open http://127.0.0.1:8768/bridge after starting the service.')}
 else{Write-Output ('Service ready for '+$Platform+'. Open http://127.0.0.1:8768/bridge.')}
