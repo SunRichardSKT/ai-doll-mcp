@@ -17,7 +17,7 @@ static int pressChannel=-1, pressValue=0, lastWifi=-1;
 static constexpr int LED_PIN=8; // Common SuperMini blue LED, active low.
 static bool scanBusy=false;
 static uint32_t scanStartedAt=0;
-static const char* VERSION="doll-lab-2.5.0";
+static const char* VERSION="doll-lab-2.6.0";
 static const char* PROTOCOL="2025-11-25";
 
 static String encode(const JsonDocument &d){String s;serializeJson(d,s);return s;}
@@ -29,6 +29,9 @@ static String randomHex(){char b[33];snprintf(b,sizeof(b),"%08lx%08lx%08lx%08lx"
 static void setLed(bool on){led=on;digitalWrite(LED_PIN,on?LOW:HIGH);}
 #include "network_state.h"
 #include "device_discovery.h"
+static bool originOK();
+static void sendJson(int code,const JsonDocument &d);
+#include "ota_update.h"
 static void status(JsonObject o){
  o["network_mode"]=networkModeName();o["config_ap_open"]=configAP;o["setup_button_gpio"]=SETUP_BUTTON_PIN;
  o["boot_id"]=touchBoot;o["event_cursor"]=touchSeq;
@@ -38,6 +41,7 @@ static void status(JsonObject o){
  o["mcp_enabled"]=mcpEnabled;o["mcp_path"]="/mcp";o["protocol_version"]=PROTOCOL;
  o["discovery_protocol"]=DISCOVERY_PROTOCOL;o["discovery_port"]=DISCOVERY_PORT;o["discovery_active"]=discoveryActive;
  eventStorageStatus(o["event_storage"].to<JsonObject>());
+ otaStatus(o["ota"].to<JsonObject>());
  o["led_on"]=led;o["led_gpio_level"]=digitalRead(LED_PIN);o["sensor_mode"]=sensorEnabled?"sensor":"simulation";o["sensor_count"]=channelCount();o["max_channels"]=MAX_CHANNELS;o["physical_outputs_enabled"]=outputEnabled;
  o["pressed_channel"]=pressChannel;o["pressure"]=pressValue;
  o["reaction"]=pressValue>=2500?"抱抱收到啦！":pressValue>=700?"我感受到你的轻轻按压了。":"安静等待触摸";
@@ -131,6 +135,9 @@ static JsonDocument rpc(const JsonDocument &in){
   required=t["inputSchema"]["required"].to<JsonArray>();required.add("unix_time_ms");required.add("boot_id");
  }else if(method=="tools/call"){
   String name=in["params"]["name"]|"";JsonVariantConst a=in["params"]["arguments"];JsonDocument data;
+  if((otaActive||otaCommitted)&&!(name.startsWith("get_")||name=="doll_get_status"||name=="read_channel_values"||name=="acknowledge_events"||name=="set_device_time")){
+   rpcError(out,-32602,"Upgrade in progress; channel changes and simulation paused");return out;
+  }
   if(name=="get_channel_capabilities"){channelCapabilities(data.to<JsonObject>());}
   else if(name=="get_channel_config"){encodeChannels(data.to<JsonObject>());}
   else if(name=="set_channel_config"){String error;if(!saveChannels(a,error)){rpcError(out,-32602,error.c_str());return out;}encodeChannels(data.to<JsonObject>());}
@@ -174,10 +181,14 @@ static bool originOK(){String o=web.header("Origin");return o.isEmpty()||o=="htt
 static void sendJson(int code,const JsonDocument &d){web.sendHeader("Cache-Control","no-store");web.send(code,"application/json; charset=utf-8",encode(d));}
 #include "device_page.h"
 #include "channel_editor_asset.h"
+#include "ota_manager_asset.h"
 
 static void serialCommand(const String &line){
  JsonDocument in,out;if(deserializeJson(in,line)){out["error"]="invalid JSON";serialJson(out);return;}
  String cmd=in["cmd"]|"";
+ if((otaActive||otaCommitted)&&(cmd=="wifi"||cmd=="mcp"||cmd=="setup_mode")){
+  out["error"]="Upgrade in progress";if(in["serial_request_id"].is<String>())out["serial_request_id"]=in["serial_request_id"];serialJson(out);return;
+ }
  if(cmd=="status")status(out.to<JsonObject>());
  else if(cmd=="events")touchRead(out.to<JsonObject>(),in["after"]|0U,in["boot_id"]|"",true);
  else if(cmd=="ack_events"){String error;out["ok"]=acknowledgeStoredEvents(in.as<JsonVariantConst>(),error);if(error.length())out["error"]=error;}
@@ -207,11 +218,14 @@ void setup(){
  const char* headers[]={"Authorization","Origin","X-Setup-Token","MCP-Protocol-Version"};web.collectHeaders(headers,4);
  web.on("/",HTTP_GET,[]{if(admin())web.send_P(200,"text/html; charset=utf-8",PAGE);});
  web.on("/channel-editor.js",HTTP_GET,[]{if(admin())web.send_P(200,"application/javascript; charset=utf-8",CHANNEL_EDITOR_JS);});
+ web.on("/ota-manager.js",HTTP_GET,[]{if(admin())web.send_P(200,"application/javascript; charset=utf-8",OTA_MANAGER_JS);});
  web.on("/api/setup",HTTP_GET,[]{if(!admin())return;JsonDocument d;d["token"]=token;d["enabled"]=mcpEnabled;d["admin_password"]=apPass;d["network_mode"]=networkModeName();sendJson(200,d);});
  web.on("/api/tool",HTTP_POST,[]{if(!admin())return;if(!originOK()||web.header("X-Setup-Token")!=token){web.send(403,"text/plain","Forbidden");return;}JsonDocument in;if(web.arg("plain").length()>16384||deserializeJson(in,web.arg("plain"))){web.send(400,"text/plain","Invalid JSON");return;}sendJson(200,rpc(in));});
  web.on("/api/status",HTTP_GET,[]{if(!admin())return;JsonDocument d;status(d.to<JsonObject>());sendJson(200,d);});
+ web.on("/api/ota",HTTP_POST,otaRequest);
  web.on("/api/scan",HTTP_POST,[]{if(!admin())return;if(!originOK()||web.header("X-Setup-Token")!=token){web.send(403,"text/plain","Forbidden");return;}JsonDocument in,out;if(web.arg("plain").length()>128||deserializeJson(in,web.arg("plain"))){web.send(400,"text/plain","Invalid JSON");return;}scanWifi(out.to<JsonObject>(),in["start"]|false);sendJson(200,out);});
  auto config=[](){if(!admin())return;if(!originOK()||web.header("X-Setup-Token")!=token){web.send(403,"text/plain","Forbidden");return;}JsonDocument in,out;if(web.arg("plain").length()>1024||deserializeJson(in,web.arg("plain"))){web.send(400,"text/plain","Invalid JSON");return;}
+  if(otaActive||otaCommitted){out["error"]="Upgrade in progress";sendJson(409,out);return;}
   if(web.uri()=="/api/wifi"){String error;bool ok=provision(in.as<JsonVariantConst>(),error);out["ok"]=ok;if(!ok)out["error"]=error;sendJson(ok?200:400,out);}
   else{if(!in["enabled"].is<bool>()){web.send(400,"text/plain","enabled must be boolean");return;}mcpEnabled=in["enabled"];prefs.putBool("mcp",mcpEnabled);out["ok"]=true;sendJson(200,out);}};
  web.on("/api/wifi",HTTP_POST,config);web.on("/api/mcp",HTTP_POST,config);
@@ -232,7 +246,8 @@ void setup(){
  JsonDocument boot;boot["event"]="boot";boot["firmware"]=VERSION;boot["sensor_mode"]=sensorEnabled?"sensor":"simulation";serialJson(boot);
 }
 void loop(){
- touchTick();
+ otaTick();
+ if(!otaActive&&!otaCommitted)touchTick();
  if(scanBusy && (WiFi.scanComplete()>=0 || millis()-scanStartedAt>25000))scanBusy=false;
  web.handleClient();if(configAP)dns.processNextRequest();
  while(Serial.available()){char c=Serial.read();if(c=='\n'){if(serialLine.length())serialCommand(serialLine);serialLine="";}else if(c!='\r'){if(serialLine.length()<16384)serialLine+=c;else serialLine="";}}

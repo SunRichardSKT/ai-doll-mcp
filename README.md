@@ -1,12 +1,14 @@
 # AI 共感娃娃 · V2 交付工程
 
-当前版本：固件 **doll-lab-2.5.0**；硬件 **AI_Doll_V2 / ESP32-C3 SuperMini + 74HC4051 / 八路模拟接口**。最多 16 个逻辑通道，预设压力、NTC 温度输入及震动输出；用户自行选择 AI 平台，通过通用 MCP 接入。
+当前版本：固件 **doll-lab-2.6.0**；硬件 **AI_Doll_V2 / ESP32-C3 SuperMini + 74HC4051 / 八路模拟接口**。最多 16 个逻辑通道，预设压力、NTC 温度输入及震动输出；用户自行选择 AI 平台，通过通用 MCP 接入。
 
-电脑服务为 **Bridge v2.9.0**，本机 STDIO MCP 为 **44 个工具**。支持局域网 Wi-Fi 采集，保留持久事件投递、会话目标绑定、自建应用 SSE、反馈偏好与 MCP Events；新增压力校准、日常模式及实时诊断，需要升级固件至 v2.3。Bridge v2.6 另加入客观动作摘要、安静时段、称呼/避用词和安装自检；动作摘要功能见 [互动优化指南](docs/INTERACTION_OBSERVATIONS.md)。Bridge v2.7 与固件 v2.4 增加已配对设备发现和旧 IP 恢复；电脑端提供单实例保护及可选 Windows 登录启动，见 [无线恢复指南](docs/WIRELESS_RECOVERY.md)。无需电脑 USB 数据连接的运行方式见 [无线连接指南](docs/WIFI_CONNECTION.md)，跨平台接入见 [主动互动指南](docs/PROACTIVE_INTERACTION.md)。
+电脑服务为 **Bridge v2.10.0**，本机 STDIO MCP 为 **44 个工具**。支持局域网 Wi-Fi 采集，保留持久事件投递、会话目标绑定、自建应用 SSE、反馈偏好与 MCP Events；新增压力校准、日常模式及实时诊断，需要升级固件至 v2.3。Bridge v2.6 另加入客观动作摘要、安静时段、称呼/避用词和安装自检；动作摘要功能见 [互动优化指南](docs/INTERACTION_OBSERVATIONS.md)。Bridge v2.7 与固件 v2.4 增加已配对设备发现和旧 IP 恢复；电脑端提供单实例保护及可选 Windows 登录启动，见 [无线恢复指南](docs/WIRELESS_RECOVERY.md)。无需电脑 USB 数据连接的运行方式见 [无线连接指南](docs/WIFI_CONNECTION.md)，跨平台接入见 [主动互动指南](docs/PROACTIVE_INTERACTION.md)。
+
+固件 v2.6 支持 [局域网无线升级](docs/OTA_UPDATE.md)：本地选择固件、大小与 SHA-256 校验、上传超时取消及延后启动确认。首次安装需 USB，此后可通过 Wi-Fi 升级。
 
 ## 在新的聊天窗口接入
 
-Bridge v2.9 增加 [历史管理](docs/HISTORY_MANAGEMENT.md)：JSON/CSV 导出、精确删除预览、可选自动保留期限与全范围统计。删除测试使用隔离数据库，现有日志保留；自动删除默认关闭。此次沿用设备固件 v2.5。
+Bridge v2.9 增加 [历史管理](docs/HISTORY_MANAGEMENT.md)：JSON/CSV 导出、精确删除预览、可选自动保留期限与全范围统计。删除测试使用隔离数据库，现有日志保留；自动删除默认关闭。历史管理本身兼容设备 v2.5 及以上。
 
 Bridge v2.8 / 固件 v2.5 新增 256 条设备 Flash 离线缓存、重启补传、去重确认和时间质量标记，见 [离线记录指南](docs/OFFLINE_RECORDS.md)。电脑历史写入成功后才清除待补传记录；未知时间不冒充今天，旧事件补传不重发输出或过时回复。
 
@@ -47,7 +49,7 @@ python -m venv .venv
 .\tools\build_lab.ps1 -Upload -Port COM3
 ```
 
-`firmware/prebuilt/` 保留经过裸开发板测试的 v2.5.0 镜像、分区表、引导文件和烧录地址清单。当前唯一编译目标为 `supermini-lab`。归档逻辑测试为 `python tools/test_companion.py`；实机多传感器测试为 `python tools/test_channel_devices.py`，要求设备及采集服务运行，使用前阅读安装文档。
+`firmware/prebuilt/` 保留经过裸开发板测试的 v2.6.0 镜像、分区表、引导文件和烧录地址清单。当前唯一编译目标为 `supermini-lab`。归档逻辑测试为 `python tools/test_companion.py`；实机多传感器测试为 `python tools/test_channel_devices.py`，要求设备及采集服务运行，使用前阅读安装文档。
 
 重新生成交付包：
 

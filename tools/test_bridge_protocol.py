@@ -31,7 +31,7 @@ def main_http():
     discover=rpc('server/discover')['result'];assert discover['supportedVersions']==['2026-07-28'] and 'events' in discover['capabilities']
     tools=rpc('tools/list')['result']['tools'];assert len(tools)==44
     status=rpc('tools/call',dict(name='doll_get_status',arguments={}))['result'];assert not status['isError']
-    assert status['structuredContent']['firmware']=='doll-lab-2.5.0'
+    assert status['structuredContent']['firmware']=='doll-lab-2.6.0'
     assert rpc('tools/call',dict(name='doll_simulate_press',arguments=dict(channel='invalid',value=3200)))['result']['isError']
     assert rpc('events/list')['result']['events'][0]['name']=='doll.interaction'
     assert rpc('events/list',header='2025-11-25')['error']['code']==-32020
@@ -49,7 +49,7 @@ async def main():
             for name in ['get_feedback_preferences','get_reply_bridge_status','doll_get_status']:
                 result=await session.call_tool(name);assert not result.isError
             checks.append('Official SDK legacy STDIO handshake, 44 tools and bridge preference/status calls')
-    report=dict(passed=True,at=dt.datetime.now(dt.timezone(dt.timedelta(hours=8))).isoformat(),bridge='2.9.0',firmware='2.5.0',checks=checks,
+    report=dict(passed=True,at=dt.datetime.now(dt.timezone(dt.timedelta(hours=8))).isoformat(),bridge='2.10.0',firmware='2.6.0',checks=checks,
                 not_tested=['Remote ChatGPT Work subscription','User model API call','Real motor or sensor input'])
     (ROOT/'build/device-lab/bridge-protocol-test.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
     print(json.dumps(report,ensure_ascii=False,indent=2))

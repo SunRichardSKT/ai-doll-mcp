@@ -17,7 +17,7 @@ async def main():
     result=await session.call_tool(name,args or {})
     if error:assert result.isError,(name,result);return
     assert not result.isError,(name,result);return json.loads(result.content[0].text)
-   status=await call('doll_get_status');assert status['firmware']=='doll-lab-2.5.0'
+   status=await call('doll_get_status');assert status['firmware']=='doll-lab-2.6.0'
    assert not (await call('get_interaction_status'))['active_session'],'Do not interrupt a user session'
    mode=await call('get_operating_mode');assert mode['mode']=='manual' and not mode['physical_inputs_enabled'] and not mode['physical_outputs_enabled']
    original=await call('get_channel_config')
@@ -39,7 +39,7 @@ async def main():
    result=await call('set_operating_mode',{'mode':'manual'})
    assert not result['resume_inputs_after_reboot'] and not result['outputs_resume_after_reboot']
    checks.append('manual startup saved atomically; outputs remain disarmed')
- report=dict(passed=True,firmware='doll-lab-2.5.0',at=datetime.datetime.now(datetime.timezone.utc).isoformat(),checks=checks,
+ report=dict(passed=True,firmware='doll-lab-2.6.0',at=datetime.datetime.now(datetime.timezone.utc).isoformat(),checks=checks,
              not_tested=['physical pressure calibration','daily-mode physical input resume','real motor/temperature'])
  (ROOT/'build/device-lab/sensor-experience-test.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
  print(json.dumps(report,ensure_ascii=False))

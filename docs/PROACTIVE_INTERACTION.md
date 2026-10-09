@@ -1,6 +1,6 @@
-# 主动互动与跨平台接入（Bridge v2.9）
+# 主动互动与跨平台接入（Bridge v2.10）
 
-更新日期：2026-10-09。电脑服务 `doll-bridge-2.9.0`，开发板为 `doll-lab-2.5.0`。从 v2.2 升级需要重新烧录；新增功能见 [校准与日常模式](CALIBRATION_AND_DAILY_MODE.md)。保留压力、NTC 温度输入与震动输出、16 个逻辑通道和历史。可通过 [Wi-Fi 无线采集](WIFI_CONNECTION.md) 解除电脑 USB 数据连接；v2.6 加入动作摘要和安静时段，见 [互动优化指南](INTERACTION_OBSERVATIONS.md)。
+更新日期：2026-10-09。电脑服务 `doll-bridge-2.10.0`，开发板为 `doll-lab-2.6.0`。从 v2.2 升级需要重新烧录；新增功能见 [校准与日常模式](CALIBRATION_AND_DAILY_MODE.md)。保留压力、NTC 温度输入与震动输出、16 个逻辑通道和历史。可通过 [Wi-Fi 无线采集](WIFI_CONNECTION.md) 解除电脑 USB 数据连接；v2.6 加入动作摘要和安静时段，见 [互动优化指南](INTERACTION_OBSERVATIONS.md)。
 
 ## 已实现和使用边界
 

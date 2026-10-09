@@ -17,7 +17,7 @@ async def main():
     r=await session.call_tool(name,args or {})
     if error:assert r.isError,(name,r);return
     assert not r.isError,(name,r);return json.loads(r.content[0].text)
-   status=await call('doll_get_status');assert status['firmware']=='doll-lab-2.5.0'
+   status=await call('doll_get_status');assert status['firmware']=='doll-lab-2.6.0'
    assert not (await call('get_interaction_status'))['active_session'],'Do not interrupt a user interaction'
    assert not (await call('get_sensor_config'))['enabled'],'Disable assembled input sampling before simulation tests'
    caps=await call('get_channel_capabilities');assert caps['max_channels']==16 and caps['mux_ports']==8
@@ -125,7 +125,7 @@ async def main():
     await call('set_channel_config',{'channels':original['channels']})
    assert (await call('get_channel_config'))['channels']==original['channels']
    checks.append('original channel config restored after tests')
- report={'passed':True,'firmware':'doll-lab-2.5.0','at':datetime.datetime.now().astimezone().isoformat(),'checks':checks,
+ report={'passed':True,'firmware':'doll-lab-2.6.0','at':datetime.datetime.now().astimezone().isoformat(),'checks':checks,
          'not_tested':['Physical NTC probe','Physical vibration motor/driver and timer cutoff','Physical FSR ADC measurements']}
  (work/'channel-device-test.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
  print(json.dumps(report,ensure_ascii=False,indent=2))

@@ -54,7 +54,7 @@ class MCPEventsAdapter:
     def execute(self, method, params, owner):
         if method == 'server/discover':
             return dict(supportedVersions=[PROTOCOL], capabilities=dict(tools={},events={}),
-                        serverInfo=dict(name='ai-doll-event-bridge',version='2.9.0'))
+                        serverInfo=dict(name='ai-doll-event-bridge',version='2.10.0'))
         if method == 'ping': return {}
         if method == 'events/list':
             return dict(events=[EVENT_DEFINITION])

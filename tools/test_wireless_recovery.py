@@ -27,7 +27,7 @@ async def main():
     config = json.loads(CONFIG.read_text(encoding='utf-8-sig'))
     paired = discover_paired_device(config)
     assert paired and paired['verified'], 'Authenticated discovery did not find the paired ESP32'
-    assert paired['firmware'] == 'doll-lab-2.5.0'
+    assert paired['firmware'] == 'doll-lab-2.6.0'
     checks.append('Real ESP32 UDP challenge/reply verified using the existing pairing')
     # A separate client starts with a stale address. It cannot open USB and writes
     # only its own disposable connection file, never the running owner's settings.
@@ -74,7 +74,7 @@ async def main():
     assert preview['dry_run'] and configure('status') == before
     checks.append('Login-startup preview generated without enabling or altering registry settings')
     report = dict(passed=True, at=datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat(),
-                  bridge='2.9.0', firmware='2.5.0', checks=checks,
+                  bridge='2.10.0', firmware='2.6.0', checks=checks,
                   limits=['No real router DHCP lease change was forced; recovery used a deliberately stale client address.',
                           'Windows login startup was previewed only, not enabled or verified across a login.',
                           'Standalone ESP32, no sensors or motor attached; no physical calibration or battery test.'])

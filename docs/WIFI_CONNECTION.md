@@ -1,6 +1,6 @@
 # 不连接电脑 USB，使用 Wi-Fi 采集（Bridge v2.9）
 
-固件为 `doll-lab-2.5.0`，电脑服务为 `doll-bridge-2.9.0`，本机 MCP 共 44 个工具。单纯无线采集仍兼容 v2.2；新增压力校准及日常模式需要升级固件，见 [校准指南](CALIBRATION_AND_DAILY_MODE.md)。
+固件为 `doll-lab-2.6.0`，电脑服务为 `doll-bridge-2.10.0`，本机 MCP 共 44 个工具。单纯无线采集仍兼容 v2.2；新增压力校准及日常模式需要升级固件，见 [校准指南](CALIBRATION_AND_DAILY_MODE.md)。
 
 运行链路：娃娃独立供电 → ESP32 局域网 MCP → 电脑 Wi-Fi 采集 → 历史／互动会话 → 用户选择的 AI。电脑端仍可使用 STDIO MCP，传感器数据通过网络到达电脑。
 

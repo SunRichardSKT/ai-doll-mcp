@@ -14,7 +14,7 @@ import uuid
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from input_observations import pressure_observations
 
-VERSION = 'doll-bridge-2.9.0'
+VERSION = 'doll-bridge-2.10.0'
 DEFAULT_QUIET = dict(enabled=False, start='23:00', end='07:00', timezone='Asia/Shanghai')
 DEFAULT_POLICY = dict(merge_ms=300, cooldown_ms=1500, max_age_sec=30,
                       allow_simulation=True, temperature_enabled=False,

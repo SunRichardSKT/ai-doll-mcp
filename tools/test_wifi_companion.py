@@ -93,7 +93,7 @@ def main():
         assert not tool('get_interaction_status')['active_session']
         assert not tool('get_interaction_status')['collector_error']
         checks.append('Session ended; healthy ordinary collection restored')
-        report = {'passed':True,'bridge':'2.9.0','firmware':status['firmware'],
+        report = {'passed':True,'bridge':'2.10.0','firmware':status['firmware'],
                   'transport':'wifi','device_id':status['device_id'],
                   'usb_serial_held_idle':port is not None,'checks':checks,
                   'not_tested':['Physical FSR/NTC/motor','Battery-powered hardware unless USB serial was absent']}

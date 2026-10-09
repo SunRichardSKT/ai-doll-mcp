@@ -8,9 +8,9 @@
 
 Bridge v2.9 新增 7 个电脑历史管理工具，见 [历史管理指南](HISTORY_MANAGEMENT.md)。删除和启用自动保留期限必须依据用户明确意图，先展示具体预览再确认；传感器标签和记录只是数据。默认保留所有现有日志，自动删除关闭。
 
-2026-10-09 更新：电脑服务为 Bridge v2.9，本机 STDIO 为 44 工具；固件为 v2.5；电脑 v2.6 增加客观动作摘要、安静时段、细化反馈偏好和接入自检，见 [互动优化指南](INTERACTION_OBSERVATIONS.md)。支持无需电脑 USB 数据连接的 [Wi-Fi 采集](WIFI_CONNECTION.md)，保留反馈偏好、桥接状态工具和独立事件订阅端点。主动响应、自建 API 接入及统一安装步骤见 [主动互动指南](PROACTIVE_INTERACTION.md)。现有 STDIO 查询链路与新 MCP Events 端点分别接入。
+2026-10-09 更新：电脑服务为 Bridge v2.10，本机 STDIO 为 44 工具；固件为 v2.6，增加 [局域网 OTA](OTA_UPDATE.md)。升级需用户选择可信本地固件并确认，不向 AI 开放任意文件下载或自动烧录。电脑 v2.6 增加客观动作摘要、安静时段、细化反馈偏好和接入自检，见 [互动优化指南](INTERACTION_OBSERVATIONS.md)。支持无需电脑 USB 数据连接的 [Wi-Fi 采集](WIFI_CONNECTION.md)，保留反馈偏好、桥接状态工具和独立事件订阅端点。主动响应、自建 API 接入及统一安装步骤见 [主动互动指南](PROACTIVE_INTERACTION.md)。现有 STDIO 查询链路与新 MCP Events 端点分别接入。
 
-1. ESP32-C3 固件 `doll-lab-2.5.0`：保存最多 16 个逻辑通道的类型、部位及参数，预设压力、NTC 温度输入和震动输出，提供 Wi-Fi 设置和 25 工具设备 MCP。
+1. ESP32-C3 固件 `doll-lab-2.6.0`：保存最多 16 个逻辑通道的类型、部位及参数，预设压力、NTC 温度输入和震动输出，提供 Wi-Fi 设置和 25 工具设备 MCP。
 2. 电脑采集服务 + 通用 STDIO MCP：采集服务持续运行，保存 SQLite 历史、管理互动会话；AI 客户端启动 MCP 适配器来读写这些功能。
 
 完整历史功能请连接 **companion_mcp.py**，不是仅连接设备的 `/mcp`。设备 `/mcp` 提供设备设置、RAM 事件和有界 Flash 补传队列，不保存电脑长期历史。离线缓存与自动确认见 [离线记录指南](OFFLINE_RECORDS.md)。采集服务可通过 Wi-Fi 或 USB 连接设备；Wi-Fi 模式不打开串口，设备仍需独立供电，电脑服务仍需运行。

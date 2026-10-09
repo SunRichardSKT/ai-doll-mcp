@@ -35,8 +35,8 @@ async def main():
    assert not (await call('get_interaction_status'))['active_session'],'Do not interrupt another chat'
    mode=await call('get_operating_mode');assert mode['mode']=='manual' and not mode['physical_inputs_enabled'] and not mode['physical_outputs_enabled']
    status=await call('get_installation_status',dict(client_kind='stdio'))
-   assert status['bridge']=='doll-bridge-2.9.0' and status['runtime']['transport']=='wifi'
-   assert status['runtime']['tool_count']==44 and status['device']['firmware']=='doll-lab-2.5.0'
+   assert status['bridge']=='doll-bridge-2.10.0' and status['runtime']['transport']=='wifi'
+   assert status['runtime']['tool_count']==44 and status['device']['firmware']=='doll-lab-2.6.0'
    assert status['client_registration']=='not_inspected' and status['host_event_support']=='not_verified'
    checks.append('44 official SDK tools; runtime/device selfcheck works and does not claim host capability')
    cfg=await call('get_channel_config');ch=next(c['channel'] for c in cfg['channels'] if c['enabled'] and c['type']=='pressure')
@@ -86,7 +86,7 @@ async def main():
    assert (await call('get_feedback_preferences'))==original
    assert (await call('get_channel_config'))==cfg and (await call('get_operating_mode'))==mode
    checks.append('original preferences and channels preserved; session/subscription ended; physical inputs/outputs remain off')
- report=dict(passed=True,bridge='2.9.0',firmware='2.5.0',at=datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat(),checks=checks,
+ report=dict(passed=True,bridge='2.10.0',firmware='2.6.0',at=datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat(),checks=checks,
              not_tested=['Physical sensor pressure','User model generation or official chat event support'])
  (ROOT/'build/device-lab/feedback-features-test.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
  print(json.dumps(report,ensure_ascii=False))

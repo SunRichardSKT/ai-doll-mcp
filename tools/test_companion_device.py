@@ -32,7 +32,7 @@ async def main():
                 return json.loads(reply.content[0].text)
 
             status = await call('doll_get_status')
-            assert status['firmware'] == 'doll-lab-2.5.0'
+            assert status['firmware'] == 'doll-lab-2.6.0'
             assert not (await call('get_interaction_status'))['active_session'], 'End your active session before running tests'
             assert not (await call('get_sensor_config'))['enabled']
             await call('set_sensor_config', {'enabled': False, 'press_threshold': 100, 'release_threshold': 200}, error=True)

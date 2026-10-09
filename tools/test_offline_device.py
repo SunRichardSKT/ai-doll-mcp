@@ -44,7 +44,7 @@ def run(port='COM3'):
         def press(value):return tool('doll_simulate_press',{'channel':channel,'value':value})
         try:
             status=link.exchange({'cmd':'status'})
-            assert status['firmware']=='doll-lab-2.5.0' and status['sensor_mode']=='simulation'
+            assert status['firmware']=='doll-lab-2.6.0' and status['sensor_mode']=='simulation'
             assert not status['physical_outputs_enabled']
             assert link.require_request_id,'New firmware must correlate serial replies'
             assert status['event_storage']['available'],status['event_storage']['error']
@@ -132,7 +132,7 @@ def run(port='COM3'):
             assert not collector.active()
             assert not link.exchange({'cmd':'status'})['physical_outputs_enabled']
             checks.append('Original channels/manual mode preserved; no real sensor sampling, motor arming or output replay')
-            report=dict(passed=True,bridge='2.8.0',firmware='2.5.0',
+            report=dict(passed=True,bridge='2.8.0',firmware='2.6.0',
                     at=datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat(),checks=checks,
                     events_created=276,events_recovered=262,oldest_evicted=14,
                     unknown_archive_cursor=min(collector.db.execute('SELECT id FROM events WHERE device=? AND boot=?',
