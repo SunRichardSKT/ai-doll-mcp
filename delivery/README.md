@@ -9,7 +9,7 @@
 
 交付包不含本机 Wi-Fi 配置、设备访问密钥或个人互动数据库。完整文件校验值在各包的 `MANIFEST.json`；ZIP 校验值在 `DELIVERY_MANIFEST.json`。
 
-`AI_Doll_Code_v2.12.2.zip` SHA-256：`df4a982e3925a9d5369fb3088946b2df243d9f02fd35c3d02323a3e23648c2cc`。
+`AI_Doll_Code_v2.12.2.zip` SHA-256：`8ab5aace8498d42c2a970d4858dd9ee67517b899d50ada0f5eba865fbfc107a7`。
 
 `AI_Doll_PCB_V2_20261003.zip` SHA-256：`a5d37184fc14a4857662e0527e9a14b890342e0ca9223a5b10322d01a1d79dcb`。
 

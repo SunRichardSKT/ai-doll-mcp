@@ -18,16 +18,20 @@
 
 ## ChatGPT 普通 Chat 的操作
 
-OpenAI 官方文档说明，安装后的插件可以向 Chat 和 Work 提供工具；本机 Codex MCP 配置与托管插件连接是不同的安装路径。见 [插件说明](https://learn.chatgpt.com/docs/plugins) 和 [MCP 配置说明](https://learn.chatgpt.com/docs/extend/mcp)。本项目已验证当前本机 Work 的 STDIO 工具；用户确认桌面插件已加入，普通 Chat 的实际工具调用仍待验收。
+OpenAI 官方文档说明，安装后的插件可以向 Chat 和 Work 提供工具；本机 Codex MCP 配置与托管插件连接是不同的安装路径。见 [插件说明](https://learn.chatgpt.com/docs/plugins) 和 [MCP 配置说明](https://learn.chatgpt.com/docs/extend/mcp)。本项目已验证本机 Work 的 STDIO 工具。2026-10-10 已核实桌面缓存安装了 AI Doll Local 0.1.0，配置与测试包一致；用户在普通 Chat 中用 `@` 选择它后，工具清单和搜索仍没有 ai_doll，两个状态工具未能调用。因此这条 ZIP 路径在该普通 Chat 上未接通，不应继续重复上传或只改提示词。
 
-1. 打开 **Plugins**，检查是否已安装娃娃插件，并确认连接中的工具列表。当前电脑服务提供 45 个工具；GitHub 仓库公开不代表已有官方目录插件。
-2. 如果尚无连接，打开 **添加 → 创建自定义 MCP 服务器**（Add custom MCP server）。当前客户端还有“上传插件压缩包”入口，本机测试包见下一节；账号连接可选择 **隧道**（Tunnel），使用已创建并关联到目标工作区的 `tunnel_id`。详见 [连接与测试](https://developers.openai.com/plugins/deploy/connect-chatgpt)。
-3. 安装创建的插件，刷新连接。新建普通 **Chat**，输入 `@` 选择该插件，再发送下面的测试请求。能否使用取决于账号和工作区权限，不能仅凭添加了本机配置认定成功。
+官方包装流程要求先注册 MCP 连接，再将返回的 `plugin_asdk_app...` 技术 ID 映射到插件；上传本机启动配置不能代替这一步。见 [包装与连接映射](https://developers.openai.com/plugins/build/plugins)。目前上传的包没有这个已注册连接的映射。下一步是建立账号侧实际可达的 MCP 连接，而不是将“插件已加入”当成“工具已可用”。
+
+1. 打开 **Plugins → 添加 → 创建自定义 MCP 服务器**（Add custom MCP server）。当前电脑服务提供 45 个工具；GitHub 仓库公开不代表已有官方目录插件。
+2. 在“连接”下点击 **隧道**（Tunnel），不要停留在“服务器 URL”的 `https://example.com/mcp` 输入框。先查看是否已有可用隧道；没有时需按下一节创建并关联目标工作区。已有认证公网 MCP 的用户也可以使用“服务器 URL”。详见 [连接与测试](https://developers.openai.com/plugins/deploy/connect-chatgpt)。
+3. 连接成功后，核对服务器发现的工具列表，必须包含 `get_installation_status` 和 `doll_get_status`。安装创建的插件，新建普通 **Chat**，输入 `@` 选择该连接对应的插件，再发送下面的测试请求。账号与工作区权限仍适用；不存在工具列表时不能继续按压验收。
 4. 本聊天确实能调用工具后，在设备管理页模拟按压，检查它是否读取新事件并在这个聊天中回应，最后结束会话。
 
 > 请实际检查这个聊天是否能调用 ai_doll MCP，读取设备状态、通道、人设和反馈偏好。能调用时开始 60 秒互动，保存会话 ID 与游标，等待我模拟按压；每次等待最多 20 秒，在本聊天回应并标明模拟来源，最后结束会话。没有工具就说明缺少连接，不凭阅读文档声称已连接，也不要切换成 Work。
 
-### 上传本机插件 ZIP 测试
+### 本机插件 ZIP 的测试范围
+
+这是供支持本机 STDIO 的宿主验证启动配置的包，不是已接通普通 Chat 的安装方案。本轮普通 Chat 已出现“安装成功、工具未暴露”的实际结果，优先使用上面的连接流程；无需为了重试而生成或上传第二个本机包。
 
 代码交付 ZIP 不是插件包。完成本机安装后，在项目根目录使用安装依赖的 Python 生成专用包：
 
@@ -35,13 +39,19 @@ OpenAI 官方文档说明，安装后的插件可以向 Chat 和 Work 提供工�
 .\.venv\Scripts\python.exe tools/package_chatgpt_plugin.py
 ```
 
-生成位置为 `build/device-lab/AI_Doll_ChatGPT_Local_Test_v2.zip`。在 **插件 → 添加 → 上传插件压缩包** 上传，安装后新建普通 Chat，用 `@` 选择 **AI Doll Local** 并实际调用两个状态工具。当前打包器采用 [官方包装指南](https://developers.openai.com/plugins/build/plugins) 推荐的根目录 `plugin.json` 和 `mcp.json`，明确声明 STDIO，通过 Windows PowerShell 启动已安装的 MCP；没有密码、令牌、个人历史或模型密钥。包绑定生成时的项目和 Python 路径，移动项目或换电脑需重新生成，不应作为通用安装包发布。已经加入的插件先验证工具，无需为验证而重复上传。
+生成位置为 `build/device-lab/AI_Doll_ChatGPT_Local_Test_v2.zip`。只在目标宿主明确支持本机 STDIO 插件时使用 **插件 → 添加 → 上传插件压缩包**，并在实际目标聊天调用两个状态工具。当前打包器采用 [官方包装指南](https://developers.openai.com/plugins/build/plugins) 的根目录 `plugin.json` 和 `mcp.json`，明确声明 STDIO，通过 Windows PowerShell 启动已安装的 MCP；没有密码、令牌、个人历史或模型密钥。包绑定生成时的项目和 Python 路径，移动项目或换电脑需重新生成，不应作为通用安装包发布。
 
 本机 MCP 的实际启动命令需通过 SDK 验证；上传器和普通 Chat 是否接受、是否暴露工具仍需分别实测。ZIP 不会自动注册远程服务、启动采集器或安装依赖。若平台提示不支持本机 STDIO、要求已注册的 MCP，或装好后只有说明没有工具，使用它支持的私有隧道/远程连接。网页和手机不能运行此包的本机路径，亦不能凭 ZIP 安装推断空闲聊天可被唤醒。
 
 ### 私有服务与 Tunnel
 
-Secure MCP Tunnel 可以保留本机服务的私有地址，通过电脑向 OpenAI 发起出站连接。它需要账号侧的隧道、运行密钥和相应权限，请按 [官方隧道指南](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels) 配置。隧道需要持续运行；密钥在本机设置，不发到聊天或仓库。
+Secure MCP Tunnel 可以保留本机服务的私有地址，通过电脑向 OpenAI 发起出站连接。它需要账号侧的隧道、运行密钥和相应权限，请按 [官方隧道指南](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels) 配置。
+
+1. 在 [Platform 隧道设置](https://platform.openai.com/settings/organization/tunnels) 创建或选择隧道，关联将使用它的 ChatGPT 工作区。创建需要 Tunnels Read + Manage，使用需要 Read + Use。当前登录是否具备这些权限必须实际查看，不能从界面里有“隧道”按钮推断。
+2. 使用该页提供的官方 `tunnel-client`，在本机配置 `tunnel_id` 和运行密钥。密钥不发到聊天或仓库。使用本机 STDIO 的 `tools/companion_mcp.py` 作为上游，继续访问现有采集服务；这不另接模型，也不需要模型调用代码。
+3. 按官方指南运行 `tunnel-client doctor` 和 `run`。采集服务和隧道需持续运行；检查隧道健康后才在 ChatGPT 中创建连接。
+4. 回到 **创建自定义 MCP 服务器 → 隧道**，选择或填入同一个 `tunnel_id`，按实际服务器认证方式完成连接。当前本机 STDIO 服务没有 OAuth 授权服务器，不应把默认显示的 OAuth 当成已经配置完成。
+5. 核对发现的工具、创建并安装插件，在普通 Chat 实际调用两个状态工具，再进行限时模拟互动。隧道健康不等同于普通 Chat 已可用，工具可用也不等同于空闲聊天可被唤醒。
 
 这条路径不要求另选模型或另建聊天页面，但 MCP 请求和返回会经过 OpenAI，不能称为完全在局域网内传输。本项目没有替用户创建账户侧隧道或注册插件。若只接受本机/局域网 MCP，使用支持本机连接的客户端或已有应用即可。
 

@@ -50,8 +50,8 @@ def build_package(python: Path, output: Path) -> dict:
 明确声明 STDIO 传输类型。使用 Windows PowerShell 启动已安装的 Python。
 
 1. 保留生成包时的项目目录和 Python，保持电脑娃娃服务运行。
-2. 在桌面客户端的插件页面选择“上传插件压缩包”，上传此 ZIP。
-3. 安装后新建普通 Chat，输入 @ 选择 AI Doll Local。
+2. 仅在目标宿主支持本机 STDIO 时，在插件页面上传此 ZIP。
+3. 在实际目标聊天输入 @ 选择 AI Doll Local，并检查工具是否暴露。
 4. 要求实际调用 get_installation_status 与 doll_get_status，并返回真实状态。
 5. 确认工具可用后才开始限时模拟按压测试，最后 end_interaction。
 
@@ -60,6 +60,8 @@ def build_package(python: Path, output: Path) -> dict:
 启动配置包含本机绝对路径；移动项目、换电脑或换 Python 后重新生成。
 它不会安装 Python、启动采集服务、注册账号侧连接或建立隧道。
 
+本轮普通 Chat 在安装并选择本机插件后仍未发现工具，请改用
+docs/CHAT_MCP.md 的注册连接流程，不重复上传此包。
 ZIP 上传成功不证明普通 Chat 可启动本机 MCP。若提示不支持 STDIO、
 要求服务器 URL/已注册 MCP，或安装后仍无工具，保留实际错误，转用
 平台支持的私有 Tunnel/远程连接；不要填写 GitHub 或 localhost 代替。
