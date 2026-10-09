@@ -21,5 +21,23 @@ function client(onInteraction,onReply){const c=new DollBridgeClient({targetId:'t
  await assert.rejects(retry.handle(message,new AbortController().signal),/expired lease/);assert.equal(rendered,0);
  failure=false;await retry.handle({...message,lease:'new lease'},new AbortController().signal);
  assert.equal(calls,1);assert.equal(rendered,1);
+ // The existing chat can hold its composer/queue while the event owns generation.
+ const states=[];let receivedContext;
+ const integrated=client(async(event,ctx)=>{receivedContext=ctx;return {text:'existing chat answer',source:'model'}},()=>states.push('render'));
+ integrated.onDeliveryState=busy=>states.push(busy?'busy':'idle');
+ integrated.api=async()=>{states.push('ack');return {acknowledged:true}};
+ await integrated.handle(message,new AbortController().signal);
+ assert.deepEqual(states,['busy','ack','render','idle']);
+ assert.equal(receivedContext.idempotencyKey,'event1');
+ assert.equal(receivedContext.subscriptionId,'s');assert.equal(receivedContext.lease,'lease1');
+ // A stopped target must never invoke the model, even before handle starts.
+ const stoppedController=new AbortController();stoppedController.abort();
+ let invoked=0;const stopped=client(async()=>{invoked++;return 'unexpected'},()=>{});
+ await assert.rejects(stopped.handle(message,stoppedController.signal),/Delivery stopped/);
+ assert.equal(invoked,0);
+ const failedStates=[];const failed=client(async()=>{throw Error('existing model failed')},()=>{throw Error('unexpected render')});
+ failed.onDeliveryState=busy=>failedStates.push(busy);
+ await assert.rejects(failed.handle(message,new AbortController().signal),/existing model failed/);
+ assert.deepEqual(failedStates,[true,false]);
  console.log('Client duplicate reuse, ACK-before-render, cancelled generation and expired lease retry PASS');
 })().catch(e=>{console.error(e);process.exitCode=1});

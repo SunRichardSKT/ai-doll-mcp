@@ -10,7 +10,7 @@
 
 ## 本机客户端
 
-按 [安装指南](AI_INSTALL.md) 安装电脑服务、无线配对并导入 STDIO 配置。重新连接 MCP，在新聊天让 AI 调用 `get_installation_status`、`doll_get_status` 和 `get_channel_config`。真实返回的设备 ID、版本与通道是连接证据。
+按 [安装指南](AI_INSTALL.md) 安装电脑服务、无线配对并导入 STDIO 配置。重新连接 MCP，在正在使用的聊天让 AI 调用 `get_installation_status`、`doll_get_status` 和 `get_channel_config`。真实返回的设备 ID、版本与通道是连接证据。具体操作与可选提示模板见 [接入现有对话](EXISTING_CHAT.md)。
 
 未接传感器时保持模拟模式：在 `/companion` 模拟按压，再让 AI 查询历史和人设。互动测试使用 `start_interaction` 与 `get_interaction_device_events`，单次最多等待 20 秒；结束调用 `end_interaction`。这验证当前运行任务内的反馈，不等同于唤醒空闲聊天。
 

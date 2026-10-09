@@ -1,10 +1,11 @@
 /* Same-origin browser adapter. A custom API app supplies onInteraction to call
  * its own backend/model. MCP Events webhook delivery uses the Python adapter. */
 class DollBridgeClient {
-  constructor({baseUrl='',token=null,csrf=null,onInteraction,onReply=()=>{},onStatus=()=>{},targetId}) {
+  constructor({baseUrl='',token=null,csrf=null,onInteraction,onReply=()=>{},onStatus=()=>{},onDeliveryState=()=>{},targetId}) {
     if(typeof onInteraction!=='function')throw Error('onInteraction callback required');
     this.base=baseUrl.replace(/\/$/,'');this.token=token;this.csrf=csrf;
     this.onInteraction=onInteraction;this.onReply=onReply;this.onStatus=onStatus;
+    this.onDeliveryState=onDeliveryState;
     this.target=targetId||'app:'+crypto.randomUUID();this.completed=new Map();this.rendered=new Set();
     this.running=false;this.sub=null;this.session=null;
   }
@@ -29,6 +30,7 @@ class DollBridgeClient {
     this.loop=this.listen(this.controller.signal);return this.sub;
   }
   async handle(message,signal) {
+    if(signal.aborted)throw Error('Delivery stopped or lease expired');
     const {event,lease,subscription_id}=message;
     if(!event?.eventId||subscription_id!==this.sub.id)throw Error('Unexpected event target');
     const args={subscription_id,event_id:event.eventId,lease};
@@ -37,9 +39,12 @@ class DollBridgeClient {
     let lostLease=false;
     const renew=setInterval(()=>this.api('/bridge/renew',args,signal).catch(()=>{lostLease=true;generation.abort()}),4000);
     try{
+      this.onDeliveryState(true,event);
+      if(signal.aborted)throw Error('Delivery stopped or lease expired');
       let answer=this.completed.get(event.eventId);
       if(!answer){
-        answer=await this.onInteraction(event,{signal:generation.signal,idempotencyKey:event.eventId});
+        answer=await this.onInteraction(event,{signal:generation.signal,idempotencyKey:event.eventId,
+          subscriptionId:subscription_id,lease});
         if(typeof answer==='string')answer={text:answer,source:'model'};
         if(answer!=null&&(!answer.text||!['model','demo'].includes(answer.source)))throw Error('Return {text,source:"model"} or null');
         this.completed.set(event.eventId,answer||{});
@@ -51,7 +56,7 @@ class DollBridgeClient {
         await this.onReply(answer,event);this.rendered.add(event.eventId);
         if(this.rendered.size>128)this.rendered.delete(this.rendered.values().next().value);
       }
-    }finally{clearInterval(renew);signal.removeEventListener('abort',abort)}
+    }finally{clearInterval(renew);signal.removeEventListener('abort',abort);this.onDeliveryState(false,event)}
   }
   async listen(signal) {
     while(this.running&&!signal.aborted){

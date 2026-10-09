@@ -26,7 +26,7 @@ if($SkipDependencies){
 if($LASTEXITCODE -ne 0){throw 'MCP configuration generation failed'}
 $work=Join-Path $root 'build\device-lab'
 $config=[ordered]@{
-    bridge_version='2.11.0';platform=$Platform;serial_port=$Port
+    bridge_version='2.12.0';platform=$Platform;serial_port=$Port
     transport=$Transport;device_host=$DeviceHost
     local_page='http://127.0.0.1:8768/bridge'
     native_mcp_events='http://127.0.0.1:8768/bridge/mcp'
@@ -69,4 +69,6 @@ else{Write-Output ('Service ready for '+$Platform+'. Open http://127.0.0.1:8768/
 Write-Output 'An already running service keeps its current transport. To change USB/Wi-Fi, close this project service and run tools/start_companion.ps1 with DeviceHost or Transport.'
 Write-Output ('MCP configuration: '+(Join-Path $work 'mcp-client-config.json'))
 Write-Output ('Integration guide: '+$config.guide)
+Write-Output ('Existing conversation guide: '+(Join-Path $root 'docs\EXISTING_CHAT.md'))
+Write-Output 'Continue in your existing AI conversation. If supported, choose the doll_chat_companion MCP prompt; no second model API key is needed.'
 Write-Output 'Client account settings are unchanged. ChatGPT Events needs a supported Work chat and an authenticated remote connection/tunnel; custom API apps provide their own model callback.'
