@@ -40,6 +40,8 @@ USB 测试可使用 `.\tools\install_bridge.ps1 -Transport usb -Port COM3 -SkipD
 
 只在线阅读 GitHub 的网页 AI 无法替用户执行本机安装。远程客户端需要自身支持的可达 MCP 连接；仅局域网使用时优先选择本机 MCP 客户端或自建应用。具体区别见 [聊天窗口指南](CHAT_MCP.md)。
 
+ChatGPT 普通 Chat 应检查 **Plugins** 中的娃娃连接及实际工具；本机 Work 的 STDIO 配置不能代替这一步。桌面客户端有上传入口时可生成本机插件 ZIP 测试；格式和启动命令验证不等同于客户端已接通。专用 ZIP、托管连接、可选私有 Tunnel 和测试步骤见 [普通 Chat 操作](CHAT_MCP.md#chatgpt-普通-chat-的操作)。没有实际工具时，不报告普通 Chat 已安装成功。
+
 ## 5. 第一次验证
 
 1. 让 AI 调用 `get_installation_status(client_kind="stdio")`、`doll_get_status`、`get_channel_config`。以实际工具返回确认连接。

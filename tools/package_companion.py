@@ -8,7 +8,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 TOOLS = (
     'test_bridge_lifecycle.cjs', 'test_bridge_lifecycle_device.cjs',
     'conversation_queue.js', 'test_conversation_queue.cjs',
-    'test_existing_chat_mcp.py',
+    'test_existing_chat_mcp.py', 'package_chatgpt_plugin.py',
     'test_digital_temperature.cpp', 'test_digital_mcp.py', 'test_digital_ui.cjs', 'test_digital_device.py',
     'ota_device.py', 'ota_manager.js', 'test_ota.py', 'test_ota_ui.cjs',
     'history_management.py', 'history_manager.js', 'test_history_management.py',
@@ -126,7 +126,7 @@ def main():
         pcb += [p for p in preview.iterdir() if p.is_file() and p.suffix in {'.png','.json'}]
         outputs.append(package(delivery/'AI_Doll_PCB_V2_20261003.zip', pcb, PCB_README, 'AI_Doll_V2-standardized-20261003'))
     (delivery/'DELIVERY_MANIFEST.json').write_text(json.dumps({'packages': outputs}, ensure_ascii=False, indent=2), encoding='utf-8')
-    readme = '# AI 共感娃娃交付说明\n\n更新日期：2026-10-09。电脑 Bridge v2.12.2 支持 Wi-Fi 采集，已测试开发板固件为 v2.7。请直接发送下面的 ZIP 包；接收者按包内 README 使用。\n\n'
+    readme = '# AI 共感娃娃交付说明\n\n更新日期：2026-10-10。电脑 Bridge v2.12.2 支持 Wi-Fi 采集，已测试开发板固件为 v2.7。请直接发送下面的 ZIP 包；接收者按包内 README 使用。\n\n'
     for item in outputs:
         readme += f"- [{item['file']}]({item['file']})：{item['files']} 个公开文件，{item['bytes']/1048576:.2f} MiB。\n"
     readme += '\n代码包包含当前固件四个烧录文件、源码、45 工具 MCP、电脑事件桥、安装工具和当前使用文档。支持八路 FSR 校准、首次配网、Wi-Fi 数据、温度/震动扩展、有限离线缓存、历史管理与无线升级。PCB 包包含嘉立创 EDA 工程、BOM、原下单文件和核对证据。编译/运行依赖由接收者按代码包指南安装。实物传感器和实际模型反馈验收仍待完成。\n\n'
