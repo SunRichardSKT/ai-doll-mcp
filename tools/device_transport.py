@@ -12,7 +12,7 @@ import urllib.request
 from device_lab import CONFIG, WORK, SerialLink
 from device_discovery import discover_paired_device
 
-VERSION = 'doll-bridge-2.8.0'
+VERSION = 'doll-bridge-2.9.0'
 PROTOCOL = '2025-11-25'
 
 
@@ -111,7 +111,7 @@ class WifiLink:
         if self.initialized:
             return
         reply = self._rpc('initialize', {'protocolVersion': PROTOCOL, 'capabilities': {},
-                                       'clientInfo': {'name': 'ai-doll-wifi-collector', 'version': '2.8.0'}})
+                                       'clientInfo': {'name': 'ai-doll-wifi-collector', 'version': '2.9.0'}})
         if reply.get('result', {}).get('protocolVersion') != PROTOCOL:
             raise DeviceConnectionError('Device MCP initialization failed')
         self._request('/mcp', {'jsonrpc': '2.0', 'method': 'notifications/initialized'})

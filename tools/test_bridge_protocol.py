@@ -29,7 +29,7 @@ def main_http():
     try:rpc('server/discover',auth=False);raise AssertionError('Missing token accepted')
     except urllib.error.HTTPError as ex:assert ex.code in (401,403)
     discover=rpc('server/discover')['result'];assert discover['supportedVersions']==['2026-07-28'] and 'events' in discover['capabilities']
-    tools=rpc('tools/list')['result']['tools'];assert len(tools)==37
+    tools=rpc('tools/list')['result']['tools'];assert len(tools)==44
     status=rpc('tools/call',dict(name='doll_get_status',arguments={}))['result'];assert not status['isError']
     assert status['structuredContent']['firmware']=='doll-lab-2.5.0'
     assert rpc('tools/call',dict(name='doll_simulate_press',arguments=dict(channel='invalid',value=3200)))['result']['isError']
@@ -37,7 +37,7 @@ def main_http():
     assert rpc('events/list',header='2025-11-25')['error']['code']==-32020
     invalid=dict(name='doll.interaction',arguments=dict(device_id=status['structuredContent']['device_id'],session_id='missing'),delivery=dict(mode='webhook',url='https://127.0.0.1/private',secret='fake'))
     assert rpc('events/subscribe',invalid)['error']['code']==-32602
-    checks.extend(['Bearer required for native MCP endpoint','MCP 2.0 discovery, 37 tools and events catalog','Typed tool schema validation','Protocol metadata/header mismatch rejected','Private callback rejected before network access'])
+    checks.extend(['Bearer required for native MCP endpoint','MCP 2.0 discovery, 44 tools and events catalog','Typed tool schema validation','Protocol metadata/header mismatch rejected','Private callback rejected before network access'])
     return checks
 
 async def main():
@@ -45,11 +45,11 @@ async def main():
     params=StdioServerParameters(command=sys.executable,args=[str(ROOT/'tools/companion_mcp.py')])
     async with stdio_client(params) as (r,w):
         async with ClientSession(r,w) as session:
-            await session.initialize();listed=await session.list_tools();assert len(listed.tools)==37
+            await session.initialize();listed=await session.list_tools();assert len(listed.tools)==44
             for name in ['get_feedback_preferences','get_reply_bridge_status','doll_get_status']:
                 result=await session.call_tool(name);assert not result.isError
-            checks.append('Official SDK legacy STDIO handshake, 37 tools and bridge preference/status calls')
-    report=dict(passed=True,at=dt.datetime.now(dt.timezone(dt.timedelta(hours=8))).isoformat(),bridge='2.8.0',firmware='2.5.0',checks=checks,
+            checks.append('Official SDK legacy STDIO handshake, 44 tools and bridge preference/status calls')
+    report=dict(passed=True,at=dt.datetime.now(dt.timezone(dt.timedelta(hours=8))).isoformat(),bridge='2.9.0',firmware='2.5.0',checks=checks,
                 not_tested=['Remote ChatGPT Work subscription','User model API call','Real motor or sensor input'])
     (ROOT/'build/device-lab/bridge-protocol-test.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
     print(json.dumps(report,ensure_ascii=False,indent=2))

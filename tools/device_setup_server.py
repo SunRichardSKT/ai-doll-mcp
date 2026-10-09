@@ -110,9 +110,9 @@ class Handler(BaseHTTPRequestHandler):
         if self.path=='/bridge/status':
             if not self.allowed() or not self.authorized():return self.send(403,{'error':'Forbidden'})
             return self.send(200,COMPANION.bridge.state())
-        if self.path=='/channel-editor.js':
+        if self.path in ('/channel-editor.js','/history-manager.js'):
             if not self.allowed():return self.send(403,{'error':'Forbidden'})
-            data=(ROOT/'tools/channel_editor.js').read_bytes()
+            data=(ROOT/'tools'/('channel_editor.js' if self.path=='/channel-editor.js' else 'history_manager.js')).read_bytes()
             self.send_response(200);self.send_header('Content-Type','application/javascript; charset=utf-8');self.send_header('Cache-Control','no-store');self.send_header('Content-Length',str(len(data)));self.end_headers();self.wfile.write(data);return
         if not self.allowed():return self.send(403,{'error':'Forbidden host/origin'})
         if self.path=='/install-guide':

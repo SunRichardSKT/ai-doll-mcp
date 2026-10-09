@@ -1,6 +1,6 @@
-# 主动互动与跨平台接入（Bridge v2.8）
+# 主动互动与跨平台接入（Bridge v2.9）
 
-更新日期：2026-10-09。电脑服务 `doll-bridge-2.8.0`，开发板为 `doll-lab-2.5.0`。从 v2.2 升级需要重新烧录；新增功能见 [校准与日常模式](CALIBRATION_AND_DAILY_MODE.md)。保留压力、NTC 温度输入与震动输出、16 个逻辑通道和历史。可通过 [Wi-Fi 无线采集](WIFI_CONNECTION.md) 解除电脑 USB 数据连接；v2.6 加入动作摘要和安静时段，见 [互动优化指南](INTERACTION_OBSERVATIONS.md)。
+更新日期：2026-10-09。电脑服务 `doll-bridge-2.9.0`，开发板为 `doll-lab-2.5.0`。从 v2.2 升级需要重新烧录；新增功能见 [校准与日常模式](CALIBRATION_AND_DAILY_MODE.md)。保留压力、NTC 温度输入与震动输出、16 个逻辑通道和历史。可通过 [Wi-Fi 无线采集](WIFI_CONNECTION.md) 解除电脑 USB 数据连接；v2.6 加入动作摘要和安静时段，见 [互动优化指南](INTERACTION_OBSERVATIONS.md)。
 
 ## 已实现和使用边界
 
@@ -120,7 +120,7 @@ HTTP 接口都只监听本机，要求现有 Host／Origin 校验及 Bearer 或 
 
 官方支持场景及接入要求见 [OpenAI MCP Events](https://developers.openai.com/plugins/build/mcp-events) 和 [插件连接测试](https://developers.openai.com/plugins/deploy/connect-chatgpt)。本机端点需要用户配置认证 HTTPS 网关或平台支持的 Secure MCP Tunnel；本次没有发布或打通该远程连接。当前为单用户安装，Bearer 对应本机唯一主体；商业多用户云网关仍需独立账号认证、租户隔离和设备配对，不能将此单用户服务直接作为多用户后台。
 
-webhook 返回 2xx 只代表平台接收，不代表模型已经生成或展示回复；应在实际 Work 聊天里核验。Claude／其他只支持工具查询的客户端可以继续使用 37 工具 STDIO MCP，主动响应取决于宿主是否有对应事件机制，不做统一保证。
+webhook 返回 2xx 只代表平台接收，不代表模型已经生成或展示回复；应在实际 Work 聊天里核验。Claude／其他只支持工具查询的客户端可以继续使用 44 工具 STDIO MCP，主动响应取决于宿主是否有对应事件机制，不做统一保证。
 
 自行配置 HTTPS 反向代理时，只转发事件端点，并让上游 Host 为 `127.0.0.1:8768`，保留 Bearer 认证头。此本机服务不接受任意公网 Host／Origin；其他管理页面不要随端点一起公开。正式平台接入还需满足所用连接方式的认证要求，当前服务没有实现多用户 OAuth 授权服务器。
 

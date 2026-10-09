@@ -12,7 +12,7 @@ async def main():
   async with ClientSession(r,w) as session:
    await session.initialize();names={t.name for t in (await session.list_tools()).tools}
    expected={'get_operating_mode','set_operating_mode','capture_pressure_calibration','get_pressure_calibration','apply_pressure_calibration','cancel_pressure_calibration'}
-   assert len(names)==37 and expected<=names
+   assert len(names)==44 and expected<=names
    async def call(name,args=None,error=False):
     result=await session.call_tool(name,args or {})
     if error:assert result.isError,(name,result);return
@@ -26,7 +26,7 @@ async def main():
    await call('capture_pressure_calibration',{'channel':0,'stage':0},error=True)
    await call('apply_pressure_calibration',error=True)
    assert (await call('get_channel_config'))==original
-   checks.append('37 tools; boot manual; daily mode without hardware confirmation rejected; disabled sampling cannot calibrate/save')
+   checks.append('44 tools; boot manual; daily mode without hardware confirmation rejected; disabled sampling cannot calibrate/save')
    await call('cancel_pressure_calibration');assert not (await call('get_pressure_calibration'))['engaged']
    await call('simulate_channel_input',{'channel':0,'value':1700})
    value=next(v for v in (await call('read_channel_values'))['values'] if v['channel']==0)

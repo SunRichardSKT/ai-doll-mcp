@@ -1,8 +1,10 @@
-# 共感娃娃使用指南（Bridge v2.8 / 固件 v2.5）
+# 共感娃娃使用指南（Bridge v2.9 / 固件 v2.5）
 
-电脑服务为 Bridge v2.8，开发板固件为 v2.5。支持无需电脑 USB 的 [Wi-Fi 采集](WIFI_CONNECTION.md)；主动推送与自建 AI 接入见 [主动互动指南](PROACTIVE_INTERACTION.md)，本机页面为 <http://127.0.0.1:8768/bridge>，演示回执不是模型回复。
+电脑服务为 Bridge v2.9，开发板固件为 v2.5。支持无需电脑 USB 的 [Wi-Fi 采集](WIFI_CONNECTION.md)；主动推送与自建 AI 接入见 [主动互动指南](PROACTIVE_INTERACTION.md)，本机页面为 <http://127.0.0.1:8768/bridge>，演示回执不是模型回复。
 
 ## 日常启动
+
+历史管理新增导出 JSON/CSV、范围删除、保留期限和完整范围统计，见 [历史管理指南](HISTORY_MANAGEMENT.md)。页面在“历史管理”区域操作；自动删除默认关闭。
 
 1. ESP32-C3 接通电源。已有 Wi-Fi 时灯慢闪尝试连接，成功后常亮。
 2. 无线配对后运行 `tools/start_companion.ps1 -DeviceHost 192.168.1.50`（实际 IP 以设备为准），或复用已保存方式运行 `tools/start_companion.ps1`。USB 方式用 `-Transport usb -Port COM3`。电脑服务需运行，长期历史和互动会话由它保存。
@@ -76,7 +78,7 @@ python -m venv .venv
 - 设备网页超时：电脑与设备需在同一可互通局域网，以 USB 页显示的当前 IP 为准。
 - `SSE stream not offered; use POST`：直接打开 `/mcp` 会得到这个提示；它是工具调用端点，设置页应打开设备根地址 `/`。长期历史建议安装本机 STDIO MCP。
 - 拔掉 USB 后离线：确认服务已切换 Wi-Fi，且设备有其他电源。仅拔掉唯一电源会关机。v2.5 最多缓存 256 条 Flash 事件，写入时物理断电未验收；查看“离线记录状态”，不要将写入失败或容量覆盖的记录视为已保存。
-- 升级后 AI 仍只看到旧工具：在 AI 客户端重新连接 MCP，刷新工具列表。本机 STDIO 应有 37 个工具；开发板 HTTP 应有 25 个工具。新事件端点是电脑的 `/bridge/mcp`，不是开发板的 `/mcp`。
+- 升级后 AI 仍只看到旧工具：在 AI 客户端重新连接 MCP，刷新工具列表。本机 STDIO 应有 44 个工具；开发板 HTTP 应有 25 个工具。新事件端点是电脑的 `/bridge/mcp`，不是开发板的 `/mcp`。
 - 新增通道没有真实读数：逻辑通道数量不是实际端口数量；检查驱动、物理绑定、通道启用和真实输入开关。不能给多个通道重复绑定同一个端口。
 - 温度或震动没有硬件：选择 simulation 即可测试。当前实测未验证真实温度探头及电机驱动。
 

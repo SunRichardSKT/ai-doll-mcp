@@ -53,12 +53,12 @@ async def main():
         async with ClientSession(read, write) as client:
             await client.initialize()
             tools = await client.list_tools()
-            assert len(tools.tools) == 37
+            assert len(tools.tools) == 44
             discovered = await client.call_tool('discover_paired_device', {})
             assert not discovered.isError
             result = json.loads(discovered.content[0].text)
             assert result['found'] and result['verified'] and not result['updated']
-            checks.append('Official MCP SDK sees 37 tools and read-only paired-device discovery works')
+            checks.append('Official MCP SDK sees 44 tools and read-only paired-device discovery works')
             session = await client.call_tool('get_interaction_status', {})
             assert not json.loads(session.content[0].text)['active_session'], 'Do not interrupt an active chat'
 
@@ -74,7 +74,7 @@ async def main():
     assert preview['dry_run'] and configure('status') == before
     checks.append('Login-startup preview generated without enabling or altering registry settings')
     report = dict(passed=True, at=datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat(),
-                  bridge='2.8.0', firmware='2.5.0', checks=checks,
+                  bridge='2.9.0', firmware='2.5.0', checks=checks,
                   limits=['No real router DHCP lease change was forced; recovery used a deliberately stale client address.',
                           'Windows login startup was previewed only, not enabled or verified across a login.',
                           'Standalone ESP32, no sensors or motor attached; no physical calibration or battery test.'])

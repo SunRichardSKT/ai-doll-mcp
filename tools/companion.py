@@ -60,6 +60,9 @@ class Companion:
         self.sync_lock = threading.Lock()
         self.last_clock_sync = 0
         self.bridge = EventBridge(self)
+        from history_management import HistoryManager
+        self.history_manager=HistoryManager(self)
+        self.maintenance_error=None
 
     def setting(self, key, default=''):
         with self.lock:
@@ -177,6 +180,12 @@ class Companion:
         seq=event['seq']
         if type(seq) is not int or seq<=0:
             raise ValueError('Invalid event sequence')
+        if self.db.execute('SELECT 1 FROM deleted_events WHERE device=? AND boot=? AND seq=?',(device,boot,seq)).fetchone():
+            return
+        if event.get('touch_id') and self.db.execute('SELECT 1 FROM deleted_touches WHERE device=? AND touch_id=?',
+                                                   (device,event['touch_id'])).fetchone():
+            self.db.execute('INSERT OR IGNORE INTO deleted_events VALUES(?,?,?)',(device,boot,seq))
+            return
         pressure=event.get('sensor_type','pressure')=='pressure'
         session=self.db.execute('SELECT id FROM sessions WHERE started<=? '
             'AND (ended IS NULL OR ended>?) AND last_activity+timeout>=? '
@@ -252,6 +261,11 @@ class Companion:
                 self.sync()
             except Exception as exc:
                 self.error = type(exc).__name__ + ': device collection unavailable'
+            try:
+                self.history_manager.maintain()
+                self.maintenance_error=None
+            except Exception:
+                self.maintenance_error='History retention unavailable; archive preserved'
             self.stop.wait(0.7)
 
     def active(self):
@@ -315,6 +329,12 @@ class Companion:
     def call(self, name, args):
         if not isinstance(args, dict):
             raise ValueError('arguments must be an object')
+        history_methods={'export_history':'export','get_history_statistics':'statistics',
+            'preview_history_deletion':'preview_delete','delete_history':'delete',
+            'get_history_retention':'retention','set_history_retention':'set_retention',
+            'preview_history_retention':'preview_retention'}
+        if name in history_methods:
+            return getattr(self.history_manager,history_methods[name])(**args)
         if name in ('doll_get_status', 'doll_set_led', 'doll_simulate_press', 'get_body_map', 'set_body_map', 'get_touch_events', 'get_sensor_config', 'set_sensor_config',
                     'get_channel_capabilities', 'get_channel_config', 'set_channel_config', 'read_channel_values',
                     'simulate_channel_input', 'set_input_enabled', 'set_output_enabled', 'set_vibration',
