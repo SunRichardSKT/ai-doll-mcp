@@ -8,7 +8,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 TOOLS = (
     'test_bridge_lifecycle.cjs', 'test_bridge_lifecycle_device.cjs',
     'conversation_queue.js', 'test_conversation_queue.cjs',
-    'test_existing_chat_mcp.py', 'package_chatgpt_plugin.py',
+    'test_existing_chat_mcp.py', 'package_chatgpt_plugin.py', 'launch_companion_mcp.ps1',
     'test_digital_temperature.cpp', 'test_digital_mcp.py', 'test_digital_ui.cjs', 'test_digital_device.py',
     'ota_device.py', 'ota_manager.js', 'test_ota.py', 'test_ota_ui.cjs',
     'history_management.py', 'history_manager.js', 'test_history_management.py',

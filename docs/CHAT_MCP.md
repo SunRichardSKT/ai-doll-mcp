@@ -18,7 +18,7 @@
 
 ## ChatGPT 普通 Chat 的操作
 
-OpenAI 官方文档说明，安装后的插件可以向 Chat 和 Work 提供工具；本机 Codex MCP 配置与托管插件连接是不同的安装路径。见 [插件说明](https://learn.chatgpt.com/docs/plugins) 和 [MCP 配置说明](https://learn.chatgpt.com/docs/extend/mcp)。本项目已验证当前本机 Work 的 STDIO 工具，普通 Chat 的账号连接仍待验收。
+OpenAI 官方文档说明，安装后的插件可以向 Chat 和 Work 提供工具；本机 Codex MCP 配置与托管插件连接是不同的安装路径。见 [插件说明](https://learn.chatgpt.com/docs/plugins) 和 [MCP 配置说明](https://learn.chatgpt.com/docs/extend/mcp)。本项目已验证当前本机 Work 的 STDIO 工具；用户确认桌面插件已加入，普通 Chat 的实际工具调用仍待验收。
 
 1. 打开 **Plugins**，检查是否已安装娃娃插件，并确认连接中的工具列表。当前电脑服务提供 45 个工具；GitHub 仓库公开不代表已有官方目录插件。
 2. 如果尚无连接，打开 **添加 → 创建自定义 MCP 服务器**（Add custom MCP server）。当前客户端还有“上传插件压缩包”入口，本机测试包见下一节；账号连接可选择 **隧道**（Tunnel），使用已创建并关联到目标工作区的 `tunnel_id`。详见 [连接与测试](https://developers.openai.com/plugins/deploy/connect-chatgpt)。
@@ -35,7 +35,7 @@ OpenAI 官方文档说明，安装后的插件可以向 Chat 和 Work 提供工�
 .\.venv\Scripts\python.exe tools/package_chatgpt_plugin.py
 ```
 
-生成位置为 `build/device-lab/AI_Doll_ChatGPT_Local_Test.zip`。在 **插件 → 添加 → 上传插件压缩包** 上传，安装后新建普通 Chat，用 `@` 选择 **AI Doll Local** 并实际调用两个状态工具。该包采用 [官方包装指南](https://developers.openai.com/plugins/build/plugins) 支持的 `.codex-plugin/plugin.json` 兼容格式，包含本机 MCP 启动配置；没有密码、令牌、个人历史或模型密钥。包绑定生成时的项目和 Python 路径，移动项目或换电脑需重新生成，不应作为通用安装包发布。
+生成位置为 `build/device-lab/AI_Doll_ChatGPT_Local_Test_v2.zip`。在 **插件 → 添加 → 上传插件压缩包** 上传，安装后新建普通 Chat，用 `@` 选择 **AI Doll Local** 并实际调用两个状态工具。当前打包器采用 [官方包装指南](https://developers.openai.com/plugins/build/plugins) 推荐的根目录 `plugin.json` 和 `mcp.json`，明确声明 STDIO，通过 Windows PowerShell 启动已安装的 MCP；没有密码、令牌、个人历史或模型密钥。包绑定生成时的项目和 Python 路径，移动项目或换电脑需重新生成，不应作为通用安装包发布。已经加入的插件先验证工具，无需为验证而重复上传。
 
 本机 MCP 的实际启动命令需通过 SDK 验证；上传器和普通 Chat 是否接受、是否暴露工具仍需分别实测。ZIP 不会自动注册远程服务、启动采集器或安装依赖。若平台提示不支持本机 STDIO、要求已注册的 MCP，或装好后只有说明没有工具，使用它支持的私有隧道/远程连接。网页和手机不能运行此包的本机路径，亦不能凭 ZIP 安装推断空闲聊天可被唤醒。
 

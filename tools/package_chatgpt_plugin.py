@@ -1,6 +1,6 @@
 """Build a machine-specific local MCP plugin ZIP without copying private runtime data.
 
-This uses the documented Codex compatibility manifest. ChatGPT upload and tool
+This uses the portable Agent Plugins manifest. ChatGPT upload and tool
 availability must be verified in the actual target chat; the ZIP is not a tunnel.
 """
 import argparse
@@ -21,12 +21,12 @@ def build_package(python: Path, output: Path) -> dict:
     if not python.is_file():
         raise ValueError('Python must be an executable file')
     manifest = {
-        'name': 'ai-doll-local', 'version': '0.1.0',
+        '$schema': 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json',
+        'name': 'ai-doll-local', 'version': '0.1.1',
         'description': 'Local Windows MCP connection to the installed AI Doll service. Actual Chat support requires testing.',
         'author': {'name': 'SunRichardSKT'},
         'homepage': REPOSITORY, 'repository': REPOSITORY,
-        'mcpServers': './.mcp.json',
-        'interface': {
+        'extensions': {'com.openai': {'interface': {
             'displayName': 'AI Doll Local',
             'shortDescription': 'Connect your installed doll service on this Windows PC',
             'longDescription': 'Reuse the current conversation and its model. Local MCP requires the installed project, Python dependencies and running collector. Ordinary Chat availability is not yet verified.',
@@ -34,15 +34,20 @@ def build_package(python: Path, output: Path) -> dict:
             'capabilities': ['Read', 'Write'],
             'websiteURL': REPOSITORY,
             'defaultPrompt': ['Check the doll installation and live device status using real tools.'],
-        },
+        }}},
     }
-    mcp = {'mcpServers': {'ai_doll': {
-        'command': str(python), 'args': [str(server)],
+    launcher = (ROOT/'tools/launch_companion_mcp.ps1').resolve(strict=True)
+    mcp = {'$schema': 'https://agent-plugins.org/schemas/1.0.0/mcp.schema.json',
+           'mcpServers': {'ai_doll': {
+        'type': 'stdio', 'command': 'powershell.exe',
+        'args': ['-NoProfile', '-NonInteractive', '-File', str(launcher),
+                 '-PythonExecutable', str(python)],
     }}}
     readme = '''# AI Doll Local — 本机插件测试包
 
 这是本机 MCP 连接包，不是固件包、代码交付包或公网服务。
-采用 OpenAI 文档支持的 .codex-plugin/plugin.json 兼容格式。
+采用 OpenAI 文档推荐的根目录 plugin.json 与 mcp.json 格式，
+明确声明 STDIO 传输类型。使用 Windows PowerShell 启动已安装的 Python。
 
 1. 保留生成包时的项目目录和 Python，保持电脑娃娃服务运行。
 2. 在桌面客户端的插件页面选择“上传插件压缩包”，上传此 ZIP。
@@ -65,8 +70,8 @@ ZIP 上传成功不证明普通 Chat 可启动本机 MCP。若提示不支持 ST
 '''
     encode = lambda value: (json.dumps(value, ensure_ascii=False, indent=2) + '\n').encode('utf-8')
     files = {
-        '.codex-plugin/plugin.json': encode(manifest),
-        '.mcp.json': encode(mcp),
+        'plugin.json': encode(manifest),
+        'mcp.json': encode(mcp),
         'README.md': readme.encode('utf-8'),
     }
     # All payloads are generated here, never copied from build/device-lab.
@@ -84,7 +89,7 @@ ZIP 上传成功不证明普通 Chat 可启动本机 MCP。若提示不支持 ST
             raise ValueError('Plugin ZIP payload differs')
     return {'file': str(output), 'files': len(files), 'bytes': output.stat().st_size,
             'sha256': hashlib.sha256(output.read_bytes()).hexdigest(),
-            'format': 'codex-compatibility', 'scope': 'this Windows installation',
+            'format': 'agent-plugins-1.0.0', 'scope': 'this Windows installation',
             'chat_verified': False}
 
 
@@ -92,7 +97,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--python', type=Path, default=Path(sys.executable))
     parser.add_argument('--output', type=Path,
-                        default=ROOT/'build/device-lab/AI_Doll_ChatGPT_Local_Test.zip')
+                        default=ROOT/'build/device-lab/AI_Doll_ChatGPT_Local_Test_v2.zip')
     args = parser.parse_args()
     if os.name != 'nt':
         parser.error('This package is for Windows desktop testing')
