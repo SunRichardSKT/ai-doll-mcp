@@ -82,6 +82,8 @@ await bridge.start();
 
 已有应用应把该接口加入原聊天后端，并与普通消息共享同一个生成队列及上下文。`onInteraction` 还提供 `subscriptionId` 和 `lease`；可选 `onDeliveryState(busy,event)` 在生成开始与生成/ACK/展示结束时通知原界面。回调必须处理取消，结束后不要启动尚未执行的模型任务。
 
+可选 `runDelivery(operation,{signal,event})` 与 `DollConversationQueue` 把生成、ACK 和原聊天写入串成一个任务；普通消息也通过同一队列。`onReply` 的第三个参数提供停止信号和事件 ID，供原应用在异步写入时检查取消。ACK 后停止续租。接入片段与多窗口限制见 [原聊天队列说明](EXISTING_CHAT.md#与普通消息共享顺序)。
+
 适配器在生成过程中自动续租，完成后 ACK；同一目标只放行一个未确认消息。客户端缓存已完成事件以处理本次运行中的重复投递。应用后端仍需持久保存 `Idempotency-Key` 对应的生成结果，再次收到同一 ID 时返回原结果；无法承诺网络故障下恰好只调用一次模型。
 
 HTTP 接口都只监听本机，要求现有 Host／Origin 校验及 Bearer 或 CSRF。SSE 使用 `fetch` 加认证头，令牌不出现在 URL。其他源的网页应通过自己的后端连接桥接服务，不要直接跨域访问本机。

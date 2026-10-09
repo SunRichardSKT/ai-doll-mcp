@@ -102,9 +102,9 @@ class Handler(BaseHTTPRequestHandler):
             values=parse_qs(parsed.query).get('subscription_id',[])
             if len(values)!=1:return self.send(400,{'error':'subscription_id required'})
             return self.event_stream(values[0])
-        if self.path in ('/bridge-client.js','/bridge'):
+        if self.path in ('/bridge-client.js','/conversation-queue.js','/bridge'):
             if not self.allowed():return self.send(403,{'error':'Forbidden'})
-            asset='bridge_client.js' if self.path.endswith('.js') else 'bridge_demo.html'
+            asset='conversation_queue.js' if self.path=='/conversation-queue.js' else 'bridge_client.js' if self.path.endswith('.js') else 'bridge_demo.html'
             raw=(ROOT/'tools'/asset).read_text(encoding='utf-8').replace('__CSRF__',CSRF).encode()
             self.send_response(200);self.send_header('Content-Type','application/javascript; charset=utf-8' if asset.endswith('.js') else 'text/html; charset=utf-8');self.send_header('Cache-Control','no-store');self.send_header('Content-Length',str(len(raw)));self.end_headers();self.wfile.write(raw);return
         if self.path=='/bridge/status':

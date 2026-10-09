@@ -28,7 +28,7 @@ async def main():
                 return json.loads(result.content[0].text)
             policy=await call('get_history_retention');assert policy['enabled'] is False
             status=await call('get_installation_status',dict(client_kind='stdio'))
-            assert status['bridge']=='doll-bridge-2.12.0' and status['runtime']['tool_count']==45
+            assert status['bridge']=='doll-bridge-2.12.1' and status['runtime']['tool_count']==45
             assert status['runtime']['transport']=='wifi' and status['device']['firmware']=='doll-lab-2.7.0'
             first=await call('export_history',dict(filters=dict(source='simulation',time_scope='all'),limit=2))
             assert first['count']<=2 and first['format']=='json'
@@ -47,7 +47,7 @@ async def main():
             checks.append('Retention preview is read-only; owner policy remains disabled')
             assert not (await call('get_interaction_status'))['active_session']
     report=dict(passed=True,at=datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat(),
-        bridge='2.12.0',firmware='2.7.0',checks=checks,owner_history_deleted=False,retention_enabled=False,
+        bridge='2.12.1',firmware='2.7.0',checks=checks,owner_history_deleted=False,retention_enabled=False,
         limits=['Actual deletion/retention tested only against disposable archives; existing owner history preserved.',
                 'Physical sensors, battery/power-failure and user model generation not tested.'])
     (ROOT/'build/device-lab/history-sdk-test.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')

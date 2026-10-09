@@ -449,5 +449,5 @@ class Companion:
         return {'events':entries,'next_cursor':entries[-1]['id'] if entries else after,'has_more':len(rows)>limit,
                 'timezone':'Asia/Shanghai','persona':self.setting('persona'),'notices':notices,
                 'collector_error':self.error,'last_sync':self.last_sync,
-                'interpretation':'Preserve type/unit/source/quality. Pressure raw is not calibrated force. Temperature is NTC estimate. Output events are commands, not touch or measured motor feedback.'}
+                'interpretation':'Preserve type/unit/source/quality. Pressure raw is not calibrated force. Temperature uses its configured driver; invalid readings stay null. Output events are commands, not touch or measured motor feedback.'}
 

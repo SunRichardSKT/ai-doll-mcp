@@ -39,8 +39,45 @@ OpenAI 当前文档列出的 MCP Events 场景为网页 Work、桌面 Work Cloud
 - 仅在 `onReply(answer, event)` 中按事件 ID 去重追加原消息列表。适配器先完成 ACK，再调用它；结束互动后不展示迟到生成。
 - 提供明确的“开始/结束互动”入口，普通模式不订阅；模型失败不要用固定演示文字冒充 AI 回复。
 
+### 与普通消息共享顺序
+
+`tools/conversation_queue.js` 提供 `DollConversationQueue`，可在浏览器或 Node 中使用，不包含聊天页面和模型服务。必须让普通消息和完整事件投递经过同一个队列，不能只给模型生成排队；否则下一条消息可能在互动回复写入记录前读取上下文。
+
+下面接入片段中的 `existingSendAndSave`、`existingGenerateDollReply`、`existingAppendAssistant` 都是原应用已有的处理函数，不是本项目另建的模型接口。在原页面加载 `/conversation-queue.js` 和 `/bridge-client.js`，或把这两个文件接入原应用构建：
+
+```javascript
+const queue = new DollConversationQueue(); // 应用只创建一个共享实例
+const chatId = currentConversation.id;     // 固定捕获原对话 ID，不读取切换后的窗口 ID
+const bridge = new DollBridgeClient({
+  csrf: pageCsrf,
+  targetId: `my-app-chat:${chatId}`,
+  runDelivery: (operation, {signal}) => queue.run(chatId, operation, {signal}),
+  onInteraction: (event, context) => existingGenerateDollReply(chatId, event, context),
+  onReply: async (answer, event, {signal}) => {
+    if (signal.aborted) return;
+    // 异步持久化应由原后端验证取消/归属并按 eventId 幂等提交。
+    await existingAppendAssistant(chatId, answer.text, event.eventId, {signal});
+  }
+});
+
+// 替换原“发送消息”入口的外层，内部仍使用原来的生成和保存流程。
+function sendOrdinaryMessage(text, signal) {
+  return queue.run(chatId, () => existingSendAndSave(chatId, text, {signal}), {signal});
+}
+// 用户开始互动：await bridge.start();
+// 用户结束/切换聊天：await bridge.stop();
+```
+
+`runDelivery` 将生成、ACK、写入原消息记录作为一个任务。等待原聊天生成期间继续续租；取消等待中的互动不会运行模型，也不会阻止后续普通消息。活动任务取消后仍需等原处理函数结束才能让下一任务进入，避免未完成生成与新请求并行。原处理函数必须处理传入的 `signal`，尤其异步写入期间需要在实际提交前检查，不能依靠前端撤回已提交内容。
+
+队列默认每个聊天最多 64 个活动/等待任务；不同聊天互不阻塞。队列只在当前进程/窗口内有效，多个窗口或后端工作进程仍要使用原后端共享的会话锁和持久去重。网络重试、页面重载及 ACK 后应用写入失败的恢复也由原后端处理；本地队列不保证分布式恰好一次。
+
 设置页和 `/bridge` 是设备管理与传输诊断。`/bridge` 的演示回执带有“非 AI”标记，不能当作原聊天响应验收。
 
 ## 验收
 
 正确验收要在用户原来的聊天内完成：普通消息可正常回复；普通触摸只归档；开始互动后的新按压得到同一 AI 的上下文相关反馈；重复事件不重复展示；结束或切换聊天后不再追加迟到消息。实际 AI 客户端和实体 FSR 接好后的效果仍待验证，测试替身只能证明传输和控制流程。
+
+当前本机工作任务已经通过 Wi-Fi 模拟按压→真实 MCP 工具读取→同对话 AI 反馈。普通 Chat 需要独立验证它实际能看到的工具，不能用这个结果代替。普通 Chat 可发送：
+
+> 我要测试共感娃娃。请先检查这个聊天是否实际有 ai_doll MCP 工具，并读取设备状态、通道和反馈偏好。有工具时开始 60 秒互动并等待我模拟按压，保存会话 ID 与游标，在这个聊天里回应，最后结束会话。没有工具时直接说明缺少哪一层连接，不要读取 GitHub 后假称已连接，也不要要求我为了测试换成 Work。

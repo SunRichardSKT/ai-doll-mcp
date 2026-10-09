@@ -49,7 +49,7 @@ async def main():
             for name in ['get_feedback_preferences','get_reply_bridge_status','doll_get_status']:
                 result=await session.call_tool(name);assert not result.isError
             checks.append('Official SDK legacy STDIO handshake, 45 tools and bridge preference/status calls')
-    report=dict(passed=True,at=dt.datetime.now(dt.timezone(dt.timedelta(hours=8))).isoformat(),bridge='2.12.0',firmware='2.7.0',checks=checks,
+    report=dict(passed=True,at=dt.datetime.now(dt.timezone(dt.timedelta(hours=8))).isoformat(),bridge='2.12.1',firmware='2.7.0',checks=checks,
                 not_tested=['Remote ChatGPT Work subscription','User model API call','Real motor or sensor input'])
     (ROOT/'build/device-lab/bridge-protocol-test.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
     print(json.dumps(report,ensure_ascii=False,indent=2))
