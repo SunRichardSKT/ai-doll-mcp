@@ -10,6 +10,7 @@ class DollBridgeClient {
     this.runDelivery=runDelivery;
     this.target=targetId||'app:'+crypto.randomUUID();this.completed=new Map();this.rendered=new Set();
     this.running=false;this.sub=null;this.session=null;
+    this.starting=null;this.stopping=null;this.startToken=null;this.cleanupRequired=false;
   }
   async api(path,data,signal) {
     const headers={'Content-Type':'application/json'};
@@ -20,16 +21,52 @@ class DollBridgeClient {
   }
   tool(name,args={}){return this.api('/companion/tool',{name,arguments:args})}
   async start() {
-    if(this.running)return;
-    const current=await this.tool('get_interaction_status');
-    if(current.active_session&&current.active_session.chat_id!==this.target)throw Error('另一个聊天正在互动，请先在原窗口结束互动。');
-    const status=await this.tool('doll_get_status');
-    this.session=await this.tool('start_interaction',{chat_id:this.target,idle_timeout_sec:300});
-    try{this.sub=await this.api('/bridge/subscriptions',{target_id:this.target,session_id:this.session.id,device_id:status.device_id,ttl_sec:300});}
-    catch(error){if(!current.active_session)await this.tool('end_interaction',{session_id:this.session.id});throw error}
-    this.controller=new AbortController();this.running=true;
-    this.onStatus('已订阅当前互动，等待新的按压。');
-    this.loop=this.listen(this.controller.signal);return this.sub;
+    if(this.stopping){await this.stopping;return this.start()}
+    if(this.starting)return this.starting;
+    if(this.running)return this.sub;
+    if(this.cleanupRequired){await this.stop();return this.start()}
+    const token=new AbortController();this.startToken=token;
+    const starting=this.beginStart(token);this.starting=starting;
+    try{return await starting}finally{if(this.starting===starting)this.starting=null}
+  }
+  checkStart(token) {
+    if(token.signal.aborted){const error=Error('Interaction start cancelled');error.name='AbortError';throw error}
+  }
+  async beginStart(token) {
+    let newlyCreated=false;
+    try{
+      const current=await this.tool('get_interaction_status');this.checkStart(token);
+      if(current.active_session&&current.active_session.chat_id!==this.target)throw Error('另一个聊天正在互动，请先在原窗口结束互动。');
+      const status=await this.tool('doll_get_status');this.checkStart(token);
+      // Let mutation responses settle so a cancelled start can clean up their real IDs.
+      this.session=await this.tool('start_interaction',{chat_id:this.target,idle_timeout_sec:300});
+      newlyCreated=!current.active_session||current.active_session.id!==this.session.id;this.checkStart(token);
+      this.sub=await this.api('/bridge/subscriptions',{target_id:this.target,session_id:this.session.id,device_id:status.device_id,ttl_sec:300});
+      this.checkStart(token);
+      this.controller=new AbortController();this.running=true;
+      this.onStatus('已订阅当前互动，等待新的按压。');
+      this.loop=this.listen(this.controller.signal);return this.sub;
+    }catch(error){
+      this.running=false;this.controller?.abort();
+      try{await this.cleanupRemote(token.signal.aborted||newlyCreated)}
+      catch(cleanupError){error.cleanupError=cleanupError}
+      if(!this.cleanupRequired&&!token.signal.aborted&&!newlyCreated)this.session=null;
+      throw error;
+    }
+  }
+  async cleanupRemote(endSession=true) {
+    const errors=[];
+    if(this.sub){
+      try{await this.api('/bridge/unsubscribe',{subscription_id:this.sub.id});this.sub=null}
+      catch(error){errors.push(error)}
+    }
+    // A failed unsubscribe must not prevent ending the owned interaction session.
+    if(endSession&&this.session){
+      try{await this.tool('end_interaction',{session_id:this.session.id});this.session=null}
+      catch(error){errors.push(error)}
+    }
+    this.cleanupRequired=errors.length>0;
+    if(errors.length)throw AggregateError(errors,'本机监听已停止，服务器清理尚未完成，请恢复连接后重试结束。');
   }
   async handle(message,signal) {
     if(signal.aborted)throw Error('Delivery stopped or lease expired');
@@ -69,6 +106,7 @@ class DollBridgeClient {
         if(Date.now()/1000>=this.sub.expires){this.onStatus('订阅已到期，停止主动反馈。');await this.stop();return}
         const headers={};if(this.token)headers.Authorization='Bearer '+this.token;if(this.csrf)headers['X-CSRF-Token']=this.csrf;
         const response=await fetch(this.base+'/bridge/events?subscription_id='+encodeURIComponent(this.sub.id),{headers,signal});
+        if(signal.aborted)return;
         if(response.status===404){this.running=false;this.controller.abort();this.onStatus('互动或订阅已结束，普通记录继续。');return}
         if(!response.ok)throw Error('订阅暂不可用');
         const reader=response.body.getReader(),decoder=new TextDecoder();let buffer='';
@@ -92,10 +130,16 @@ class DollBridgeClient {
     }
   }
   async stop() {
-    this.running=false;this.controller?.abort();
-    if(this.sub)await this.api('/bridge/unsubscribe',{subscription_id:this.sub.id});
-    if(this.session)await this.tool('end_interaction',{session_id:this.session.id});
-    this.sub=null;this.session=null;this.onStatus('已结束主动反馈，普通历史记录继续。');
+    this.running=false;this.controller?.abort();this.startToken?.abort();
+    if(this.stopping)return this.stopping;
+    const starting=this.starting;
+    const stopping=(async()=>{
+      if(starting)await starting.catch(()=>{});
+      await this.cleanupRemote();
+      this.onStatus('已结束主动反馈，普通历史记录继续。');
+    })();
+    this.stopping=stopping;
+    try{return await stopping}finally{if(this.stopping===stopping)this.stopping=null}
   }
 }
 globalThis.DollBridgeClient=DollBridgeClient;

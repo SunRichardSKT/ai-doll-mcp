@@ -74,7 +74,7 @@ async def main():
     assert preview['dry_run'] and configure('status') == before
     checks.append('Login-startup preview generated without enabling or altering registry settings')
     report = dict(passed=True, at=datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).isoformat(),
-                  bridge='2.12.1', firmware='2.7.0', checks=checks,
+                  bridge='2.12.2', firmware='2.7.0', checks=checks,
                   limits=['No real router DHCP lease change was forced; recovery used a deliberately stale client address.',
                           'Windows login startup was previewed only, not enabled or verified across a login.',
                           'Standalone ESP32, no sensors or motor attached; no physical calibration or battery test.'])
