@@ -31,6 +31,17 @@ class SecureDeploymentTests(unittest.TestCase):
     def tearDown(self):
         self.temp.cleanup()
 
+    def test_offline_device_still_allows_history_gateway_start(self):
+        import companion_mcp
+        with patch.object(companion_mcp, 'get_installation_status', return_value={'database_open': True, 'device': None, 'device_error': 'offline'}), \
+             patch.object(service, 'ensure_gateway', return_value=True), \
+             patch.object(service, 'verify_local') as verify, \
+             patch.object(service, 'status', return_value={'local_mcp_verified': True}):
+            result = service.start(self.folder, local_only=True)
+        self.assertFalse(result['device_online'])
+        self.assertTrue(result['history_available'])
+        self.assertFalse(verify.call_args_list[0].kwargs['calls'])
+
     def alias_record(self, **changes):
         value = dict(alias=self.cfg['alias'], tunnel_id=FIXTURE_ID,
                      config_path=str(self.folder / 'profiles' / (self.cfg['alias'] + '.yaml')))

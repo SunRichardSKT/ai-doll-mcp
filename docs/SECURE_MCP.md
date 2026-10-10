@@ -1,22 +1,19 @@
 # 在普通 Chat 中使用 AI Doll：Secure MCP Tunnel
 
-更新日期：2026-10-10。使用原 ChatGPT 的模型、人设和上下文；电脑通过 Wi-Fi 采集 ESP32，历史保存在电脑 SQLite。这里的窗口只用于配置服务，不是新的聊天窗口。
+更新日期：2026-10-11。使用原 ChatGPT 的模型、人设和上下文；电脑通过 Wi-Fi 采集 ESP32，历史保存在电脑 SQLite。这里的窗口只用于配置服务，不是新的聊天窗口。
 
 ## 第一次安装
 
-1. 安装 Windows 64 位 Python 3.12 或更新版本，勾选加入 PATH。解压代码包到固定目录，避免之后移动运行目录。
-2. 给 ESP32 供电并配网，电脑和设备连接可互通的局域网。在设备设置页启用 MCP，记下设备的局域网 IP 和配对令牌。设备操作见 [使用指南](USER_GUIDE.md)。
-3. 双击 `tools/Install_Secure_MCP.cmd`。安装器创建项目自己的 Python 环境、安装固定版本依赖、下载并校验官方 Windows 隧道客户端。新安装会询问设备 IP 和配对令牌；已有配对会保留，不需要一直插 USB。
-4. 在本机配置窗口点击“创建隧道”，在 [OpenAI Platform](https://platform.openai.com/settings/organization/tunnels) 创建自己的专用隧道，关联将使用的 ChatGPT 账号或工作区。填写 `tunnel_` 开头的编号。
-5. 点击“创建运行密钥”，在 [API keys](https://platform.openai.com/settings/organization/api-keys) 创建运行密钥，需要 Tunnels **Read / Use** 权限。创建隧道需要 **Read / Manage**。填写运行密钥，点击“保存并启动”。不使用管理密钥，也不另接聊天模型 API。
-6. 等待窗口显示本地工具发现通过和隧道成功连接。在 ChatGPT 的插件页面创建自定义 MCP，切换到“隧道”，填入同一个编号，选择无需身份验证，创建连接并添加到普通 Chat。
+打开根目录 **AI_Doll.cmd**，按管理中心“安装引导”完成环境准备、设备配对、Secure 隧道配置与原 Chat 验证。无需在终端输入 IP、设备令牌或运行密钥；旧 Install_Secure_MCP.cmd 也打开同一界面。详见 [GUI 操作指南](GUI_GUIDE.md)。
 
-Platform 密钥连接的是 OpenAI 隧道控制服务，不是娃娃账号。ChatGPT 登录不能代替运行密钥。每位下载者使用自己的隧道和运行配置。权限及关联要求见 [官方隧道说明](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels)，官方客户端见 [tunnel-client](https://github.com/openai/tunnel-client)。
+首次仍需在 [OpenAI Platform](https://platform.openai.com/settings/organization/tunnels) 创建专用隧道，关联目标 ChatGPT 账号或工作区；在 [API keys](https://platform.openai.com/settings/organization/api-keys) 创建 Tunnels Read / Use 运行密钥，填写管理中心。创建隧道需要 Read / Manage。下载校验官方客户端、启动采集与连接由程序完成。在 ChatGPT 创建自定义 MCP，选择“隧道”，填写相同 ID，选择无需身份验证并添加到原聊天。
+
+Platform 密钥用于官方隧道服务，不是娃娃账号或聊天模型 API。权限与关联见 [官方隧道说明](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels)。固件不需因电脑管理界面更新重刷。
 
 ## 日常操作
 
-- **启动**：设备供电并联网，双击 `tools/Start_Secure_MCP.cmd`。已有采集器和隧道实例会复用；不重复开启。关闭配置窗口后服务继续运行。
-- **查看状态**：打开配置窗口点击“检查状态”。同时检查进程、本地工具发现、官方客户端健康和最近成功的控制服务轮询。进程存在或 `/readyz` 成功不单独等于隧道已连接。
+- **启动**：设备供电并联网，双击根目录 `AI_Doll.cmd`（原 Start_Secure_MCP.cmd 仍兼容）。已有采集器和隧道实例会复用；不重复开启。关闭管理中心后服务继续运行。
+- **查看状态**：打开管理中心点击“检查状态”。同时检查进程、本地工具发现、官方客户端健康和最近成功的控制服务轮询。进程存在或 `/readyz` 成功不单独等于隧道已连接。
 - **停止远程连接**：点击“停止连接”，或双击 `tools/Stop_Secure_MCP.cmd`。只停止本项目 Secure 隧道与专用网关，电脑历史采集器继续运行。其他隧道不受影响。
 - **改工具范围**：选择范围并保存启动，然后在 ChatGPT 刷新连接的工具。`status` 为 2 个状态工具，`history` 为 9 个只读工具，`interaction` 为 13 个工具，增加开启、读取、查看和结束限时会话。
 - **重置本地连接地址**：点击“重置连接地址”。旧网关路径立即失效，官方隧道重新指向新路径；ChatGPT 使用的隧道 ID 保持不变。这里不是重置 Platform 的 API 密钥。

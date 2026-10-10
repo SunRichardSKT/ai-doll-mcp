@@ -53,6 +53,8 @@ async function discoverDevice(){if(discovering)return;discovering=true;const b=d
 refreshConnection();setInterval(refreshConnection,4000);
 </script></html>""")
 
+PAGE=PAGE.replace('</html>','<script src="/console-embed.js"></script></html>')
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self,*args):pass
     def send(self,status,data):
@@ -102,9 +104,9 @@ class Handler(BaseHTTPRequestHandler):
             values=parse_qs(parsed.query).get('subscription_id',[])
             if len(values)!=1:return self.send(400,{'error':'subscription_id required'})
             return self.event_stream(values[0])
-        if self.path in ('/bridge-client.js','/conversation-queue.js','/bridge'):
+        if parsed.path in ('/bridge-client.js','/conversation-queue.js','/console-embed.js','/bridge'):
             if not self.allowed():return self.send(403,{'error':'Forbidden'})
-            asset='conversation_queue.js' if self.path=='/conversation-queue.js' else 'bridge_client.js' if self.path.endswith('.js') else 'bridge_demo.html'
+            asset={'/conversation-queue.js':'conversation_queue.js','/console-embed.js':'console_embed.js','/bridge-client.js':'bridge_client.js','/bridge':'bridge_demo.html'}[parsed.path]
             raw=(ROOT/'tools'/asset).read_text(encoding='utf-8').replace('__CSRF__',CSRF).encode()
             self.send_response(200);self.send_header('Content-Type','application/javascript; charset=utf-8' if asset.endswith('.js') else 'text/html; charset=utf-8');self.send_header('Cache-Control','no-store');self.send_header('Content-Length',str(len(raw)));self.end_headers();self.wfile.write(raw);return
         if self.path=='/bridge/status':
@@ -117,9 +119,9 @@ class Handler(BaseHTTPRequestHandler):
         if not self.allowed():return self.send(403,{'error':'Forbidden host/origin'})
         if self.path=='/install-guide':
             raw=(Path(__file__).resolve().parents[1]/'docs/AI_INSTALL.md').read_bytes();self.send_response(200);self.send_header('Content-Type','text/plain; charset=utf-8');self.send_header('Content-Length',str(len(raw)));self.end_headers();self.wfile.write(raw);return
-        if self.path=='/companion':
+        if parsed.path=='/companion':
             raw=(Path(__file__).with_name('companion.html').read_text(encoding='utf-8').replace('__CSRF__',CSRF)).encode();self.send_response(200);self.send_header('Content-Type','text/html; charset=utf-8');self.send_header('Cache-Control','no-store');self.send_header('Content-Length',str(len(raw)));self.end_headers();self.wfile.write(raw);return
-        if self.path=='/':
+        if parsed.path=='/':
             raw=PAGE.encode();self.send_response(200);self.send_header('Content-Type','text/html; charset=utf-8');self.send_header('Content-Length',str(len(raw)));self.send_header('Cache-Control','no-store');self.end_headers();self.wfile.write(raw);return
         if self.path=='/connection':
             if not self.authorized():return self.send(403,{'error':'Forbidden'})
@@ -139,12 +141,17 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         bearer=hmac.compare_digest(self.headers.get('Authorization',''),'Bearer '+COMPANION_TOKEN) if COMPANION_TOKEN else False
         csrf=self.headers.get('X-CSRF-Token')==CSRF
-        if not self.allowed() or not (csrf or (bearer and (self.path=='/companion/tool' or self.path.startswith('/bridge/')))):return self.send(403,{'error':'Forbidden'})
+        if not self.allowed() or not (csrf or (bearer and (self.path in ('/companion/tool','/companion/shutdown') or self.path.startswith('/bridge/')))):return self.send(403,{'error':'Forbidden'})
         try:
             length=int(self.headers.get('Content-Length','0'))
             if length<0 or length>16384:return self.send(413,{'error':'Request too large'})
             d=json.loads(self.rfile.read(length))
             if not isinstance(d,dict):return self.send(400,{'error':'Request must be an object'})
+            if self.path=='/companion/shutdown':
+                COMPANION.stop.set()
+                self.send(200,{'stopping':True})
+                threading.Thread(target=self.server.shutdown,daemon=True).start()
+                return
             if self.path=='/bridge/mcp':
                 if not bearer:return self.send(401,{'error':'Bearer authentication required'})
                 return self.send(200,EVENTS_ADAPTER.rpc(d,protocol_header=self.headers.get('MCP-Protocol-Version')))

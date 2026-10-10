@@ -328,7 +328,9 @@ def start(folder=DEFAULT, local_only=False):
         except Exception:
             raise SecureError('请先运行 Install_Secure_MCP.cmd，启动并配对电脑采集服务。') from None
         reused = ensure_gateway(folder, cfg)
-        verify_local(folder, cfg, calls=True)
+        device_online = bool(collector.get('device')) and not collector.get('device_error')
+        # Offline devices must not prevent access to the computer's saved history.
+        verify_local(folder, cfg, calls=device_online)
         if not local_only:
             existing = check_native_owner(folder, cfg)
             current = native(folder, ['status', cfg['alias']]) if existing else {}
@@ -340,7 +342,7 @@ def start(folder=DEFAULT, local_only=False):
                                '--mcp-server-url', local_url(folder, cfg),
                                '--runtime-api-key', 'file:' + str(folder / 'runtime-api.key')], timeout=90)
     report = status(folder, verify=True)
-    report.update(gateway_reused=reused, local_only=local_only)
+    report.update(gateway_reused=reused, local_only=local_only, device_online=device_online, history_available=True)
     return report
 
 

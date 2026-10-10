@@ -1,7 +1,6 @@
 """Serial setup and real-device HTTP MCP smoke test. Secrets stay in ignored build/."""
 import argparse, base64, json, pathlib, sys, time, urllib.request, urllib.error, secrets
 ROOT=pathlib.Path(__file__).resolve().parents[1]
-sys.path.insert(0,str(ROOT/'.tools/python-packages'))
 import serial
 WORK=ROOT/'build/device-lab'
 CONFIG=WORK/'device-private.json'

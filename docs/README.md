@@ -2,6 +2,8 @@
 
 ## 使用与安装
 
+- **统一 GUI 入口**：[管理中心指南](GUI_GUIDE.md)。双击根目录 AI_Doll.cmd，首次安装与日常功能集中操作。
+
 - **ChatGPT 普通 Chat**：[Secure 安装与启动](SECURE_MCP.md)。首次少量配置，日常双击启动。
 - **设备与电脑**：[首次安装](AI_INSTALL.md)、[使用指南](USER_GUIDE.md)、[Wi-Fi 配对](WIFI_CONNECTION.md)、[重连与登录启动](WIRELESS_RECOVERY.md)。
 - **其他宿主**：[Operit、OpenClaw、自定义前端](HOST_INTEGRATIONS.md)、[接入原聊天](EXISTING_CHAT.md)、[主动事件接口](PROACTIVE_INTERACTION.md)。

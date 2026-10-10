@@ -42,7 +42,9 @@ bind('saveOutput',async()=>{await tool('set_output_enabled',{enabled:$('outputEn
 bind('vibrate',async()=>{await runVibration();$('feedback').textContent='震动命令已发送，请按读数来源区分模拟与实际输出。';await updateChannelReadings();await history()});bind('stopVibration',async()=>{await runVibration(0);await updateChannelReadings();await history()});$('channel').onchange=inputTypeChanged;
 bind('query',()=>history());bind('all',async()=>{$('date').value='';await history()});bind('more',()=>{$('live').checked=false;return history(true)});
 $('date').value=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
-(async()=>{try{await state();await storageStatus();await loadParts();const v=await updateChannelReadings();$('physical').checked=v.physical_inputs_enabled;$('outputEnabled').checked=v.physical_outputs_enabled;$('persona').value=(await tool('get_persona')).persona;await history()}catch(e){$('error').textContent=e.message}setInterval(async()=>{try{await state();await updateChannelReadings();if($('live').checked&&!loading){await history();await storageStatus();}}catch(e){$('health').textContent='本地服务暂不可用，请确认服务已启动。'}},3000)})();
+(async()=>{await Promise.allSettled([state(),storageStatus(),history(),(async()=>{$('persona').value=(await tool('get_persona')).persona})(),(async()=>{try{await loadParts();const v=await updateChannelReadings();$('physical').checked=v.physical_inputs_enabled;$('outputEnabled').checked=v.physical_outputs_enabled}catch(e){$('error').textContent='设备暂不可用，历史与人设仍可使用。'}})()]);setInterval(async()=>{await Promise.allSettled([state(),updateChannelReadings(),$('live').checked&&!loading?history():Promise.resolve()]);},3000)})();
 </script></html>
 
 <script src="/history-manager.js"></script>
+
+<script src="/console-embed.js"></script>
