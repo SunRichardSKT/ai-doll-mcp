@@ -111,6 +111,24 @@ def worker(action, data):
     """Runs in the installed environment; credentials arrive on stdin, never argv."""
     if action == 'pair':
         return pair_device(data)
+    if action == 'usb-pair-wifi':
+        from device_lab import SerialLink
+        port = data.get('port','COM3').strip()
+        if not port.upper().startswith('COM') or not port[3:].isdigit():
+            raise ValueError('请输入实际串口，例如 COM3。')
+        saved = read_json(WORK / 'connection-private.json', {})
+        if saved.get('transport') == 'usb':
+            collector_stop()
+        link = SerialLink(port)
+        try:
+            state = link.exchange({'cmd':'status'})
+            setup = link.exchange({'cmd':'setup'})
+        finally:
+            link.close()
+        if not state.get('wifi_connected') or not state.get('ip'):
+            raise ValueError('设备还未联网，请先给设备配网，再点击一键配对。')
+        return pair_device(dict(host=state['ip'],token=setup.get('mcp_token',''),
+            admin_user=setup.get('admin_user','admin'),admin_password=setup.get('ap_password','')))
     if action == 'usb':
         from device_transport import save_connection
         port = data.get('port', '').strip()
@@ -274,7 +292,7 @@ class Panel:
         return result
 
     def submit(self, action, data):
-        allowed = {'install', 'pair', 'usb', 'discover', 'collector-start', 'collector-stop',
+        allowed = {'install', 'pair', 'usb', 'usb-pair-wifi', 'discover', 'collector-start', 'collector-stop',
             'secure-save', 'secure-start', 'secure-stop', 'secure-status', 'secure-reset', 'collector-check',
             'client-config', 'verify-chat', 'startup', 'tunnel-install', 'daily-start', 'ota'}
         if action not in allowed:
@@ -315,7 +333,7 @@ class Panel:
             secure_config=dict(configured=bool(cfg), tunnel_id=cfg.get('tunnel_id', ''),
                 profile=cfg.get('profile', 'interaction'), key_saved=bool(cfg.get('runtime_api_key'))),
             secure=self.secure, job=task, messages=messages,
-            project=str(ROOT), version='2.16.0')
+            project=str(ROOT), version='2.16.1')
 
 
 def make_handler(panel):
@@ -404,6 +422,8 @@ def main():
         with ServiceLease(WORK / 'control-panel.lock'):
             panel = Panel()
             server = ExclusiveLoopbackServer(('127.0.0.1', PORT), make_handler(panel))
+            if panel.ready and panel.python == ROOT/'python/python.exe' and not (WORK/'mcp-client-config.json').is_file():
+                panel.install()
             if args.autostart and panel.ready and read_json(WORK / 'connection-private.json'):
                 panel.submit('daily-start', {})
             if not args.no_browser:

@@ -26,7 +26,7 @@
     el('globalNotice').hidden = !message;
   }
   function setBusy(value) {
-    for (const button of document.querySelectorAll('[data-action], #pairButton, #connectUsb, #saveSecure, #saveStartSecure, #verifyChat, #saveStartup, #checkStartup, #upgradeSelected, #upgradeBundled')) button.disabled = value;
+    for (const button of document.querySelectorAll('[data-action], #pairButton, #connectUsb, #autoPairUsb, #saveSecure, #saveStartSecure, #verifyChat, #saveStartup, #checkStartup, #upgradeSelected, #upgradeBundled')) button.disabled = value;
   }
   async function copy(text) {
     if (!text) throw Error('请先完成配置。');
@@ -227,6 +227,7 @@
   });
   bind('pairButton', () => run('pair', {host: el('deviceHost').value, token: el('deviceToken').value, admin_user: el('deviceAdminUser').value, admin_password: el('deviceAdminPassword').value}));
   bind('connectUsb', () => run('usb', {port: el('serialPort').value}));
+  bind('autoPairUsb', () => run('usb-pair-wifi', {port: el('serialPort').value}));
   bind('usbWifi', () => {
     if (state.collector.transport !== 'usb') throw Error('请先切换为 USB 连接。Wi-Fi 已连接时可直接打开设备设置页。');
     const slot = document.createElement('div');
@@ -285,6 +286,6 @@
     document.querySelector('[data-step-panel="3"] [data-action="secure-status"]').hidden = !secure;
     el('verificationPrompt').value = secure ? '请实际调用 get_installation_status 和 doll_get_status，返回设备状态及两个结果中的 verification.call_id。没有工具时如实说明，不用阅读文档代替调用。' : '请实际调用 ai_doll 的 get_installation_status 和 doll_get_status，返回采集服务、设备连接与模拟模式状态。没有工具时如实说明，不用阅读文档代替调用。';
   };
-  refresh().then(() => { if (location.hash) navigate(location.hash.slice(1)); }).catch(error => notice(error.message, true));
+  refresh().then(() => { if (location.hash) navigate(location.hash.slice(1)); else if (!state.paired) { navigate('setup'); showStep(state.environment_ready ? 1 : 0); } }).catch(error => notice(error.message, true));
   setInterval(() => { if (!busy) refresh().catch(() => notice('管理服务暂不可用，请重新打开 AI_Doll.cmd。', true)); }, 4000);
 })();

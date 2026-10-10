@@ -6,8 +6,14 @@ async function api(path,data){
 }
 function notice(text,error=false){el('notice').textContent=text;el('notice').className=error?'danger':''}
 function connected(on){el('connectPanel').hidden=on;el('workspace').hidden=!on}
+async function serverSettings(){
+  const info=await api('/api/server');el('serverURL').value=info.server_url||location.origin;
+  el('quickSetup').hidden=!info.local_setup;
+  el('serverAddress').textContent=info.server_url||location.origin;
+}
 async function devices(){
   const result=await api('/api/devices');connected(true);el('devices').replaceChildren();
+  await serverSettings();
   for(const device of result.devices){
     const row=document.createElement('div');row.className='device';
     const info=document.createElement('div'),name=document.createElement('strong'),state=document.createElement('div'),link=document.createElement('a');
@@ -23,4 +29,19 @@ el('pairForm').addEventListener('submit',async event=>{event.preventDefault();co
 el('copyPair').onclick=async()=>{try{await navigator.clipboard.writeText(el('pairConfig').textContent);notice('连接配置已复制。')}catch{notice('请手动选中并复制连接配置。')}};
 el('refreshDevices').onclick=()=>devices().catch(error=>notice(error.message,true));
 el('disconnect').onclick=async()=>{try{await api('/api/disconnect',{});connected(false);el('pairResult').hidden=true;el('pairConfig').textContent='';notice('已断开。')}catch(error){notice(error.message,true)}};
-devices().catch(()=>connected(false));
+el('quickPairForm').addEventListener('submit',async event=>{
+  event.preventDefault();const button=event.target.querySelector('button');button.disabled=true;
+  notice('正在读取设备并保存连接设置…');
+  try{
+    await api('/api/local-pair',{host:el('deviceIP').value,label:el('quickDeviceLabel').value,
+      username:el('deviceUsername').value,password:el('devicePassword').value});
+    el('devicePassword').value='';await devices();notice('设备已确认保存。收到首次上传后，下方会显示在线。');
+  }catch(error){notice(error.message,true)}finally{button.disabled=false}
+});
+el('saveServerURL').onclick=async()=>{try{await api('/api/server/configure',{server_url:el('serverURL').value});await serverSettings();notice('地址已保存。已配对设备若需要切换地址，再点一次“连接设备”即可。')}catch(error){notice(error.message,true)}};
+el('stopServer').onclick=async()=>{try{await api('/api/server/stop',{});notice('服务端已停止。下次双击 AI_Doll_Server.cmd 即可重新启动。')}catch(error){notice(error.message,true)}};
+(async()=>{
+  const fragment=new URLSearchParams(location.hash.slice(1)),token=fragment.get('connect');
+  if(token){history.replaceState(null,'',location.pathname+location.search);try{await api('/api/connect',{token})}catch(error){notice(error.message,true)}}
+  try{await devices()}catch{connected(false)}
+})();

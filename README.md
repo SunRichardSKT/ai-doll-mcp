@@ -4,11 +4,15 @@
 
 用户继续在原来的 AI 对话中聊天，娃娃增加身体互动输入，沿用当前模型、人设和上下文。使用流程见 [接入现有对话](docs/EXISTING_CHAT.md)。
 
-当前交付：**固件 2.8.1 / 电脑 Bridge 2.16.0**。电脑 MCP 提供 45 个工具，设备 MCP 提供 26 个工具。硬件为 ESP32-C3 SuperMini、74HC4051 和八路外置 FSR402；保持现有电阻、电容和手焊封装。
+当前交付：**固件 2.8.1 / 电脑 Bridge 2.16.1**。电脑 MCP 提供 45 个工具，设备 MCP 提供 26 个工具。硬件为 ESP32-C3 SuperMini、74HC4051 和八路外置 FSR402；保持现有电阻、电容和手焊封装。
 
 ## 从这里开始
 
-**双击根目录 [AI_Doll.cmd](AI_Doll.cmd)**，打开管理中心。首次在界面准备环境、配对设备、配置 AI；之后双击自动启动已有服务。通道、人设、历史、模拟、MCP 和维护集中管理。详细操作见 [GUI 使用指南](docs/GUI_GUIDE.md)。Windows 完整软件包根目录 `python/` 已内置 Python 与 MCP 依赖，无需另装 Python。请下载并完整解压 [交付软件包](delivery/README.md)。设备联网后默认免登录，可按需开启设置页保护，见 [运行环境与登录设置](docs/RUNTIME_AND_LOGIN.md)。
+**双击根目录 [AI_Doll.cmd](AI_Doll.cmd)**，打开管理中心。完整包首次自动准备环境与 MCP 配置，可用 USB 一次识别并改用 Wi-Fi，再配置 AI；之后双击自动启动已有服务。通道、人设、历史、模拟、MCP 和维护集中管理。详细操作见 [GUI 使用指南](docs/GUI_GUIDE.md)。Windows 完整软件包根目录 `python/` 已内置 Python 与 MCP 依赖，无需另装 Python。请下载并完整解压 [交付软件包](delivery/README.md)。设备联网后默认免登录，可按需开启设置页保护，见 [运行环境与登录设置](docs/RUNTIME_AND_LOGIN.md)。
+
+**远程 Linux 部署**：运行根目录 [Install_Server.sh](Install_Server.sh)，填写自己的域名，自动准备服务与 HTTPS。提供独立小型 Linux 服务包，不用上传 Windows Python。见 [远程快捷部署](docs/REMOTE_SERVER_SETUP.md)。
+
+设备直接上传到服务端时，双击 **[AI_Doll_Server.cmd](AI_Doll_Server.cmd)**，在自动打开的页面填写设备 IP 并点击“连接设备”。本机配置自动生成，不需复制令牌或新建娃娃账号。原聊天的普通 Chat MCP 仍使用上面的管理中心入口。见 [简化安装指南](docs/SERVER_QUICKSTART.md)。
 
 
 1. [首次安装与 AI 接入](docs/AI_INSTALL.md)：安装电脑服务、配对设备、生成 MCP 配置。

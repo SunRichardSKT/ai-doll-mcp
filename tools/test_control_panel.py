@@ -39,6 +39,44 @@ class ControlPanelTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, '准备运行环境'):
             self.panel.perform('pair', {})
 
+    def test_usb_shortcut_reads_identity_then_pairs_over_wifi(self):
+        from device_lab import SerialLink
+        with patch.object(SerialLink, '__init__', return_value=None), \
+             patch.object(SerialLink, 'exchange', side_effect=[
+                 {'wifi_connected': True, 'ip': '192.168.1.50'},
+                 {'mcp_token': 'fixture-token', 'admin_user': 'owner'}]), \
+             patch.object(SerialLink, 'close') as close, \
+             patch.object(ui, 'pair_device', return_value={'paired': True}) as pair:
+            self.assertTrue(ui.worker('usb-pair-wifi', {'port': 'COM3'})['paired'])
+        close.assert_called_once()
+        self.assertEqual(pair.call_args.args[0]['host'], '192.168.1.50')
+        self.assertEqual(pair.call_args.args[0]['token'], 'fixture-token')
+
+    def test_usb_shortcut_offline_does_not_overwrite_pairing(self):
+        from device_lab import SerialLink
+        with patch.object(SerialLink, '__init__', return_value=None), \
+             patch.object(SerialLink, 'exchange', side_effect=[{'wifi_connected': False}, {}]), \
+             patch.object(SerialLink, 'close') as close, patch.object(ui, 'pair_device') as pair:
+            with self.assertRaisesRegex(ValueError, '配网'):
+                ui.worker('usb-pair-wifi', {'port': 'COM3'})
+        close.assert_called_once(); pair.assert_not_called()
+
+    def test_usb_shortcut_is_reachable_from_the_real_panel_endpoint(self):
+        self.panel.ready=True
+        server=ui.ExclusiveLoopbackServer(('127.0.0.1',0),ui.make_handler(self.panel))
+        thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
+        try:
+            with patch.object(self.panel,'run_worker',return_value={'paired':True}) as run:
+                request=urllib.request.Request(f'http://127.0.0.1:{server.server_port}/api/action',
+                    data=json.dumps({'action':'usb-pair-wifi','data':{'port':'COM3'}}).encode(),
+                    headers={'Content-Type':'application/json','X-CSRF-Token':self.panel.csrf})
+                with ui.OPENER.open(request,timeout=2) as response:self.assertEqual(response.status,202)
+                deadline=time.monotonic()+2
+                while self.panel.job['state']=='running' and time.monotonic()<deadline:time.sleep(.01)
+                self.assertEqual(self.panel.job['state'],'done')
+                run.assert_called_once_with('usb-pair-wifi',{'port':'COM3'})
+        finally:server.shutdown();server.server_close();thread.join(2)
+
     def test_state_omits_all_saved_credentials(self):
         self.put('device-private.json', dict(mcp_token='DEVICE_TEST_SECRET', device_id='AI-Doll-aaaaaa', ap_password='ADMIN_TEST_SECRET'))
         self.put('secure-mcp/secure-private.json', dict(runtime_api_key='RUNTIME_TEST_SECRET', tunnel_id='tunnel_'+'a'*32, profile='history'))

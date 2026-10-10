@@ -200,10 +200,11 @@ class Device:
 
 
 class DirectServer:
-    def __init__(self, folder, public_url='', origins=()):
+    def __init__(self, folder, public_url='', origins=(), local_setup=False):
         self.folder = Path(folder)
         self.folder.mkdir(parents=True, exist_ok=True)
         self.public_url = public_url.rstrip('/')
+        self.local_setup = local_setup
         self.origins = set(origins)
         if public_url:
             parsed = urlsplit(public_url)
@@ -387,6 +388,9 @@ def handler_for(app):
             if not self.origin_ok() or not self.admin():
                 return self.send(401, {'error': 'Server connection token required'})
             try:
+                if parsed.path == '/api/server':
+                    return self.send(200, {'server_url': app.public_url, 'local_setup': app.local_setup,
+                        'installation_id': digest('installation:' + app.admin_token)})
                 if parsed.path == '/api/devices':
                     return self.send(200, {'devices': app.list_devices()})
                 device, path = self.device_path()
@@ -429,13 +433,43 @@ def handler_for(app):
                         return self.send(401, {'error': 'Connection token incorrect'})
                     raw = b'{"connected":true}'
                     self.begin_response(200, length=len(raw))
-                    secure = '; Secure' if app.public_url.startswith('https://') else ''
+                    local_console = app.local_setup and self.client_address[0]=='127.0.0.1' and self.headers.get('Host') in (
+                        f'127.0.0.1:{self.server.server_port}',f'localhost:{self.server.server_port}')
+                    secure = '; Secure' if app.public_url.startswith('https://') and not local_console else ''
                     self.send_header('Set-Cookie', 'doll_admin='+app.admin_token+'; HttpOnly; SameSite=Strict; Path=/'+secure)
                     self.end_headers(); self.wfile.write(raw)
                     return
                 if not self.admin():
                     return self.send(401, {'error': 'Server connection token required'})
                 data = self.body()
+                if path in ('/api/local-pair','/api/server/configure','/api/server/stop'):
+                    local = self.client_address[0] == '127.0.0.1' and self.headers.get('Host') in (
+                        f'127.0.0.1:{self.server.server_port}', f'localhost:{self.server.server_port}')
+                    if not app.local_setup or not local:
+                        return self.send(403, {'error': '此操作仅在本机服务端设置页开放。'})
+                    if path == '/api/local-pair':
+                        from direct_setup import configure_device
+                        return self.send(200, configure_device(app, data))
+                    if path == '/api/server/stop':
+                        self.send(200, {'stopping': True})
+                        app.stop.set()
+                        threading.Thread(target=self.server.shutdown, daemon=True).start()
+                        return
+                    if not isinstance(data.get('server_url'),str):raise ValueError('请填写服务器地址。')
+                    url = data['server_url'].strip().rstrip('/')
+                    parsed = urlsplit(url)
+                    if parsed.scheme not in ('http','https') or not parsed.hostname or parsed.username or parsed.password or parsed.path or parsed.query or parsed.fragment:
+                        raise ValueError('请输入完整的服务器地址，不要带路径或账号密码。')
+                    if parsed.port is not None and not 1<=parsed.port<=65535:raise ValueError('端口必须为 1～65535。')
+                    if parsed.scheme == 'http':
+                        import ipaddress
+                        if not ipaddress.ip_address(parsed.hostname).is_private:
+                            raise ValueError('HTTP 仅用于局域网 IP；公网地址必须使用 HTTPS。')
+                    write_json(app.folder/'setup-private.json',dict(server_url=url,port=self.server.server_port,
+                        manual_address=data.get('manual',True) is not False))
+                    with app.lock:
+                        app.public_url=url;app.origins.add(url)
+                    return self.send(200, {'server_url': url})
                 if path == '/api/disconnect':
                     self.begin_response(200, length=2)
                     self.send_header('Set-Cookie', 'doll_admin=; Max-Age=0; HttpOnly; SameSite=Strict; Path=/')
@@ -496,8 +530,9 @@ def main():
     parser.add_argument('--public-url', default='')
     parser.add_argument('--origin', action='append', default=[])
     parser.add_argument('--show-token', action='store_true', help='Display owner connection token locally')
+    parser.add_argument('--local-setup', action='store_true', help='Enable owner operations from the loopback setup page')
     args = parser.parse_args()
-    app = DirectServer(args.data_dir, args.public_url, args.origin)
+    app = DirectServer(args.data_dir, args.public_url, args.origin, args.local_setup)
     if args.show_token:
         print(app.admin_token, flush=True)
         app.close()

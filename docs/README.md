@@ -2,6 +2,10 @@
 
 ## 使用与安装
 
+- **远程 Linux 服务器**：[快捷部署](REMOTE_SERVER_SETUP.md)。填写域名，自动准备服务与 HTTPS；可使用小型 Linux 包。
+
+- **先选入口**：[双击启动与快捷配对](SERVER_QUICKSTART.md)。Windows 完整包包含 Python，环境与本机配置自动准备。
+
 - **设备直连服务器**：[部署与手机配置](DIRECT_SERVER.md)、[直传与原前端回调验收](DIRECT_SERVER_ACCEPTANCE.md)。无需电脑采集中转。
 
 - **统一 GUI 入口**：[管理中心指南](GUI_GUIDE.md)。双击根目录 AI_Doll.cmd，首次安装与日常功能集中操作。

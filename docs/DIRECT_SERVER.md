@@ -1,6 +1,6 @@
 # 设备直连服务器与原聊天主动反馈
 
-设备固件 2.8.0 增加第二种数据通路。现有电脑采集 / MCP 接入保留。
+设备固件 2.8.1 支持第二种数据通路。现有电脑采集 / MCP 接入保留。
 
 ```text
 手机 → ESP32 设置页：配 Wi-Fi、粘贴服务器配置
@@ -13,7 +13,9 @@ ESP32 → HTTPS 服务器：事件页 + 通道/读数快照 → SQLite 持久归
 
 ## 部署到自己的服务器
 
-暂时没有服务器时，可先在本地运行同一接收服务：安装 `requirements-server.txt`，使用 `python tools/direct_server.py --listen 0.0.0.0 --public-url http://192.168.1.20:8781`，将示例 IP 换为电脑真实局域网 IP。手机访问这个地址完成设备绑定，在设备页勾选“本地测试”。此时电脑充当接收服务器；无需启动原电脑采集器。获取管理连接令牌可另运行 `python tools/direct_server.py --show-token`。手机和开发板必须能访问该局域网地址。
+推荐使用根目录 **Install_Server.sh**，填写真实域名，由入口自动准备 Docker、配置、持久卷、服务与 HTTPS，并在验证通过后提供管理链接。可以只下载独立 Linux 服务包；步骤见 [远程快捷部署](REMOTE_SERVER_SETUP.md)。以下手工命令保留给已有反向代理或定制部署。
+
+暂时没有服务器时，Windows 用户完整解压软件包，双击根目录 **AI_Doll_Server.cmd**。它使用内置 Python，自动生成本机配置并打开管理页；填写已配网设备的局域网 IP，点击“连接设备”，服务会自动写入设备直连设置。无需运行安装命令或手动复制管理 / 设备令牌。步骤及两种入口的选择见 [简化安装指南](SERVER_QUICKSTART.md)。此时电脑充当接收服务器，需保持运行，设备与电脑必须在可互通的局域网。
 
 Python 服务只依赖标准库和时区数据。已安装 Python 3.12 时可运行 `pip install -r requirements-server.txt`，再启动 `python tools/direct_server.py --data-dir /var/lib/ai-doll --public-url https://doll.example.com`。默认只监听回环 8781，由已有 HTTPS 反向代理转发整个独立设备服务。反向代理需要关闭 SSE 缓冲，读取超时大于 25 秒；设备网页和电脑管理程序没有因此公开。
 

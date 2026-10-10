@@ -1,4 +1,4 @@
-# Prefer the interpreter included in the root of the Windows software package.
+﻿# Prefer the interpreter included in the root of the Windows software package.
 function Get-DollPython {
     param([string]$Root)
     foreach($relative in @('python\python.exe','.venv\Scripts\python.exe')){

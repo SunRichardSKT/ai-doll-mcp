@@ -5,6 +5,7 @@ import json
 from pathlib import Path, PurePosixPath
 import re
 import zipfile
+from delivery_archive import open_delivery
 
 ROOT=Path(__file__).resolve().parents[1]
 SECRET_NAMES=re.compile(r'password|token|secret|api.?key|^key$',re.I)
@@ -30,7 +31,7 @@ def local_credentials():
 
 def audit(path,secrets=None):
     secrets=local_credentials() if secrets is None else secrets
-    with zipfile.ZipFile(path) as archive:
+    with open_delivery(path) as archive:
         if archive.testzip():raise ValueError('Archive integrity failure')
         manifest=json.loads(archive.read('MANIFEST.json'))
         files=manifest['files']
@@ -51,7 +52,7 @@ def audit(path,secrets=None):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('package',type=Path,nargs='?',default=ROOT/'delivery/AI_Doll_Code_v2.16.0.zip')
+    parser.add_argument('package',type=Path,nargs='?',default=ROOT/'delivery/AI_Doll_Code_v2.16.1.zip')
     args=parser.parse_args()
     print(json.dumps(audit(args.package),indent=2))
 
