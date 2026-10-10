@@ -6,6 +6,7 @@ import zipfile
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 TOOLS = (
+    'direct_server.py', 'direct_server.html', 'direct_server.js', 'test_direct_server.py', 'test_direct_frontend.cjs', 'test_uplink_portal.cjs',
     'host_event_forwarder.py', 'test_host_event_forwarder.py', 'test_operit_package.cjs',
     'control_panel.py', 'control_panel.html', 'control_panel.js', 'console_embed.js', 'open_control_panel.ps1', 'test_control_panel.py', 'test_control_panel_ui.cjs',
     'install_tunnel_client.py', 'secure_mcp.py', 'secure_mcp.ps1', 'test_secure_mcp.py', 'verify_chat_calls.py',
@@ -42,8 +43,8 @@ TOOLS = (
     'run_background.py', 'configure_startup.py', 'test_device_discovery.py',
     'test_service_lifecycle.py', 'test_wireless_recovery.py', 'test_wireless_recovery_ui.cjs',
 )
-DOCS = ('GUI_GUIDE.md', 'GUI_ACCEPTANCE_2_14.md', 'EXISTING_CHAT.md', 'MCP_TOOLS.md', 'DIGITAL_TEMPERATURE.md', 'OTA_UPDATE.md', 'HISTORY_MANAGEMENT.md', 'OFFLINE_RECORDS.md', 'AI_INSTALL.md', 'USER_GUIDE.md', 'DEVICE_LAB_TEST_REPORT.md', 'SENSOR_CHANNELS.md', 'PROACTIVE_INTERACTION.md', 'CHAT_MCP.md', 'WIFI_CONNECTION.md', 'CALIBRATION_AND_DAILY_MODE.md', 'DEVELOPMENT_PLAN.md', 'INTERACTION_OBSERVATIONS.md', 'WIRELESS_RECOVERY.md')
-SOURCE = ('digital_temperature.h', 'ota_update.h', 'ota_manager_asset.h', 'event_storage.h', 'event_integrity.h', 'lab_main.cpp', 'device_page.h', 'touch_events.h', 'network_state.h',
+DOCS = ('DIRECT_SERVER.md', 'DIRECT_SERVER_ACCEPTANCE.md', 'GUI_GUIDE.md', 'GUI_ACCEPTANCE_2_14.md', 'EXISTING_CHAT.md', 'MCP_TOOLS.md', 'DIGITAL_TEMPERATURE.md', 'OTA_UPDATE.md', 'HISTORY_MANAGEMENT.md', 'OFFLINE_RECORDS.md', 'AI_INSTALL.md', 'USER_GUIDE.md', 'DEVICE_LAB_TEST_REPORT.md', 'SENSOR_CHANNELS.md', 'PROACTIVE_INTERACTION.md', 'CHAT_MCP.md', 'WIFI_CONNECTION.md', 'CALIBRATION_AND_DAILY_MODE.md', 'DEVELOPMENT_PLAN.md', 'INTERACTION_OBSERVATIONS.md', 'WIRELESS_RECOVERY.md')
+SOURCE = ('remote_uplink.h', 'digital_temperature.h', 'ota_update.h', 'ota_manager_asset.h', 'event_storage.h', 'event_integrity.h', 'lab_main.cpp', 'device_page.h', 'touch_events.h', 'network_state.h',
           'channel_devices.h', 'channel_rpc.h', 'channel_editor_asset.h', 'pressure_calibration.h', 'device_discovery.h')
 PREBUILT = ('firmware.bin', 'bootloader.bin', 'partitions.bin', 'boot_app0.bin', 'FLASH_MANIFEST.json', 'README.md')
 PCB_FILES = (
@@ -56,7 +57,7 @@ PROOF = (
     'standardize-pcb-20261003-before.json', 'standardize-pcb-drc-final.json',
     'standardize-sch-drc-final.json', 'standardize-sch-check-final.json',
 )
-CODE_README = '# AI 共感娃娃代码交付\n\n固件 2.7.0 / 电脑 Bridge 2.14.0。ESP32-C3 SuperMini + 74HC4051，保留八路模拟接口和最多 16 个逻辑通道。电脑 MCP 45 个工具，设备 MCP 26 个工具；HTTP status/history/interaction 分别为 2/9/13 个工具。\n\n先读 [安装指南](docs/AI_INSTALL.md)，完成配网、电脑服务、无线配对和客户端 MCP 导入。日常操作见 [使用指南](docs/USER_GUIDE.md)，FSR402 校准和手动阈值见 [校准指南](docs/CALIBRATION_AND_DAILY_MODE.md)。\n\n- [文档导航](docs/README.md)、[接入现有对话](docs/EXISTING_CHAT.md)\n- [Operit / OpenClaw / 自定义前端](docs/HOST_INTEGRATIONS.md)：兼容评估、包模板与事件转发脚本（未做真实平台验收）\n- [完整 MCP 工具目录](docs/MCP_TOOLS.md)\n- [通道与接线](docs/SENSOR_CHANNELS.md)、[DS18B20 数字温度](docs/DIGITAL_TEMPERATURE.md)\n- [主动互动与 API 接入](docs/PROACTIVE_INTERACTION.md)、[聊天窗口](docs/CHAT_MCP.md)、[Secure 隧道安装与启动](docs/SECURE_MCP.md)、[Sakura 私密地址操作](docs/REMOTE_MCP.md)、[MCP 分阶段验收](docs/MCP_ACCEPTANCE_2_13.md)\n- [无线采集](docs/WIFI_CONNECTION.md)、[地址恢复与登录启动](docs/WIRELESS_RECOVERY.md)\n- [反馈偏好与自检](docs/INTERACTION_OBSERVATIONS.md)\n- [离线缓存](docs/OFFLINE_RECORDS.md)、[历史管理](docs/HISTORY_MANAGEMENT.md)\n- [无线升级](docs/OTA_UPDATE.md)、[烧录镜像](firmware/prebuilt/README.md)\n- [实际验收范围](docs/DEVICE_LAB_TEST_REPORT.md)、[剩余工作](docs/DEVELOPMENT_PLAN.md)\n\n普通用户双击根目录 AI_Doll.cmd，从 GUI 管理中心完成环境准备、配对、AI 接入与日常设置。旧 Secure 入口仍兼容。具体操作见 docs/GUI_GUIDE.md；命令行入口保留给开发与自动化。Secure 另需 Platform 隧道与运行密钥，已通过普通 Chat 状态、历史及 60 秒模拟反馈。Sakura 入口保留，但普通 Chat 添加仍未通过。首次安装需要 Python 3.12 和依赖，详见安装指南；无需交付者本机依赖。源码在 firmware/src，编译目标为 supermini-lab。\n\n未接传感器保持模拟/手动模式。真实震动需要板外驱动，不能直接接 GPIO 或 4051。普通触摸只记录，用户开始互动后才投递新事件；自建应用接入用户选择的模型回调，官方客户端的后台唤醒取决于其实际事件能力。\n\n原创代码和文档按 MIT License 开源，见 LICENSE；第三方依赖和资料保留各自许可。此包不含 Wi-Fi、令牌、个人日志或历史版本。运行数据在本机 build/device-lab 创建。MANIFEST.json 包含每个文件的 SHA-256。真实传感器、用户模型和写 Flash 时物理断电仍需验收。\n'
+CODE_README = '# AI 共感娃娃代码交付\n\n固件 2.8.0 / 电脑 Bridge 2.15.0。ESP32-C3 SuperMini + 74HC4051，保留八路模拟接口和最多 16 个逻辑通道。电脑 MCP 45 个工具，设备 MCP 26 个工具；HTTP status/history/interaction 分别为 2/9/13 个工具。\n\n设备直连自己的服务器且不使用电脑采集时，先读 [直连指南](docs/DIRECT_SERVER.md)；验收见 [直连报告](docs/DIRECT_SERVER_ACCEPTANCE.md)。\n\n使用电脑 / MCP 时先读 [安装指南](docs/AI_INSTALL.md)，完成配网、电脑服务、无线配对和客户端 MCP 导入。日常操作见 [使用指南](docs/USER_GUIDE.md)，FSR402 校准和手动阈值见 [校准指南](docs/CALIBRATION_AND_DAILY_MODE.md)。\n\n- [文档导航](docs/README.md)、[接入现有对话](docs/EXISTING_CHAT.md)\n- [Operit / OpenClaw / 自定义前端](docs/HOST_INTEGRATIONS.md)：兼容评估、包模板与事件转发脚本（未做真实平台验收）\n- [完整 MCP 工具目录](docs/MCP_TOOLS.md)\n- [通道与接线](docs/SENSOR_CHANNELS.md)、[DS18B20 数字温度](docs/DIGITAL_TEMPERATURE.md)\n- [主动互动与 API 接入](docs/PROACTIVE_INTERACTION.md)、[聊天窗口](docs/CHAT_MCP.md)、[Secure 隧道安装与启动](docs/SECURE_MCP.md)、[Sakura 私密地址操作](docs/REMOTE_MCP.md)、[MCP 分阶段验收](docs/MCP_ACCEPTANCE_2_13.md)\n- [无线采集](docs/WIFI_CONNECTION.md)、[地址恢复与登录启动](docs/WIRELESS_RECOVERY.md)\n- [反馈偏好与自检](docs/INTERACTION_OBSERVATIONS.md)\n- [离线缓存](docs/OFFLINE_RECORDS.md)、[历史管理](docs/HISTORY_MANAGEMENT.md)\n- [无线升级](docs/OTA_UPDATE.md)、[烧录镜像](firmware/prebuilt/README.md)\n- [实际验收范围](docs/DEVICE_LAB_TEST_REPORT.md)、[剩余工作](docs/DEVELOPMENT_PLAN.md)\n\n普通用户双击根目录 AI_Doll.cmd，从 GUI 管理中心完成环境准备、配对、AI 接入与日常设置。旧 Secure 入口仍兼容。具体操作见 docs/GUI_GUIDE.md；命令行入口保留给开发与自动化。Secure 另需 Platform 隧道与运行密钥，已通过普通 Chat 状态、历史及 60 秒模拟反馈。Sakura 入口保留，但普通 Chat 添加仍未通过。首次安装需要 Python 3.12 和依赖，详见安装指南；无需交付者本机依赖。源码在 firmware/src，编译目标为 supermini-lab。\n\n未接传感器保持模拟/手动模式。真实震动需要板外驱动，不能直接接 GPIO 或 4051。普通触摸只记录，用户开始互动后才投递新事件；自建应用接入用户选择的模型回调，官方客户端的后台唤醒取决于其实际事件能力。\n\n原创代码和文档按 MIT License 开源，见 LICENSE；第三方依赖和资料保留各自许可。此包不含 Wi-Fi、令牌、个人日志或历史版本。运行数据在本机 build/device-lab 创建。MANIFEST.json 包含每个文件的 SHA-256。真实传感器、用户模型和写 Flash 时物理断电仍需验收。\n'
 PCB_README = '''# AI_Doll_V2 PCB 交付
 
 最终工程在 `hardware/rev-v2/AI_Doll_V2_标准化完成_20261003.epro2`，使用嘉立创 EDA 专业版打开/导入原生工程。BOM 和检查记录在同一目录。
@@ -121,11 +122,13 @@ def main():
     delivery = ROOT/'delivery'
     files = [ROOT/'AI_Doll.cmd', ROOT/'requirements-companion.txt', ROOT/'.gitignore', ROOT/'LICENSE', ROOT/'firmware/platformio.ini']
     files += [ROOT/'tools'/name for name in TOOLS]
+    files += [ROOT/'requirements-server.txt']
+    files += [ROOT/'deploy/direct-server'/name for name in ('Dockerfile','Dockerfile.dockerignore','compose.yml','Caddyfile','.env.example')]
     files += [ROOT/'docs'/name for name in DOCS+('README.md','HOST_INTEGRATIONS.md','REMOTE_MCP.md','MCP_ACCEPTANCE_2_13.md','MCP_TRANSPORT_DECISION.md','SECURE_MCP.md')]
     files += [ROOT/'templates'/name for name in ('chatgpt-mcp-config.json','README.md','operit/ai_doll.js','host-event.example.json','openclaw-hook.example.json')]
     files += [ROOT/'firmware/src'/name for name in SOURCE]
     files += [ROOT/'firmware/prebuilt'/name for name in PREBUILT]
-    outputs = [package(delivery/'AI_Doll_Code_v2.14.0.zip', files, CODE_README, 'doll-bridge-2.14.0')]
+    outputs = [package(delivery/'AI_Doll_Code_v2.15.0.zip', files, CODE_README, 'doll-bridge-2.15.0')]
     hardware = ROOT/'hardware/rev-v2'
     if hardware.exists():
         pcb = [hardware/name for name in PCB_FILES]
@@ -136,10 +139,10 @@ def main():
         pcb += [p for p in preview.iterdir() if p.is_file() and p.suffix in {'.png','.json'}]
         outputs.append(package(delivery/'AI_Doll_PCB_V2_20261003.zip', pcb, PCB_README, 'AI_Doll_V2-standardized-20261003'))
     (delivery/'DELIVERY_MANIFEST.json').write_text(json.dumps({'packages': outputs}, ensure_ascii=False, indent=2), encoding='utf-8')
-    readme = '# AI 共感娃娃交付说明\n\n更新日期：2026-10-11。电脑 Bridge v2.14.0 支持 Wi-Fi 采集，已测试开发板固件为 v2.7。请直接发送下面的 ZIP 包；接收者按包内 README 使用。\n\n'
+    readme = '# AI 共感娃娃交付说明\n\n更新日期：2026-10-11。电脑 Bridge v2.15.0 支持 Wi-Fi 采集，已测试开发板固件为 v2.8。请直接发送下面的 ZIP 包；接收者按包内 README 使用。\n\n'
     for item in outputs:
         readme += f"- [{item['file']}]({item['file']})：{item['files']} 个公开文件，{item['bytes']/1048576:.2f} MiB。\n"
-    readme += '\n代码包包含当前固件四个烧录文件、源码、45 工具 MCP、电脑事件桥、安装工具和当前使用文档。支持八路 FSR 校准、首次配网、Wi-Fi 数据、温度/震动扩展、有限离线缓存、历史管理与无线升级。PCB 包包含嘉立创 EDA 工程、BOM、原下单文件和核对证据。编译/运行依赖由接收者按代码包指南安装。普通 Chat 的状态、历史和 60 秒模拟反馈已通过；实物传感器与其他宿主的真实反馈仍待验收。\n\n'
+    readme += '\n代码包新增设备直连服务器、手机配置、原前端事件适配和 HTTPS 部署模板，详见 docs/DIRECT_SERVER.md。代码包包含当前固件四个烧录文件、源码、45 工具 MCP、电脑事件桥、安装工具和当前使用文档。支持八路 FSR 校准、首次配网、Wi-Fi 数据、温度/震动扩展、有限离线缓存、历史管理与无线升级。PCB 包包含嘉立创 EDA 工程、BOM、原下单文件和核对证据。编译/运行依赖由接收者按代码包指南安装。普通 Chat 的状态、历史和 60 秒模拟反馈已通过；实物传感器与其他宿主的真实反馈仍待验收。\n\n'
     readme += '交付包不含本机 Wi-Fi 配置、设备访问密钥或个人互动数据库。完整文件校验值在各包的 `MANIFEST.json`；ZIP 校验值在 `DELIVERY_MANIFEST.json`。\n\n'
     for item in outputs:
         readme += f"`{item['file']}` SHA-256：`{item['sha256']}`。\n\n"

@@ -1,0 +1,5 @@
+{$DOLL_DOMAIN} {
+    reverse_proxy doll:8781 {
+        flush_interval -1
+    }
+}

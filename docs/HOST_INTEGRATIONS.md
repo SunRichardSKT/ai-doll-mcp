@@ -1,5 +1,7 @@
 # Operit、OpenClaw 与自定义前端
 
+新增设备直连通路：[手机配置、自部署服务器及原聊天主动反馈](DIRECT_SERVER.md)。原电脑采集 / MCP 流程继续兼容；直连模式无需本地电脑运行。验证范围见 [直连验收](DIRECT_SERVER_ACCEPTANCE.md)。
+
 核对日期：2026-10-10。本轮没有真实 Operit、OpenClaw 或微信账号，以下为官方接口评估、接入代码与协议测试，不算平台实测。ChatGPT 普通 Chat 的状态、历史及 60 秒模拟反馈已另行实测，见 [验收报告](MCP_ACCEPTANCE_2_13.md)。
 
 ## 接入方式

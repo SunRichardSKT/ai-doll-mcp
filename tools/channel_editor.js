@@ -69,7 +69,7 @@ function renderChannelEditor(){
 async function loadChannels(){
  try{channelCapabilities=await tool('get_channel_capabilities');channelDraft=(await tool('get_channel_config')).channels;}
  catch(original){
-  if(location.pathname!=='/companion')throw original;
+  if(!location.pathname.endsWith('/companion'))throw original;
   const [caps,cfg]=await Promise.all([tool('get_cached_channel_capabilities'),tool('get_cached_channel_config')]);
   if(!caps.types||!cfg.channels){$('addChannel').disabled=true;$('saveParts').disabled=true;throw original;}
   channelCapabilities=caps;channelDraft=cfg.channels;renderChannelEditor();

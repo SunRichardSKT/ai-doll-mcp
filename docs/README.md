@@ -2,6 +2,8 @@
 
 ## 使用与安装
 
+- **设备直连服务器**：[部署与手机配置](DIRECT_SERVER.md)、[直传与原前端回调验收](DIRECT_SERVER_ACCEPTANCE.md)。无需电脑采集中转。
+
 - **统一 GUI 入口**：[管理中心指南](GUI_GUIDE.md)。双击根目录 AI_Doll.cmd，首次安装与日常功能集中操作。
 
 - **ChatGPT 普通 Chat**：[Secure 安装与启动](SECURE_MCP.md)。首次少量配置，日常双击启动。

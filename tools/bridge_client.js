@@ -20,28 +20,29 @@ class DollBridgeClient {
     const result=await response.json();if(!response.ok)throw Error(result.error||'Bridge request failed');return result;
   }
   tool(name,args={}){return this.api('/companion/tool',{name,arguments:args})}
-  async start() {
-    if(this.stopping){await this.stopping;return this.start()}
+  async start(options={}) {
+    if(this.stopping){await this.stopping;return this.start(options)}
     if(this.starting)return this.starting;
     if(this.running)return this.sub;
-    if(this.cleanupRequired){await this.stop();return this.start()}
+    if(this.cleanupRequired){await this.stop();return this.start(options)}
     const token=new AbortController();this.startToken=token;
-    const starting=this.beginStart(token);this.starting=starting;
+    const starting=this.beginStart(token,options);this.starting=starting;
     try{return await starting}finally{if(this.starting===starting)this.starting=null}
   }
   checkStart(token) {
     if(token.signal.aborted){const error=Error('Interaction start cancelled');error.name='AbortError';throw error}
   }
-  async beginStart(token) {
+  async beginStart(token,options) {
     let newlyCreated=false;
     try{
       const current=await this.tool('get_interaction_status');this.checkStart(token);
       if(current.active_session&&current.active_session.chat_id!==this.target)throw Error('另一个聊天正在互动，请先在原窗口结束互动。');
       const status=await this.tool('doll_get_status');this.checkStart(token);
       // Let mutation responses settle so a cancelled start can clean up their real IDs.
-      this.session=await this.tool('start_interaction',{chat_id:this.target,idle_timeout_sec:300});
+      const {idle_timeout_sec=300,duration_sec,ttl_sec=300}=options;
+      this.session=await this.tool('start_interaction',{chat_id:this.target,idle_timeout_sec,...(duration_sec!==undefined?{duration_sec}:{})});
       newlyCreated=!current.active_session||current.active_session.id!==this.session.id;this.checkStart(token);
-      this.sub=await this.api('/bridge/subscriptions',{target_id:this.target,session_id:this.session.id,device_id:status.device_id,ttl_sec:300});
+      this.sub=await this.api('/bridge/subscriptions',{target_id:this.target,session_id:this.session.id,device_id:status.device_id,ttl_sec});
       this.checkStart(token);
       this.controller=new AbortController();this.running=true;
       this.onStatus('已订阅当前互动，等待新的按压。');

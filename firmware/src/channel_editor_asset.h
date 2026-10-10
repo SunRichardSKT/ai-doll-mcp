@@ -69,7 +69,17 @@ function renderChannelEditor(){
  if($('calibrationChannel'))fillCalibrationChannels();
 }
 async function loadChannels(){
- channelCapabilities=await tool('get_channel_capabilities');channelDraft=(await tool('get_channel_config')).channels;renderChannelEditor();
+ try{channelCapabilities=await tool('get_channel_capabilities');channelDraft=(await tool('get_channel_config')).channels;}
+ catch(original){
+  if(!location.pathname.endsWith('/companion'))throw original;
+  const [caps,cfg]=await Promise.all([tool('get_cached_channel_capabilities'),tool('get_cached_channel_config')]);
+  if(!caps.types||!cfg.channels){$('addChannel').disabled=true;$('saveParts').disabled=true;throw original;}
+  channelCapabilities=caps;channelDraft=cfg.channels;renderChannelEditor();
+  for(const input of $('parts').closest('section').querySelectorAll('input,select,textarea,button'))input.disabled=true;
+  $('saved').textContent='设备离线，显示电脑保存的只读配置。重新连接后重新打开此页即可编辑。';
+  return;
+ }
+ renderChannelEditor();
  $('addChannel').onclick=()=>{try{channelDraft=readChannelDraft();const id=Array.from({length:channelCapabilities.max_channels},(_,i)=>i).find(i=>!channelDraft.some(c=>c.channel===i));if(id===undefined)throw Error('已达到逻辑通道上限');channelDraft.push({channel:id,name:'CH'+id,type:'pressure',driver:'simulation',enabled:true,options:{}});channelDraft.sort((a,b)=>a.channel-b.channel);renderChannelEditor()}catch(e){$('error').textContent=e.message}};
  await installSensorExperience();
 }

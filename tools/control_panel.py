@@ -303,7 +303,7 @@ class Panel:
             secure_config=dict(configured=bool(cfg), tunnel_id=cfg.get('tunnel_id', ''),
                 profile=cfg.get('profile', 'interaction'), key_saved=bool(cfg.get('runtime_api_key'))),
             secure=self.secure, job=task, messages=messages,
-            project=str(ROOT), version='2.14.0')
+            project=str(ROOT), version='2.15.0')
 
 
 def make_handler(panel):

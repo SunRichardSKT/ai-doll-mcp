@@ -17,7 +17,7 @@ static int pressChannel=-1, pressValue=0, lastWifi=-1;
 static constexpr int LED_PIN=8; // Common SuperMini blue LED, active low.
 static bool scanBusy=false;
 static uint32_t scanStartedAt=0;
-static const char* VERSION="doll-lab-2.7.0";
+static const char* VERSION="doll-lab-2.8.0";
 static const char* PROTOCOL="2025-11-25";
 
 static String encode(const JsonDocument &d){String s;serializeJson(d,s);return s;}
@@ -32,6 +32,7 @@ static void setLed(bool on){led=on;digitalWrite(LED_PIN,on?LOW:HIGH);}
 static bool originOK();
 static void sendJson(int code,const JsonDocument &d);
 #include "ota_update.h"
+static void remoteStatus(JsonObject out);
 static void status(JsonObject o){
  o["network_mode"]=networkModeName();o["config_ap_open"]=configAP;o["setup_button_gpio"]=SETUP_BUTTON_PIN;
  o["boot_id"]=touchBoot;o["event_cursor"]=touchSeq;
@@ -41,10 +42,11 @@ static void status(JsonObject o){
  o["mcp_enabled"]=mcpEnabled;o["mcp_path"]="/mcp";o["protocol_version"]=PROTOCOL;
  o["discovery_protocol"]=DISCOVERY_PROTOCOL;o["discovery_port"]=DISCOVERY_PORT;o["discovery_active"]=discoveryActive;
  eventStorageStatus(o["event_storage"].to<JsonObject>());
+ remoteStatus(o["remote_server"].to<JsonObject>());
  otaStatus(o["ota"].to<JsonObject>());
  o["led_on"]=led;o["led_gpio_level"]=digitalRead(LED_PIN);o["sensor_mode"]=sensorEnabled?"sensor":"simulation";o["sensor_count"]=channelCount();o["max_channels"]=MAX_CHANNELS;o["physical_outputs_enabled"]=outputEnabled;
  o["pressed_channel"]=pressChannel;o["pressure"]=pressValue;
- o["reaction"]=pressValue>=2500?"抱抱收到啦！":pressValue>=700?"我感受到你的轻轻按压了。":"安静等待触摸";
+ o["reaction"]=pressValue>0?"模拟按压已记录，动作含义由 AI 判断。":"安静等待触摸";
 }
 static void scanWifi(JsonObject out,bool start){
  int n=WiFi.scanComplete();
@@ -177,6 +179,7 @@ static JsonDocument rpc(const JsonDocument &in){
  }else{rpcError(out,-32601,"Method not found");}
  return out;
 }
+#include "remote_uplink.h"
 static bool admin(){if(configAP)return true;if(web.authenticate("admin",apPass.c_str()))return true;web.requestAuthentication();return false;}
 static bool originOK(){String o=web.header("Origin");return o.isEmpty()||o=="http://"+WiFi.softAPIP().toString()||(WiFi.status()==WL_CONNECTED&&o=="http://"+WiFi.localIP().toString());}
 static void sendJson(int code,const JsonDocument &d){web.sendHeader("Cache-Control","no-store");web.send(code,"application/json; charset=utf-8",encode(d));}
@@ -197,6 +200,7 @@ static void serialCommand(const String &line){
  else if(cmd=="setup_mode"){openConfigAP(NetworkMode::SETUP);out["ok"]=true;}
  else if(cmd=="scan")scanWifi(out.to<JsonObject>(),in["start"]|false);
  else if(cmd=="setup"){out["ap_ssid"]=apName;out["ap_password"]=apPass;out["admin_user"]="admin";out["mcp_token"]=token;}
+ else if(cmd=="remote_config"){String error;out["ok"]=remoteSave(in.as<JsonVariantConst>(),error);if(error.length())out["error"]=error;}
  else if(cmd=="wifi"){String error;out["ok"]=provision(in.as<JsonVariantConst>(),error);if(error.length())out["error"]=error;}
  else if(cmd=="mcp"){if(!in["enabled"].is<bool>()){out["error"]="enabled must be boolean";}else{mcpEnabled=in["enabled"];prefs.putBool("mcp",mcpEnabled);out["ok"]=true;}}
  else if(cmd=="rpc"){if(!mcpEnabled){out["error"]="MCP disabled";}else{JsonDocument req;req.set(in["request"]);out=rpc(req);}}
@@ -215,12 +219,20 @@ void setup(){
  apPass=prefs.getString("apkey","");if(apPass.isEmpty()){apPass="Doll-"+randomHex().substring(0,10);prefs.putString("apkey",apPass);}
  token=prefs.getString("token","");if(token.isEmpty()){token=randomHex();prefs.putString("token",token);}
  ssid=prefs.getString("ssid","");password=prefs.getString("pass","");mcpEnabled=prefs.getBool("mcp",true);
- eventStorageInit();networkInit();
+ eventStorageInit();networkInit();remoteInit();
  const char* headers[]={"Authorization","Origin","X-Setup-Token","MCP-Protocol-Version"};web.collectHeaders(headers,4);
  web.on("/",HTTP_GET,[]{if(admin())web.send_P(200,"text/html; charset=utf-8",PAGE);});
  web.on("/channel-editor.js",HTTP_GET,[]{if(admin())web.send_P(200,"application/javascript; charset=utf-8",CHANNEL_EDITOR_JS);});
  web.on("/ota-manager.js",HTTP_GET,[]{if(admin())web.send_P(200,"application/javascript; charset=utf-8",OTA_MANAGER_JS);});
  web.on("/api/setup",HTTP_GET,[]{if(!admin())return;JsonDocument d;d["token"]=token;d["enabled"]=mcpEnabled;d["admin_password"]=apPass;d["network_mode"]=networkModeName();sendJson(200,d);});
+ web.on("/api/uplink",HTTP_GET,[]{if(!admin())return;JsonDocument d;remoteStatus(d.to<JsonObject>());sendJson(200,d);});
+ web.on("/api/uplink",HTTP_POST,[]{
+  if(!admin())return;
+  if(!originOK()||web.header("X-Setup-Token")!=token){web.send(403,"text/plain","Forbidden");return;}
+  JsonDocument in,out;String error;
+  if(web.arg("plain").length()>8192||deserializeJson(in,web.arg("plain"))){web.send(400,"text/plain","Invalid JSON");return;}
+  bool ok=remoteSave(in.as<JsonVariantConst>(),error);out["ok"]=ok;if(!ok)out["error"]=error;remoteConfigView(out["configuration"].to<JsonObject>());sendJson(ok?200:400,out);
+ });
  web.on("/api/tool",HTTP_POST,[]{if(!admin())return;if(!originOK()||web.header("X-Setup-Token")!=token){web.send(403,"text/plain","Forbidden");return;}JsonDocument in;if(web.arg("plain").length()>16384||deserializeJson(in,web.arg("plain"))){web.send(400,"text/plain","Invalid JSON");return;}sendJson(200,rpc(in));});
  web.on("/api/status",HTTP_GET,[]{if(!admin())return;JsonDocument d;status(d.to<JsonObject>());sendJson(200,d);});
  web.on("/api/ota",HTTP_POST,otaRequest);
@@ -254,6 +266,7 @@ void loop(){
  while(Serial.available()){char c=Serial.read();if(c=='\n'){if(serialLine.length())serialCommand(serialLine);serialLine="";}else if(c!='\r'){if(serialLine.length()<16384)serialLine+=c;else serialLine="";}}
  networkTick();
  discoveryTick();
+ remoteTick();
  int state=WiFi.status();if(state!=lastWifi){lastWifi=state;JsonDocument d;d["event"]="wifi";d["status"]=state;d["ip"]=WiFi.localIP().toString();serialJson(d);}
  if(pressChannel>=0&&(int32_t)(millis()-pressUntil)>=0){pressChannel=-1;pressValue=0;Serial.println("{\"event\":\"simulated_release\"}");}
  delay(1);

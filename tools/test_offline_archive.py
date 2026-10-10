@@ -148,7 +148,7 @@ class OfflineArchiveTests(unittest.TestCase):
         self.c.exchange=exchange
         with patch.object(self.c.bridge,'enqueue',side_effect=RuntimeError('archive failed')):
             with self.assertRaises(RuntimeError):self.c.sync()
-        self.assertEqual(calls,['events'])
+        self.assertEqual(calls,['status','events'])
         self.assertEqual(self.c.db.execute('SELECT COUNT(*) FROM events').fetchone()[0],0)
 
     def test_recent_current_boot_can_notify_but_replayed_event_cannot(self):
@@ -172,7 +172,8 @@ class OfflineArchiveTests(unittest.TestCase):
             seen.append(command);return batch()
         self.c.exchange=exchange;self.c.last_clock_sync=time.monotonic()
         self.c.sync()
-        self.assertEqual(seen[0]['boot_id'],'new')
+        self.assertEqual(seen[0]['cmd'],'status')
+        self.assertEqual(seen[1]['boot_id'],'new')
 
     def test_clock_resets_are_synchronized_even_inside_rate_limit(self):
         incoming=batch();incoming['event_storage']['clock_synced']=False
@@ -182,7 +183,17 @@ class OfflineArchiveTests(unittest.TestCase):
             return incoming if command['cmd']=='events' else {'ok':True}
         self.c.exchange=exchange;self.c.last_clock_sync=time.monotonic()
         self.c.sync()
-        self.assertEqual(calls,['events','sync_time'])
+        self.assertEqual(calls,['status','events','sync_time'])
+
+    def test_direct_upload_prevents_competing_collector_ack(self):
+        calls=[]
+        def exchange(command):
+            calls.append(command['cmd'])
+            return {'remote_server':{'enabled':True}}
+        self.c.exchange=exchange
+        with self.assertRaisesRegex(ConnectionError,'direct upload'):self.c.sync()
+        self.assertEqual(calls,['status'])
+        self.assertFalse(self.c.device_history()['events'])
 
     def test_user_can_end_interaction_while_device_is_offline(self):
         now=time.time()

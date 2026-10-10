@@ -1,5 +1,7 @@
 # 主动互动与聊天应用接入
 
+新增设备直连通路：[手机配置、自部署服务器及原聊天主动反馈](DIRECT_SERVER.md)。原电脑采集 / MCP 流程继续兼容；直连模式无需本地电脑运行。验证范围见 [直连验收](DIRECT_SERVER_ACCEPTANCE.md)。
+
 Operit、OpenClaw/微信与自定义后端的接入评估和事件脚本见 [宿主接入指南](HOST_INTEGRATIONS.md)。普通 Chat 的 Secure 限时互动已实测，但下述 MCP Events 后台唤醒没有因此被验证。
 
 普通聊天期间安静记录；用户开始互动后，将新输入发送到绑定的聊天，由用户选择的模型结合当前上下文、人设和部位反馈。电脑事件桥持续接收设备数据，不要求用户每次发消息查询。安装见 [AI 安装指南](AI_INSTALL.md)，设备可通过 [Wi-Fi](WIFI_CONNECTION.md) 独立供电运行。

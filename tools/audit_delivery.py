@@ -20,7 +20,9 @@ def local_credentials():
             for item in value:collect(item,key)
         elif isinstance(value,str) and len(value)>=8 and (SECRET_NAMES.search(key) or PRIVATE_URL.search(value.encode())):
             values.add(value.encode())
-    for path in (ROOT/'build/device-lab').rglob('*-private.json'):
+    paths = [p for folder in ('device-lab', 'direct-server', 'direct-device-test')
+             for p in (ROOT/'build'/folder).rglob('*-private.json')]
+    for path in paths:
         try:collect(json.loads(path.read_text(encoding='utf-8-sig')))
         except (OSError,ValueError):raise RuntimeError('Cannot audit a private installation file') from None
     return values
@@ -37,7 +39,7 @@ def audit(path,secrets=None):
             item=PurePosixPath(name)
             if item.is_absolute() or '..' in item.parts or any(p in {'build','.tools','.git','.venv','_local','__pycache__'} for p in item.parts):
                 raise ValueError('Private or unsafe archive path')
-            if re.search(r'private\.json$|\.sqlite3(?:-wal|-shm)?$|\.env(?:\.|$)|\.log$|\.(pem|key)$',name,re.I):raise ValueError('Private file in public package')
+            if name != 'deploy/direct-server/.env.example' and re.search(r'private\.json$|\.sqlite3(?:-wal|-shm)?$|\.env(?:\.|$)|\.log$|\.(pem|key)$',name,re.I):raise ValueError('Private file in public package')
             raw=archive.read(name)
             if hashlib.sha256(raw).hexdigest()!=digest:raise ValueError('Manifest checksum mismatch')
             if any(secret in raw for secret in secrets) or PRIVATE_URL.search(raw):raise ValueError('Installation credential found in public package')
@@ -47,7 +49,7 @@ def audit(path,secrets=None):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('package',type=Path,nargs='?',default=ROOT/'delivery/AI_Doll_Code_v2.14.0.zip')
+    parser.add_argument('package',type=Path,nargs='?',default=ROOT/'delivery/AI_Doll_Code_v2.15.0.zip')
     args=parser.parse_args()
     print(json.dumps(audit(args.package),indent=2))
 

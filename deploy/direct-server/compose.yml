@@ -1,0 +1,33 @@
+services:
+  doll:
+    build:
+      context: ../..
+      dockerfile: deploy/direct-server/Dockerfile
+    restart: unless-stopped
+    command: ["python", "tools/direct_server.py", "--listen", "0.0.0.0", "--port", "8781", "--data-dir", "/data", "--public-url", "https://${DOLL_DOMAIN:?请在 .env 填写 DOLL_DOMAIN}"]
+    volumes:
+      - doll-data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8781/healthz',timeout=2)"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+  https:
+    image: caddy:2
+    restart: unless-stopped
+    environment:
+      DOLL_DOMAIN: ${DOLL_DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      doll:
+        condition: service_healthy
+volumes:
+  doll-data:
+  caddy-data:
+  caddy-config:
