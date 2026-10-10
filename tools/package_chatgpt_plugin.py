@@ -28,7 +28,7 @@ def build_package(python: Path, output: Path) -> dict:
         'homepage': REPOSITORY, 'repository': REPOSITORY,
         'extensions': {'com.openai': {'interface': {
             'displayName': 'AI Doll Local',
-            'shortDescription': 'Connect your installed doll service on this Windows PC',
+            'shortDescription': 'Local doll interaction tools',
             'longDescription': 'Reuse the current conversation and its model. Local MCP requires the installed project, Python dependencies and running collector. Ordinary Chat availability is not yet verified.',
             'developerName': 'SunRichardSKT', 'category': 'Productivity',
             'capabilities': ['Read', 'Write'],

@@ -1,74 +1,30 @@
-# 在原聊天窗口使用娃娃
+# 在原聊天使用娃娃
 
-继续使用原 AI、模型、人设与上下文。设备网页用于配网、校准、通道和日志管理。MCP 提供身体互动数据，回复由正在使用的 AI 产生。
+沿用原 AI、模型、人设与上下文。设备网页用于配网、通道、校准、日志和模拟测试，回复由当前聊天的 AI 生成。
 
-## 选择连接方式
-
-| 使用环境 | 连接 | 已验证范围 |
+| 环境 | 接入 | 验证范围 |
 | --- | --- | --- |
-| 支持本机 MCP 的 Agent，例如 Claude Code、Harness | 本机 STDIO，无需公网映射 | 官方 SDK 实测 45 工具及设备状态；具体客户端仍需实际导入 |
-| 支持本机 HTTP 的客户端或私有隧道上游 | Streamable HTTP，`127.0.0.1:8771/mcp` | 13 工具发现、Wi-Fi 模拟按压开始/释放、会话结束 |
-| 普通 Chat | 账号侧实际可达的 HTTPS MCP 或 Secure MCP Tunnel | 本轮已通过两个只读状态工具；互动反馈尚未验收 |
-| 用户已有 API 应用 | 原聊天后端接入事件桥 | 队列、会话绑定、取消和去重专项通过；原模型实测待完成 |
+| 支持本机 MCP 的客户端 | STDIO，45 个工具 | 官方 SDK 已实测，目标客户端需导入配置 |
+| 支持本机 HTTP 的客户端 | `chat_mcp_gateway.py`，2/9/13 个工具 | 只监听本机；history 只读，interaction 支持限时会话 |
+| ChatGPT 普通 Chat | Secure MCP Tunnel + 本机专用网关，13 工具 | 已实际通过状态调用、今天历史与 60 秒模拟按压文字反馈，编号与会话记录匹配 |
+| 已有 API 应用 | 原后端接事件桥 | 使用原模型回调和原消息列表；不另建聊天产品 |
 
-阅读 GitHub 或上传代码 ZIP 不能代替 MCP 连接。云端客户端所见的 localhost 也不是用户电脑。仅在局域网使用时，选择本机 Agent 或已有应用即可。
+普通 Chat 推荐 [Secure 操作指南](SECURE_MCP.md)：首次创建自己的 Platform 隧道与运行密钥，在 ChatGPT 添加隧道；之后双击 `Start_Secure_MCP.cmd`。无需娃娃账号，沿用原聊天模型。只连接专用回环 MCP，不转发 8768 管理页。
 
-## 本地安装
+Sakura 入口仍保留，见 [Sakura 操作](REMOTE_MCP.md)。已登录客户端的用户使用 `remote_mcp.ps1 -Action configure -ClientManaged`，仅输入 HTTPS 主机地址，客户端自行管理隧道。此路线 SDK 通过，但当前普通 Chat 添加失败原因未确定。Cloudflare Quick Tunnel 的两个状态工具已通过普通 Chat，保留为备用；正式固定域名和 Claude 接入另行验收。
 
-按 [安装指南](AI_INSTALL.md) 运行统一入口、完成首次配对并生成 `mcp-client-config.json`。在原客户端导入 STDIO 配置，刷新工具，再实际查询状态。支持提示模板的宿主可选择 `doll_chat_companion`；没有该菜单时使用 [接入现有对话](EXISTING_CHAT.md) 的测试请求。
-
-## 本机 HTTP 互动接口
-
-先启动已配对的采集服务，再运行：
+本机安装见 [AI 安装指南](AI_INSTALL.md)。本机 HTTP 启动：
 
 ```powershell
 .\.venv\Scripts\python.exe tools/chat_mcp_gateway.py --profile interaction
 ```
 
-地址为 `http://127.0.0.1:8771/mcp`。只监听本机，进程需持续运行；按 Ctrl+C 关闭。它复用现有采集、会话、人设和历史，不额外连接模型，不开启公开隧道，不自动注册账号插件。
+只读历史可选 `--profile history`；两个状态可选 `--profile status`。地址为 `http://127.0.0.1:8771/mcp`。这个本机入口不能直接当成完整匿名公网入口；使用 `remote_mcp.py` 的私密地址校验。它们不能同时占用 8771。
 
-互动配置提供 13 个工具：两个状态工具，通道能力与配置，人设与偏好，会话开始/状态/事件/结束，以及混合历史、动作摘要和历史统计。不会提供设备输出、真实采样启用、模拟注入或历史删除工具。模拟按压由用户在本机 `/companion` 页面操作。
+普通触摸持续归档，明确互动时才开启会话。`start_interaction` 新增可选 `duration_sec`，旧调用兼容；60 秒测试设置 `duration_sec=60`。每次等新事件最多 20 秒，处理后保存游标；结束和到期后不再投递旧事件。保留类型、部位、数值、单位、质量与模拟来源，动作含义由 AI 根据对话判断。
 
-工具返回 `verification.run_id` 和 `verification.call_id`，本机 `calls.jsonl` 只记录调用编号、工具和完成状态，不记录人设、部位或历史内容。SDK 产生的编号只能证明 SDK 调用，不能充当目标 Chat 的证据。
+2026-10-10，Secure 在普通 Chat 实际读取通道、人设、反馈偏好、今天历史并开启 60 秒会话，收到 4 次模拟头部按压并给出文本反馈。8 条开始/释放事件与数据库匹配，期限届满自动结束。保存的人设为空，本轮使用温柔自然偏好；模拟输入不能换算为真实力度。分阶段证据见 [验收报告](MCP_ACCEPTANCE_2_13.md)。
 
-可用下面的命令检查本机 HTTP 连接；它只查询状态：
+阅读 GitHub、上传代码 ZIP 或上传插件 ZIP 都不等于工具已经接通。插件包可以保存技能与连接信息，不会在云端运行电脑脚本。需要在目标 Chat 真实发现并调用工具，返回 `verification.call_id`，随后验证历史与限时按压反馈。
 
-```powershell
-.\.venv\Scripts\python.exe tools/verify_mcp_connection.py --transport http
-```
-
-该配置会返回用户的人设与历史，仅用于可信本机客户端或私有连接。当前版本没有公网 OAuth 服务，不能将它作为匿名公网互动服务部署。私有隧道也需要正确的账号关联与权限。
-
-## 普通 Chat 验收
-
-2026-10-10，用户在普通 Chat 通过 `AI Doll Chat Verify` 实际调用了 `get_installation_status` 和 `doll_get_status`。两个独立调用编号及共同运行编号，与本机成功记录匹配，且已排除 SDK 调用。设备通过 Wi-Fi 在线，模拟模式，物理输出关闭。本轮临时 HTTPS 转发已结束，旧地址不可继续调用。
-
-下一次连接需要可达的新地址或已关联的私有隧道。按 [OpenAI 连接指南](https://developers.openai.com/plugins/deploy/connect-chatgpt) 在 **Plugins → 添加 → 创建自定义 MCP 服务器** 选择连接方式，核对实际发现的工具，安装插件，在普通 Chat 中用 `@` 选择它。只有两个状态工具时不能开始互动测试。
-
-获得完整互动工具后，发送：
-
-> 请在我们当前聊天实际查询设备、通道、人设和偏好。开始 60 秒互动，生成并保存本聊天独立的 chat_id，将返回的会话 ID 只用于本聊天。每次等待新事件最多 20 秒，保存 next_cursor。我会在设备设置页模拟按压；收到后结合当前聊天和保存的人设回应，标明模拟来源。到期或我说结束时结束会话，没有事件就不编造反馈，不切换到 Work。
-
-本机服务与公网可达分别验证；目标 Chat 的工具调用与反馈还要独立验证。状态查询成功不表示按压反馈或空闲唤醒已通过。
-
-## 低成本远程连接
-
-`status` 配置只提供两个经过筛选的只读状态工具，可用于建立 HTTPS 通路的验收：
-
-```powershell
-.\.venv\Scripts\python.exe tools/chat_mcp_gateway.py --profile status --public-origin https://mcp.example.com
-```
-
-把示例替换成实际 HTTPS 来源（只有协议、域名与可选端口，不含 `/mcp`）。公开 MCP 地址是在来源后加 `/mcp`。程序仍只监听 `127.0.0.1:8771`，参数只允许指定的 Host，不会启动隧道。
-
-SakuraFrp 可作为隧道提供者：本地地址填 `127.0.0.1`、端口 `8771`，按本地 HTTP 服务选择匹配的隧道；TCP 路径需要 HTTPS 时可按官方说明配置自动 HTTPS 和有效证书。不要把自签证书报错忽略后当成云端可用。具体节点、账号与费用以提供者为准。见 [Web 穿透](https://doc.natfrp.com/app/http.html)、[自动 HTTPS](https://doc.natfrp.com/frpc/auto-https.html) 与 [证书](https://doc.natfrp.com/frpc/ssl.html)。
-
-当前没有用户的 SakuraFrp 隧道配置，未启动或实测该提供者。远程自动安装、隧道配置/启动和带认证的完整互动接口仍在开发；不能将手动说明记作一键部署完成。既有临时 HTTPS 验收只证明两个状态工具，不证明 SakuraFrp 或远程互动工具。
-
-另一种选择是 [Secure MCP Tunnel](https://developers.openai.com/api/docs/guides/secure-mcp-tunnels)：按官方指南创建账号侧隧道并运行官方客户端，可将本机 STDIO 或 HTTP 作为上游。该方式无需匿名公网地址，但依赖账号权限和运行密钥；本项目不代替用户创建平台账号或密钥。
-
-## 互动与主动消息
-
-普通聊天时触摸安静归档。开始互动后，AI 在正在运行的任务中有限等待事件，使用会话 ID 与游标避免重复处理；结束后普通归档继续。不要根据一次单通道按压武断称为拥抱。
-
-空闲聊天主动消息需要宿主事件入口。OpenAI 文档当前列出的 MCP Events 场景为网页 Work、桌面 Work Cloud 和 dots，采用 MCP 2.0 webhook；不能据此声称普通 Chat 已支持唤醒。见 [官方事件说明](https://developers.openai.com/plugins/build/mcp-events)。用户自建应用沿用原后端和消息列表接入 [事件桥](PROACTIVE_INTERACTION.md)。
+普通 Chat 空闲唤醒不属于本轮交付。宿主主动事件支持另行验收，见 [MCP Events 官方说明](https://developers.openai.com/plugins/build/mcp-events)。

@@ -4,7 +4,9 @@
 
 电脑 STDIO 另提供可选提示模板 `doll_chat_companion`，供用户在当前对话加入互动指引，不计入工具数量。模板不会调用设备或开始会话；客户端无提示菜单时可复制 [现有对话指南](EXISTING_CHAT.md) 中的请求。事件端点目前仅暴露工具和事件，不提供 prompts 方法。
 
-本机 HTTP 入口 `tools/chat_mcp_gateway.py` 复用其中的工具：`status` 仅 2 个筛选后的状态工具，`interaction` 为 13 个状态/会话/人设/历史工具。默认监听 `127.0.0.1:8771/mcp`，不自动开隧道或注册插件；详见 [连接指南](CHAT_MCP.md)。这不会将完整 STDIO 的数量增加到 58。
+本机 HTTP 入口 `tools/chat_mcp_gateway.py` 复用现有工具：`status` 2 个状态工具、`history` 9 个只读工具、`interaction` 13 个状态/会话/人设/历史工具。默认监听 `127.0.0.1:8771/mcp`。专用远程入口 `tools/remote_mcp.py` 增加私密地址校验，通过 `tools/deploy_mcp.py` 管理 Sakura；见 [操作指南](REMOTE_MCP.md)。STDIO 总数仍是 45。
+
+`start_interaction` 新增可选 `duration_sec`（1～3600 秒），到期自动结束，重试不延长；旧调用可省略。专用远程的新事件读取和结束会话需要同时提供原 `chat_id` 与 `session_id`；本机旧调用兼容。每次等待 0～20 秒。结束后新事件为空，可继续查询归档历史。历史不要求设备在线，也不在读取时触发设备同步。
 
 ## 设备与通道（10）
 

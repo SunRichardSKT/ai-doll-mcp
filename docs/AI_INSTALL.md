@@ -1,8 +1,10 @@
 # 安装电脑服务与 MCP
 
-当前交付为固件 2.7.0、Bridge 2.12.3。用户选择自己的 AI，继续原聊天、模型与上下文。电脑采集服务保存日志，MCP 让 AI 调用工具，不需要另填模型密钥。
+当前交付为固件 2.7.0、Bridge 2.13.0。用户选择自己的 AI，继续原聊天、模型与上下文。电脑采集服务保存日志，MCP 让 AI 调用工具，不需要另填模型密钥。普通 Chat 推荐先读 [Secure 安装与操作](SECURE_MCP.md)，双击 `tools/Install_Secure_MCP.cmd`。Secure 另需 Platform 隧道运行密钥，当前已通过普通 Chat 两个状态调用、历史查询及 60 秒模拟按压反馈。其他选择见 [连接方式评估](MCP_TRANSPORT_DECISION.md)；Sakura 安装入口见 [远程操作指南](REMOTE_MCP.md)。
 
 ## 首次准备
+
+使用 Operit、OpenClaw/微信或自定义前端，先读 [宿主兼容与事件转发](HOST_INTEGRATIONS.md)。MCP 查询和宿主主动唤醒分别配置，不能把 Secure 隧道 ID 当作这些平台的普通 HTTP URL。
 
 已有固件不需要重刷。设备接通独立电源，按 [使用指南](USER_GUIDE.md) 连接设置热点并选择 2.4 GHz Wi-Fi。电脑与设备处于可互通局域网。在设备页面取得 IP 和 MCP 令牌；令牌在本机配对程序中隐藏输入，不发送给 AI。
 

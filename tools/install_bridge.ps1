@@ -19,10 +19,10 @@ if($SkipDependencies){
 }else{
     if(!(Test-Path -LiteralPath $python)){
         $basePython=(Get-Command python -ErrorAction Stop).Source
-        & $basePython -m venv (Join-Path $root '.venv')
+        & $basePython -I -m venv (Join-Path $root '.venv')
         if($LASTEXITCODE -ne 0){throw 'Python environment creation failed'}
     }
-    & $python -m pip install -r (Join-Path $root 'requirements-companion.txt')
+    & $python -I -m pip install -r (Join-Path $root 'requirements-companion.txt')
     if($LASTEXITCODE -ne 0){throw 'Dependency installation failed'}
 }
 if($DeviceHost -and !(Test-Path -LiteralPath (Join-Path $root 'build\device-lab\device-private.json'))){
@@ -33,7 +33,7 @@ if($DeviceHost -and !(Test-Path -LiteralPath (Join-Path $root 'build\device-lab\
 if($LASTEXITCODE -ne 0){throw 'MCP configuration generation failed'}
 $work=Join-Path $root 'build\device-lab'
 $config=[ordered]@{
-    bridge_version='2.12.3';platform=$Platform;serial_port=$Port
+    bridge_version='2.13.0';platform=$Platform;serial_port=$Port
     transport=$Transport;device_host=$DeviceHost
     local_page='http://127.0.0.1:8768/bridge'
     native_mcp_events='http://127.0.0.1:8768/bridge/mcp'

@@ -34,7 +34,7 @@ def doll_chat_companion() -> str:
 
 用户主动要求互动时：为本对话保存一个稳定且独立的 chat_id（宿主未提供时生成一次不含个人信息的 ID）。调用 start_interaction，将返回的 session_id 只绑定本对话；其他对话占用时不抢占。读取 get_interaction_device_events(session_id, after=保存的游标, wait_seconds=20)，处理新事件后保存 next_cursor。结合原聊天上下文、部位、时序和用户偏好简短回应；不把单一通道按压武断称为拥抱。压力结束信息可以更新持续时间，避免把同一次动作重复当作新按压。温度故障不当有效读数，输出不触发触摸反馈。
 
-只在用户要求的互动时间内继续等待，例如 60 秒测试用剩余时间限制每次等待，单次最多 20 秒；收到动作后在当前对话回应，并在宿主支持继续运行时等待下一个动作。没有事件就不编造反馈，也不反复发送“没有按压”的消息。测试到期、用户结束或取消时调用 end_interaction，普通归档继续。断线先核对 get_interaction_status，不重复开启其他对话。
+只在用户要求的互动时间内继续等待，例如 60 秒测试调用 start_interaction(duration_sec=60)，由服务器 deadline 到期自动结束，并用剩余时间限制每次等待，单次最多 20 秒；收到动作后在当前对话回应，并在宿主支持继续运行时等待下一个动作。没有事件就不编造反馈，也不反复发送“没有按压”的消息。测试到期、用户结束或取消时调用 end_interaction，普通归档继续。断线先核对 get_interaction_status，不重复开启其他对话。
 
 普通 STDIO MCP 可以让正在运行的 AI 任务等待事件，不能单独唤醒已经空闲的聊天。不得声称已实现全天自动发消息。若用户要求空闲聊天主动反馈，应先检查宿主的事件订阅能力；支持事件的宿主使用项目 MCP Events 接口，用户自建应用将 DollBridgeClient 接到原聊天后端和原消息列表。缺少宿主能力时明确说明限制，不新建聊天产品、不抓取聊天 DOM、不模拟键盘发送，也不另接收费模型来替代当前 AI。
 
@@ -131,11 +131,11 @@ def query_touch_history(date: str | None = None, body_part: str | None = None,
 
 
 @mcp.tool()
-def start_interaction(chat_id: str = 'main', idle_timeout_sec: int = 300) -> dict:
+def start_interaction(chat_id: str = 'main', idle_timeout_sec: StrictInt = 300, duration_sec: StrictInt | None = None) -> dict:
     """Enter interaction mode only on user intent. Use a stable unique chat_id; only one chat can own the doll.
-    Return id identifies the session. Starting twice for the same chat is idempotent. Old touches are excluded.
+    Return id identifies the session. Optional duration_sec 1..3600 sets a persistent server deadline. Retrying the same chat never extends it. Old touches are excluded.
     """
-    return call('start_interaction', dict(chat_id=chat_id, idle_timeout_sec=idle_timeout_sec))
+    return call('start_interaction', dict(chat_id=chat_id, idle_timeout_sec=idle_timeout_sec, duration_sec=duration_sec))
 
 
 @mcp.tool()
@@ -151,12 +151,12 @@ def get_interaction_events(session_id: str, after: int = 0, limit: int = 50,
     Optional bounded wait 0..20 seconds supports a host interaction loop, not automatic chat wake-up.
     Re-query history if you need end/duration updates for an already consumed start.
     """
-    if not 0 <= wait_seconds <= 20:
+    if type(wait_seconds) is not int or not 0 <= wait_seconds <= 20:
         raise ValueError('wait_seconds must be 0..20')
     end = time.monotonic()+wait_seconds
     while True:
         result = call('get_interaction_events', dict(session_id=session_id, after=after, limit=limit))
-        if result['touches'] or time.monotonic() >= end or result.get('collector_error'):
+        if result['touches'] or result.get('session_closed') or time.monotonic() >= end or result.get('collector_error'):
             return result
         active = call('get_interaction_status', {})['active_session']
         if not active or active['id'] != session_id:
@@ -302,16 +302,18 @@ def query_device_history(date: str | None = None, body_part: str | None = None,
 
 
 @mcp.tool()
-def get_interaction_device_events(session_id: str, after: int = 0, limit: int = 50, wait_seconds: int = 0) -> dict:
+def get_interaction_device_events(session_id: str, after: int = 0, limit: int = 50, wait_seconds: int = 0, chat_id: str | None = None) -> dict:
     """Read this session's new pressure/temperature/output events. Persist next_cursor (different from legacy touch cursor).
     Includes start/end, temperature samples/faults, output commands/stops. Never react to your own vibration as a user touch.
     Bounded wait 0..20 sec requires host polling; periodic temperature/output commands do not extend idle timeout.
     """
-    if not 0<=wait_seconds<=20:raise ValueError('wait_seconds must be 0..20')
+    if type(wait_seconds) is not int or not 0<=wait_seconds<=20:raise ValueError('wait_seconds must be 0..20')
     end=time.monotonic()+wait_seconds
     while True:
-        result=call('get_interaction_device_events',dict(session_id=session_id,after=after,limit=limit))
-        if result['events'] or time.monotonic()>=end or result.get('collector_error'):return result
+        args=dict(session_id=session_id,after=after,limit=limit)
+        if chat_id is not None:args['chat_id']=chat_id
+        result=call('get_interaction_device_events',args)
+        if result['events'] or result.get('session_closed') or time.monotonic()>=end or result.get('collector_error'):return result
         active=call('get_interaction_status',{})['active_session']
         if not active or active['id']!=session_id:return result
         time.sleep(0.6)

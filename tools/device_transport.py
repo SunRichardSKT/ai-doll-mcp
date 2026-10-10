@@ -12,7 +12,7 @@ import urllib.request
 from device_lab import CONFIG, WORK, SerialLink
 from device_discovery import discover_paired_device
 
-VERSION = 'doll-bridge-2.12.3'
+VERSION = 'doll-bridge-2.13.0'
 PROTOCOL = '2025-11-25'
 
 

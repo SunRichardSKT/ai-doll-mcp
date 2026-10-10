@@ -48,6 +48,7 @@ class Companion:
           ended REAL,last_activity REAL,timeout INTEGER,reason TEXT);
         CREATE TABLE IF NOT EXISTS session_boundaries(session_id TEXT PRIMARY KEY,
           device TEXT,boot TEXT,seq INTEGER);
+        CREATE TABLE IF NOT EXISTS session_limits(session_id TEXT PRIMARY KEY,deadline REAL NOT NULL);
         CREATE TABLE IF NOT EXISTS touches(id INTEGER PRIMARY KEY AUTOINCREMENT,
           device TEXT,touch_id TEXT,channel INTEGER,body_part TEXT,source TEXT,
           started REAL,ended REAL,duration_ms INTEGER,peak_raw INTEGER,session_id TEXT,
@@ -72,7 +73,8 @@ class Companion:
             self.db.execute("ALTER TABLE touches ADD COLUMN time_quality TEXT DEFAULT 'legacy_estimate'")
         self.db.commit()
         self.error = None
-        self.last_sync = None
+        saved_sync = self.setting('collector_last_sync')
+        self.last_sync = float(saved_sync) if saved_sync else None
         self.stop = threading.Event()
         self.sync_lock = threading.Lock()
         self.last_clock_sync = 0
@@ -80,6 +82,7 @@ class Companion:
         from history_management import HistoryManager
         self.history_manager=HistoryManager(self)
         self.maintenance_error=None
+        self.last_config_sync = 0
 
     def setting(self, key, default=''):
         with self.lock:
@@ -105,14 +108,32 @@ class Companion:
         return json.loads(result['content'][0]['text'])
 
     def expire(self, now=None):
-        now = now or utcnow()
+        now = utcnow() if now is None else now
+        self.db.execute("UPDATE sessions SET ended=(SELECT deadline FROM session_limits WHERE session_id=sessions.id),reason='duration_expired' "
+                        'WHERE ended IS NULL AND id IN (SELECT session_id FROM session_limits WHERE deadline<=?) '
+                        'AND (SELECT deadline FROM session_limits WHERE session_id=sessions.id)<=last_activity+timeout', (now,))
         self.db.execute("UPDATE sessions SET ended=last_activity+timeout,reason='idle_timeout' "
-                        'WHERE ended IS NULL AND last_activity+timeout<?', (now,))
+                        'WHERE ended IS NULL AND last_activity+timeout<=?', (now,))
+
+    def session_view(self, row):
+        if row is None:
+            return None
+        value = dict(row)
+        limit = self.db.execute('SELECT deadline FROM session_limits WHERE session_id=?', (value['id'],)).fetchone()
+        value['deadline'] = limit[0] if limit else None
+        value['duration_sec'] = round(limit[0]-value['started']) if limit else None
+        return value
+
+    def archive_metadata(self):
+        return dict(history_source='computer_sqlite', last_sync=self.last_sync, collector_error=self.error,
+                    device_id=self.setting('collector_last_device') or None,
+                    sync_age_sec=max(0, utcnow()-self.last_sync) if self.last_sync is not None else None)
 
     def ingest(self, batch, received=None):
         received = utcnow() if received is None else received
         device, boot = batch['device_id'], batch['boot_id']
         with self.lock, self.db:
+            self.expire(received)
             row = self.db.execute('SELECT * FROM boots WHERE device=? AND boot=?', (device, boot)).fetchone()
             offset = row['offset'] if row and row['offset'] is not None else received-batch['uptime_ms']/1000
             cursor = row['cursor'] if row else 0
@@ -179,6 +200,7 @@ class Companion:
             self.db.execute('INSERT OR REPLACE INTO settings VALUES(?,?)',('collector_last_boot',boot))
             self.db.execute('INSERT OR REPLACE INTO settings VALUES(?,?)',('collector_last_device',device))
             self.db.execute('INSERT OR REPLACE INTO settings VALUES(?,?)',('collector_last_seq',str(batch['latest_seq'])))
+            self.db.execute('INSERT OR REPLACE INTO settings VALUES(?,?)',('collector_last_sync',str(received)))
             self.expire(received)
         self.last_sync, self.error = received, None
 
@@ -209,7 +231,8 @@ class Companion:
         pressure=event.get('sensor_type','pressure')=='pressure'
         session=self.db.execute('SELECT id FROM sessions WHERE started<=? '
             'AND (ended IS NULL OR ended>?) AND last_activity+timeout>=? '
-            'ORDER BY started DESC LIMIT 1',(at,at,at)).fetchone() if at is not None else None
+            'AND NOT EXISTS (SELECT 1 FROM session_limits WHERE session_id=sessions.id AND deadline<=?) '
+            'ORDER BY started DESC LIMIT 1',(at,at,at,at)).fetchone() if at is not None else None
         sid=session[0] if session else None
         if sid:
             boundary=self.db.execute('SELECT * FROM session_boundaries WHERE session_id=?',(sid,)).fetchone()
@@ -222,8 +245,9 @@ class Companion:
             boundary=self.db.execute('SELECT s.id,s.started,b.seq FROM sessions s JOIN session_boundaries b '
                 'ON b.session_id=s.id WHERE s.ended IS NULL AND b.device=? AND b.boot=? '
                 'AND b.seq<? AND s.started>? AND s.started<=? AND s.started<=? '
-                'AND s.last_activity+s.timeout>=? ORDER BY s.started DESC LIMIT 1',
-                (device,boot,seq,at,at+2,received,received)).fetchone()
+                'AND s.last_activity+s.timeout>=? AND NOT EXISTS '
+                '(SELECT 1 FROM session_limits WHERE session_id=s.id AND deadline<=?) ORDER BY s.started DESC LIMIT 1',
+                (device,boot,seq,at,at+2,received,received,received)).fetchone()
             if boundary:sid=boundary['id'];event=dict(event,session_time_quality='sequence_boundary')
         if pressure and event['phase']=='end':
             start=self.db.execute('SELECT session_id FROM touches WHERE device=? AND touch_id=?',
@@ -282,6 +306,17 @@ class Companion:
             except Exception as exc:
                 self.error = type(exc).__name__ + ': device collection unavailable'
             try:
+                with self.lock, self.db:
+                    self.bridge._expire(utcnow())
+                if time.monotonic()-self.last_config_sync >= 60:
+                    for name in ('get_channel_capabilities', 'get_channel_config'):
+                        data = self.device(name, {})
+                        self.set_setting('cached_'+name, json.dumps(dict(data=data, saved_at=utcnow()), ensure_ascii=False))
+                    self.last_config_sync = time.monotonic()
+            except Exception:
+                # Offline configuration remains available; retry at a bounded rate.
+                self.last_config_sync = time.monotonic()-50
+            try:
                 self.history_manager.maintain()
                 self.maintenance_error=None
             except Exception:
@@ -292,13 +327,21 @@ class Companion:
         with self.lock, self.db:
             self.expire()
             row = self.db.execute('SELECT * FROM sessions WHERE ended IS NULL LIMIT 1').fetchone()
-            return dict(row) if row else None
+            return self.session_view(row)
 
-    def start(self, chat_id='main', idle_timeout_sec=300):
+    def start(self, chat_id='main', idle_timeout_sec=300, duration_sec=None):
         if not isinstance(chat_id, str) or not 1 <= len(chat_id) <= 128:
             raise ValueError('chat_id must be 1..128 characters')
         if type(idle_timeout_sec) is not int or not 30 <= idle_timeout_sec <= 3600:
             raise ValueError('idle_timeout_sec must be 30..3600')
+        if duration_sec is not None and (type(duration_sec) is not int or not 1 <= duration_sec <= 3600):
+            raise ValueError('duration_sec must be 1..3600 or omitted')
+        with self.lock, self.db:
+            current = self.active()
+            if current:
+                if current['chat_id'] != chat_id:
+                    raise ValueError('Another chat already owns the active interaction; end it first')
+                return current  # Retries cannot extend an existing deadline, even offline.
         self.sync()  # Drain old events before setting the start boundary.
         with self.lock, self.db:
             current = self.active()
@@ -309,21 +352,25 @@ class Companion:
             now, sid = utcnow(), uuid.uuid4().hex
             self.db.execute('INSERT INTO sessions VALUES(?,?,?,NULL,?,?,NULL)',
                             (sid, chat_id, now, now, idle_timeout_sec))
+            if duration_sec is not None:
+                self.db.execute('INSERT INTO session_limits VALUES(?,?)', (sid, now+duration_sec))
             device,boot=self.setting('collector_last_device'),self.setting('collector_last_boot')
             seq=self.setting('collector_last_seq')
             if device and boot and seq.isdigit():
                 self.db.execute('INSERT INTO session_boundaries VALUES(?,?,?,?)',(sid,device,boot,int(seq)))
-            return dict(self.db.execute('SELECT * FROM sessions WHERE id=?', (sid,)).fetchone())
+            return self.session_view(self.db.execute('SELECT * FROM sessions WHERE id=?', (sid,)).fetchone())
 
-    def end(self, session_id):
-        try:self.sync()
-        except DeviceBusyError:self.error='Device connection busy; ending interaction with archived data'
-        except Exception:self.error='Device offline; ending interaction with archived data'
+    def end(self, session_id, chat_id=None):
         with self.lock, self.db:
-            if not self.db.execute('SELECT id FROM sessions WHERE id=?', (session_id,)).fetchone():
+            self.expire()
+            row = self.db.execute('SELECT * FROM sessions WHERE id=?', (session_id,)).fetchone()
+            if not row:
                 raise ValueError('Unknown session_id')
+            if chat_id is not None and row['chat_id'] != chat_id:
+                raise ValueError('Session belongs to another chat')
             self.db.execute("UPDATE sessions SET ended=?,reason='user' WHERE id=? AND ended IS NULL", (utcnow(), session_id))
-            return dict(self.db.execute('SELECT * FROM sessions WHERE id=?', (session_id,)).fetchone())
+            self.bridge._expire(utcnow())
+            return self.session_view(self.db.execute('SELECT * FROM sessions WHERE id=?', (session_id,)).fetchone())
 
     def history(self, date=None, body_part=None, session_id=None, after=0, limit=50):
         if type(after) is not int or after < 0 or type(limit) is not int or not 1 <= limit <= 200:
@@ -344,7 +391,7 @@ class Companion:
             notices = [dict(r) for r in self.db.execute('SELECT * FROM notices ORDER BY id DESC LIMIT 5')]
         return {'touches': entries, 'next_cursor': entries[-1]['id'] if entries else after,
                 'has_more': more, 'timezone': 'Asia/Shanghai', 'persona': self.setting('persona'),
-                'notices': notices, 'collector_error': self.error, 'last_sync': self.last_sync,
+                'notices': notices, **self.archive_metadata(),
                 'interpretation': 'Body names are user labels. Pressure is raw ADC, not calibrated force. Infer actions cautiously.'}
 
     def call(self, name, args):
@@ -355,7 +402,16 @@ class Companion:
             'get_history_retention':'retention','set_history_retention':'set_retention',
             'preview_history_retention':'preview_retention'}
         if name in history_methods:
-            return getattr(self.history_manager,history_methods[name])(**args)
+            result = getattr(self.history_manager,history_methods[name])(**args)
+            if name == 'get_history_statistics': result.update(self.archive_metadata())
+            return result
+        if name in ('get_cached_channel_capabilities', 'get_cached_channel_config'):
+            saved = self.setting('cached_'+name.replace('get_cached_', 'get_'))
+            if not saved:
+                return dict(available=False, configuration_source='computer_sqlite', **self.archive_metadata())
+            cached = json.loads(saved)
+            return dict(cached['data'], configuration_source='computer_sqlite', configuration_saved_at=cached['saved_at'],
+                        **self.archive_metadata())
         if name in ('doll_get_status', 'doll_set_led', 'doll_simulate_press', 'get_body_map', 'set_body_map', 'get_touch_events', 'get_sensor_config', 'set_sensor_config',
                     'get_channel_capabilities', 'get_channel_config', 'set_channel_config', 'read_channel_values', 'scan_input_devices',
                     'simulate_channel_input', 'set_input_enabled', 'set_output_enabled', 'set_vibration',
@@ -371,16 +427,24 @@ class Companion:
             return self.end(**args)
         if name in ('query_touch_history', 'get_interaction_events', 'query_device_history', 'get_interaction_device_events'):
             if name in ('get_interaction_events','get_interaction_device_events'):
-                with self.lock:
-                    if not args.get('session_id') or not self.db.execute('SELECT id FROM sessions WHERE id=?',(args['session_id'],)).fetchone():
+                args = dict(args)
+                chat_id = args.pop('chat_id',None)
+                with self.lock, self.db:
+                    self.expire()
+                    row = self.db.execute('SELECT * FROM sessions WHERE id=?',(args.get('session_id'),)).fetchone()
+                    if not row:
                         raise ValueError('Known session_id required')
-            try:
-                self.sync()
-            except DeviceBusyError:
-                self.error = 'Device connection busy; returning archived history'
-            except Exception:
-                self.error = 'Device offline; returning archived history'
-            return self.device_history(**args) if name in ('query_device_history','get_interaction_device_events') else self.history(**args)
+                    if chat_id is not None and row['chat_id'] != chat_id:
+                        raise ValueError('Session belongs to another chat')
+                    session = self.session_view(row)
+                    result = self.device_history(**args) if name == 'get_interaction_device_events' else self.history(**args)
+                    result['session'] = session
+                    result['session_closed'] = session['ended'] is not None
+                    if result['session_closed']:
+                        result['events' if name == 'get_interaction_device_events' else 'touches'] = []
+                        result.update(next_cursor=args.get('after',0), has_more=False)
+                    return result
+            return self.device_history(**args) if name == 'query_device_history' else self.history(**args)
         if name == 'get_persona':
             return {'persona': self.setting('persona')}
         if name == 'get_feedback_preferences':
@@ -390,9 +454,6 @@ class Companion:
         if name == 'get_reply_bridge_status':
             return self.bridge.state()
         if name == 'summarize_interactions':
-            try:self.sync()
-            except DeviceBusyError:self.error = 'Device connection busy; returning archived history'
-            except Exception:self.error = 'Device offline; returning archived history'
             history = self.device_history(**args)
             # Boot boundaries are required even when the usual public event view omits them.
             with self.lock:
@@ -473,6 +534,6 @@ class Companion:
             notices=[dict(r) for r in self.db.execute('SELECT * FROM notices ORDER BY id DESC LIMIT 5')]
         return {'events':entries,'next_cursor':entries[-1]['id'] if entries else after,'has_more':len(rows)>limit,
                 'timezone':'Asia/Shanghai','persona':self.setting('persona'),'notices':notices,
-                'collector_error':self.error,'last_sync':self.last_sync,
+                **self.archive_metadata(),
                 'interpretation':'Preserve type/unit/source/quality. Pressure raw is not calibrated force. Temperature uses its configured driver; invalid readings stay null. Output events are commands, not touch or measured motor feedback.'}
 

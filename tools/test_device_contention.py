@@ -88,7 +88,8 @@ class ContentionTests(unittest.TestCase):
         result = self.while_busy(self.c.sync_lock, lambda: self.c.call('query_touch_history', {}))
         self.assertNotIn('error', result)
         self.assertEqual(len(result['result']['touches']), 1)
-        self.assertIn('busy', result['result']['collector_error'].lower())
+        self.assertIsNone(result['result']['collector_error'], 'Read-only history must not invent a collection error')
+        self.assertEqual(result['result']['history_source'], 'computer_sqlite')
 
     def test_busy_start_does_not_create_a_session(self):
         result = self.while_busy(self.c.sync_lock, lambda: self.c.start('chat', 60))

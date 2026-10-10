@@ -14,7 +14,7 @@ import uuid
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from input_observations import pressure_observations
 
-VERSION = 'doll-bridge-2.12.3'
+VERSION = 'doll-bridge-2.13.0'
 DEFAULT_QUIET = dict(enabled=False, start='23:00', end='07:00', timezone='Asia/Shanghai')
 DEFAULT_POLICY = dict(merge_ms=300, cooldown_ms=1500, max_age_sec=30,
                       allow_simulation=True, temperature_enabled=False,
@@ -212,6 +212,9 @@ class EventBridge:
 
     def enqueue(self, row_id, device, at, session_id, event, now):
         # Called while Companion owns the archive transaction. No network I/O here.
+        self._expire(now)
+        if not self.db.execute('SELECT 1 FROM sessions WHERE id=? AND ended IS NULL', (session_id,)).fetchone():
+            return
         if at is None or event.get('delivery_quality') == 'offline_replay':
             return
         if event.get('direction', 'input') != 'input':

@@ -1,0 +1,11 @@
+{
+  "kind": "openclaw",
+  "target_id": "existing-wechat-chat-123",
+  "url": "https://gateway.example.com/hooks/agent",
+  "token": "REPLACE_WITH_DEDICATED_HOOK_TOKEN",
+  "agent_id": "main",
+  "session_key": "REPLACE_WITH_EXISTING_WECHAT_SESSION_KEY",
+  "channel": "REPLACE_WITH_INSTALLED_CHANNEL_ID",
+  "recipient": "REPLACE_WITH_CONFIRMED_RECIPIENT",
+  "account_id": "REPLACE_IF_MULTIPLE_ACCOUNTS"
+}
