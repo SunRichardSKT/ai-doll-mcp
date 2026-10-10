@@ -6,7 +6,8 @@ param(
 )
 $ErrorActionPreference='Stop'
 $root=Split-Path -Parent $PSScriptRoot
-$python=Join-Path $root '.venv\Scripts\python.exe'
+. (Join-Path $PSScriptRoot 'runtime_python.ps1')
+$python=Get-DollPython -Root $root
 if(!(Test-Path $python)){$python=Join-Path $env:USERPROFILE '.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'}
 if(!(Test-Path $python)){$python=(Get-Command python -ErrorAction Stop).Source}
 $env:DOLL_SERIAL_PORT=$Port

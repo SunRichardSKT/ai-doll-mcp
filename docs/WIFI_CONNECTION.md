@@ -16,7 +16,7 @@ ESP32 连接 2.4 GHz Wi-Fi，电脑与设备须互通，避免访客网络或 AP
 完成 [安装依赖](AI_INSTALL.md) 后，在项目根目录运行：
 
 ```powershell
-.\.venv\Scripts\python.exe tools/pair_wifi_device.py --host 192.168.1.50
+.\python\python.exe tools/pair_wifi_device.py --host 192.168.1.50
 .\tools\start_companion.ps1 -DeviceHost 192.168.1.50
 ```
 

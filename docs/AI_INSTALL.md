@@ -2,11 +2,11 @@
 
 新增设备直连通路：[手机配置、自部署服务器及原聊天主动反馈](DIRECT_SERVER.md)。原电脑采集 / MCP 流程继续兼容；直连模式无需本地电脑运行。验证范围见 [直连验收](DIRECT_SERVER_ACCEPTANCE.md)。
 
-当前电脑 Bridge 2.15.0，设备固件 2.8.0。安装和日常管理统一从根目录 **AI_Doll.cmd** 打开；功能与四步流程见 [GUI 使用指南](GUI_GUIDE.md)。用户继续原 AI 聊天，不另填聊天模型密钥。
+当前电脑 Bridge 2.16.0，设备固件 2.8.1。安装和日常管理统一从根目录 **AI_Doll.cmd** 打开；功能与四步流程见 [GUI 使用指南](GUI_GUIDE.md)。用户继续原 AI 聊天，不另填聊天模型密钥。
 
 ## 推荐：GUI 安装
 
-1. 安装 Windows 64 位 Python 3.12–3.14，解压代码包到固定可写目录。
+1. 将 Windows 64 位完整代码包解压到固定可写目录，保留根目录 python/（已内置 Python 与依赖）。
 2. 双击 AI_Doll.cmd，在“安装引导”点击准备运行环境。
 3. 给设备配网，电脑回到同一局域网。填设备 IP 和 MCP 令牌，验证保存配对。
 4. 选择 AI：普通 Chat 填 Secure 隧道 ID 和运行密钥；本机客户端复制生成的 STDIO 配置。
@@ -24,7 +24,7 @@
 .\tools\install_bridge.ps1 -DeviceHost 192.168.1.50 -AutoDetectDevice -VerifyConnection
 ```
 
-已安装时可加 `-SkipDependencies`。本机客户端使用生成的 `build/device-lab/mcp-client-config.json` 中 `mcpServers.ai_doll`；STDIO 提供 45 个工具，使用项目自己的绝对 Python 与脚本路径。移动项目后重新生成配置。若明确要登记本机 Codex，可运行 `.\.venv\Scripts\python.exe tools/install_companion_mcp.py --codex`，保留其他服务。
+已安装时可加 `-SkipDependencies`。本机客户端使用生成的 `build/device-lab/mcp-client-config.json` 中 `mcpServers.ai_doll`；STDIO 提供 45 个工具，使用项目自己的绝对 Python 与脚本路径。移动项目后重新生成配置。若明确要登记本机 Codex，可运行 `.\python\python.exe tools/install_companion_mcp.py --codex`，保留其他服务。
 
 普通 Chat 见 [Secure 指南](SECURE_MCP.md)，Sakura 兼容入口见 [远程指南](REMOTE_MCP.md)，其他宿主见 [接入说明](HOST_INTEGRATIONS.md)。ZIP 包是安装代码，不等于聊天已经接通 MCP。
 

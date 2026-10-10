@@ -4,7 +4,8 @@ param(
 )
 $ErrorActionPreference='Stop'
 $root=Split-Path -Parent $PSScriptRoot
-$python=Join-Path $root '.venv\Scripts\python.exe'
+. (Join-Path $PSScriptRoot 'runtime_python.ps1')
+$python=Get-DollPython -Root $root
 if($Action -in @('install','start','configure')){
     & (Join-Path $PSScriptRoot 'open_control_panel.ps1') -AutoStart:($Action -eq 'start')
 }else{

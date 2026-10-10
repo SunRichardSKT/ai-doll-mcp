@@ -8,7 +8,8 @@ param(
 $ErrorActionPreference='Stop'
 $root=Split-Path -Parent $PSScriptRoot
 $python=$PythonExecutable
-if(!$python){$python=Join-Path $root '.venv\Scripts\python.exe'}
+. (Join-Path $PSScriptRoot 'runtime_python.ps1')
+if(!$python){$python=Get-DollPython -Root $root}
 if(!(Test-Path -LiteralPath $python)){$python=Join-Path $env:USERPROFILE '.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'}
 if(!(Test-Path -LiteralPath $python)){$python=(Get-Command python -ErrorAction Stop).Source}
 if($Action -eq 'start'){

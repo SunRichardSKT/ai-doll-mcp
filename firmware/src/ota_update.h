@@ -34,10 +34,10 @@ static void otaStatus(JsonObject out){
  out["chunk_bytes"]=sizeof(otaBuffer);out["idle_timeout_ms"]=30000;
 }
 static bool otaAuthorized(){
- // Never inherit the password-free provisioning portal's admin bypass.
+ // OTA remains LAN-only and requires a setup token; optional page login also applies.
  if(configAP||WiFi.status()!=WL_CONNECTED||!originOK()||
-    !web.authenticate("admin",apPass.c_str())||web.header("X-Setup-Token")!=token){
-  web.send(403,"application/json","{\"error\":\"OTA requires LAN admin authentication and setup token\"}");return false;
+    (adminAuthEnabled&&!web.authenticate(adminUser.c_str(),apPass.c_str()))||web.header("X-Setup-Token")!=token){
+  web.send(403,"application/json","{\"error\":\"OTA requires LAN access, setup token and configured login\"}");return false;
  }
  return true;
 }

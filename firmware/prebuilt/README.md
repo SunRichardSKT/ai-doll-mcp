@@ -1,6 +1,6 @@
-# ESP32-C3 交付固件 2.8.0
+# ESP32-C3 交付固件 2.8.1
 
-应用镜像 1294528 bytes，SHA-256 `8e61b523dab1fa11376f468a1e7f8a6a81220725b81b6cd4be74628f5b11a99f`。该镜像已在裸开发板实际烧录、校验并确认启动，保留原 Wi-Fi 与通道。新增设备直连服务器，HTTP / 校验根证书的 HTTPS 上传、拒绝错误证书、软件重启恢复和手机尺寸设置页已实测。验收见 [直连报告](../../docs/DIRECT_SERVER_ACCEPTANCE.md)。未包含 Wi-Fi、NVS、个人日志或模型密钥。
+应用镜像 1298032 bytes，SHA-256 `b6bca8008fa5e7d4cf9f7c1a461b24fe8406093938d7f8bf2171f2952dd19daf`。已在裸 ESP32-C3 实际无线升级、校验并确认启动，保留原 Wi-Fi、MCP 令牌与通道。新增联网设置页默认免登录与可开关的账号密码保护，开启、关闭和重启持久化均实测通过。具体使用见 [运行环境与登录设置](../../docs/RUNTIME_AND_LOGIN.md)。此前直连功能验收见 [直连报告](../../docs/DIRECT_SERVER_ACCEPTANCE.md)。未包含 Wi-Fi、NVS、个人日志或模型密钥。
 
 首次安装选择 ESP32-C3、4MB、DIO、80MHz，按 `FLASH_MANIFEST.json` 烧录四个文件：
 

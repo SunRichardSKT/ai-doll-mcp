@@ -32,11 +32,11 @@ python tools/discover_device.py
 
 ## 可选登录启动
 
-默认不开启。使用项目已安装依赖的 Python；如果按安装指南建立了虚拟环境，就使用该虚拟环境。先预览命令，再按需安装：
+默认不开启。Windows 完整包使用根目录内置的 Python；源码开发版可使用自己创建的虚拟环境。先预览命令，再按需安装：
 
 ```powershell
-.\.venv\Scripts\python.exe tools/configure_startup.py install --dry-run
-.\.venv\Scripts\python.exe tools/configure_startup.py install
+.\python\python.exe tools/configure_startup.py install --dry-run
+.\python\python.exe tools/configure_startup.py install
 ```
 
 安装后，在此 Windows 用户下次登录时隐藏启动电脑采集服务，沿用保存的连接方式和配对。它不会在安装时启动或停止当前服务；也不会启动 AI 客户端、注册客户端 MCP 或保证聊天自动回复。电脑睡眠、关机或服务停止期间不会持续采集长期历史。
@@ -44,8 +44,8 @@ python tools/discover_device.py
 查询或取消：
 
 ```powershell
-.\.venv\Scripts\python.exe tools/configure_startup.py status
-.\.venv\Scripts\python.exe tools/configure_startup.py remove
+.\python\python.exe tools/configure_startup.py status
+.\python\python.exe tools/configure_startup.py remove
 ```
 
 只修改当前项目对应的一个用户启动项。移动项目或虚拟环境后，用原目录移除旧启动项，再从新目录安装。路径含空格可用。日志在本机 `build/device-lab/background-service.log`，最大 512 KiB，最多两份轮转文件；不进入交付包。

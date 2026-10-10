@@ -39,9 +39,10 @@ class OtaClient:
         if address.version != 4 or not address.is_private or address.is_unspecified or address.is_multicast:
             raise ValueError('Use a private LAN IPv4 device address')
         self.base = 'http://' + str(address)
-        self.headers = {'Content-Type': 'application/json', 'X-Setup-Token': config['mcp_token'],
-                        'Authorization': 'Basic ' + base64.b64encode(
-                            ('admin:' + config['ap_password']).encode()).decode()}
+        self.headers = {'Content-Type': 'application/json', 'X-Setup-Token': config['mcp_token']}
+        if config.get('ap_password'):
+            self.headers['Authorization'] = 'Basic ' + base64.b64encode(
+                (config.get('admin_user', 'admin') + ':' + config['ap_password']).encode()).decode()
         self.opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 
     def request(self, path, data=None):

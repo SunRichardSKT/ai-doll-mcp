@@ -12,7 +12,7 @@ import urllib.request
 from device_lab import CONFIG, WORK, SerialLink
 from device_discovery import discover_paired_device
 
-VERSION = 'doll-bridge-2.15.0'
+VERSION = 'doll-bridge-2.16.0'
 PROTOCOL = '2025-11-25'
 
 
@@ -52,6 +52,7 @@ class WifiLink:
                 '\r' in self.token or '\n' in self.token):
             raise ValueError('Pair the device first: python tools/pair_wifi_device.py --host <LAN-IP>')
         self.admin_password = config.get('ap_password', '')
+        self.admin_user = config.get('admin_user', 'admin')
         self.expected_device = config.get('device_id') or config.get('state', {}).get('device_id')
         self.config = config
         self.discovery = discovery
@@ -69,10 +70,9 @@ class WifiLink:
         headers = {'Content-Type': 'application/json', 'Accept': 'application/json, text/event-stream',
                    'MCP-Protocol-Version': PROTOCOL, 'Authorization': 'Bearer ' + self.token}
         if admin:
-            if not self.admin_password:
-                raise ValueError('Open the device settings page to manage Wi-Fi; no admin password is paired')
-            headers['Authorization'] = 'Basic ' + base64.b64encode(
-                ('admin:' + self.admin_password).encode()).decode()
+            if self.admin_password:
+                headers['Authorization'] = 'Basic ' + base64.b64encode(
+                    (self.admin_user + ':' + self.admin_password).encode()).decode()
             headers['X-Setup-Token'] = self.token
         wire = json.dumps(payload, ensure_ascii=True).encode()
         req = urllib.request.Request(self.base + path, data=wire, headers=headers, method='POST')
@@ -184,7 +184,7 @@ class WifiLink:
         cmd = command.get('cmd')
         if cmd == 'setup':
             return {'mcp_token': self.token, 'ap_password': self.admin_password,
-                    'admin_user': 'admin', 'transport': 'wifi'}
+                    'admin_user': self.admin_user, 'transport': 'wifi'}
         if cmd == 'scan':
             return self._request('/api/scan', {'start': bool(command.get('start', False))}, admin=True)
         if cmd == 'wifi':

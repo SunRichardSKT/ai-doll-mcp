@@ -29,7 +29,7 @@ Platform 密钥用于官方隧道服务，不是娃娃账号或聊天模型 API�
 两个编号应与本机 `gateway/calls.jsonl` 中已完成的记录匹配。`run_id` 用于识别当前服务实例。安装器的 SDK 调用不能代替这项目标 Chat 实测。可在项目根目录运行以下核对入口，替换两个 Chat 实际返回的编号：
 
 ```powershell
-.\.venv\Scripts\python.exe tools/verify_chat_calls.py --installation-call-id <编号1> --device-call-id <编号2>
+.\python\python.exe tools/verify_chat_calls.py --installation-call-id <编号1> --device-call-id <编号2>
 ```
 
 核对记录仅表示用户报告的两个状态调用与当前服务器匹配，不证明完整互动反馈或后台唤醒。

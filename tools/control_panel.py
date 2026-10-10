@@ -90,6 +90,8 @@ def pair_device(data):
         candidate.pop('state', None)
     if data.get('admin_password'):
         candidate['ap_password'] = data['admin_password']
+    if data.get('admin_user'):
+        candidate['admin_user'] = data['admin_user'].strip()
     try:
         link = WifiLink(data.get('host', '').strip(), candidate, timeout=4)
         status = link.exchange({'cmd': 'status'})
@@ -171,8 +173,8 @@ def worker(action, data):
             raise ValueError('请先确认要刷写所选固件。')
         connection = read_json(WORK / 'connection-private.json', {})
         config = read_json(WORK / 'device-private.json', {})
-        if connection.get('transport') != 'wifi' or not config.get('ap_password'):
-            raise ValueError('无线升级需要 Wi-Fi 配对和设备管理密码，请在设备连接中保存密码，或打开设备设置页升级。')
+        if connection.get('transport') != 'wifi':
+            raise ValueError('无线升级需要先完成 Wi-Fi 配对，或打开设备设置页升级。')
         if data.get('bundled'):
             image = (ROOT / 'firmware/prebuilt/firmware.bin').read_bytes()
             manifest = read_json(ROOT / 'firmware/prebuilt/FLASH_MANIFEST.json')
@@ -195,6 +197,9 @@ class Panel:
 
     @property
     def python(self):
+        bundled = ROOT / 'python/python.exe'
+        if os.name == 'nt' and bundled.is_file():
+            return bundled
         return ROOT / ('.venv/Scripts/python.exe' if os.name == 'nt' else '.venv/bin/python')
 
     def check_environment(self):
@@ -224,6 +229,13 @@ class Panel:
         return output
 
     def install(self):
+        if self.python == ROOT / 'python/python.exe':
+            self.note('正在检查软件包内置运行环境…')
+            self.ready = self.check_environment()
+            if not self.ready:
+                raise ValueError('内置依赖不完整，请重新解压完整软件包并保留 python 文件夹。')
+            self.run_worker('client-config')
+            return dict(installed=True, bundled=True)
         if not self.python.is_file():
             self.note('正在创建项目运行环境…')
             base = Path(sys.executable).with_name('python.exe') if os.name == 'nt' else Path(sys.executable)
@@ -303,7 +315,7 @@ class Panel:
             secure_config=dict(configured=bool(cfg), tunnel_id=cfg.get('tunnel_id', ''),
                 profile=cfg.get('profile', 'interaction'), key_saved=bool(cfg.get('runtime_api_key'))),
             secure=self.secure, job=task, messages=messages,
-            project=str(ROOT), version='2.15.0')
+            project=str(ROOT), version='2.16.0')
 
 
 def make_handler(panel):
@@ -367,11 +379,16 @@ def make_handler(panel):
 
 
 def main():
+    global PORT
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--worker')
     parser.add_argument('--no-browser', action='store_true')
     parser.add_argument('--autostart', action='store_true')
+    parser.add_argument('--port', type=int, default=8769)
     args = parser.parse_args()
+    if not 1024 <= args.port <= 65535:
+        parser.error('port must be 1024..65535')
+    PORT = args.port
     if args.worker:
         try:
             result = worker(args.worker, json.load(sys.stdin))

@@ -225,7 +225,7 @@
     if (currentStep === 1 && !state.paired && state.connection.transport !== 'usb') throw Error('请先完成设备配对，或在“设备连接”选择 USB 测试。');
     if (currentStep === 3) navigate('overview'); else showStep(currentStep + 1);
   });
-  bind('pairButton', () => run('pair', {host: el('deviceHost').value, token: el('deviceToken').value, admin_password: el('deviceAdminPassword').value}));
+  bind('pairButton', () => run('pair', {host: el('deviceHost').value, token: el('deviceToken').value, admin_user: el('deviceAdminUser').value, admin_password: el('deviceAdminPassword').value}));
   bind('connectUsb', () => run('usb', {port: el('serialPort').value}));
   bind('usbWifi', () => {
     if (state.collector.transport !== 'usb') throw Error('请先切换为 USB 连接。Wi-Fi 已连接时可直接打开设备设置页。');

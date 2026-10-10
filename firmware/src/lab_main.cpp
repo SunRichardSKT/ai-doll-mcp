@@ -12,12 +12,14 @@ static DNSServer dns;
 static Preferences prefs;
 static String apName, apPass, token, ssid, password, serialLine;
 static bool mcpEnabled=true, led=false, connectPending=false;
+static bool adminAuthEnabled=false, adminPasswordSet=false;
+static String adminUser="admin";
 static uint32_t connectAt=0, lastAttempt=0, pressUntil=0;
 static int pressChannel=-1, pressValue=0, lastWifi=-1;
 static constexpr int LED_PIN=8; // Common SuperMini blue LED, active low.
 static bool scanBusy=false;
 static uint32_t scanStartedAt=0;
-static const char* VERSION="doll-lab-2.8.0";
+static const char* VERSION="doll-lab-2.8.1";
 static const char* PROTOCOL="2025-11-25";
 
 static String encode(const JsonDocument &d){String s;serializeJson(d,s);return s;}
@@ -180,7 +182,7 @@ static JsonDocument rpc(const JsonDocument &in){
  return out;
 }
 #include "remote_uplink.h"
-static bool admin(){if(configAP)return true;if(web.authenticate("admin",apPass.c_str()))return true;web.requestAuthentication();return false;}
+static bool admin(){if(configAP||!adminAuthEnabled)return true;if(web.authenticate(adminUser.c_str(),apPass.c_str()))return true;web.requestAuthentication();return false;}
 static bool originOK(){String o=web.header("Origin");return o.isEmpty()||o=="http://"+WiFi.softAPIP().toString()||(WiFi.status()==WL_CONNECTED&&o=="http://"+WiFi.localIP().toString());}
 static void sendJson(int code,const JsonDocument &d){web.sendHeader("Cache-Control","no-store");web.send(code,"application/json; charset=utf-8",encode(d));}
 #include "device_page.h"
@@ -199,7 +201,7 @@ static void serialCommand(const String &line){
  else if(cmd=="sync_time"){String error;out["ok"]=syncDeviceClock(in.as<JsonVariantConst>(),error);if(error.length())out["error"]=error;}
  else if(cmd=="setup_mode"){openConfigAP(NetworkMode::SETUP);out["ok"]=true;}
  else if(cmd=="scan")scanWifi(out.to<JsonObject>(),in["start"]|false);
- else if(cmd=="setup"){out["ap_ssid"]=apName;out["ap_password"]=apPass;out["admin_user"]="admin";out["mcp_token"]=token;}
+ else if(cmd=="setup"){out["ap_ssid"]=apName;out["ap_password"]=apPass;out["admin_user"]=adminUser;out["auth_enabled"]=adminAuthEnabled;out["mcp_token"]=token;}
  else if(cmd=="remote_config"){String error;out["ok"]=remoteSave(in.as<JsonVariantConst>(),error);if(error.length())out["error"]=error;}
  else if(cmd=="wifi"){String error;out["ok"]=provision(in.as<JsonVariantConst>(),error);if(error.length())out["error"]=error;}
  else if(cmd=="mcp"){if(!in["enabled"].is<bool>()){out["error"]="enabled must be boolean";}else{mcpEnabled=in["enabled"];prefs.putBool("mcp",mcpEnabled);out["ok"]=true;}}
@@ -219,12 +221,31 @@ void setup(){
  apPass=prefs.getString("apkey","");if(apPass.isEmpty()){apPass="Doll-"+randomHex().substring(0,10);prefs.putString("apkey",apPass);}
  token=prefs.getString("token","");if(token.isEmpty()){token=randomHex();prefs.putString("token",token);}
  ssid=prefs.getString("ssid","");password=prefs.getString("pass","");mcpEnabled=prefs.getBool("mcp",true);
+ adminAuthEnabled=prefs.getBool("admin_auth",false);adminPasswordSet=prefs.getBool("admin_set",false);adminUser=prefs.getString("admin_user","admin");
  eventStorageInit();networkInit();remoteInit();
  const char* headers[]={"Authorization","Origin","X-Setup-Token","MCP-Protocol-Version"};web.collectHeaders(headers,4);
  web.on("/",HTTP_GET,[]{if(admin())web.send_P(200,"text/html; charset=utf-8",PAGE);});
  web.on("/channel-editor.js",HTTP_GET,[]{if(admin())web.send_P(200,"application/javascript; charset=utf-8",CHANNEL_EDITOR_JS);});
  web.on("/ota-manager.js",HTTP_GET,[]{if(admin())web.send_P(200,"application/javascript; charset=utf-8",OTA_MANAGER_JS);});
- web.on("/api/setup",HTTP_GET,[]{if(!admin())return;JsonDocument d;d["token"]=token;d["enabled"]=mcpEnabled;d["admin_password"]=apPass;d["network_mode"]=networkModeName();sendJson(200,d);});
+ web.on("/api/setup",HTTP_GET,[]{if(!admin())return;JsonDocument d;d["token"]=token;d["enabled"]=mcpEnabled;d["auth_enabled"]=adminAuthEnabled;d["admin_user"]=adminUser;d["password_set"]=adminPasswordSet;d["network_mode"]=networkModeName();sendJson(200,d);});
+ web.on("/api/security",HTTP_POST,[]{
+  if(!admin())return;
+  if(!originOK()||web.header("X-Setup-Token")!=token){web.send(403,"text/plain","Forbidden");return;}
+  if(otaActive||otaCommitted){web.send(409,"text/plain","Upgrade in progress");return;}
+  JsonDocument in,out;
+  if(web.arg("plain").length()>1024||deserializeJson(in,web.arg("plain"))||!in["enabled"].is<bool>()||!in["username"].is<String>()||!in["password"].is<String>()){
+   out["error"]="enabled, username and password are required";sendJson(400,out);return;
+  }
+  String user=in["username"].as<String>(),pass=in["password"].as<String>();bool enabled=in["enabled"];
+  bool valid=user.length()>0&&user.length()<=32;
+  for(size_t i=0;i<user.length();i++){char c=user[i];if(!((c>='a'&&c<='z')||(c>='A'&&c<='Z')||(c>='0'&&c<='9')||c=='_'||c=='-'))valid=false;}
+  if(!valid||(!pass.isEmpty()&&(pass.length()<8||pass.length()>64))||(enabled&&pass.isEmpty()&&!adminPasswordSet)){
+   out["error"]="Username: 1..32 letters/digits/_/-. Set an 8..64 byte password before enabling login.";sendJson(400,out);return;
+  }
+  if(!pass.isEmpty()){apPass=pass;adminPasswordSet=true;prefs.putString("apkey",apPass);prefs.putBool("admin_set",true);}
+  adminUser=user;prefs.putString("admin_user",adminUser);adminAuthEnabled=enabled;prefs.putBool("admin_auth",enabled);
+  out["ok"]=true;out["auth_enabled"]=enabled;sendJson(200,out);
+ });
  web.on("/api/uplink",HTTP_GET,[]{if(!admin())return;JsonDocument d;remoteStatus(d.to<JsonObject>());sendJson(200,d);});
  web.on("/api/uplink",HTTP_POST,[]{
   if(!admin())return;

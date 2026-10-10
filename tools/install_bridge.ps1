@@ -12,11 +12,16 @@ $ErrorActionPreference='Stop'
 $root=Split-Path -Parent $PSScriptRoot
 if($DeviceHost -and $Transport -eq 'usb'){throw 'DeviceHost cannot be used with USB transport'}
 if($NoStart -and ($VerifyConnection -or $AutoDetectDevice)){throw 'Verification requires a running collector; omit NoStart'}
-$python=Join-Path $root '.venv\Scripts\python.exe'
-if($SkipDependencies){
+. (Join-Path $PSScriptRoot 'runtime_python.ps1')
+$python=Get-DollPython -Root $root
+if(Test-Path -LiteralPath (Join-Path $root 'python\python.exe')){
+    & $python -I -c 'import mcp,httpx,serial'
+    if($LASTEXITCODE -ne 0){throw '内置依赖不完整，请重新解压完整软件包。'}
+}elseif($SkipDependencies){
     if(!(Test-Path -LiteralPath $python)){$python=Join-Path $env:USERPROFILE '.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'}
     if(!(Test-Path -LiteralPath $python)){$python=(Get-Command python -ErrorAction Stop).Source}
 }else{
+    $python=Join-Path $root '.venv\Scripts\python.exe'
     if(!(Test-Path -LiteralPath $python)){
         $basePython=(Get-Command python -ErrorAction Stop).Source
         & $basePython -I -m venv (Join-Path $root '.venv')
@@ -33,7 +38,7 @@ if($DeviceHost -and !(Test-Path -LiteralPath (Join-Path $root 'build\device-lab\
 if($LASTEXITCODE -ne 0){throw 'MCP configuration generation failed'}
 $work=Join-Path $root 'build\device-lab'
 $config=[ordered]@{
-    bridge_version='2.15.0';platform=$Platform;serial_port=$Port
+    bridge_version='2.16.0';platform=$Platform;serial_port=$Port
     transport=$Transport;device_host=$DeviceHost
     local_page='http://127.0.0.1:8768/bridge'
     native_mcp_events='http://127.0.0.1:8768/bridge/mcp'
