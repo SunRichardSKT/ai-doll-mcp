@@ -1,6 +1,6 @@
 # 远程服务器：快速安装
 
-适用于你自己的 Linux 服务器。电脑端的 Windows 启动程序和内置 Python 不需要上传到服务器。
+适用于你自己的 Linux 服务器。首次选择方式可先看 [连接方式](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/MCP_TRANSPORT_DECISION.md)。电脑端的 Windows 启动程序和内置 Python 不需要上传到服务器。
 
 整个流程是：**准备服务器和域名 → 运行安装入口 → 打开管理页面 → 手机连接娃娃**。
 

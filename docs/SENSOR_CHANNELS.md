@@ -1,38 +1,34 @@
-# 通道、传感器与震动输出
+# 通道、压力、温度与震动
 
-当前支持压力、温度输入及震动输出。能力和资源限制以 `get_channel_capabilities` 返回为准。主动订阅及反馈偏好见 [主动互动指南](PROACTIVE_INTERACTION.md)。
+每个通道保存类型、部位、接口和参数。先选真实已安装的驱动，再设置部位名称。当前固件 2.8.1，能力以 `get_channel_capabilities` 返回为准。
 
-固件 `doll-lab-2.8.0`。通道不再只能表示 FSR；每个通道保存类型、部位/用途、接口、启用状态和参数。当前提供压力、温度、震动三种预设。
+## 可以接什么
 
-## 通道与硬件
+| 类型 | 单位 | 已实现接口 |
+| --- | --- | --- |
+| 压力 `pressure` | `adc_raw`，0～4095 | 模拟、4051 的 8 路 `mux_adc`、GPIO1 `gpio_adc` |
+| 温度 `temperature` | `degC` | 模拟、NTC10k/B3950 模拟量、GPIO1 DS18B20 |
+| 震动 `vibration` | `percent` 命令强度 | 模拟、GPIO6 / 7 / 10 PWM 加板外驱动 |
 
-最多配置 16 个**逻辑通道**，ID 为 0～15，可以保留空号。现有 PCB 的 74HC4051 仍只有 8 个物理输入端口，逻辑通道数量增加不会增加物理接口，也不会改动已下单 PCB。
+最多 16 个逻辑通道，ID 0～15；现有 PCB 只有 8 个 4051 物理输入。增加逻辑 ID 不会增加焊盘。DS18B20 和 GPIO1 ADC 不能同时使用。
 
-| 类型 | 方向 | 单位 | 已实现接口 |
-|---|---|---|---|
-| `pressure` 压力 | 输入 | `adc_raw`，0～4095 | 模拟、4051 输入、GPIO1 ADC |
-| `temperature` 温度 | 输入 | `degC`，℃ | 模拟、NTC10k/B3950 经 4051 或 GPIO1 ADC、DS18B20 共用 GPIO1 |
-| `vibration` 震动 | 输出 | `percent`，0～100% 命令强度 | 模拟、独立 GPIO6/7/10 PWM |
+## 页面设置步骤
 
-每个通道可自由命名为部位/用途，例如“左手压力”“腹部温度”“胸口震动”。类型和接口需从已支持的选项中选择；名称只作为数据标签，不是对 AI 的指令。
+1. 打开设备页或管理中心“通道与校准”，修改类型、部位和驱动。新通道默认模拟。
+2. 真实 4051 输入填端口 0～7，不重复占用；GPIO ADC 目前只允许 GPIO1。
+3. DS18B20 输入关闭后扫描实际地址，按 [探头指南](DIGITAL_TEMPERATURE.md)绑定。
+4. 参数按实际电路填写；点击 **保存全部配置** 前确认所有希望保留的通道仍在列表。
+5. 保存会结束当前动作、关闭真实输入输出并取消日常模式，历史不改写。检查硬件后再启用。
 
-默认八路压力对应 4051 端口 0～7，可分别命名。配置保存在 ESP32 NVS，重启恢复。默认手动模式重启关闭真实采样；用户确认接线并保存日常模式后可恢复输入。真实输出始终不会自动恢复。完整配置保存会取消日常模式。见 [校准与日常模式](CALIBRATION_AND_DAILY_MODE.md)。
+部位只是标签，不是执行指令。配置存于设备 NVS，重启保留；输入恢复策略见 [校准与模式](CALIBRATION_AND_DAILY_MODE.md)。
 
-## 在页面上设置
+## 压力与模拟
 
-电脑通过 Wi-Fi 或 USB 运行采集服务后打开 <http://127.0.0.1:8768/companion>，或在同一局域网打开设备设置页。
+默认八路压力对应 MUX 0～7。保留主板的 4.7k 串联、10k 下拉与滤波电容。真实 FSR 接好后逐路校准。
 
-1. 在“通道类型与部位”中修改名称、选择类型和接口。添加通道时分配一个未使用的 ID，默认“仅模拟”。改变类型也先切回“仅模拟”，请再选择所需接口。
-2. 真实 4051 输入选择 `mux_adc`，填写端口 0～7；不同通道不能占用同一端口。独立 ADC 使用 `gpio_adc`，当前只允许 GPIO1。
-3. DS18B20 选择 GPIO1、扫描并选择实际 ROM 地址；各地址必须不同，不能与 GPIO1 ADC 共用。详见 [数字温度指南](DIGITAL_TEMPERATURE.md)。
-4. 展开“阈值 / 温度参数”可设置压力阈值和温度换算参数。保留 `{}` 时使用该类型默认值。
-5. 点击“保存全部配置”。这是完整配置替换，不是仅修改一行；保存会结束当前按压/震动命令，并关闭真实输入、输出。历史记录不改写。
-6. 在模拟输入区域选择压力或温度通道，发送数值。震动输出在独立区域测试。“仅模拟”震动只记录命令，不会驱动电机。
-7. 实物传感器接好后才勾选真实输入。电机驱动接好并确认后，才允许真实 PWM 输出。手动模式重启、再次保存完整通道配置后需要重新启用；日常模式只恢复输入。
+模拟压力 0 表示释放，非零最多 5 秒自动释放。模拟温度为采样值，不是按压开始 / 结束；模拟震动只记录命令。所有模拟数据标记 `simulation`。
 
-压力模拟 0 表示释放，非零值最多保持 5 秒。温度模拟是一个采样值，不会被当作触摸开始/结束。震动持续时间为 1～5000ms，超时自动停止，强度 0 可立即停止。
-
-## 温度预设与接线
+## NTC 温度：接线与参数
 
 模拟量温度使用 **NTC 10kΩ / B3950** 换算；数字温度使用 **DS18B20**，接线和地址绑定见 [数字温度指南](DIGITAL_TEMPERATURE.md)。DHT 等其他驱动尚未安装，不能仅修改名称接入。以下分压和 Beta 参数仅适用于 NTC。
 
@@ -66,61 +62,18 @@
 
 ADC 引脚及校准依据见 [Espressif ESP32-C3 ADC 文档](https://docs.espressif.com/projects/esp-idf/en/release-v4.4/esp32c3/api-reference/peripherals/adc.html)。固件使用当前 Arduino 核心的 `analogReadMilliVolts`，没有把 4095 直接视为精确 3.3V。
 
-## 震动输出接线与限制
+## 震动：需要板外驱动
 
-当前 PCB 的 FSR 接口是模拟输入。震动电机应使用单独的 GPIO6、GPIO7 或 GPIO10，经过板外 MOSFET/三极管或适配驱动模块控制；电机供电、驱动、续流保护及公共 GND 按所用电机和驱动规格接好。GPIO 和 4051 均不直接接电机负载。
+FSR 接口是模拟输入，不能接电机。使用独立 GPIO6、7 或 10，通过合适的板外驱动控制；电源、公共 GND 和续流保护按驱动规格连接。
 
-真实 PWM 默认关闭。调用 `set_output_enabled(enabled=true, external_driver_confirmed=true)` 之前，应由用户确认驱动接线；未经确认时非零震动命令会被拒绝。模拟接口不需要真实输出开关。
+真实输出默认关闭，只有用户确认驱动后才调用 `set_output_enabled(enabled=true, external_driver_confirmed=true)`。PWM 为 200Hz、8 位，强度 0～100%，时长 1～5000ms，超时关闭；强度 0 立即停止。
 
-真实输出使用 200Hz、8 位 PWM，强度表示占空比命令，不是实测震动幅度。每次命令最长 5 秒，真实输出另有 ESP 定时器关闭 PWM；关闭输出或改配置会停止所有正在执行的命令。软件重启后不会恢复震动。
+重启或关闭输出不会重放命令。日志 `direction=output` / `source=actuator` 只证明控制命令，不证明电机实际转动。真实 NTC 和电机尚未接线验收。
 
-日志中的 `direction=output`、`source=actuator` 表示控制命令，不表示电机已实际转动。没有额外反馈传感器时，系统无法确认电机是否正常震动。本轮未验证实际电机驱动或实物 NTC。
+## AI 和开发者怎样加通道
 
-## MCP 操作
+先读完整 `get_channel_config().channels`，保留全部旧行，再追加 / 修改后提交 `set_channel_config`。只提交新行会替换旧配置。不要把模拟 ID 8 / 9 当成第九 / 第十个 MUX 接口。
 
-电脑端 MCP 当前共 45 个工具，开发板 HTTP MCP 共 26 个。更新后重新连接 MCP 客户端，刷新工具列表。
+逐事件用 `query_device_history` / `get_interaction_device_events`；压力汇总用 `query_touch_history` / `get_interaction_events`，游标不混用。记录包括类型、方向、单位、质量、来源、通道及发生时部位。
 
-| 新工具 | 用途 |
-|---|---|
-| `get_channel_capabilities` | 查询已安装类型、接口和实际资源限制 |
-| `get_channel_config` / `set_channel_config` | 读取/完整替换类型、名称、绑定及参数 |
-| `scan_input_devices` | 真实输入关闭时扫描 GPIO1 DS18B20 地址，不启用采样 |
-| `read_channel_values` | 查询数值、单位、来源、时间及有效性 |
-| `set_input_enabled` | 开关真实输入，保留每路阈值 |
-| `simulate_channel_input` | 压力/温度模拟输入；温度可用毫伏模式测试换算 |
-| `set_output_enabled` | 确认驱动后启用真实 PWM，或停止全部输出 |
-| `set_vibration` | 指定通道、强度和持续时间 |
-| `query_device_history` | 按日期、部位、类型、输入/输出查询完整事件历史 |
-| `get_interaction_device_events` | 查询当前互动会话的所有类型新事件，可有界等待 |
-
-AI 先读取能力和现有配置，再决定工具参数。`set_channel_config` 必须提交希望保留的全部通道。比如在现有八路压力之外添加模拟温度和模拟震动时，先取 `get_channel_config().channels`，追加：
-
-```json
-[
-  {"channel": 8, "name": "腹部温度", "type": "temperature", "driver": "simulation", "enabled": true, "options": {}},
-  {"channel": 9, "name": "胸口震动", "type": "vibration", "driver": "simulation", "enabled": true, "options": {}}
-]
-```
-
-随后把原八路和新增两路一起提交。逻辑 ID 8/9 不代表 4051 有第 9/10 路接口。
-
-示例调用：
-
-```text
-simulate_channel_input(channel=8, value=32.5, unit="degC")
-set_vibration(channel=9, intensity=40, duration_ms=500)
-query_device_history(sensor_type="temperature")
-query_device_history(direction="output")
-```
-
-压力专用工具 `doll_simulate_press`、部位映射、压力历史和互动查询均可使用。`query_touch_history`/`get_interaction_events` 只返回压力按压记录；新 `query_device_history`/`get_interaction_device_events` 返回逐条事件，有独立的游标，不能混用。
-
-新事件包含 `sensor_type`、`direction`、`unit`、`value`、`quality`、`source`、`channel` 和发生时的部位名称。普通模式安静归档；用户主动开始互动后才按该会话的新事件反馈。温度定期报告和 AI 自己发出的震动命令不会延长互动空闲超时，也不能解释成用户又触摸了娃娃。
-
-## 后续扩展方式
-
-通道、驱动、当前读数和历史事件分开处理。固件在 `channel_devices.h` 中声明已安装能力、绑定和参数验证，在 `touch_events.h` 中实现采样/输出与事件生成，在 `channel_rpc.h` 中公开接口。新增硬件驱动必须实际实现后再出现在能力列表；不接受未安装类型或驱动。
-
-电脑 MCP 配置对象允许由固件声明的类型/驱动名称，通过设备统一验证，通用归档使用类型标识、单位及方向处理事件。因此以后增加数值型传感器不必重新设计历史表，也不必每次修改 Python 的类型枚举。DS18B20 的 1-Wire 驱动已实现；其他 I²C、SPI、数字传感器或外部多路器仍需实现实际驱动、资源冲突检查和接线说明后才能加入能力列表。
-
-测试见 `tools/test_channel_devices.py` 和 `docs/DEVICE_LAB_TEST_REPORT.md`。测试会临时配置明确标记的模拟通道、执行一次软件重启，最后恢复原通道；不要在用户正在互动或真实采样时运行。
+新增驱动需实际实现：`channel_devices.h` 声明能力和资源，`touch_events.h` 负责采样 / 输出，`channel_rpc.h` 提供接口。只改名称不能接入 DHT、I²C 或 SPI 新硬件。开发与测试见 [开发指南](DEVELOPER_GUIDE.md)。

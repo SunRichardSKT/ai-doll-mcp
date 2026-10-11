@@ -1,30 +1,31 @@
-# 在原聊天使用娃娃
+# 在原聊天中验证 MCP
 
-沿用原 AI、模型、人设与上下文。设备网页用于配网、通道、校准、日志和模拟测试，回复由当前聊天的 AI 生成。
+先完成 [Windows 安装](AI_INSTALL.md)与对应客户端连接。ChatGPT 普通 Chat 使用 [Secure MCP Tunnel](SECURE_MCP.md)，本机客户端使用生成的 STDIO 配置。
 
-| 环境 | 接入 | 验证范围 |
-| --- | --- | --- |
-| 支持本机 MCP 的客户端 | STDIO，45 个工具 | 官方 SDK 已实测，目标客户端需导入配置 |
-| 支持本机 HTTP 的客户端 | `chat_mcp_gateway.py`，2/9/13 个工具 | 只监听本机；history 只读，interaction 支持限时会话 |
-| ChatGPT 普通 Chat | Secure MCP Tunnel + 本机专用网关，13 工具 | 已实际通过状态调用、今天历史与 60 秒模拟按压文字反馈，编号与会话记录匹配 |
-| 已有 API 应用 | 原后端接事件桥 | 使用原模型回调和原消息列表；不另建聊天产品 |
+## 第一步：确认真的能调用
 
-普通 Chat 推荐 [Secure 操作指南](SECURE_MCP.md)：首次创建自己的 Platform 隧道与运行密钥，在 ChatGPT 添加隧道；之后双击 `Start_Secure_MCP.cmd`。无需娃娃账号，沿用原聊天模型。只连接专用回环 MCP，不转发 8768 管理页。
+在已添加 AI Doll 连接的原聊天发送：
 
-Sakura 入口仍保留，见 [Sakura 操作](REMOTE_MCP.md)。已登录客户端的用户使用 `remote_mcp.ps1 -Action configure -ClientManaged`，仅输入 HTTPS 主机地址，客户端自行管理隧道。此路线 SDK 通过，但当前普通 Chat 添加失败原因未确定。Cloudflare Quick Tunnel 的两个状态工具已通过普通 Chat，保留为备用；正式固定域名和 Claude 接入另行验收。
+> 请实际调用 get_installation_status 和 doll_get_status，返回设备状态及两个 verification.call_id。没有工具就如实说明，不要用文档或旧结果代替调用。
 
-本机安装见 [AI 安装指南](AI_INSTALL.md)。本机 HTTP 启动：
+返回的编号要与当前服务器的完成记录核对。STDIO 工具不一定提供同样的网关验证字段；有真实工具结果才算调用。插件 ZIP 上传成功、工具名称出现在说明里，都不证明服务已连通。
 
-```powershell
-.\.venv\Scripts\python.exe tools/chat_mcp_gateway.py --profile interaction
-```
+## 第二步：查询历史与配置
 
-只读历史可选 `--profile history`；两个状态可选 `--profile status`。地址为 `http://127.0.0.1:8771/mcp`。这个本机入口不能直接当成完整匿名公网入口；使用 `remote_mcp.py` 的私密地址校验。它们不能同时占用 8771。
+> 请读取通道、人设和反馈偏好，再查询今天的互动。区分模拟与真实来源，检查时间质量和最后同步状态，不把单通道按压直接解释为拥抱。
 
-普通触摸持续归档，明确互动时才开启会话。`start_interaction` 新增可选 `duration_sec`，旧调用兼容；60 秒测试设置 `duration_sec=60`。每次等新事件最多 20 秒，处理后保存游标；结束和到期后不再投递旧事件。保留类型、部位、数值、单位、质量与模拟来源，动作含义由 AI 根据对话判断。
+在本机模拟一次按压，再查询历史，核对时间、通道、部位、数值、单位与来源。历史来自电脑数据库，设备离线时仍可能查询成功。
 
-2026-10-10，Secure 在普通 Chat 实际读取通道、人设、反馈偏好、今天历史并开启 60 秒会话，收到 4 次模拟头部按压并给出文本反馈。8 条开始/释放事件与数据库匹配，期限届满自动结束。保存的人设为空，本轮使用温柔自然偏好；模拟输入不能换算为真实力度。分阶段证据见 [验收报告](MCP_ACCEPTANCE_2_13.md)。
+## 第三步：60 秒互动
 
-阅读 GitHub、上传代码 ZIP 或上传插件 ZIP 都不等于工具已经接通。插件包可以保存技能与连接信息，不会在云端运行电脑脚本。需要在目标 Chat 真实发现并调用工具，返回 `verification.call_id`，随后验证历史与限时按压反馈。
+> 开始 60 秒互动。为本聊天保存独立 chat_id，调用 start_interaction(duration_sec=60)，保留返回的 session_id 和游标。每次最多等待 20 秒，只读取新事件。收到按压后结合原聊天和保存的人设回应；释放更新时长，避免重复主要反馈。到期或我说结束时停止。
 
-普通 Chat 空闲唤醒不属于本轮交付。宿主主动事件支持另行验收，见 [MCP Events 官方说明](https://developers.openai.com/plugins/build/mcp-events)。
+等待开始后，在管理中心模拟按压。服务器期限到期后结束；另一个聊天不能抢占当前会话。没有事件时不能编造反馈，也不能把历史当成本次新动作。
+
+## 预期结果与限制
+
+看到新模拟事件及原 AI 的文字回复，才说明这次互动通过。模拟值不是实体力度，人设为空时不要编造“已保存的人设”。结束后普通记录继续。
+
+普通 Chat 的空闲主动唤醒未验证；本流程要求聊天在此次执行中继续调用等待工具。自己的应用可接事件回调，见 [主动互动](PROACTIVE_INTERACTION.md)。上传 ZIP 不会替你运行本机服务，见 [模板说明](../templates/README.md)。
+
+没有工具、SSE 提示或连接失败，按 [故障排查](TROUBLESHOOTING.md)处理。当前验证范围见 [验证汇总](VALIDATION.md)。

@@ -1,12 +1,31 @@
 # MCP 工具目录
 
-电脑端 STDIO MCP 提供 **45 个工具**。完整历史、人设、会话和事件桥请连接 `tools/companion_mcp.py`。设备 `/mcp` 提供 **26 个设备工具**，包含采集器使用的补传确认和校时；它不保存电脑长期历史，也不直接调用模型。
+先按 [连接方式](MCP_TRANSPORT_DECISION.md)安装。工具不会自行启动 AI 对话；实际可用范围以当前客户端发现的 schema 为准。
 
-电脑 STDIO 另提供可选提示模板 `doll_chat_companion`，供用户在当前对话加入互动指引，不计入工具数量。模板不会调用设备或开始会话；客户端无提示菜单时可复制 [现有对话指南](EXISTING_CHAT.md) 中的请求。事件端点目前仅暴露工具和事件，不提供 prompts 方法。
+## 不同连接有多少工具
 
-本机 HTTP 入口 `tools/chat_mcp_gateway.py` 复用现有工具：`status` 2 个状态工具、`history` 9 个只读工具、`interaction` 13 个状态/会话/人设/历史工具。默认监听 `127.0.0.1:8771/mcp`。专用远程入口 `tools/remote_mcp.py` 增加私密地址校验，通过 `tools/deploy_mcp.py` 管理 Sakura；见 [操作指南](REMOTE_MCP.md)。STDIO 总数仍是 45。
+| 连接 | 数量 | 数据与用途 |
+| --- | --- | --- |
+| 电脑 STDIO：`tools/companion_mcp.py` | 45 | 设备管理、电脑历史、人设、会话与维护 |
+| 设备 `/mcp` | 26 | 设备操作、缓存确认和校时；没有电脑长期历史 |
+| HTTP `status` | 2 | `get_installation_status`、`doll_get_status` |
+| HTTP `history` | 9 | status，加能力、配置、人设、偏好、历史、摘要、统计 |
+| HTTP `interaction` | 13 | history，加开始、状态、新事件、结束会话 |
 
-`start_interaction` 新增可选 `duration_sec`（1～3600 秒），到期自动结束，重试不延长；旧调用可省略。专用远程的新事件读取和结束会话需要同时提供原 `chat_id` 与 `session_id`；本机旧调用兼容。每次等待 0～20 秒。结束后新事件为空，可继续查询归档历史。历史不要求设备在线，也不在读取时触发设备同步。
+history 的七个附加工具为 `get_channel_capabilities`、`get_channel_config`、`get_persona`、`get_feedback_preferences`、`query_device_history`、`summarize_interactions`、`get_history_statistics`。interaction 再增加 `start_interaction`、`get_interaction_status`、`get_interaction_device_events`、`end_interaction`。
+
+本机 HTTP 网关默认 `127.0.0.1:8771/mcp`；私密远程网关和 Secure 使用专用入口。GET 返回 405 时不等于服务离线，客户端使用 POST。远程工具不开放模拟注入、配置写入、删除和物理控制。
+
+## 会话调用共同规则
+
+`start_interaction` 的可选 `duration_sec` 为 1～3600 秒，服务器到期结束；省略时兼容旧调用，重复开始不延长期限。远程读取 / 结束要提交当前聊天的 `chat_id` 与 `session_id`，每次等待 0～20 秒。
+
+保持游标并分页；压力汇总和逐事件历史使用不同游标。历史读取不触发同步，后台采集器负责归档；离线时仍可返回已存历史和同步状态。模拟与故障值需明确标记。
+
+## STDIO 的全部 45 个工具
+
+以下按任务分组，斜线合并的名称分别计数。具体参数以实时 schema 为准。
+
 
 ## 设备与通道（10）
 
@@ -79,3 +98,7 @@
 | `preview_history_retention` / `set_history_retention` | 保留期限预览和保存，默认不启用 |
 
 删除和启用保留期限遵循用户明确意图，先检查具体预览。详见 [历史管理](HISTORY_MANAGEMENT.md)。无线升级通过设备设置页或专用命令行，不由传感器事件自动触发，见 [OTA](OTA_UPDATE.md)。
+
+## 可选提示模板
+
+STDIO 的 `doll_chat_companion` 是提示模板，不计入工具数；不会调用设备或开启会话。客户端没有提示菜单时使用 [聊天测试请求](CHAT_MCP.md)。AI 执行规则见 [AI 指南](AI_GUIDE.md)。

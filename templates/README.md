@@ -1,14 +1,14 @@
-# 公开连接模板
+# 连接模板：不是已配置的安装
 
-普通用户优先使用根目录 AI_Doll.cmd 的安装引导，见 [管理中心](../docs/GUI_GUIDE.md)。本目录是其他客户端与自建宿主的接入模板。
+普通用户先用 [安装引导](../docs/AI_INSTALL.md)。本目录供开发者接入其他客户端，所有地址、目标和令牌需替换为自己安装的实际值。
 
+| 文件 | 用途 |
+| --- | --- |
+| `chatgpt-mcp-config.json` | 连接格式示例；不是运行中的服务 |
+| `operit/ai_doll.js` | Operit 查询 / 工作流模板，真实平台未验收 |
+| `host-event.example.json` | 自定义接收接口事件格式 |
+| `openclaw-hook.example.json` | 已有 OpenClaw 原聊天路由模板 |
 
-`chatgpt-mcp-config.json` 只是配置格式示例，不能直接安装。
-实际私密地址在首次本机配置时生成，不放入这个目录，不提交 GitHub。
-普通 Chat 首选创建自定义 MCP 连接；私人 ZIP 只包装技能及已经验证的连接。
-ChatGPT 推荐安装和日常启动见 [Secure 指南](../docs/SECURE_MCP.md)。
+普通 Chat 首选 [自定义 MCP 隧道](../docs/SECURE_MCP.md)。插件 ZIP 可以包装指引和连接信息；上传成功不会部署本机脚本，也不证明工具已开放。
 
-`operit/ai_doll.js` 是 Operit 包接口模板；`host-event.example.json` 和
-`openclaw-hook.example.json` 是自定义接收服务与 OpenClaw 转发配置模板。
-替换地址、原聊天目标及令牌后使用，不能直接作为已配置安装。
-理论兼容范围见 [宿主接入指南](../docs/HOST_INTEGRATIONS.md)。
+复制模板后，先实际发现工具、调用状态，再验证原聊天的新事件。详细契约见 [宿主接入](../docs/HOST_INTEGRATIONS.md)，执行助手看 [AI 指南](../docs/AI_GUIDE.md)。

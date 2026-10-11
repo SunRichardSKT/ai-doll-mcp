@@ -9,6 +9,7 @@ import tarfile
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 TOOLS = (
+    'check_documentation.py',
     'delivery_archive.py', 'test_remote_server_install.py',
     'open_direct_server.ps1', 'start_direct_server.py', 'direct_setup.py', 'test_direct_setup.py', 'test_server_launcher.py',
     'runtime_python.ps1', 'build_portable_python.py', 'test_portable_runtime.py',
@@ -50,6 +51,7 @@ TOOLS = (
     'test_service_lifecycle.py', 'test_wireless_recovery.py', 'test_wireless_recovery_ui.cjs',
 )
 DOCS = ('REMOTE_SERVER_SETUP.md', 'SERVER_QUICKSTART.md', 'SIMPLE_SETUP_ACCEPTANCE.md','RUNTIME_AND_LOGIN.md','DIRECT_SERVER.md', 'DIRECT_SERVER_ACCEPTANCE.md', 'GUI_GUIDE.md', 'GUI_ACCEPTANCE_2_14.md', 'EXISTING_CHAT.md', 'MCP_TOOLS.md', 'DIGITAL_TEMPERATURE.md', 'OTA_UPDATE.md', 'HISTORY_MANAGEMENT.md', 'OFFLINE_RECORDS.md', 'AI_INSTALL.md', 'USER_GUIDE.md', 'DEVICE_LAB_TEST_REPORT.md', 'SENSOR_CHANNELS.md', 'PROACTIVE_INTERACTION.md', 'CHAT_MCP.md', 'WIFI_CONNECTION.md', 'CALIBRATION_AND_DAILY_MODE.md', 'DEVELOPMENT_PLAN.md', 'INTERACTION_OBSERVATIONS.md', 'WIRELESS_RECOVERY.md')
+DOCS += ('AI_GUIDE.md', 'TROUBLESHOOTING.md', 'VALIDATION.md', 'DEVELOPER_GUIDE.md')
 SOURCE = ('remote_uplink.h', 'digital_temperature.h', 'ota_update.h', 'ota_manager_asset.h', 'event_storage.h', 'event_integrity.h', 'lab_main.cpp', 'device_page.h', 'touch_events.h', 'network_state.h',
           'channel_devices.h', 'channel_rpc.h', 'channel_editor_asset.h', 'pressure_calibration.h', 'device_discovery.h')
 PREBUILT = ('firmware.bin', 'bootloader.bin', 'partitions.bin', 'boot_app0.bin', 'FLASH_MANIFEST.json', 'README.md')
@@ -63,23 +65,28 @@ PROOF = (
     'standardize-pcb-20261003-before.json', 'standardize-pcb-drc-final.json',
     'standardize-sch-drc-final.json', 'standardize-sch-check-final.json',
 )
-CODE_README = '# AI 共感娃娃代码交付\n\n固件 2.8.1 / 电脑 Bridge 2.16.2。ESP32-C3 SuperMini + 74HC4051，保留八路模拟接口和最多 16 个逻辑通道。电脑 MCP 45 个工具，设备 MCP 26 个工具；HTTP status/history/interaction 分别为 2/9/13 个工具。\n\n远程 Linux 服务器运行根目录 Install_Server.sh，填写域名即可准备依赖、配置和 HTTPS，见 [远程快捷部署](docs/REMOTE_SERVER_SETUP.md)。另提供仅含服务代码的小型 Linux 包。设备直连自己的服务器且不使用电脑采集时，先读 [直连指南](docs/DIRECT_SERVER.md)；验收见 [直连报告](docs/DIRECT_SERVER_ACCEPTANCE.md)。\n\n使用电脑 / MCP 时先读 [安装指南](docs/AI_INSTALL.md)，完成配网、电脑服务、无线配对和客户端 MCP 导入。日常操作见 [使用指南](docs/USER_GUIDE.md)，FSR402 校准和手动阈值见 [校准指南](docs/CALIBRATION_AND_DAILY_MODE.md)。\n\n- [文档导航](docs/README.md)、[接入现有对话](docs/EXISTING_CHAT.md)\n- [Operit / OpenClaw / 自定义前端](docs/HOST_INTEGRATIONS.md)：兼容评估、包模板与事件转发脚本（未做真实平台验收）\n- [完整 MCP 工具目录](docs/MCP_TOOLS.md)\n- [通道与接线](docs/SENSOR_CHANNELS.md)、[DS18B20 数字温度](docs/DIGITAL_TEMPERATURE.md)\n- [主动互动与 API 接入](docs/PROACTIVE_INTERACTION.md)、[聊天窗口](docs/CHAT_MCP.md)、[Secure 隧道安装与启动](docs/SECURE_MCP.md)、[Sakura 私密地址操作](docs/REMOTE_MCP.md)、[MCP 分阶段验收](docs/MCP_ACCEPTANCE_2_13.md)\n- [无线采集](docs/WIFI_CONNECTION.md)、[地址恢复与登录启动](docs/WIRELESS_RECOVERY.md)\n- [反馈偏好与自检](docs/INTERACTION_OBSERVATIONS.md)\n- [离线缓存](docs/OFFLINE_RECORDS.md)、[历史管理](docs/HISTORY_MANAGEMENT.md)\n- [无线升级](docs/OTA_UPDATE.md)、[烧录镜像](firmware/prebuilt/README.md)\n- [实际验收范围](docs/DEVICE_LAB_TEST_REPORT.md)、[剩余工作](docs/DEVELOPMENT_PLAN.md)\n\n普通 Chat / MCP 用户双击根目录 AI_Doll.cmd：完整包自动检查环境并生成客户端配置，可通过 USB 一次识别、随后使用 Wi-Fi。设备直连服务端用户双击 AI_Doll_Server.cmd：自动启动、生成配置并打开管理页；填写设备 IP 后点击连接，无需复制配置令牌。见 docs/SERVER_QUICKSTART.md。旧 Secure 入口仍兼容。具体操作见 docs/GUI_GUIDE.md；命令行入口保留给开发与自动化。Secure 另需 Platform 隧道与运行密钥，已通过普通 Chat 状态、历史及 60 秒模拟反馈。Sakura 入口保留，但普通 Chat 添加仍未通过。Windows 完整包在根目录 python/ 内置 Python 3.14.8 与固定依赖，解压后双击即可启动，无需安装系统 Python。设备设置页默认免登录，可在“设置页登录保护”开启账号密码。详见 docs/RUNTIME_AND_LOGIN.md。源码在 firmware/src，编译目标为 supermini-lab。\n\n未接传感器保持模拟/手动模式。真实震动需要板外驱动，不能直接接 GPIO 或 4051。普通触摸只记录，用户开始互动后才投递新事件；自建应用接入用户选择的模型回调，官方客户端的后台唤醒取决于其实际事件能力。\n\n原创代码和文档按 MIT License 开源，见 LICENSE；第三方依赖和资料保留各自许可。此包不含 Wi-Fi、令牌、个人日志或历史版本。运行数据在本机 build/device-lab 创建。MANIFEST.json 包含每个文件的 SHA-256。真实传感器、用户模型和写 Flash 时物理断电仍需验收。\n'
+CODE_README = (ROOT/'README.md').read_bytes().decode('utf-8')
 PCB_README = '''# AI_Doll_V2 PCB 交付
 
-最终工程在 `hardware/rev-v2/AI_Doll_V2_标准化完成_20261003.epro2`，使用嘉立创 EDA 专业版打开/导入原生工程。BOM 和检查记录在同一目录。
+## 打开工程和准备元器件
 
-- 两层，34.29 × 44.45 mm，74HC4051 / SOIC-16，ESP32-C3 SuperMini 模块。
-- 八路外置 FSR402，主板仅接板外充放电模块的 5V/GND。
-- 手焊方案：阻容以 0805 为主；C13/C14 保留已下单板的 1206。
-- 45 个板上采购器件已核对立创编号，SuperMini 自行采购，5 个裸铜测试点不采购。
-- PCB 原生 DRC 为 0 项违规；原理图 DRC 无 error/fatal，仍有 2 项聚合警告，详见核对记录。
-- SW1 手册未明确额定电流，采购时向卖家确认。
+1. 在嘉立创 EDA 专业版导入 `hardware/rev-v2/AI_Doll_V2_标准化完成_20261003.epro2`，包含原理图和 PCB。
+2. 按同目录的标准化采购 BOM 购买板上器件；SuperMini、FSR、电池与板外充放电模块单独准备。
+3. 焊接前读 [器件与电源核对](hardware/rev-v2/元器件标准化核对记录.md)和 [已下单焊位](hardware/rev-v2/ordered-gerber-20260920/已下单PCB封装核对.md)。
 
-`ordered-gerber-20260920/` 是已下单文件及封装核对资料，保留为实物板依据，并非本次重新导出的生产文件。本次标准化前后焊盘、走线、铺铜、板框及位号镜像相同，不需仅因料号标准化重新下单。
+## 板子与装配
 
-`verification/` 保留最终回读、DRC、几何比较和数据手册证据。截图为客户端整板视口图，不是对象级图像导出。工程导出结构已核验，本轮未将其导入另一工程测试恢复。
+两层 **34.29 × 44.45mm**，SuperMini 模块、74HC4051 SOIC-16、八路外置 FSR。阻容以 0805 为主，C13 / C14 为 1206。J9 1=GND、2=外部5V；主板不含充电、升压或 BMS。
 
-每个文件的 SHA-256 见 `MANIFEST.json`。
+45 个采购器件已核对立创编号，SuperMini 自行采购，5 个裸铜测试点不采购插针。SW1 额定电流需向卖家确认。
+
+## 验证边界
+
+原生 PCB DRC 为 0；原理图无 error / fatal，仍有 2 个聚合 warn。标准化不改变板框、铜图形、焊盘或丝印镜像，无需只因料号更新重新下单裸板。
+
+`ordered-gerber-20260920/` 是原已下单文件，不是新导出的生产文件。`verification/` 保留回读、几何和 DRC 证据。原生导出结构已核验，未在另一工程重新导入或完成实物组装验收。
+
+逐文件校验见 `MANIFEST.json`。软件另从 [公开交付目录](https://github.com/SunRichardSKT/ai-doll-mcp/tree/main/delivery)下载。
 '''
 
 
@@ -188,13 +195,23 @@ def main():
         outputs.append(package(delivery/'AI_Doll_PCB_V2_20261003.zip', pcb, PCB_README, 'AI_Doll_V2-standardized-20261003'))
     outputs.append(server_package(delivery))
     (delivery/'DELIVERY_MANIFEST.json').write_text(json.dumps({'packages': outputs}, ensure_ascii=False, indent=2), encoding='utf-8')
-    readme = '# AI 共感娃娃交付说明\n\n更新日期：2026-10-11。电脑 Bridge v2.16.2 支持 Wi-Fi 采集，已测试开发板固件为 v2.8.1。请直接发送下面的 ZIP 包；接收者按包内 README 使用。\n\n'
+    readme = '# 下载与交付文件\n\n当前软件 **2.16.2** / 固件 **2.8.1**，文档整理于 2026-10-11。请选择与你的使用方式对应的包，完整解压后按包内 README 操作。\n\n'
+    readme += '## 应该下载哪个\n\n| 包 | 适合谁 | 解压后做什么 |\n| --- | --- | --- |\n'
+    purposes = {
+        'AI_Doll_Code_v2.16.2.zip': ('Windows 用户 / 软件开发者', '普通 Chat 双击 AI_Doll.cmd；自建应用本机接收双击 AI_Doll_Server.cmd'),
+        'AI_Doll_Server_v2.16.2.tar.gz': ('远程 Linux 服务器', '运行 sudo bash Install_Server.sh，按提示填写域名'),
+        'AI_Doll_PCB_V2_20261003.zip': ('采购和手工焊接主板', '用嘉立创 EDA 专业版打开原生工程，核对 BOM 与装配面'),
+    }
     for item in outputs:
-        readme += f"- [{item['file']}]({item['file']})：{item['files']} 个公开文件，{item['bytes']/1048576:.2f} MiB。\n"
-    readme += '\nLinux 小型服务包提供远程快捷安装入口 Install_Server.sh，自动准备缺少的 Docker、配置、持久卷和 HTTPS 校验；见 docs/REMOTE_SERVER_SETUP.md。代码包也包含此入口。代码包新增设备直连服务器、手机配置、原前端事件适配和 HTTPS 部署模板，详见 docs/DIRECT_SERVER.md。代码包包含当前固件四个烧录文件、源码、45 工具 MCP、电脑事件桥、安装工具和当前使用文档。支持八路 FSR 校准、首次配网、Wi-Fi 数据、温度/震动扩展、有限离线缓存、历史管理与无线升级。PCB 包包含嘉立创 EDA 工程、BOM、原下单文件和核对证据。Windows 运行环境随代码包提供；仅固件源码编译工具需要另行安装。普通 Chat 的状态、历史和 60 秒模拟反馈已通过；实物传感器与其他宿主的真实反馈仍待验收。\n\n'
-    readme += '交付包不含本机 Wi-Fi 配置、设备访问密钥或个人互动数据库。完整文件校验值在各包的 `MANIFEST.json`；ZIP 校验值在 `DELIVERY_MANIFEST.json`。\n\n'
+        who, action = purposes[item['file']]
+        readme += f"| [{item['file']}]({item['file']}) · {item['bytes']/1048576:.2f} MiB | {who} | {action} |\n"
+    readme += '\nWindows 包内置 Python，无需另装。Linux 小型包不含 Windows Python，由容器准备运行环境。PCB 包只因文档整理更新说明，物理工程和原下单文件保持。\n\n'
+    readme += '[Windows 首次安装](../docs/AI_INSTALL.md) · [远程部署](../docs/REMOTE_SERVER_SETUP.md) · [给 AI 的执行指南](../docs/AI_GUIDE.md) · [全部文档](../docs/README.md)\n\n'
+    readme += '## 如何校验下载\n\n[DELIVERY_MANIFEST.json](DELIVERY_MANIFEST.json) 记录整包 SHA-256；每个包的 MANIFEST.json 记录逐文件校验。Linux 包另提供 .sha256 文件，可运行 sha256sum -c 对应文件名。\n\n'
     for item in outputs:
-        readme += f"`{item['file']}` SHA-256：`{item['sha256']}`。\n\n"
+        readme += f"- `{item['file']}`：`{item['sha256']}`\n"
+    readme += '\n## 交付范围\n\n公共包只包含代码、文档、固件、PCB 和公共模板，不包含个人配对、Wi-Fi、令牌或互动数据库。更新保留自己的 build 数据，远程部署保留数据卷。\n\n'
+    readme += '已验证普通 Chat Secure 的模拟状态 / 历史 / 限时反馈；实体传感器、普通 Chat 空闲唤醒和真实公网部署仍待验收。见 [验证汇总](../docs/VALIDATION.md)。\n'
     (delivery/'README.md').write_text(readme, encoding='utf-8')
     for item in outputs:
         print(item['file'], item['files'], 'files, verified')

@@ -1,37 +1,43 @@
-# 安装电脑服务与 MCP
+# Windows 首次安装
 
-新增设备直连通路：[手机配置、自部署服务器及原聊天主动反馈](DIRECT_SERVER.md)。原电脑采集 / MCP 流程继续兼容；直连模式无需本地电脑运行。验证范围见 [直连验收](DIRECT_SERVER_ACCEPTANCE.md)。
+这份指南给使用者看。想让 AI 帮你安装，请交给它 [AI 执行指南](AI_GUIDE.md)。远程 Linux 部署请直接读 [远程快捷部署](REMOTE_SERVER_SETUP.md)。
 
-当前电脑 Bridge 2.16.2，设备固件 2.8.1。安装和日常管理统一从根目录 **AI_Doll.cmd** 打开；功能与四步流程见 [GUI 使用指南](GUI_GUIDE.md)。用户继续原 AI 聊天，不另填聊天模型密钥。
+## 1. 下载并完整解压
 
-## 推荐：GUI 安装
+从 [交付目录](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/delivery/README.md)下载 `AI_Doll_Code_v2.16.2.zip`，解压到固定、可写的目录。保留根目录的 `python/` 和 `tools/`。
 
-1. 将 Windows 64 位完整代码包解压到固定可写目录，保留根目录 python/（已内置 Python 与依赖）。
-2. 双击 AI_Doll.cmd，完整包自动准备运行环境与 MCP 配置。
-3. 给设备配网，电脑回到同一局域网。可用 USB 一次识别并配对 Wi-Fi，或手动填设备 IP 和 MCP 令牌验证配对。
-4. 选择 AI：普通 Chat 填 Secure 隧道 ID 和运行密钥；本机客户端复制生成的 STDIO 配置。
-5. 在原聊天实际调用状态工具；普通 Chat 返回的两个 call_id 可粘贴到界面核对。
+这是 Windows 64 位完整包，已内置 Python 和依赖。GitHub 的源码 ZIP 不含完整运行环境，普通用户应选交付软件包。
 
-隧道账号关联与原聊天添加连接需在官方页面完成一次，管理中心提供入口和可复制配置。之后双击 AI_Doll.cmd 自动启动已配置服务。没有 Secure 配置时仅运行本地采集。关闭页面不会停止服务，停止操作在“维护与诊断”。
+## 2. 打开管理中心
 
-通道、人设、偏好、历史、模拟和升级从侧栏进入。IP 变化时查找已配对设备，已有令牌可留空。配对验证失败不覆盖原配置；修复依赖不删除个人历史。
+双击根目录 **AI_Doll.cmd**。浏览器会打开 `http://127.0.0.1:8769/`，自动检查环境并生成本机配置。
 
-## 开发 / 自动化：保留命令入口
+管理中心只负责设备设置；AI 回复仍留在你的原聊天。启动失败时先看 [故障排查](TROUBLESHOOTING.md)，不必先重刷固件。
 
-以下不是普通用户的必经步骤。需要脚本部署时，在项目根目录运行，替换真实设备 IP：
+## 3. 给娃娃配网并配对
 
-```powershell
-.\tools\install_bridge.ps1 -DeviceHost 192.168.1.50 -AutoDetectDevice -VerifyConnection
-```
+1. 按 [配网步骤](USER_GUIDE.md#首次配网)连接 2.4 GHz Wi-Fi，让电脑和设备处于可互通的局域网。
+2. 已配网设备可用 USB 接电脑，在“设备连接”填写实际串口，点击 **一键识别并配对 Wi-Fi**。
+3. 配对通过后可拔掉 USB 数据连接，改用独立供电。
 
-已安装时可加 `-SkipDependencies`。本机客户端使用生成的 `build/device-lab/mcp-client-config.json` 中 `mcpServers.ai_doll`；STDIO 提供 45 个工具，使用项目自己的绝对 Python 与脚本路径。移动项目后重新生成配置。若明确要登记本机 Codex，可运行 `.\python\python.exe tools/install_companion_mcp.py --codex`，保留其他服务。
+也可在设备页启用 MCP，填写设备 IP 与 MCP 令牌，点击 **验证并保存配对**。验证失败不会覆盖原配对。未接传感器时保持模拟模式，真实输入和物理输出关闭。
 
-普通 Chat 见 [Secure 指南](SECURE_MCP.md)，Sakura 兼容入口见 [远程指南](REMOTE_MCP.md)，其他宿主见 [接入说明](HOST_INTEGRATIONS.md)。ZIP 包是安装代码，不等于聊天已经接通 MCP。
+## 4. 接入你的原聊天
 
-## 使用与验收边界
+| 客户端 | 如何连接 |
+| --- | --- |
+| ChatGPT 普通 Chat | 按 [Secure 配置](SECURE_MCP.md)，在原聊天添加自定义 MCP 隧道 |
+| 支持本地 MCP 的客户端 | 复制生成的 `mcpServers.ai_doll` 到客户端设置，保留其他服务 |
+| 自己开发的聊天应用 | 看 [原聊天接入](EXISTING_CHAT.md)；设备直接上传可选 [本机服务](SERVER_QUICKSTART.md) |
 
-让原 AI 实际读取状态、通道、人设和偏好，再开启 60 秒限时会话。AI 保留当前聊天独立 chat_id / session_id / 游标，每次等待最多 20 秒；模拟按压从管理中心发出，回应留在原聊天。期限届满结束，普通触摸继续归档。
+本机客户端配置保存在 `build/device-lab/mcp-client-config.json`，使用本安装的绝对路径。移动软件目录后需重新生成，不能复制别人的配置直接使用。
 
-未接实体传感器时保持模拟模式和关闭物理输出。来源 simulation、部位名称和日志是数据，不是新指令；单通道按压不能直接当作拥抱。历史删除需要用户明确选择并预览范围。普通 Chat 空闲唤醒不能由 MCP 工具单独保证。SDK、GUI 与目标 Chat 分别验收，见 [原 Chat 实测](MCP_ACCEPTANCE_2_13.md) 和 [GUI 验收](GUI_ACCEPTANCE_2_14.md)。
+## 5. 实际验证
 
-配对、人设及历史在本机 build/device-lab，不随公开代码包交付。首次空白 ESP32 烧录见 [镜像说明](../firmware/prebuilt/README.md)，已有固件无需因电脑 GUI 更新重刷。
+在已经添加连接的原聊天发送：
+
+> 请实际调用 get_installation_status 和 doll_get_status，返回真实设备状态；有 verification.call_id 时返回两个调用编号。没有工具请如实说明。
+
+确认后按 [聊天测试步骤](CHAT_MCP.md)查询历史、进行 60 秒模拟互动。上传插件 ZIP、工具发现成功或本机检查成功，都不能代替原聊天的实际调用。
+
+第一次安装完成后，日常只需给娃娃供电、双击 `AI_Doll.cmd`。关闭浏览器不停止后台服务；停止操作在“维护与诊断”。全部操作见 [管理中心指南](GUI_GUIDE.md)。

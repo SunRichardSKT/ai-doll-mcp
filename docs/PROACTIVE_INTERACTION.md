@@ -1,111 +1,47 @@
-# 主动互动与聊天应用接入
+# 主动事件桥：接入自己的聊天应用
 
-新增设备直连通路：[手机配置、自部署服务器及原聊天主动反馈](DIRECT_SERVER.md)。原电脑采集 / MCP 流程继续兼容；直连模式无需本地电脑运行。验证范围见 [直连验收](DIRECT_SERVER_ACCEPTANCE.md)。
+这页面向开发者。普通 Chat 使用 [限时工具等待](CHAT_MCP.md)；本页的事件订阅需要原应用提供真实投递入口，不能自动向任意网页聊天写消息。
 
-Operit、OpenClaw/微信与自定义后端的接入评估和事件脚本见 [宿主接入指南](HOST_INTEGRATIONS.md)。普通 Chat 的 Secure 限时互动已实测，但下述 MCP Events 后台唤醒没有因此被验证。
+## 最小接入流程
 
-普通聊天期间安静记录；用户开始互动后，将新输入发送到绑定的聊天，由用户选择的模型结合当前上下文、人设和部位反馈。电脑事件桥持续接收设备数据，不要求用户每次发消息查询。安装见 [AI 安装指南](AI_INSTALL.md)，设备可通过 [Wi-Fi](WIFI_CONNECTION.md) 独立供电运行。
+1. 运行电脑采集服务，或让设备 [直传服务器](DIRECT_SERVER.md)。
+2. 用户明确开始互动，创建属于原聊天的会话与订阅。
+3. 新事件进入原模型生成队列，带原聊天 ID、上下文、人设和偏好。
+4. 按事件 ID 持久去重，完成 ACK 后写入原消息列表。
+5. 用户结束或切换聊天时停止订阅，并取消尚未完成的生成。
 
-目标是改善用户已经在进行的 AI 对话，操作见 [接入现有对话](EXISTING_CHAT.md)。设备页面负责设置与诊断；API 适配器接入应用原聊天流程，模型调用沿用原后端。
+普通状态只归档，不订阅。默认压力开始触发，300ms 合并窗口与 1500ms 冷却；温度触发默认关闭。模拟可按偏好禁用，输出不反过来当用户触摸。
 
-## 已实现和使用边界
+## 先验证传输，不调用模型
 
-- 新事件与待投递消息在同一个 SQLite 事务内保存，普通模式只归档。
-- 用户明确开始互动并订阅后，把新的有效输入送到一个绑定的回复目标；不自动抢占别的聊天。
-- 压力开始会触发反馈；300ms 内多个通道合并，后续消息间隔至少 1500ms。默认允许连续短按或已完成长按在释放时补充客观摘要，单次短按释放和输出指令不触发。可关闭 `notify_pressure_patterns` 保留只响应开始的行为，避免输出反馈循环。
-- 温度触发默认关闭；开启后按每个通道独立比较，变化达到默认 1°C 才触发，故障值不触发。
-- 模拟输入带 simulation 标签，可在反馈偏好中禁止触发；数据、部位名称不是模型指令。
-- 提供本机认证 SSE 流、自建应用浏览器适配器，以及 MCP 2.0 的事件发现／订阅／取消和签名 webhook 投递适配。
-- 实测验证了本机页面自动接收真实 USB 链路的模拟按压。页面的“演示回执”是程序测试反馈，不是模型生成。
-- 实际 Wi-Fi 采集链路已经验证页面推送、ACK 和会话结束；USB 串口独占且不发数据时，Wi-Fi 历史与互动仍通过。
-- 尚未验证用户账号里的 ChatGPT Work 订阅；需要可用入口、平台权限、认证远程连接／隧道和实际回调后才能验收。没有宣称能向任意 ChatGPT／Claude 网页聊天主动写消息。
+打开电脑 `http://127.0.0.1:8768/bridge`，开始主动互动，在设备页或 companion 模拟一次按压。出现明确标为 **非 AI** 的演示回执后结束。这只验证收取 / 确认链路。
 
-## 统一入口
+应用的原模型回调和队列示例见 [原聊天接入](EXISTING_CHAT.md)。真实模型验收必须在原窗口中另外进行，不创建第二个聊天框或使用自动按键代替。
 
-新电脑在项目根目录运行（需要 Python，首次安装依赖需要联网）：
+## 本机事件 API
 
-```powershell
-.\tools\install_bridge.ps1 -Platform generic -Port COM3
-```
-
-已无线配对时加 `-DeviceHost 192.168.1.50`（替换实际 IP），或复用保存的连接方式。无线配对、独立供电和重连见 [无线指南](WIFI_CONNECTION.md)。
-
-已有依赖的开发电脑：
-
-```powershell
-.\tools\install_bridge.ps1 -Platform api -Port COM3 -SkipDependencies
-```
-
-可选平台：`generic`、`claude-desktop`、`chatgpt-work`、`api`。入口创建／使用项目 Python 环境，生成通用 STDIO 配置及桥接说明，按需启动服务；不自动修改 AI 客户端账号、配置文件，不部署公网服务。不同平台仍需完成其自身的连接授权。
-
-只生成配置、不启动服务：加 `-NoStart`。如果其他服务占用 8768，先关闭旧服务，避免两个程序抢占 COM3。脚本不会自动终止其他进程。
-
-生成的 `build/device-lab/bridge-install.json` 与 `mcp-client-config.json` 为本机信息；密钥、订阅签名秘密和历史都在 `build/`，不要分享。
-
-## 先做本机主动推送测试
-
-1. 运行采集服务，打开 <http://127.0.0.1:8768/bridge>。
-2. 设置回应语气、称呼、避用词、回复长度、摘要参数和安静时段。保存后更新当前订阅；已发送的消息不会撤回。
-3. 点击“开始主动互动”。页面会创建属于这个窗口的互动会话并订阅；已有其他聊天互动时会拒绝抢占。
-4. 在此页模拟按压，或另开 <http://127.0.0.1:8768/companion> 模拟按压。
-5. 接收窗口无需再发送用户消息，会自动出现标明 simulation／非 AI 的演示回执，确认后写入历史。
-6. 点击“结束互动”停止投递，普通归档继续。当前示例订阅最长 5 分钟；空闲、订阅过期或会话结束也会停止。
-
-页面刷新后同一目标可重新连接并续订，不重复创建订阅。无人确认的消息使用租约恢复；关闭窗口不会把消息送到别的聊天，订阅到期后停止。
-
-## 自建前后端／模型 API
-
-`tools/bridge_client.js` 提供 `DollBridgeClient`。调用方指定稳定、唯一的应用聊天 ID，并提供模型回调：
-
-```javascript
-const bridge = new DollBridgeClient({
-  csrf: pageCsrf, // 同源本机页面；后端接入则使用本机 Bearer 令牌
-  targetId: 'my-app-chat:123',
-  onInteraction: async (event, {signal, idempotencyKey}) => {
-    // 你的后端获取这个聊天的上下文、人设和用户反馈偏好，再调用用户选定的模型。
-    const response = await fetch('/api/doll-reply', {
-      method: 'POST', signal,
-      headers: {'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey},
-      body: JSON.stringify({chatId: '123', event})
-    });
-    if (!response.ok) throw new Error('模型暂不可用');
-    const answer = await response.json();
-    // 先返回结果供桥接服务确认；避免会话已结束时仍向窗口追加迟到的回复。
-    return {text: answer.text, source: 'model'};
-  },
-  onReply: (answer, event) => {
-    // 确认投递后，应用再按 event.eventId 去重，把 answer.text 显示在绑定聊天里。
-    appendAssistantMessage('123', answer.text, event.eventId);
-  }
-});
-await bridge.start();
-// 结束时：await bridge.stop();
-```
-
-这里的 `/api/doll-reply` 是用户应用实现的接口，本项目没有替用户选择模型、填写密钥或调用收费 API。模型密钥放在自己的后端，不放到浏览器。API 会话属于自建应用，不会因此访问官方网页聊天的私有上下文。
-
-已有应用应把该接口加入原聊天后端，并与普通消息共享同一个生成队列及上下文。`onInteraction` 还提供 `subscriptionId` 和 `lease`；可选 `onDeliveryState(busy,event)` 在生成开始与生成/ACK/展示结束时通知原界面。回调必须处理取消，结束后不要启动尚未执行的模型任务。
-
-可选 `runDelivery(operation,{signal,event})` 与 `DollConversationQueue` 把生成、ACK 和原聊天写入串成一个任务；普通消息也通过同一队列。`onReply` 的第三个参数提供停止信号和事件 ID，供原应用在异步写入时检查取消。ACK 后停止续租。接入片段与多窗口限制见 [原聊天队列说明](EXISTING_CHAT.md#与普通消息共享顺序)。
-
-`start()` 合并重复启动，`stop()` 可以取消尚未完成的启动；新启动等待旧清理完成。切换聊天与网络失败后的重试流程见 [开始/结束说明](EXISTING_CHAT.md#开始结束与切换聊天)。
-
-适配器在生成过程中自动续租，完成后 ACK；同一目标只放行一个未确认消息。客户端缓存已完成事件以处理本次运行中的重复投递。应用后端仍需持久保存 `Idempotency-Key` 对应的生成结果，再次收到同一 ID 时返回原结果；无法承诺网络故障下恰好只调用一次模型。
-
-HTTP 接口都只监听本机，要求现有 Host／Origin 校验及 Bearer 或 CSRF。SSE 使用 `fetch` 加认证头，令牌不出现在 URL。其他源的网页应通过自己的后端连接桥接服务，不要直接跨域访问本机。
+接口只监听本机，要求 Host / Origin 与 Bearer 或 CSRF 校验。SSE 由带认证头的 fetch 读取。跨域应用由原后端代理，不公开完整管理页面。
 
 | 接口 | 用途 |
-|---|---|
-| `POST /companion/tool` | 原 MCP 工具调用，包括开始／结束会话 |
-| `POST /bridge/subscriptions` | 提交 target_id、session_id、device_id；创建／续订本机目标 |
-| `GET /bridge/events?subscription_id=...` | 认证 SSE 流；发送事件和租约，定期重连 |
-| `POST /bridge/renew` | event_id、subscription_id、lease；每 4 秒续租 |
-| `POST /bridge/ack` | 确认同一租约；可提交 reply、source=model/demo |
-| `POST /bridge/unsubscribe` | 停止指定目标，取消待投递消息 |
-| `GET /bridge/status` | 当前订阅、投递计数、已保存反馈；不返回签名密钥／回调 URL |
-| `POST /bridge/preferences` | 保存 policy 与 feedback |
+| --- | --- |
+| POST `/companion/tool` | 原工具，包括创建 / 结束会话 |
+| POST `/bridge/subscriptions` | 绑定 target_id、session_id、device_id |
+| GET `/bridge/events?subscription_id=…` | 认证 SSE，获取事件与租约 |
+| POST `/bridge/renew` | event_id、subscription_id、lease，续租 |
+| POST `/bridge/ack` | 确认同一租约，可保存 reply / source |
+| POST `/bridge/unsubscribe` | 停止目标，取消待投递 |
+| GET `/bridge/status` | 订阅、投递与保存回执状态 |
+| POST `/bridge/preferences` | 保存 policy / feedback |
 
-## ChatGPT MCP Events
+生成期间约每 4 秒续租；SSE 租约 15 秒。默认只投递 30 秒内的新输入，旧补传仅归档。事务同时保存事件和 outbox；重启恢复未过期消息，至少一次投递需消费者去重。会话结束使旧 ACK 无效。
+
+## 原模型回调必须处理什么
+
+使用 `context.signal`，实际提交前检查取消。以 `idempotencyKey` 持久保存生成结果，重试返回原结果；将生成、ACK、消息写入与普通聊天放同一队列。多窗口 / 多后端需共享锁，浏览器内队列不能代替。
+
+不保证网络故障下模型恰好只调用一次。回调成功、HTTP 2xx 或演示回执不等于最终聊天已经展示。
+
+## MCP Events 适配参考
 
 独立端点：`POST /bridge/mcp`，强制 Bearer 认证。设备 `/mcp` 和本机 STDIO 提供工具调用；事件订阅由电脑端点实现，不由 ESP32 提供。
 
@@ -130,28 +66,14 @@ HTTP 接口都只监听本机，要求现有 Host／Origin 校验及 Bearer 或 
 
 只接受公开 HTTPS、443 端口，无用户名／密码／片段；验证和每次投递都检查 DNS 并固定连接到已验证地址，TLS 使用原主机名，拒绝私网与重定向。暂时失败有界退避，410 停止订阅，413 和其他永久错误不重试。订阅最长授予一小时，`ttlMs=null` 也不会承诺无限监控。当前 `cursor=null` 表示不支持主动事件历史重放；普通 MCP 历史工具仍可查询。
 
-官方支持场景及接入要求见 [OpenAI MCP Events](https://developers.openai.com/plugins/build/mcp-events) 和 [插件连接测试](https://developers.openai.com/plugins/deploy/connect-chatgpt)。本机端点需要用户配置认证 HTTPS 网关或平台支持的 Secure MCP Tunnel；本次没有发布或打通该远程连接。当前为单用户安装，Bearer 对应本机唯一主体；商业多用户云网关仍需独立账号认证、租户隔离和设备配对，不能将此单用户服务直接作为多用户后台。
+官方支持场景及接入要求见 [OpenAI MCP Events](https://developers.openai.com/plugins/build/mcp-events) 和 [插件连接测试](https://developers.openai.com/api/docs/guides/custom-mcp-server)。本机端点需要用户配置认证 HTTPS 网关或平台支持的 Secure MCP Tunnel；本次没有发布或打通该远程连接。当前为单用户安装，Bearer 对应本机唯一主体；商业多用户云网关仍需独立账号认证、租户隔离和设备配对，不能将此单用户服务直接作为多用户后台。
 
 webhook 返回 2xx 只代表平台接收，不代表模型已经生成或展示回复；应在实际 Work 聊天里核验。Claude／其他只支持工具查询的客户端可以继续使用 45 工具 STDIO MCP，主动响应取决于宿主是否有对应事件机制，不做统一保证。
 
 自行配置 HTTPS 反向代理时，只转发事件端点，并让上游 Host 为 `127.0.0.1:8768`，保留 Bearer 认证头。此本机服务不接受任意公网 Host／Origin；其他管理页面不要随端点一起公开。正式平台接入还需满足所用连接方式的认证要求，当前服务没有实现多用户 OAuth 授权服务器。
 
-## 数据和故障处理
+## 其他宿主与验证
 
-- 默认只投递发生后 30 秒内的新事件，过期未投递事件仍保留在原始历史，不突然补发旧按压。
-- `events` 与 `bridge_outbox` 同事务，设备游标在事务提交后才前进，避免只保存游标却丢投递任务。
-- SSE 租约 15 秒；生成期间续租。新消息的 30 秒陈旧期限不打断已续租的生成，但会话结束或订阅取消会使旧 ACK 无效。
-- SQLite 持久保留订阅、消息状态和回复，重启可恢复未过期目标与未确认消息。投递语义为至少一次，消费方按 `eventId` 去重。
-- 压力 raw 未标定力值；“拥抱”等含义由 AI 结合通道、部位、时序和聊天判断。反馈偏好只是用户配置，不保证模型一定遵守字符数。
-- Bridge 不自动启用真实输入或震动输出，也不自动把生成文本转成电机动作。
+Operit / OpenClaw 模板见 [宿主接入](HOST_INTEGRATIONS.md)。本机队列、去重、租约、签名与取消通过测试，真实宿主事件尚未验收。官方列出的 Events 支持场景为 Work 和 dots，不能据此声称普通 Chat 已实现空闲唤醒，见 [官方说明](https://developers.openai.com/plugins/build/mcp-events)。
 
-## 验证
-
-```powershell
-python tools/test_companion.py
-python tools/test_interaction_bridge.py
-# 已运行采集服务、连接设备且无人互动时，安装 Playwright 后可运行：
-node tools/test_bridge_ui.cjs
-```
-
-测试覆盖事务回滚、事件合并、过期记录排除、租约与 ACK、取消／到期、重启、温度分路基线、输出不回触摸、原生事件订阅和签名／私网回调拒绝。远程回调使用测试替身，真实 ChatGPT／Claude 账号与模型 API 调用不属于本次验收。
+偏好和事实摘要见 [反馈设置](INTERACTION_OBSERVATIONS.md)；回归入口见 [开发指南](DEVELOPER_GUIDE.md)。

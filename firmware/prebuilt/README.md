@@ -1,16 +1,32 @@
-# ESP32-C3 交付固件 2.8.1
+# ESP32-C3 预编译固件 2.8.1
 
-应用镜像 1298032 bytes，SHA-256 `b6bca8008fa5e7d4cf9f7c1a461b24fe8406093938d7f8bf2171f2952dd19daf`。已在裸 ESP32-C3 实际无线升级、校验并确认启动，保留原 Wi-Fi、MCP 令牌与通道。新增联网设置页默认免登录与可开关的账号密码保护，开启、关闭和重启持久化均实测通过。具体使用见 [运行环境与登录设置](../../docs/RUNTIME_AND_LOGIN.md)。此前直连功能验收见 [直连报告](../../docs/DIRECT_SERVER_ACCEPTANCE.md)。未包含 Wi-Fi、NVS、个人日志或模型密钥。
+用于 ESP32-C3 SuperMini。已有本项目固件的用户优先 [无线升级](../../docs/OTA_UPDATE.md)；空白开发板首次用 USB 写入。
 
-首次安装选择 ESP32-C3、4MB、DIO、80MHz，按 `FLASH_MANIFEST.json` 烧录四个文件：
+## 首次烧录：四个文件与地址
 
-| 文件 | 地址 |
-|---|---|
-| bootloader.bin | 0x0000 |
-| partitions.bin | 0x8000 |
-| boot_app0.bin | 0xe000 |
-| firmware.bin | 0x10000 |
+选择 **ESP32-C3、4MB、DIO、80MHz**，按 [FLASH_MANIFEST.json](FLASH_MANIFEST.json)填写：
 
-应用不能单独写到 0x0000。常规安装无需全片擦除；擦除会丢失网络、通道和待补传记录。不要写空白文件系统覆盖记录。首次烧录也可按 [根 README](../../README.md) 编译并使用 `tools/build_lab.ps1 -Upload -Port COM3`，先关闭串口占用。
+| 文件 | 写入地址 |
+| --- | --- |
+| `bootloader.bin` | `0x0000` |
+| `partitions.bin` | `0x8000` |
+| `boot_app0.bin` | `0xe000` |
+| `firmware.bin` | `0x10000` |
 
-配网和 BOOT 按钮见 [使用指南](../../docs/USER_GUIDE.md)。联网后可 [无线升级](../../docs/OTA_UPDATE.md)。默认手动模式，不开启裸板真实输入；FSR 接好后逐路 [校准](../../docs/CALIBRATION_AND_DAILY_MODE.md)。温度和电机接线见 [通道指南](../../docs/SENSOR_CHANNELS.md)。实际传感器、温度精度及震动尚未实物验收。
+应用不能单独写到 0x0000。先关闭占用串口的程序。常规更新不全片擦除、不写空白文件系统，以免丢失 Wi-Fi、通道和待补传。
+
+## 当前镜像校验
+
+应用大小 **1298032 bytes**，SHA-256：
+
+```text
+b6bca8008fa5e7d4cf9f7c1a461b24fe8406093938d7f8bf2171f2952dd19daf
+```
+
+清单包含其余文件的地址、大小和 SHA-256。已在裸 ESP32 实际 OTA 并确认启动，保留原网络与通道；不含个人 NVS、Wi-Fi 或模型密钥。
+
+## 烧录后
+
+按 [使用指南](../../docs/USER_GUIDE.md)配网，默认设置页免登录，可 [开启保护](../../docs/RUNTIME_AND_LOGIN.md)。默认手动模式，未接传感器时只模拟；接好 FSR 后 [逐路校准](../../docs/CALIBRATION_AND_DAILY_MODE.md)。
+
+真实传感器和电机尚未验收，见 [验证汇总](../../docs/VALIDATION.md)。自行编译的目标与入口见 [开发指南](../../docs/DEVELOPER_GUIDE.md)。
