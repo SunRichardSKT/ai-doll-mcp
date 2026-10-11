@@ -23,6 +23,7 @@ usage() {
     cat <<'EOF'
 AI Doll 远程服务器安装
   sudo bash Install_Server.sh --domain doll.your-domain.com
+  sudo bash Install_Server.sh     # 按提示填写域名，也可粘贴 HTTPS 首页地址
   sudo bash Install_Server.sh --domain doll.your-domain.com --dry-run
   sudo ai-doll-server status | start | stop | restart | link | logs
 
@@ -41,6 +42,41 @@ valid_domain() {
         [[ ${#label} -ge 1 && ${#label} -le 63 && "$label" != -* && "$label" != *- ]] || return 1
     done
     [[ "$1" != example.com && "$1" != *.example.com && "$1" != *.invalid && "$1" != *.localhost ]]
+}
+
+normalize_domain() {
+    # Accept a copied HTTPS home URL without silently discarding a different
+    # port, credential, path or query. This deployment always serves port 443.
+    local value=$1
+    value="${value#"${value%%[![:space:]]*}"}"
+    value="${value%"${value##*[![:space:]]}"}"
+    value=${value,,}
+    value=${value#https://}
+    value=${value%/}
+    value=${value%:443}
+    valid_domain "$value" || return 1
+    printf '%s' "$value"
+}
+
+choose_domain() {
+    local entered normalized
+    if [[ -n "$DOMAIN" ]]; then
+        normalized=$(normalize_domain "$DOMAIN") ||
+            die '域名无效。可填写 doll.your-domain.com 或 https://doll.your-domain.com/；不要使用 IP、非 443 端口或其他路径。'
+        DOMAIN=$normalized
+        return
+    fi
+    [[ "$ACTION" == install ]] || die '未找到保存的域名，请先运行安装入口。'
+    printf '\n首次部署只需填写域名。请先将域名解析到此服务器，并在云安全组放行 TCP 80 / 443。\n'
+    while true; do
+        read -r -p '域名或 HTTPS 首页地址：' entered ||
+            die '未读到域名。请运行 sudo bash Install_Server.sh --domain 你的域名。'
+        if normalized=$(normalize_domain "$entered"); then
+            DOMAIN=$normalized
+            return
+        fi
+        printf '未识别此地址，请重新填写，例如 doll.your-domain.com。不能使用 IP、其他端口、路径或查询参数。\n' >&2
+    done
 }
 
 load_saved() {
@@ -169,11 +205,7 @@ main() {
     [[ "$WAIT_SEC" =~ ^[0-9]+$ && "$WAIT_SEC" -ge 1 && "$WAIT_SEC" -le 600 ]] || die '等待时间需为 1～600 秒。'
     case "$ACTION" in install|start|stop|restart|status|link|logs) ;; *) die '不支持的操作。' ;; esac
     load_saved
-    if [[ -z "$DOMAIN" && "$ACTION" == install ]]; then
-        read -r -p '填写指向这台服务器的域名（不带 https://）：' DOMAIN
-    fi
-    DOMAIN=${DOMAIN,,}
-    valid_domain "$DOMAIN" || die '请填写真实域名，例如 doll.your-domain.com；不要带协议、端口或路径。'
+    choose_domain
     [[ "$PROJECT" =~ ^[a-z0-9][a-z0-9_-]*$ ]] || die 'Compose 项目名无效。'
     if $DRY_RUN; then
         printf '预览：安装目录 %s；项目 %s；HTTPS https://%s。\n' "$INSTALL_DIR" "$PROJECT" "$DOMAIN"
@@ -208,6 +240,7 @@ main() {
     if [[ -d "$INSTALL_DIR" && ! -f "$INSTALL_DIR/deployment-private.conf" && -n "$(ls -A "$INSTALL_DIR" | grep -v '^\.install.lock$')" ]]; then
         die '目标目录已有其他文件。请使用空目录，或原安装目录；不会覆盖未知工程。'
     fi
+    printf '\n[1/4] 检查域名与服务器环境…\n'
     command -v curl >/dev/null || { apt-get update; DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates curl; }
     getent ahosts "$DOMAIN" >/dev/null || die '域名尚未解析。请先设置 A/AAAA 指向服务器，再重试。'
     docker_ready
@@ -223,6 +256,7 @@ main() {
     exec 9> "$INSTALL_DIR/.install.lock"
     flock -n 9 || die '同一目录的安装正在进行，请稍后重试。'
     SOURCE_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+    printf '[2/4] 准备服务代码与配置…\n'
     if [[ ! -f "$SOURCE_DIR/deploy/direct-server/compose.yml" ]]; then download_source; fi
     [[ -f "$SOURCE_DIR/tools/direct_server.py" && -f "$SOURCE_DIR/requirements-server.txt" ]] || die '代码包不完整。'
     umask 077
@@ -246,11 +280,12 @@ main() {
     } > "$BIN_DIR/ai-doll-server"
     chmod 0755 "$BIN_DIR/ai-doll-server"
     compose config --quiet
-    printf '构建并启动接收服务和 HTTPS…\n'
+    printf '[3/4] 构建并启动接收服务和 HTTPS…\n'
     compose up -d --build --wait --wait-timeout 120
     local token
     token=$(owner_token)
     [[ "$token" =~ ^[0-9a-f]{64}$ ]] || die '服务未能生成管理连接，请检查服务日志。'
+    printf '[4/4] 检查 HTTPS 证书与服务…\n'
     wait_https "$token"
     printf '\n远程部署与 HTTPS 验证通过。\n'
     show_link "$token"

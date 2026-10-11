@@ -134,9 +134,14 @@ def server_package(delivery):
         'bridge_client.js','conversation_queue.js','channel_editor.js','history_manager.js',
         'console_embed.js','companion.html')]
     contents = {name:(ROOT/name).read_bytes() for name in names}
-    contents['README.md'] = ('# AI Doll Linux 服务包\n\n上传并解压此包，在服务器运行：\n\n'
-        '```bash\nsudo bash Install_Server.sh --domain doll.your-domain.com\n```\n\n'
-        '安装入口自动准备 Docker、配置、持久卷与 HTTPS。详情见 [远程部署指南](docs/REMOTE_SERVER_SETUP.md)。\n'
+    contents['README.md'] = ('# AI Doll Linux 服务包\n\n'
+        '准备 Ubuntu / Debian 服务器，将域名解析到它，并放行 TCP 80 / 443。\n\n'
+        '上传并解压此包，在解压目录运行：\n\n'
+        '```bash\nsudo bash Install_Server.sh\n```\n\n'
+        '按提示填写域名，也可粘贴 HTTPS 首页地址。安装入口自动准备 Docker、配置、持久卷与 HTTPS；'
+        '完成后显示管理链接，打开即可连接，不需要娃娃账号或模型密钥。\n\n'
+        '在管理页生成设备连接配置，用手机粘贴到娃娃“直连服务器”设置。收到实际上传后才显示在线。\n\n'
+        '完整步骤与故障处理见 [远程部署指南](docs/REMOTE_SERVER_SETUP.md)。'
         '无需上传 Windows Python；不包含个人配置或互动历史。\n').encode()
     manifest = dict(version='ai-doll-server-2.16.2',files={
         name:hashlib.sha256(raw).hexdigest() for name,raw in contents.items()})

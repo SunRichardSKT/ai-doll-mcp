@@ -1,85 +1,113 @@
-# 远程服务器快捷部署
+# 远程服务器：快速安装
 
-更新：2026-10-11，服务端交付 v2.16.2。此入口运行在远程 Linux 服务器上；Windows 内置 Python 用于电脑端，不需要上传到 Linux。
+适用于你自己的 Linux 服务器。电脑端的 Windows 启动程序和内置 Python 不需要上传到服务器。
 
-## 你先准备两件事
+整个流程是：**准备服务器和域名 → 运行安装入口 → 打开管理页面 → 手机连接娃娃**。
 
-1. 一台可 SSH 登录的 Linux 服务器。Ubuntu / Debian 可以自动安装缺少的 Docker；其他 Linux 先装好 Docker Engine 与 Compose。
-2. 一个域名，例如 `doll.your-domain.com`，将 A 记录指向服务器公网 IPv4；如有 AAAA，必须指向这台服务器可用的 IPv6。在云安全组允许 TCP 80 / 443。已有网站占用这两个端口时，使用原反向代理接入方式，见 [部署说明](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/DIRECT_SERVER.md)。
+## 1. 准备服务器和域名
 
-域名、服务器和云账号仍由你选择。安装器不会注册娃娃账号，不要求模型密钥，也不更改你的原 AI 聊天。
+- 一台可以通过 SSH 登录的 Ubuntu / Debian 服务器。安装入口会自动准备缺少的 Docker 和 Compose。
+- 一个域名，例如 `doll.your-domain.com`。在域名服务商处添加 A 记录，指向服务器公网 IPv4。若有 AAAA 记录，也必须指向这台服务器可用的 IPv6。
+- 在云服务商的安全组中允许 TCP **80、443**；服务器防火墙也应允许这两个端口。
 
-## 推荐：下载一个入口，填写域名
+首次安装推荐使用没有其他网站的服务器。已有网站占用 80 / 443 时，按 [已有反向代理的部署说明](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/DIRECT_SERVER.md)接入，安装入口不会停止其他网站。
 
-在服务器的 SSH 终端运行以下命令，把域名换成你的真实域名：
+## 2. 在服务器运行安装入口
+
+登录服务器，在 SSH 终端复制这两行：
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/SunRichardSKT/ai-doll-mcp/main/Install_Server.sh -o Install_Server.sh
+sudo bash Install_Server.sh
+```
+
+按提示填写域名。也可以直接粘贴 `https://你的域名/`，默认 HTTPS 端口为 443。填错后会提示重新填写。
+
+接下来等待四步完成：环境检查、下载并校验代码、启动服务、验证 HTTPS。无需自行安装 Python、编辑 Docker 配置或申请证书。只有证书和本安装的管理接口都验证通过，才会显示部署成功。
+
+如果服务器没有 `curl`，可在电脑下载 [Install_Server.sh](https://raw.githubusercontent.com/SunRichardSKT/ai-doll-mcp/main/Install_Server.sh)，上传后运行第二行；安装入口会准备缺少的下载工具。
+
+## 3. 打开管理页面
+
+安装结束会显示完整管理链接，形如：
+
+```text
+https://你的域名/#connect=…
+```
+
+在浏览器打开显示的完整链接，即可进入管理页面。**不需要创建娃娃账号或填写模型 API 密钥。**
+
+忘记链接时，在服务器运行：
+
+```bash
+sudo ai-doll-server link
+```
+
+## 4. 用手机连接娃娃
+
+1. 在服务器管理页点击 **生成设备连接配置**，复制生成的配置。
+2. 手机打开 ESP32 设置页。首次配网时，运行中的设备长按 **BOOT 约 3 秒**，连接娃娃热点，访问 `http://192.168.4.1/`；已联网时使用设备的局域网 IP。家庭 Wi-Fi 需要 2.4 GHz。
+3. 在 **直连服务器** 设置中粘贴配置，填入并保存。
+4. 回到服务器管理页刷新，等待设备实际上传后显示 **在线**。
+
+服务器无法直接访问家中开发板的内网 IP，因此首次通过手机保存配置。之后 ESP32 主动上传，电脑无需常开，开发板可以独立供电。未接传感器时保持模拟模式，物理输出关闭。
+
+## 5. 检查安装是否成功
+
+- 管理页可以打开。
+- 娃娃显示在线。
+- 模拟一次按压后，日志出现新记录，并标记为模拟来源。
+
+这完成的是设备上传、存储和原应用接口的部署。普通 Chat 的 MCP 连接沿用 [Secure MCP 接入指南](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/SECURE_MCP.md)，并不是把管理页地址填入 Chat 即可连接；普通 Chat 空闲主动唤醒也不属于此次部署验收。
+
+## 日常操作
+
+| 要做什么 | 在服务器执行 |
+| --- | --- |
+| 检查服务与 HTTPS | `sudo ai-doll-server status` |
+| 重新取得管理链接 | `sudo ai-doll-server link` |
+| 重启服务 | `sudo ai-doll-server restart` |
+| 停止 / 启动 | `sudo ai-doll-server stop` / `sudo ai-doll-server start` |
+| 查看错误日志 | `sudo ai-doll-server logs` |
+| 更新代码 | 重新下载安装入口，再运行 `sudo bash Install_Server.sh` |
+
+默认目录为 `/opt/ai-doll-mcp`。更新会复用域名、管理连接、设备绑定和历史。应用及证书使用持久数据卷；新安装的 Docker 启用开机启动，容器随引擎恢复。已有 Docker 需确认其开机启动设置。不要用 `docker compose down -v` 更新，因为它会删除数据卷。
+
+## 安装卡住时
+
+| 看到什么 | 怎么处理 |
+| --- | --- |
+| 域名尚未解析 | 检查域名的 A / AAAA 记录，解析生效后重新运行安装入口。 |
+| Docker 已安装但未运行 | 启动已有 Docker 后重试；安装入口不会替换现有运行环境。 |
+| HTTPS 尚未通过验证 | 检查 DNS、云安全组与防火墙的 80 / 443，运行 `logs` 查看证书错误；修复后执行 `start`。服务和数据保留。 |
+| 管理页正常，但设备离线 | 检查娃娃的 Wi-Fi、供电和直连配置；重新保存配置后查看日志。 |
+| 目标目录或 Compose 项目已存在 | 确认是否为原项目，按下方高级选项指定原目录 / 项目；不要删除陌生目录或容器。 |
+
+## 高级安装方式
+
+直接指定域名，不出现提问：
+
+```bash
 sudo bash Install_Server.sh --domain doll.your-domain.com
 ```
 
-若命令中不填写 `--domain`，入口会询问域名。若服务器没有 curl，可在电脑上下载 `Install_Server.sh` 后上传到服务器，再运行第二行；安装器会准备缺少的 curl。
+只预览，不安装依赖或启动服务：
 
-安装器会完成：
+```bash
+sudo bash Install_Server.sh --domain doll.your-domain.com --dry-run
+```
 
-1. 验证域名格式、DNS 解析和安装目录。
-2. 复用已有 Docker；未安装时从 Docker 官方 apt 源安装 Docker / Compose，不卸载已有容器运行环境。
-3. 下载小型 Linux 服务包并核对 SHA-256，不下载 Windows Python 或 PCB 文件。
-4. 生成 `.env`、持久数据卷、服务启动配置和管理命令。
-5. 构建接收服务，启动 Caddy，自动申请和续期 HTTPS 证书。
-6. 校验证书及管理接口的本安装身份，通过后才显示部署成功和管理链接。
-
-Docker 安装遵循 [Ubuntu 官方说明](https://docs.docker.com/engine/install/ubuntu/)与 [Debian 官方说明](https://docs.docker.com/engine/install/debian/)。Caddy 的自动 HTTPS 需要正确 DNS 与可达的 80 / 443，见 [官方说明](https://caddyserver.com/docs/automatic-https)。
-
-## 也可上传小型服务包
-
-从交付目录下载 `AI_Doll_Server_v2.16.2.tar.gz` 与对应 `.sha256` 文件，上传到服务器同一目录：
+也可从 [交付目录](https://github.com/SunRichardSKT/ai-doll-mcp/tree/main/delivery)下载 `AI_Doll_Server_v2.16.2.tar.gz` 与对应 `.sha256`，上传到服务器同一目录：
 
 ```bash
 sha256sum -c AI_Doll_Server_v2.16.2.tar.gz.sha256
 mkdir ai-doll-server
 tar -xzf AI_Doll_Server_v2.16.2.tar.gz -C ai-doll-server
-sudo bash ai-doll-server/Install_Server.sh --domain doll.your-domain.com
+sudo bash ai-doll-server/Install_Server.sh
 ```
 
-这个包只有服务代码、部署配置和指南；Python 及服务依赖由容器准备。完整源码 / Windows 包中也提供同一个根目录安装入口。
+小型包仅包含 Linux 服务代码、配置和指南，运行依赖由容器准备，不需要 Windows 完整包或 PCB 文件。
 
-## 接入设备
+已有手工 Compose 部署可使用 `--install-dir 原绝对目录 --project 原项目名`，经核对后复用原数据卷。其他 Linux 发行版需要先准备 Docker Engine 与 Compose，再运行安装入口。
 
-安装完成会显示形如 `https://你的域名/#connect=…` 的完整管理链接。打开后自动进入管理界面，不需要手动输入娃娃账号密码；可用 `sudo ai-doll-server link` 再次取得链接。
-
-1. 管理页点击“生成设备连接配置”，复制生成的 JSON。
-2. 手机进入 ESP32 设置页；首次配网时长按 BOOT，连接娃娃热点，访问 `http://192.168.4.1/`。联网后也可使用设备的局域网 IP。
-3. 在“直连服务器”粘贴配置，点击填入并保存；家庭 Wi-Fi 使用 2.4 GHz。
-4. 回到服务器管理页刷新。收到设备实际上传后才显示在线；此后设备可独立供电，不需要电脑中转。
-
-服务器不能直接访问家中 ESP32 的内网 IP，因此首次设备配置通过手机保存；配好后设备主动向服务器上传。进入设备下方的链接可设置通道、部位、人设、偏好，查看日志和模拟输入。未接传感器时用 simulation，物理输出关闭。
-
-此服务是设备直传与原应用事件接口。自建前端可接事件并调用原模型；普通 Chat 的 MCP / Secure 隧道沿用已有接入。部署成功不等于已经实现普通 Chat 空闲唤醒。
-
-## 日常管理与更新
-
-```bash
-sudo ai-doll-server status    # 实际服务与 HTTPS 检查
-sudo ai-doll-server stop      # 停止本项目容器，保留历史和证书
-sudo ai-doll-server start     # 启动并再次验证 HTTPS
-sudo ai-doll-server restart   # 重启本项目
-sudo ai-doll-server link      # 取得自动连接的管理链接
-sudo ai-doll-server logs      # 查看应用和证书日志
-```
-
-默认安装到 `/opt/ai-doll-mcp`，默认 Compose 项目为 `ai-doll-server`。新安装的 Docker 自动启用开机启动，本项目容器设置为引擎重启后恢复；复用原 Docker 时请确认原引擎已设为开机启动。数据、设备绑定和证书保存在持久卷，停止或重装代码时不删除。更新时重新下载新版 `Install_Server.sh` 并运行原安装命令；已有域名和管理链接保持，若需改域名显式填写新域名并重新保存设备配置。
-
-已有手工 Compose 部署时，先确认原项目名、卷与备份。新安装目录中可用 `--project 原项目名` 明确复用仅含 doll / https 的项目和数据卷；安装器不会自动接管默认名称下的已有容器，也不会覆盖陌生的非空目录。不要用 `docker compose down -v` 更新。
-
-只预览安装流程，可加 `--dry-run`，不会安装依赖或启动服务。
-
-## 出错后怎么办
-
-- **域名未解析**：补齐 DNS 后重新运行。
-- **Docker 未运行 / 插件缺少**：修复已有 Docker / Compose 后重试；安装器不会重装现有引擎。
-- **80 / 443 被占用**：继续使用原网站的反向代理，或使用独立服务器；安装器不停止其他网站。
-- **HTTPS 检查超时**：服务与数据保留，检查 A / AAAA、云安全组、80 / 443 和 `logs`。修复后执行 `sudo ai-doll-server start`；不会把证书失败报告成成功。
-- **设备未上线**：检查开发板 Wi-Fi、服务器配置与供电。已存历史仍可查询。
-
-已在独立 Ubuntu 环境实际安装 Docker、构建容器，验证 HTTPS、真 ESP32 的模拟记录上传、重复安装、停止 / 启动和系统重启后的恢复。测试使用显式信任的内部 CA；你的实际公网服务器、域名和公网证书仍需部署时检查。详见 [验收范围](SIMPLE_SETUP_ACCEPTANCE.md)。
+安装使用 [Docker 官方 Ubuntu](https://docs.docker.com/engine/install/ubuntu/) / [Debian](https://docs.docker.com/engine/install/debian/)软件源和 [Caddy 自动 HTTPS](https://caddyserver.com/docs/automatic-https)。已完成本机隔离 Linux 环境的安装与设备上传验证；实际公网服务器、DNS 和公网证书需在你的服务器上验证。见 [验收范围](SIMPLE_SETUP_ACCEPTANCE.md)。

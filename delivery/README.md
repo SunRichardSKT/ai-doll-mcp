@@ -10,9 +10,9 @@ Linux 小型服务包提供远程快捷安装入口 Install_Server.sh，自动�
 
 交付包不含本机 Wi-Fi 配置、设备访问密钥或个人互动数据库。完整文件校验值在各包的 `MANIFEST.json`；ZIP 校验值在 `DELIVERY_MANIFEST.json`。
 
-`AI_Doll_Code_v2.16.2.zip` SHA-256：`8d6c033f13dc9a1cdeb6994e2db8fad9ce474bec00f37fae29d1477186de74cf`。
+`AI_Doll_Code_v2.16.2.zip` SHA-256：`b730e0f70f2a16f3aeea705219921271c87d910aae40df73b11822f8787c07b2`。
 
 `AI_Doll_PCB_V2_20261003.zip` SHA-256：`a5d37184fc14a4857662e0527e9a14b890342e0ca9223a5b10322d01a1d79dcb`。
 
-`AI_Doll_Server_v2.16.2.tar.gz` SHA-256：`8bd5e12c41007f93c780d38888721849e968f9b546017661de6c9d35de52abda`。
+`AI_Doll_Server_v2.16.2.tar.gz` SHA-256：`ab6daad8bda3fc93017d8573b826e3e001b836e1f63caca8295b4b5eda237240`。
 

@@ -77,7 +77,7 @@ fi
 
     def tearDown(self):self.temp.cleanup()
 
-    def run_install(self,*args,domain=True,**environment):
+    def run_install(self,*args,domain=True,stdin='',**environment):
         # Git's Windows launcher prepends its own tools to PATH. Set the isolated
         # PATH after launch so all system actions use the declared substitutes.
         command=[str(BASH),'-c','export PATH="$FIXTURE_PATH"; source "$1"; shift; main "$@"',
@@ -85,7 +85,7 @@ fi
                  '--bin-dir',self.posix(self.command_dir),'--wait-sec','1']
         if domain:command+=['--domain',DOMAIN]
         return subprocess.run(command+list(args),env=dict(self.env,**environment),capture_output=True,
-                              text=True,encoding='utf-8',timeout=30)
+                              input=stdin,text=True,encoding='utf-8',timeout=30)
 
     def test_download_install_repeat_and_stop_preserve_state(self):
         first=self.run_install();self.assertEqual(first.returncode,0,first.stderr)
@@ -102,12 +102,32 @@ fi
         self.assertTrue((self.command_dir/'ai-doll-server').is_file())
 
     def test_invalid_domain_and_unknown_directory_have_no_docker_actions(self):
-        for domain in ('https://doll.test-domain.net','doll.test-domain.net:443','a..net','example.com','$(touch x).net'):
+        for domain in ('http://doll.test-domain.net','doll.test-domain.net:8443','https://doll.test-domain.net/mcp',
+                       'https://user@doll.test-domain.net','https://doll.test-domain.net/?x=1',
+                       'a..net','example.com','$(touch x).net'):
             result=self.run_install('--domain',domain)
             self.assertNotEqual(result.returncode,0)
         self.target.mkdir();sentinel=self.target/'other.txt';sentinel.write_text('other project')
         result=self.run_install();self.assertNotEqual(result.returncode,0)
         self.assertEqual(sentinel.read_text(),'other project');self.assertFalse(self.log.exists())
+
+    def test_copied_https_home_url_installs_the_expected_host(self):
+        result=self.run_install('--domain','  HTTPS://DOLL.TEST-DOMAIN.NET:443/  ')
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertEqual((self.target/'deploy/direct-server/.env').read_text().strip(),'DOLL_DOMAIN='+DOMAIN)
+        self.assertIn('https://'+DOMAIN+'/#connect=',result.stdout)
+
+    def test_guided_input_retries_and_eof_has_no_system_changes(self):
+        empty=self.run_install(domain=False)
+        self.assertNotEqual(empty.returncode,0)
+        self.assertIn('未读到域名',empty.stderr)
+        self.assertFalse(self.log.exists())
+        retry=self.run_install('--dry-run',domain=False,stdin='bad-address\nhttps://'+DOMAIN+'/\n')
+        self.assertEqual(retry.returncode,0,retry.stderr)
+        self.assertIn('重新填写',retry.stderr)
+        self.assertIn('HTTPS https://'+DOMAIN,retry.stdout)
+        self.assertFalse(self.target.exists())
+        self.assertFalse(self.log.exists())
 
     def test_dns_failure_does_not_start_services(self):
         result=self.run_install(FIXTURE_DNS_FAIL='1')
