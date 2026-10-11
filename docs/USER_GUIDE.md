@@ -4,7 +4,7 @@
 
 当前推荐先打开根目录 **AI_Doll.cmd**，按 [GUI 使用指南](GUI_GUIDE.md) 安装和管理。
 
-当前固件 2.8.1，电脑 Bridge 2.16.1。首次电脑安装见 [安装指南](AI_INSTALL.md)，日常操作按下面流程。普通 Chat 推荐 [Secure 安装与启动](SECURE_MCP.md)，无需另建娃娃账号。
+当前固件 2.8.1，电脑 Bridge 2.16.2。首次电脑安装见 [安装指南](AI_INSTALL.md)，日常操作按下面流程。普通 Chat 推荐 [Secure 安装与启动](SECURE_MCP.md)，无需另建娃娃账号。
 
 本机 MCP 客户端可直接使用局域网采集，不需要公网隧道。普通 Chat 推荐 [Secure 安装与启动](SECURE_MCP.md)，已通过状态、历史及 60 秒模拟按压反馈；当前 Work 的局域网路径也已实测。各客户端入口见 [聊天连接范围](CHAT_MCP.md)。提供给云端 AI 的事件仍会随对话发送给该平台，不能称为完全离线。
 

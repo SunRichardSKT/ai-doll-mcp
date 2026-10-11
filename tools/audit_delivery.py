@@ -21,7 +21,7 @@ def local_credentials():
             for item in value:collect(item,key)
         elif isinstance(value,str) and len(value)>=8 and (SECRET_NAMES.search(key) or PRIVATE_URL.search(value.encode())):
             values.add(value.encode())
-    paths = [p for folder in ('device-lab', 'direct-server', 'direct-device-test')
+    paths = [p for folder in ('device-lab', 'direct-server', 'direct-device-test', 'linux-deploy-test')
              for p in (ROOT/'build'/folder).rglob('*-private.json')]
     for path in paths:
         try:collect(json.loads(path.read_text(encoding='utf-8-sig')))
@@ -52,7 +52,7 @@ def audit(path,secrets=None):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('package',type=Path,nargs='?',default=ROOT/'delivery/AI_Doll_Code_v2.16.1.zip')
+    parser.add_argument('package',type=Path,nargs='?',default=ROOT/'delivery/AI_Doll_Code_v2.16.2.zip')
     args=parser.parse_args()
     print(json.dumps(audit(args.package),indent=2))
 

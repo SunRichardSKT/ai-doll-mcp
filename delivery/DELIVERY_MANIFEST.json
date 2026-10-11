@@ -1,10 +1,10 @@
 {
   "packages": [
     {
-      "file": "AI_Doll_Code_v2.16.1.zip",
+      "file": "AI_Doll_Code_v2.16.2.zip",
       "files": 2482,
-      "bytes": 30043703,
-      "sha256": "fd0a6503d9ac13ae5b36dc5916f52fb9f8b824e51d9ec757aee26440100f25a0"
+      "bytes": 30044565,
+      "sha256": "8d6c033f13dc9a1cdeb6994e2db8fad9ce474bec00f37fae29d1477186de74cf"
     },
     {
       "file": "AI_Doll_PCB_V2_20261003.zip",
@@ -13,11 +13,11 @@
       "sha256": "a5d37184fc14a4857662e0527e9a14b890342e0ca9223a5b10322d01a1d79dcb"
     },
     {
-      "file": "AI_Doll_Server_v2.16.1.tar.gz",
-      "files": 24,
-      "bytes": 63746,
-      "sha256": "4e58cce161141efbfed92a1b090b8128d0cc1e16cde4ae2ac91fe657092ef5c2",
-      "checksum_file": "AI_Doll_Server_v2.16.1.tar.gz.sha256"
+      "file": "AI_Doll_Server_v2.16.2.tar.gz",
+      "files": 25,
+      "bytes": 65234,
+      "sha256": "8bd5e12c41007f93c780d38888721849e968f9b546017661de6c9d35de52abda",
+      "checksum_file": "AI_Doll_Server_v2.16.2.tar.gz.sha256"
     }
   ]
 }

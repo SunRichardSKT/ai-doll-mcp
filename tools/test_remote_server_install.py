@@ -36,7 +36,7 @@ class RemoteInstallTests(unittest.TestCase):
         self.log=self.root/'docker.txt'
         self.env=dict(os.environ,PATH=self.posix(self.bin)+':/usr/bin:/bin',MSYS2_ARG_CONV_EXCL='*',
             FIXTURE_PATH=self.posix(self.bin)+':/usr/bin:/bin',
-            FIXTURE_PACKAGE=self.posix(ROOT/'delivery/AI_Doll_Server_v2.16.1.tar.gz'),
+            FIXTURE_PACKAGE=self.posix(ROOT/'delivery/AI_Doll_Server_v2.16.2.tar.gz'),
             FIXTURE_LOG=self.posix(self.log),FIXTURE_TOKEN=TOKEN,FIXTURE_DOMAIN=DOMAIN,
             FIXTURE_ID=hashlib.sha256(('installation:'+TOKEN).encode()).hexdigest())
         self.stub('uname','printf "Linux\\n"')
@@ -139,7 +139,7 @@ fi
 
     def test_minimal_payload_serves_authenticated_management(self):
         payload=self.root/'payload';payload.mkdir()
-        with tarfile.open(ROOT/'delivery/AI_Doll_Server_v2.16.1.tar.gz','r:gz') as archive:
+        with tarfile.open(ROOT/'delivery/AI_Doll_Server_v2.16.2.tar.gz','r:gz') as archive:
             archive.extractall(payload,filter='data')
         with socket.socket() as probe:
             probe.bind(('127.0.0.1',0));port=probe.getsockname()[1]

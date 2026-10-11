@@ -1,6 +1,6 @@
 # 远程服务器快捷部署
 
-更新：2026-10-11，服务端交付 v2.16.1。此入口运行在远程 Linux 服务器上；Windows 内置 Python 用于电脑端，不需要上传到 Linux。
+更新：2026-10-11，服务端交付 v2.16.2。此入口运行在远程 Linux 服务器上；Windows 内置 Python 用于电脑端，不需要上传到 Linux。
 
 ## 你先准备两件事
 
@@ -33,12 +33,12 @@ Docker 安装遵循 [Ubuntu 官方说明](https://docs.docker.com/engine/install
 
 ## 也可上传小型服务包
 
-从交付目录下载 `AI_Doll_Server_v2.16.1.tar.gz` 与对应 `.sha256` 文件，上传到服务器同一目录：
+从交付目录下载 `AI_Doll_Server_v2.16.2.tar.gz` 与对应 `.sha256` 文件，上传到服务器同一目录：
 
 ```bash
-sha256sum -c AI_Doll_Server_v2.16.1.tar.gz.sha256
+sha256sum -c AI_Doll_Server_v2.16.2.tar.gz.sha256
 mkdir ai-doll-server
-tar -xzf AI_Doll_Server_v2.16.1.tar.gz -C ai-doll-server
+tar -xzf AI_Doll_Server_v2.16.2.tar.gz -C ai-doll-server
 sudo bash ai-doll-server/Install_Server.sh --domain doll.your-domain.com
 ```
 
@@ -68,7 +68,7 @@ sudo ai-doll-server link      # 取得自动连接的管理链接
 sudo ai-doll-server logs      # 查看应用和证书日志
 ```
 
-默认安装到 `/opt/ai-doll-mcp`，默认 Compose 项目为 `ai-doll-server`。Docker 与本项目设置为重启后恢复。数据、设备绑定和证书保存在持久卷，停止或重装代码时不删除。更新时重新下载新版 `Install_Server.sh` 并运行原安装命令；已有域名和管理链接保持，若需改域名显式填写新域名并重新保存设备配置。
+默认安装到 `/opt/ai-doll-mcp`，默认 Compose 项目为 `ai-doll-server`。新安装的 Docker 自动启用开机启动，本项目容器设置为引擎重启后恢复；复用原 Docker 时请确认原引擎已设为开机启动。数据、设备绑定和证书保存在持久卷，停止或重装代码时不删除。更新时重新下载新版 `Install_Server.sh` 并运行原安装命令；已有域名和管理链接保持，若需改域名显式填写新域名并重新保存设备配置。
 
 已有手工 Compose 部署时，先确认原项目名、卷与备份。新安装目录中可用 `--project 原项目名` 明确复用仅含 doll / https 的项目和数据卷；安装器不会自动接管默认名称下的已有容器，也不会覆盖陌生的非空目录。不要用 `docker compose down -v` 更新。
 
@@ -82,4 +82,4 @@ sudo ai-doll-server logs      # 查看应用和证书日志
 - **HTTPS 检查超时**：服务与数据保留，检查 A / AAAA、云安全组、80 / 443 和 `logs`。修复后执行 `sudo ai-doll-server start`；不会把证书失败报告成成功。
 - **设备未上线**：检查开发板 Wi-Fi、服务器配置与供电。已存历史仍可查询。
 
-当前没有你的实际公网服务器与域名；本轮提供并测试部署代码，不把本机或替身测试当作真实公网证书验收。
+已在独立 Ubuntu 环境实际安装 Docker、构建容器，验证 HTTPS、真 ESP32 的模拟记录上传、重复安装、停止 / 启动和系统重启后的恢复。测试使用显式信任的内部 CA；你的实际公网服务器、域名和公网证书仍需部署时检查。详见 [验收范围](SIMPLE_SETUP_ACCEPTANCE.md)。
