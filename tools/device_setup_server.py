@@ -118,7 +118,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_response(200);self.send_header('Content-Type','application/javascript; charset=utf-8');self.send_header('Cache-Control','no-store');self.send_header('Content-Length',str(len(data)));self.end_headers();self.wfile.write(data);return
         if not self.allowed():return self.send(403,{'error':'Forbidden host/origin'})
         if self.path=='/install-guide':
-            raw=(Path(__file__).resolve().parents[1]/'docs/AI_INSTALL.md').read_bytes();self.send_response(200);self.send_header('Content-Type','text/plain; charset=utf-8');self.send_header('Content-Length',str(len(raw)));self.end_headers();self.wfile.write(raw);return
+            raw=(Path(__file__).resolve().parents[1]/'docs/start/AI_INSTALL.md').read_bytes();self.send_response(200);self.send_header('Content-Type','text/plain; charset=utf-8');self.send_header('Content-Length',str(len(raw)));self.end_headers();self.wfile.write(raw);return
         if parsed.path=='/companion':
             raw=(Path(__file__).with_name('companion.html').read_text(encoding='utf-8').replace('__CSRF__',CSRF)).encode();self.send_response(200);self.send_header('Content-Type','text/html; charset=utf-8');self.send_header('Cache-Control','no-store');self.send_header('Content-Length',str(len(raw)));self.end_headers();self.wfile.write(raw);return
         if parsed.path=='/':

@@ -1,4 +1,8 @@
 {$DOLL_DOMAIN} {
+    @mcp path_regexp mcp ^/(?:[0-9a-f]{64}/)?d/[0-9a-f]{32}/mcp$
+    reverse_proxy @mcp doll:8782 {
+        flush_interval -1
+    }
     reverse_proxy doll:8781 {
         flush_interval -1
     }

@@ -35,7 +35,7 @@ static void otaStatus(JsonObject out){
 }
 static bool otaAuthorized(){
  // OTA remains LAN-only and requires a setup token; optional page login also applies.
- if(configAP||WiFi.status()!=WL_CONNECTED||!originOK()||
+ if(!otaNetworkAllowed(WiFi.status()==WL_CONNECTED,networkMode==NetworkMode::NORMAL,web.client().localIP()==WiFi.softAPIP())||!originOK()||
     (adminAuthEnabled&&!web.authenticate(adminUser.c_str(),apPass.c_str()))||web.header("X-Setup-Token")!=token){
   web.send(403,"application/json","{\"error\":\"OTA requires LAN access, setup token and configured login\"}");return false;
  }

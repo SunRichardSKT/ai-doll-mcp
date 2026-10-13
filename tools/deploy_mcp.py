@@ -293,7 +293,7 @@ def main():
         print(json.dumps(result,ensure_ascii=False,indent=2))
         if args.action=='verify' and not result['protocol_connected']: raise SystemExit(1)
     except Exception:
-        print('Operation failed. Check the local configuration and docs/REMOTE_MCP.md; no credentials were printed.',file=sys.stderr)
+        print('Operation failed. Check the local configuration and docs/integrations/REMOTE_MCP.md; no credentials were printed.',file=sys.stderr)
         raise SystemExit(1)
 
 

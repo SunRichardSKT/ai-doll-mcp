@@ -164,7 +164,7 @@ static void remoteTick(){
  if(remoteResponses&&xQueueReceive(remoteResponses,&finished,0)==pdTRUE){
   remotePending=false;if(finished->generation==remoteGeneration&&remoteEnabled)remoteAccept(finished);delete finished;
  }
- if(!remoteEnabled||remotePending||!remoteJobs||WiFi.status()!=WL_CONNECTED||configAP||otaActive||otaCommitted)return;
+ if(!remoteEnabled||remotePending||!remoteJobs||!uplinkNetworkAllowed(WiFi.status()==WL_CONNECTED,networkMode==NetworkMode::NORMAL)||otaActive||otaCommitted)return;
  if(remoteFailures==0&&touchSeq!=remoteObservedSeq)remoteNextAt=0;
  if((int32_t)(millis()-remoteNextAt)<0)return;
  timeval now;gettimeofday(&now,nullptr);

@@ -1,44 +1,42 @@
 # AI 共感娃娃
 
-让娃娃的触摸记录进入你正在使用的 AI 对话。你可以问“今天有哪些互动”，也可以开启限时互动，让原聊天中的 AI 根据新动作回应。继续使用原模型、人设和上下文。
+把娃娃的按压记录接入你正在使用的 AI 聊天。继续使用原模型和人设，可以查询互动历史，也可以开始限时互动。
 
-当前版本：**软件 2.16.2 · ESP32 固件 2.8.1**。Windows 完整包自带 Python，无需另装运行环境。没有传感器也能进行模拟测试。
+**软件 2.17.0 · ESP32-C3 固件 2.9.0**。Windows 完整包自带运行环境，无需安装 Python 或 Arduino。
 
-## 第一次使用，从这里选
+## 第一次使用，只做这几步
 
-| 你想怎么用 | 下载什么 | 第一步 |
+1. 从 [下载入口](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/delivery/README.md)取得 **Windows 完整包**并完整解压。
+2. 开发板还没装程序：接 USB 数据线，双击 **Flash_ESP32.cmd**，点击 **一键烧录**。看见成功后进入下一步。[图文步骤](docs/start/QUICK_FLASH.md)
+3. 手机连接烧录成功页显示的 **AI-Doll-…** 热点，打开 **http://192.168.4.1/**，选择家庭的 2.4 GHz Wi-Fi 并保存。[配网步骤](docs/daily/WIFI_CONNECTION.md)
+4. 双击 **AI_Doll.cmd**，按 [首次安装](docs/start/AI_INSTALL.md)连接你的原 AI 聊天。
+
+**配网成功后，娃娃热点和 192.168.4.1 设置页仍保留。** 每次要修改设置，连接娃娃热点即可。这个地址在家庭 Wi-Fi 下不是娃娃的固定局域网 IP。
+
+## 三个入口，各做一件事
+
+| 双击哪个文件 | 用来做什么 | 这台电脑上的地址 |
 | --- | --- | --- |
-| 在 ChatGPT 普通 Chat 或本机 MCP 客户端里使用 | Windows 完整软件包 | 解压后双击 `AI_Doll.cmd`，按 [首次安装](docs/AI_INSTALL.md)操作 |
-| 让自己的聊天应用接收娃娃事件，先在电脑测试 | Windows 完整软件包 | 双击 `AI_Doll_Server.cmd`，按 [本机接收服务](docs/SERVER_QUICKSTART.md)操作 |
-| 部署到自己的 Linux 服务器，电脑不用常开 | 小型 Linux 服务包或安装脚本 | 按 [远程快捷部署](docs/REMOTE_SERVER_SETUP.md)填写域名 |
+| Flash_ESP32.cmd | USB 烧录，保存日志并生成新设备名称 | http://127.0.0.1:8770/ |
+| AI_Doll.cmd | 管理娃娃、保存历史、接入原 AI | http://127.0.0.1:8769/ |
+| AI_Doll_Server.cmd | 给自建应用启动本机接收服务 | 以启动页面显示为准 |
 
-[下载与交付文件](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/delivery/README.md) · [全部文档](docs/README.md) · [给 AI 的安装与验证指南](docs/AI_GUIDE.md)
+自己有 Linux 服务器、希望电脑不用常开时，用 [远程部署教程](docs/integrations/REMOTE_SERVER_SETUP.md)。不确定选哪条路线，先看 [连接方式选择](docs/start/MCP_TRANSPORT_DECISION.md)。
 
-## 安装完成后怎么用
+## 烧录和首次启动
 
-1. 给娃娃配好 2.4 GHz Wi-Fi，设置每路传感器的部位。
-2. 将 MCP 接入原聊天，实际调用状态工具确认连通。
-3. 平时触摸只记录；询问“查询今天的互动”时，AI 读取历史并回应。
-4. 说“开始 60 秒互动测试”，然后模拟按压。AI 在这次会话中读取新动作，并结合原对话回应。
+每次 USB 烧录产生新设备后缀，并在 `build/flash/日期时间-编号/` 保存日志与结果；日常重启保持名称。标准烧录保留已有配置，明确选择“恢复出厂”才清空设备。新板默认未配网、手动模式、真实输入和电机输出关闭。[默认设置说明](docs/start/FACTORY_SETTINGS.md)
 
-日常操作见 [使用指南](docs/USER_GUIDE.md)，遇到问题看 [故障排查](docs/TROUBLESHOOTING.md)。MCP 是让 AI 调用工具的接口，不会自行生成回复。
+## 接好传感器后
 
-## 当前哪些已经验证
+只启用已安装的通道，确认读数随按压变化，再做 [压力校准](docs/daily/CALIBRATION_AND_DAILY_MODE.md)。日常模式可在重启后恢复输入，电机输出不会自动恢复。
 
-- **ChatGPT 普通 Chat + Secure MCP Tunnel**：状态查询、历史查询、60 秒模拟按压文字反馈，以及服务重启后的连接。
-- **设备直传服务**：真实 ESP32 通过 Wi-Fi / TLS 上传模拟事件、保存历史，并触发原自定义聊天的测试回调。
-- **硬件文件**：双层 PCB，34.29 × 44.45 mm；保存重载后原生 PCB DRC 为 0。保留 SuperMini、74HC4051 和手焊方案。
+已实测 CH0 实体 FSR 的按压、释放和本机历史保存。其他通道、温度探头、电机及整机电池仍需分别验收；限时互动不等于 AI 空闲时自动唤醒。[当前验证范围](docs/reports/VALIDATION.md)
 
-真实 FSR、温度探头和电机尚未接线验收；普通 Chat 空闲主动唤醒未验证。Sakura 的 SDK 调用通过，普通 Chat 添加仍失败。模拟读数不代表实体传感器测量，测试回调不代表真实模型生成。详见 [验证汇总](docs/VALIDATION.md)。
+## 完整目录
 
-## 需要保持什么运行
+[新手与日常教程](docs/README.md) · [故障排查](docs/TROUBLESHOOTING.md) · [给 AI 的执行指南](docs/ai/AI_GUIDE.md) · [AI 维护入口](AGENTS.md) · [开发与打包](docs/developers/DEVELOPER_GUIDE.md) · [硬件与 BOM](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/rev-v2/README.md)
 
-电脑 MCP 模式需要电脑及采集服务运行，设备可独立供电，不必一直连接 USB。直传模式需要接收服务器运行；设备主动上传，家中无需端口映射。两条通路分别保存历史，不要同时消费同一设备的缓存。
+电脑模式需要电脑采集服务运行，直传模式需要接收服务器运行。查询云端 AI 时，所查询的记录会提供给该平台。个人配置与历史留在本机 `build/`，不随公共包发布。
 
-查询云端 AI 时，所查询的记录会发送给该平台。设备设置页默认免登录，可按需开启保护；配对令牌和隧道运行密钥用途见 [运行环境与登录](docs/RUNTIME_AND_LOGIN.md)。
-
-## 硬件与开发
-
-[PCB 工程、BOM 与装配核对](https://github.com/SunRichardSKT/ai-doll-mcp/tree/main/hardware/rev-v2) · [通道与接线](docs/SENSOR_CHANNELS.md) · [开发指南](docs/DEVELOPER_GUIDE.md) · [后续工作](docs/DEVELOPMENT_PLAN.md)
-
-原创代码与文档使用 [MIT License](LICENSE)。第三方依赖、客户端和资料保留各自许可。
+原创代码与文档使用 [MIT License](LICENSE)。第三方依赖的许可随完整包保留。

@@ -1,7 +1,6 @@
 """Real-device mixed-channel regression using official MCP clients. Restores config/persona."""
 import asyncio, datetime, json, os, pathlib, site, sys, urllib.request
 ROOT=pathlib.Path(__file__).resolve().parents[1]
-SDK=ROOT/'.tools/mcp-test-sdk';sys.path.insert(0,str(SDK));site.addsitedir(str(SDK))
 from mcp import ClientSession,StdioServerParameters
 from mcp.client.stdio import stdio_client
 from mcp.client.streamable_http import streamable_http_client

@@ -1,0 +1,4 @@
+# Source installations: python -m pip install -r requirements-flash.txt
+# The Windows delivery already includes these packages.
+esptool==4.8.1
+pyserial==3.5

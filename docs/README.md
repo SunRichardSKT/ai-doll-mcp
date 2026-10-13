@@ -1,59 +1,55 @@
-# 文档导航
+# 教程目录
 
-不需要按顺序读完所有文档。先选择安装路径，完成一次模拟互动，再按需要查看其他页面。
+零基础从“入门”开始，只读当前需要的页面。技术接口放在开发者区，给 AI 的操作规则单独存放。
 
-## 安装与连接
+## 01 入门：先把设备用起来
 
-| 场景 | 入口 |
+| 顺序 | 教程 | 完成后应该看到 |
+| --- | --- | --- |
+| 1 | [一键烧录（含实际截图）](start/QUICK_FLASH.md) | 程序写入、启动和新编号均成功 |
+| 2 | [新板与恢复出厂设置](start/FACTORY_SETTINGS.md) | 了解默认行为和保留范围 |
+| 3 | [配网与固定设置页（含实际截图）](daily/WIFI_CONNECTION.md) | 已联网，192.168.4.1 入口仍可用 |
+| 4 | [Windows 首次安装](start/AI_INSTALL.md) | 原 AI 能实际调用设备状态 |
+| 选择 | [四种连接方式](start/MCP_TRANSPORT_DECISION.md) | 选定一条运行通路 |
+
+## 02 日常：记录、传感器与维护
+
+| 教程 | 解决什么问题 |
 | --- | --- |
-| 不知道该选哪种方式 | [连接方式选择](MCP_TRANSPORT_DECISION.md) |
-| Windows 第一次使用 | [首次安装](AI_INSTALL.md) → [管理中心](GUI_GUIDE.md) |
-| ChatGPT 普通 Chat | [Secure MCP 配置](SECURE_MCP.md) → [原聊天测试](CHAT_MCP.md) |
-| 自己的应用，电脑接收 | [本机接收服务](SERVER_QUICKSTART.md) |
-| 自己的远程 Linux 服务器 | [快捷部署](REMOTE_SERVER_SETUP.md) |
-| 设备直接上传和应用接口 | [直传技术说明](DIRECT_SERVER.md) |
-| 交给自己的 AI 安装 | [AI 执行指南](AI_GUIDE.md) |
-| 安装失败或找不到工具 | [故障排查](TROUBLESHOOTING.md) |
+| [日常使用与管理页面](daily/USER_GUIDE.md) | 开机、灯、按钮、页面位置、查询和互动 |
+| [配网、无线配对与断线恢复](daily/WIFI_CONNECTION.md) | 修改网络、找回 IP、切换 USB、启动项 |
+| [运行环境与账号密码](daily/RUNTIME_AND_LOGIN.md) | 是否装 Python、网页密码、各类令牌 |
+| [通道与接线](daily/SENSOR_CHANNELS.md) | 接压力、温度或电机前看这里 |
+| [压力校准与日常模式](daily/CALIBRATION_AND_DAILY_MODE.md) | 静置、轻按、较强按和重启策略 |
+| [DS18B20 温度](daily/DIGITAL_TEMPERATURE.md) | 数字温度探头接线与扫描 |
+| [互动历史](daily/HISTORY_MANAGEMENT.md) | 查询、统计、导出、删除和保留期限 |
+| [人设与反馈](daily/INTERACTION_OBSERVATIONS.md) | 语气、安静时段与动作摘要 |
+| [断网缓存](daily/OFFLINE_RECORDS.md) | 补传容量、时间与丢失计数 |
+| [无线升级](daily/OTA_UPDATE.md) | 已安装固件的局域网升级 |
 
-## 日常使用与设备维护
+## 03 AI 接入：继续用原聊天
 
-- [使用指南](USER_GUIDE.md)：配网、按钮、历史和模拟互动。
-- [Wi-Fi 配对](WIFI_CONNECTION.md)、[IP 变化与重连](WIRELESS_RECOVERY.md)、[运行环境与登录保护](RUNTIME_AND_LOGIN.md)。
-- [通道与接线](SENSOR_CHANNELS.md)、[FSR 校准](CALIBRATION_AND_DAILY_MODE.md)、[DS18B20 温度](DIGITAL_TEMPERATURE.md)。
-- [人设、偏好与动作摘要](INTERACTION_OBSERVATIONS.md)、[历史管理](HISTORY_MANAGEMENT.md)、[离线记录](OFFLINE_RECORDS.md)。
-- [无线升级](OTA_UPDATE.md)、[首次烧录镜像](../firmware/prebuilt/README.md)。
-- [软件下载与 PCB 文件](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/delivery/README.md)。
+- [ChatGPT 连接教程](integrations/SECURE_MCP.md)：设置私有隧道。
+- [原聊天实际验证](integrations/CHAT_MCP.md)：状态、历史、60 秒互动。
+- [自己的应用：本机接收](integrations/SERVER_QUICKSTART.md)。
+- [自己的应用：Linux 远程部署](integrations/REMOTE_SERVER_SETUP.md)。
+- [其他宿主与模板](integrations/HOST_INTEGRATIONS.md)。
+- [Sakura 兼容入口](integrations/REMOTE_MCP.md)：保留技术路线，普通 Chat 添加仍未通过。
 
-## 给开发者
+## 04 开发者参考
 
-- [开发与打包](DEVELOPER_GUIDE.md)、[45 个 MCP 工具](MCP_TOOLS.md)。
-- [接入原聊天队列](EXISTING_CHAT.md)、[事件桥接口](PROACTIVE_INTERACTION.md)。
-- [其他宿主模板](HOST_INTEGRATIONS.md)、[公开模板说明](../templates/README.md)。
-- [Sakura 兼容入口](REMOTE_MCP.md)：保留技术操作，普通 Chat 添加尚未通过。
+[开发与打包](developers/DEVELOPER_GUIDE.md) · [项目文件与清理规则](developers/REPOSITORY_LAYOUT.md) · [MCP 工具目录](developers/MCP_TOOLS.md) · [直传接口](developers/DIRECT_SERVER.md) · [接入原聊天](developers/EXISTING_CHAT.md) · [事件桥](developers/PROACTIVE_INTERACTION.md) · [后续计划](developers/DEVELOPMENT_PLAN.md)
 
-## 几个常见词
+## 05 给 AI 执行
 
-| 名称 | 简单解释 |
-| --- | --- |
-| MCP | AI 调用工具的接口；安装后仍需实际连接服务 |
-| AP / 配网热点 | 娃娃临时发出的 Wi-Fi，用来设置家庭网络 |
-| STDIO | 本机客户端启动脚本，通过它调用 MCP，无需公网地址 |
-| IP | 网络地址；设备 IP 和电脑的 127.0.0.1 不是同一个地址 |
-| SSH | 登录远程 Linux 服务器的终端方式 |
-| 域名 / DNS | 将易记的网站名称指向你的服务器地址 |
-| 游标 | 上一次读取的位置，用来继续读新记录，避免重复 |
+[AI 安装、调用、硬件与验证指南](ai/AI_GUIDE.md)。提供给帮你操作设备的 AI；普通用户无需照着调用工具。
 
-## 验收和后续计划
+## 06 验证记录
 
-[验证汇总](VALIDATION.md)先说明目前可用范围；以下报告保留各阶段的版本、环境和证据，不等于你的新安装已经通过。
+先看 [当前验证范围](reports/VALIDATION.md)和 [2.17 交付记录](reports/RELEASE_2_17.md)。历史报告保留当时版本，不代表新版本或你的新安装已经通过。
 
-| 报告 | 记录内容 |
-| --- | --- |
-| [MCP 分阶段验收](MCP_ACCEPTANCE_2_13.md) | SDK、Cloudflare、Sakura、Secure 和普通 Chat |
-| [设备基础报告](DEVICE_LAB_TEST_REPORT.md) | 裸板、算法、离线、OTA、Work 调用 |
-| [管理中心报告](GUI_ACCEPTANCE_2_14.md) | 2.14 GUI、页面和服务生命周期 |
-| [直传报告](DIRECT_SERVER_ACCEPTANCE.md) | 2.8.0 / 2.15 直传与原应用测试回调 |
-| [安装入口报告](SIMPLE_SETUP_ACCEPTANCE.md) | 内置 Python、快捷配对及 Linux 部署 |
-| [后续计划](DEVELOPMENT_PLAN.md) | 实物与宿主尚待完成的验收 |
+[MCP 阶段报告](reports/MCP_ACCEPTANCE_2_13.md) · [设备基础报告](reports/DEVICE_LAB_TEST_REPORT.md) · [管理中心报告](reports/GUI_ACCEPTANCE_2_14.md) · [直传报告](reports/DIRECT_SERVER_ACCEPTANCE.md) · [旧安装入口报告](reports/SIMPLE_SETUP_ACCEPTANCE.md)
 
-硬件资料在 [GitHub 硬件目录](https://github.com/SunRichardSKT/ai-doll-mcp/tree/main/hardware/rev-v2)。公共包不包含个人历史或配对信息；本机 `build/` 为运行数据，不能拿来给其他用户安装。
+## 卡住时
+
+直接找 [故障排查](TROUBLESHOOTING.md)，按现象处理。下载见 [交付说明](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/delivery/README.md)，板子采购和装配见 [硬件目录](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/rev-v2/README.md)。

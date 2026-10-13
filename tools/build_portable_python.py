@@ -48,8 +48,20 @@ def main():
     subprocess.run([sys.executable, '-m', 'pip', 'install', *platform, '--no-index',
                     '--find-links', str(wheels), '--no-compile', '--target', str(dest / 'Lib/site-packages'),
                     '-r', str(requirements)], check=True)
+    # esptool 4.8.1 publishes an sdist; build its platform-independent wheel
+    # once on the developer machine, never on the end user's computer.
+    subprocess.run([sys.executable, '-m', 'pip', 'wheel', '--no-deps',
+                    '--wheel-dir', str(wheels), 'esptool==4.8.1'], check=True)
+    flash_requirements = ROOT/'requirements-flash-runtime.txt'
+    subprocess.run([sys.executable, '-m', 'pip', 'download', *platform, '--no-deps',
+                    '--find-links', str(wheels), '--dest', str(wheels),
+                    '-r', str(flash_requirements)], check=True)
+    subprocess.run([sys.executable, '-m', 'pip', 'install', *platform, '--no-deps',
+                    '--no-index', '--find-links', str(wheels), '--no-compile',
+                    '--target', str(dest/'Lib/site-packages'),
+                    '-r', str(flash_requirements)], check=True)
     probe = subprocess.run([str(dest / 'python.exe'), '-I', '-c',
-        'import mcp,httpx,serial,sqlite3,ssl; from importlib.metadata import distributions; '
+        'import mcp,httpx,serial,sqlite3,ssl,esptool; from importlib.metadata import distributions; '
         'import json,sys; print(json.dumps({"python":sys.version.split()[0],'
         '"packages":{d.metadata["Name"]:d.version for d in distributions()}}))'],
         check=True, capture_output=True, text=True)

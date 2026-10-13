@@ -10,6 +10,7 @@ import json
 from pathlib import Path, PurePosixPath
 import posixpath
 import re
+import os
 import unicodedata
 from urllib.parse import unquote, urlsplit
 
@@ -92,8 +93,15 @@ def main():
         with open_delivery(args.archive) as archive:
             files={n:(archive.read(n) if n.endswith('.md') else b'') for n in archive.namelist()}
     else:
-        files={p.relative_to(args.repository).as_posix():(p.read_bytes() if p.suffix=='.md' else b'')
-               for p in args.repository.rglob('*') if p.is_file() and '.git' not in p.parts}
+        files={}
+        ignored={'build','.tools','.git','.venv','.pio','__pycache__','_local','node_modules'}
+        for folder,directories,names in os.walk(args.repository):
+            directories[:]=[name for name in directories if name not in ignored]
+            if Path(folder).resolve()==(args.repository/'python').resolve():
+                directories[:]=[]
+            for name in names:
+                p=Path(folder)/name
+                files[p.relative_to(args.repository).as_posix()]=p.read_bytes() if p.suffix=='.md' else b''
     result=check(files,repository=args.repository is not None)
     if args.report:
         args.report.parent.mkdir(parents=True,exist_ok=True)

@@ -1,0 +1,20 @@
+# Existing websites keep their own proxy and ports 80/443.
+services:
+  doll:
+    build:
+      context: ../..
+      dockerfile: deploy/direct-server/Dockerfile
+    restart: unless-stopped
+    command: ["python", "tools/direct_server.py", "--listen", "0.0.0.0", "--port", "8781", "--data-dir", "/data", "--public-url", "https://${DOLL_DOMAIN:?Set DOLL_DOMAIN}", "--mcp", "--mcp-listen", "0.0.0.0", "--mcp-profile", "${DOLL_MCP_PROFILE:-interaction}"]
+    ports:
+      - "127.0.0.1:8781:8781"
+      - "127.0.0.1:8782:8782"
+    volumes:
+      - doll-data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8781/healthz',timeout=2)"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+volumes:
+  doll-data:

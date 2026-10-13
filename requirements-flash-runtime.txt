@@ -1,0 +1,10 @@
+# Additional wheels for the offline Windows flasher. Existing runtime supplies
+# pyserial, cryptography, cffi and pycparser.
+esptool==4.8.1
+bitstring==5.0.0
+ecdsa==0.19.2
+reedsolo==1.7.0
+intelhex==2.3.0
+PyYAML==6.0.3
+six==1.17.0
+tibs==2.0.2

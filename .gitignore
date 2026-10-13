@@ -16,3 +16,12 @@ _local/
 *-private.json
 *.pem
 *.key
+firmware/src/channel_editor_asset.h
+firmware/src/ota_manager_asset.h
+delivery/*.zip
+delivery/*.tar.gz
+delivery/*.sha256
+python/*
+!python/README.md
+!python/RUNTIME.json
+!python/SHA256SUMS.txt

@@ -1,8 +1,6 @@
 """Interoperability test with the official MCP Python client, over real Wi-Fi HTTP."""
 import sys,pathlib,json,asyncio,datetime,site
 ROOT=pathlib.Path(__file__).resolve().parents[1]
-sys.path.insert(0,str(ROOT/'.tools/mcp-test-sdk'))
-site.addsitedir(str(ROOT/'.tools/mcp-test-sdk'))
 import httpx
 from mcp import ClientSession
 from mcp.client.streamable_http import streamable_http_client

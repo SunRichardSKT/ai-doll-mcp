@@ -214,7 +214,13 @@ class DirectServer:
         config_file = self.folder/'server-private.json'
         if not config_file.exists():
             write_json(config_file, dict(admin_token=secrets.token_hex(32)))
-        self.admin_token = json.loads(config_file.read_text(encoding='utf-8'))['admin_token']
+        config = json.loads(config_file.read_text(encoding='utf-8'))
+        if 'mcp_token' not in config:
+            config['mcp_token'] = secrets.token_hex(32)
+            write_json(config_file, config)
+        self.admin_token = config['admin_token']
+        self.mcp_token = config['mcp_token']
+        self.mcp_info = {'enabled': False}
         self.lock = threading.RLock()
         self.db = sqlite3.connect(self.folder/'server.sqlite3', check_same_thread=False)
         self.db.row_factory = sqlite3.Row
@@ -263,7 +269,14 @@ class DirectServer:
     def list_devices(self):
         with self.lock:
             rows = self.db.execute('SELECT id,label,hardware_id FROM devices WHERE revoked=0').fetchall()
-        return [dict(row, online=self.resolve(row['id']).online(), last_sync=self.resolve(row['id']).c.last_sync) for row in rows]
+        return [dict(row, online=self.resolve(row['id']).online(), last_sync=self.resolve(row['id']).c.last_sync,
+                     mcp_url=self.mcp_connection(row['id'])) for row in rows]
+
+    def mcp_connection(self, ident):
+        if not self.mcp_info['enabled']:
+            return None
+        origin = self.public_url or 'http://127.0.0.1:'+str(self.mcp_info['port'])
+        return origin+'/'+self.mcp_token+'/d/'+ident+'/mcp'
 
     def close(self):
         self.stop.set()
@@ -376,7 +389,8 @@ def handler_for(app):
         def do_GET(self):
             parsed = urlsplit(self.path)
             if parsed.path == '/healthz':
-                return self.send(200, {'ready': True, 'mode': 'device_push'})
+                ready = not app.mcp_info['enabled'] or app.mcp_thread.is_alive()
+                return self.send(200 if ready else 503, {'ready': ready, 'mode': 'device_push', 'mcp_enabled': app.mcp_info['enabled']})
             if parsed.path in ('/', '/direct-server.js', '/bridge-client.js', '/conversation-queue.js', '/channel-editor.js', '/history-manager.js', '/console-embed.js'):
                 asset = {'/': 'direct_server.html', '/direct-server.js': 'direct_server.js',
                          '/bridge-client.js': 'bridge_client.js', '/conversation-queue.js': 'conversation_queue.js',
@@ -390,6 +404,7 @@ def handler_for(app):
             try:
                 if parsed.path == '/api/server':
                     return self.send(200, {'server_url': app.public_url, 'local_setup': app.local_setup,
+                        'mcp': app.mcp_info,
                         'installation_id': digest('installation:' + app.admin_token)})
                 if parsed.path == '/api/devices':
                     return self.send(200, {'devices': app.list_devices()})
@@ -531,6 +546,10 @@ def main():
     parser.add_argument('--origin', action='append', default=[])
     parser.add_argument('--show-token', action='store_true', help='Display owner connection token locally')
     parser.add_argument('--local-setup', action='store_true', help='Enable owner operations from the loopback setup page')
+    parser.add_argument('--mcp', action='store_true', help='Start the archive-backed Streamable HTTP MCP service')
+    parser.add_argument('--mcp-listen', default='127.0.0.1')
+    parser.add_argument('--mcp-port', type=int, default=8782)
+    parser.add_argument('--mcp-profile', choices=('status', 'history', 'interaction'), default='interaction')
     args = parser.parse_args()
     app = DirectServer(args.data_dir, args.public_url, args.origin, args.local_setup)
     if args.show_token:
@@ -538,6 +557,14 @@ def main():
         app.close()
         return
     httpd = DirectHTTPServer((args.listen, args.port), handler_for(app))
+    mcp_server = mcp_thread = None
+    if args.mcp:
+        try:
+            from direct_mcp import start_mcp
+            mcp_server, mcp_thread = start_mcp(app, args.mcp_listen, args.mcp_port, args.mcp_profile)
+        except Exception:
+            httpd.server_close(); app.close()
+            raise
     print('Device direct server: http://'+args.listen+':'+str(httpd.server_port), flush=True)
     print('Owner connection token: saved in '+str(app.folder/'server-private.json'), flush=True)
     try:
@@ -545,7 +572,11 @@ def main():
     except KeyboardInterrupt:
         pass
     finally:
-        app.stop.set(); httpd.server_close(); app.close()
+        app.stop.set(); httpd.server_close()
+        if mcp_server:
+            mcp_server.should_exit = True
+            mcp_thread.join(30)
+        app.close()
 
 
 if __name__ == '__main__':

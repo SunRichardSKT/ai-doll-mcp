@@ -14,8 +14,6 @@ import unittest
 from unittest.mock import patch
 
 ROOT=pathlib.Path(__file__).resolve().parents[1]
-if (ROOT/'.tools/mcp-test-sdk').exists():
-    sys.path.insert(0,str(ROOT/'.tools/mcp-test-sdk'));site.addsitedir(str(ROOT/'.tools/mcp-test-sdk'))
 from companion import Companion
 from mcp_events_adapter import MCPEventsAdapter,PROTOCOL
 from webhook_delivery import WebhookSender,decode_secret,signed_headers,validate_url

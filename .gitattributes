@@ -1,0 +1,8 @@
+* text=auto
+*.sh text eol=lf
+*.cmd text eol=crlf
+*.bin -text
+*.png -text
+*.pdf -text
+*.epro2 -text
+hardware/** -text

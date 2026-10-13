@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 @unittest.skipUnless(os.name == 'nt', 'Windows portable distribution')
 class PortableRuntimeTests(unittest.TestCase):
     def test_clean_package_without_system_python(self):
-        package = ROOT / 'delivery/AI_Doll_Code_v2.16.2.zip'
+        package = ROOT / 'delivery/AI_Doll_Code_v2.17.0.zip'
         with tempfile.TemporaryDirectory(prefix='AI Doll 中文 ') as temp:
             root = Path(temp)
             with zipfile.ZipFile(package) as archive:

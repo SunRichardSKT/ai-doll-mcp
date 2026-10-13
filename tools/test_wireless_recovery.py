@@ -11,9 +11,6 @@ import urllib.request
 from unittest.mock import patch
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-SDK = ROOT/'.tools/mcp-test-sdk'
-if SDK.exists():
-    sys.path.insert(0, str(SDK)); site.addsitedir(str(SDK))
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 from device_discovery import discover_paired_device

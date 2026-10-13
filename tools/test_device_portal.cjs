@@ -19,7 +19,7 @@ const fs=require('fs'),path=require('path');const {chromium}=require('playwright
    const parts=await page.evaluate(()=>tool('get_body_map'));if(parts.parts[6].name!=='页面测试部位')throw Error('Admin settings unavailable with MCP disabled');
    await page.check('#enabled');await page.click('#saveMcp');await page.waitForFunction(()=>!document.querySelector('#saveMcp').disabled);
    await page.click('#scan');await page.waitForFunction(()=>document.querySelector('#scanHint').textContent.startsWith('找到'),{timeout:45000});
-   if(!await page.locator('#networks option').filter({hasText:'Richard'}).count())throw Error('Richard not found');
+   if(await page.locator('#networks option').count()<2)throw Error('No visible Wi-Fi network found');
    if(errors.length)throw Error(errors.join('\n'));
    await page.screenshot({path:path.resolve(__dirname,'../build/device-lab/device-portal.png'),fullPage:true});
   }finally{await page.evaluate(parts=>tool('set_body_map',parts),original);await page.evaluate(()=>api('/api/mcp',{enabled:true}))}

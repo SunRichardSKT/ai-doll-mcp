@@ -20,6 +20,14 @@ async function devices(){
     name.textContent=device.label;state.className='muted';state.textContent=(device.online?'在线':'等待设备上传')+(device.hardware_id?' · '+device.hardware_id:'');
     link.href='/d/'+encodeURIComponent(device.id)+'/companion';link.textContent='通道、模拟、历史与人设 →';
     info.append(name,state,link);row.append(info);
+    if(device.mcp_url){
+      const label=document.createElement('p'),address=document.createElement('input'),copy=document.createElement('button');
+      label.textContent='MCP 连接地址（Streamable HTTP，无需账号）：';
+      address.value=device.mcp_url;address.readOnly=true;address.setAttribute('aria-label','MCP 连接地址');
+      copy.textContent='复制 MCP 地址';copy.className='secondary';
+      copy.onclick=async()=>{try{await navigator.clipboard.writeText(address.value);notice('MCP 地址已复制。')}catch{address.select();notice('请复制选中的 MCP 地址。')}};
+      info.append(label,address,copy);
+    }
     const latest=document.createElement('span');latest.className='muted';latest.textContent=device.last_sync?'最后同步 '+new Date(device.last_sync*1000).toLocaleString():'尚未同步';row.append(latest);el('devices').append(row);
   }
   if(!result.devices.length)el('devices').textContent='还没有设备，请先生成连接配置。';

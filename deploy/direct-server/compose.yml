@@ -4,7 +4,7 @@ services:
       context: ../..
       dockerfile: deploy/direct-server/Dockerfile
     restart: unless-stopped
-    command: ["python", "tools/direct_server.py", "--listen", "0.0.0.0", "--port", "8781", "--data-dir", "/data", "--public-url", "https://${DOLL_DOMAIN:?请在 .env 填写 DOLL_DOMAIN}"]
+    command: ["python", "tools/direct_server.py", "--listen", "0.0.0.0", "--port", "8781", "--data-dir", "/data", "--public-url", "https://${DOLL_DOMAIN:?请在 .env 填写 DOLL_DOMAIN}", "--mcp", "--mcp-listen", "0.0.0.0", "--mcp-profile", "${DOLL_MCP_PROFILE:-interaction}"]
     volumes:
       - doll-data:/data
     healthcheck:

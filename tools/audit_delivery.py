@@ -52,7 +52,7 @@ def audit(path,secrets=None):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('package',type=Path,nargs='?',default=ROOT/'delivery/AI_Doll_Code_v2.16.2.zip')
+    parser.add_argument('package',type=Path,nargs='?',default=ROOT/'delivery/AI_Doll_Code_v2.17.0.zip')
     args=parser.parse_args()
     print(json.dumps(audit(args.package),indent=2))
 

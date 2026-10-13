@@ -61,14 +61,14 @@ def build_package(python: Path, output: Path) -> dict:
 它不会安装 Python、启动采集服务、注册账号侧连接或建立隧道。
 
 本轮普通 Chat 在安装并选择本机插件后仍未发现工具，请改用
-docs/CHAT_MCP.md 的注册连接流程，不重复上传此包。
+docs/integrations/CHAT_MCP.md 的注册连接流程，不重复上传此包。
 ZIP 上传成功不证明普通 Chat 可启动本机 MCP。若提示不支持 STDIO、
 要求服务器 URL/已注册 MCP，或安装后仍无工具，保留实际错误，转用
 平台支持的私有 Tunnel/远程连接；不要填写 GitHub 或 localhost 代替。
 本机依赖不能由网页或手机运行，亦未验证空闲聊天的主动唤醒。
 
 格式依据：https://developers.openai.com/plugins/build/plugins
-普通 Chat 指南：项目 docs/CHAT_MCP.md
+普通 Chat 指南：项目 docs/integrations/CHAT_MCP.md
 '''
     encode = lambda value: (json.dumps(value, ensure_ascii=False, indent=2) + '\n').encode('utf-8')
     files = {

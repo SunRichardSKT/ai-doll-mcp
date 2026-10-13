@@ -7,8 +7,6 @@ import site
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-SDK = ROOT/'.tools/mcp-test-sdk'
-sys.path.insert(0, str(SDK)); site.addsitedir(str(SDK))
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 

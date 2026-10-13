@@ -326,7 +326,7 @@ def start(folder=DEFAULT, local_only=False):
             if collector.get('database_open') is not True:
                 raise ValueError()
         except Exception:
-            raise SecureError('请先运行 Install_Secure_MCP.cmd，启动并配对电脑采集服务。') from None
+            raise SecureError('请先双击 AI_Doll.cmd，在管理中心启动并配对电脑采集服务。') from None
         reused = ensure_gateway(folder, cfg)
         device_online = bool(collector.get('device')) and not collector.get('device_error')
         # Offline devices must not prevent access to the computer's saved history.

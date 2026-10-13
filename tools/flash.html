@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>共感娃娃 · 一键烧录</title>
+<style>
+:root{--paper:#f3f1e9;--ink:#263e33;--muted:#647469;--line:#d9dfd6;--green:#2b6249;--soft:#eaf2e9;--red:#9b392d}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.7 "Microsoft YaHei","PingFang SC",sans-serif}
+main{max-width:850px;margin:56px auto;padding:0 24px}header{margin-bottom:30px}.eyebrow{font-size:13px;letter-spacing:.14em;color:var(--muted)}h1{font-size:clamp(30px,5vw,42px);line-height:1.3;margin:12px 0}h2{font-size:21px;margin:0 0 12px}p{margin:8px 0}small,.muted{color:var(--muted)}.panel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:28px;margin:20px 0}
+.connection{display:flex;align-items:center;gap:12px;padding-bottom:20px;margin-bottom:20px;border-bottom:1px solid var(--line)}.dot{width:11px;height:11px;flex-shrink:0;border-radius:50%;background:#a2aca4}.dot.ready{background:var(--green)}.dot.running{background:#ab791b;animation:pulse 1.5s infinite}.dot.failed{background:var(--red)}
+label{display:block;font-size:14px;color:var(--muted);margin:14px 0 6px}select,button{font:inherit;min-height:48px;border-radius:9px}select{width:100%;padding:8px 12px;border:1px solid var(--line);background:white;color:var(--ink)}button{border:0;background:var(--green);color:white;padding:12px 22px;cursor:pointer;width:100%;margin-top:18px;font-weight:bold}button:hover{background:#204f3a}button:disabled{opacity:.5;cursor:default}button:focus-visible,select:focus-visible,summary:focus-visible,a:focus-visible{outline:3px solid #b6ccb8;outline-offset:3px}.secondary{background:transparent;color:var(--green);width:auto;border:1px solid var(--line);margin:0;font-size:14px;padding:6px 14px;min-height:44px}.secondary:hover{background:var(--soft)}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);list-style:none;padding:0;margin:24px 0 0;gap:10px}.steps li{font-size:13px;color:var(--muted);border-top:3px solid var(--line);padding-top:10px}.steps li.done{border-color:var(--green);color:var(--green)}.steps li.current{border-color:#b28433;color:var(--ink)}.status{background:var(--soft);padding:18px;border-radius:10px;overflow-wrap:anywhere}.status.failed{background:#fbefeb;color:var(--red)}[hidden]{display:none!important}.error{color:var(--red)}code{font-family:Consolas,monospace;overflow-wrap:anywhere}a{color:var(--green)}details{margin-top:22px}summary{cursor:pointer;color:var(--muted);font-size:14px}pre{font:12px/1.65 Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;max-height:300px;overflow:auto;background:#f6f7f3;border:1px solid var(--line);padding:16px;border-radius:8px}.confirm{padding:12px;background:#fff6ed;color:#755332}input[type=checkbox]{margin-right:8px}footer{font-size:13px;color:var(--muted);margin:26px 0}#deviceName{display:block;font-size:19px;margin:8px 0}.result-row{margin:12px 0}
+@keyframes pulse{50%{opacity:.4}}@media(prefers-reduced-motion:reduce){*{animation:none!important}}@media(max-width:550px){main{margin:28px auto;padding:0 16px}.panel{padding:20px}.connection{align-items:flex-start}.steps{gap:6px}.steps li{font-size:12px}}
+</style>
+</head>
+<body><main>
+<header><div class="eyebrow">AI DOLL / 设备准备</div><h1>把程序装进娃娃</h1><p class="muted">接好 USB 数据线，一键写入并检查启动。</p></header>
+<section class="panel" aria-label="烧录设置">
+<div class="connection"><span class="dot" id="dot"></span><div style="flex:1"><strong id="connection">正在寻找开发板…</strong><div><small id="firmware"></small></div></div><button class="secondary" id="refresh" type="button">刷新</button></div>
+<label for="port">开发板连接</label><select id="port"><option value="">自动识别</option></select>
+<label for="mode">烧录方式</label><select id="mode"><option value="update">标准烧录 · 新板直接使用，升级保留设置</option><option value="factory">恢复出厂 · 清除设备设置后重新烧录</option></select>
+<p class="muted" style="font-size:14px" id="modeHint">保留已有 Wi-Fi 和校准；每次烧录都会产生新的设备名称。</p>
+<label class="confirm" id="factoryConfirm" hidden><input type="checkbox" id="confirmed">我确认清除设备的配网、校准和板内缓存。电脑历史不会删除。</label>
+<button id="start" disabled type="button">一键烧录</button><p id="error" class="error" role="alert"></p>
+<ol class="steps" aria-label="烧录进度"><li data-step="0">01 连接检查</li><li data-step="1">02 写入程序</li><li data-step="2">03 启动与编号</li><li data-step="3">04 完成</li></ol>
+</section>
+<section class="panel" id="resultPanel" hidden aria-live="polite"><div class="status" id="status"><strong id="resultTitle"></strong><p id="resultMessage"></p></div><div id="successDetails" hidden><div class="result-row">新设备名称<code id="deviceName"></code></div><div class="result-row">手机连接这个名称的 Wi-Fi 热点，然后打开<br><a href="http://192.168.4.1/" target="_blank" rel="noopener">http://192.168.4.1/</a></div><p class="muted">家庭 Wi-Fi 配好后，这个配置入口仍然保留。原 AI 客户端可能需要重新配对新名称。</p></div><p id="folderHint"></p><code id="folder"></code><details><summary>查看本次烧录日志</summary><pre id="log"></pre></details></section>
+<footer>烧录期间保持 USB 连接。如提示未启动，松开 BOOT，仅点按一次 RST。<br>新板默认关闭真实传感器采样和电机输出；接好硬件后再启用。</footer>
+</main>
+<script>
+const csrf='__CSRF__',$=id=>document.getElementById(id);let running=false,available=false,refreshing=false;
+async function api(path,data){const r=await fetch(path,{method:data?'POST':'GET',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:data?JSON.stringify(data):undefined});const d=await r.json();if(!r.ok)throw Error(d.error||'操作未完成');return d}
+function modeChanged(){$('factoryConfirm').hidden=$('mode').value!=='factory';$('modeHint').textContent=$('mode').value==='factory'?'清除设备配网和校准，重新生成安全的首次启动设置。':'保留已有 Wi-Fi 和校准；每次烧录都会产生新的设备名称。';$('confirmed').checked=false;buttonState()}
+function buttonState(){$('start').disabled=running||!available||($('mode').value==='factory'&&!$('confirmed').checked);$('start').textContent=running?'正在烧录，请保持连接…':'一键烧录';for(const id of ['port','mode','confirmed','refresh'])$(id).disabled=running}
+async function refresh(){if(refreshing)return;refreshing=true;try{const d=await api('/api/state');running=d.running;available=!!d.ports.length&&!d.image_error;const selected=$('port').value;const choices=d.ports.map(p=>p.port).join(',');if($('port').dataset.choices!==choices){$('port').replaceChildren(new Option('自动识别',''));for(const p of d.ports)$('port').add(new Option(p.port+' · '+p.description,p.port));$('port').value=d.ports.some(p=>p.port===selected)?selected:'';$('port').dataset.choices=choices}
+$('connection').textContent=running?'开发板正在烧录':d.selected_port?'已找到开发板 · '+d.selected_port:d.ports.length?'请选择对应的开发板':'还没找到开发板，请接好 USB 数据线';$('firmware').textContent=d.firmware?'设备程序 '+d.firmware:'固件文件未准备好';$('dot').className='dot '+(running?'running':d.selected_port?'ready':'');if(d.image_error)$('error').textContent=d.image_error;
+const r=d.report;if(r){$('resultPanel').hidden=false;$('log').textContent=d.log;$('folder').textContent=d.result_folder;$('folderHint').textContent='日志和结果已保存在电脑：';const successful=r.status==='success',failed=r.status==='failed';$('status').className='status'+(failed?' failed':'');$('resultTitle').textContent=successful?'烧录成功，设备已启动':failed?'本次烧录未完成':'正在烧录';$('resultMessage').textContent=failed?r.error:successful?'程序写入、启动和新设备编号均已验证。':({prepare:'正在准备固件和连接。',connect:'正在检查芯片；连接失败时按住 BOOT → 点按 RST → 松开 BOOT。',erase:'正在恢复出厂设置。',write:'正在写入程序并校验。',boot:'正在检查启动；如一直等待，请仅点按 RST。',identity:'正在保存新设备编号并验证重启。',done:'即将完成。'}[r.phase]||'请保持 USB 连接。');$('successDetails').hidden=!successful;if(successful)$('deviceName').textContent=r.device_id;const index=successful?4:({prepare:0,connect:0,erase:1,write:1,boot:2,identity:2,done:3}[r.phase]??0);document.querySelectorAll('[data-step]').forEach((e,i)=>e.className=i<index?'done':i===index?'current':'')}
+buttonState()}catch(e){$('error').textContent='连接烧录页面失败：'+e.message}finally{refreshing=false}}
+$('mode').onchange=modeChanged;$('confirmed').onchange=buttonState;$('refresh').onclick=refresh;$('start').onclick=async()=>{if(running)return;running=true;buttonState();$('error').textContent='';try{await api('/api/start',{port:$('port').value,factory:$('mode').value==='factory',factory_confirmed:$('confirmed').checked});await refresh()}catch(e){running=false;buttonState();$('error').textContent=e.message}};
+refresh();setInterval(refresh,1200);
+</script></body></html>

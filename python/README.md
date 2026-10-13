@@ -10,4 +10,4 @@ GitHub 源码只保存说明、许可和校验元数据，完整二进制位于 
 
 CPython 官方来源与压缩包 SHA-256、wheel 摘要和实际依赖版本在 [RUNTIME.json](RUNTIME.json)。Python 许可见 [LICENSE.txt](LICENSE.txt)，依赖许可保留在完整包各 dist-info 的 licenses / METADATA 中。
 
-开发者使用 `tools/build_portable_python.py` 与 `requirements-windows-runtime.lock` 重建，不复制开发虚拟环境。编译固件另需 PlatformIO，见 [开发指南](../docs/DEVELOPER_GUIDE.md)。启动问题见 [故障排查](../docs/TROUBLESHOOTING.md)。
+开发者使用 `tools/build_portable_python.py` 与 `requirements-windows-runtime.lock` 重建，不复制开发虚拟环境。编译固件另需 PlatformIO，见 [开发指南](../docs/developers/DEVELOPER_GUIDE.md)。启动问题见 [故障排查](../docs/TROUBLESHOOTING.md)。

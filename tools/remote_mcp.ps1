@@ -24,4 +24,4 @@ $arguments=@((Join-Path $PSScriptRoot 'deploy_mcp.py'),$Action,'--profile',$Prof
 if($Local){$arguments+='--local'}
 if($ClientManaged){$arguments+='--client-managed'}
 & $python @arguments
-if($LASTEXITCODE -ne 0){throw 'Remote MCP operation failed; see docs/REMOTE_MCP.md'}
+if($LASTEXITCODE -ne 0){throw 'Remote MCP operation failed; see docs/integrations/REMOTE_MCP.md'}
