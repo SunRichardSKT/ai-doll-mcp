@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 @unittest.skipUnless(os.name == 'nt', 'Windows portable distribution')
 class PortableRuntimeTests(unittest.TestCase):
     def test_clean_package_without_system_python(self):
-        package = ROOT / 'delivery/AI_Doll_Code_v2.17.0.zip'
+        package = ROOT / 'delivery/AI_Doll_Code_v2.20.0.zip'
         with tempfile.TemporaryDirectory(prefix='AI Doll 中文 ') as temp:
             root = Path(temp)
             with zipfile.ZipFile(package) as archive:
@@ -52,6 +52,10 @@ class PortableRuntimeTests(unittest.TestCase):
                         if time.monotonic() >= deadline: raise
                         time.sleep(.3)
                 self.assertTrue(state['environment_ready'])
+                self.assertEqual(state['version'], '2.20.0')
+                self.assertIn('operit', state)
+                self.assertTrue((root/'src/ai_doll/core/interaction_bridge.py').is_file())
+                self.assertTrue((root/'delivery/AI_Doll_Operit.toolpkg').is_file())
                 self.assertFalse((root / '.venv').exists())
                 # Configuration is created automatically on a fresh first launch.
                 self.assertTrue((root/'build/device-lab/mcp-client-config.json').is_file())
@@ -83,7 +87,7 @@ class PortableRuntimeTests(unittest.TestCase):
                 subprocess.run([str(python),'-X','utf8',str(root/'tools/start_direct_server.py'),
                     '--port','8792','--stop','--no-browser'],env=env,cwd=root,check=True,capture_output=True,timeout=10)
                 report = dict(passed=True, no_system_python=True, no_venv=True,
-                              root_cmd_start=True, worker=True, stdio_tools=45,
+                              root_cmd_start=True, worker=True, stdio_tools=51,
                               server_root_cmd_start=True, server_repeat_reuses_process=True,
                               automatic_client_config=True, python='3.14.8', path_with_spaces_and_chinese=True)
                 folder = ROOT/'build/portable-acceptance';folder.mkdir(parents=True,exist_ok=True)
@@ -108,7 +112,7 @@ Get-CimInstance Win32_Process | Where-Object {$_.ExecutablePath -eq $exe} | ForE
             async with ClientSession(read, write) as session:
                 await session.initialize()
                 tools = await session.list_tools()
-                self.assertEqual(len(tools.tools), 45)
+                self.assertEqual(len(tools.tools), 51)
 
 
 if __name__ == '__main__':

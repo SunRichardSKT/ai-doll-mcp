@@ -83,6 +83,8 @@ class Companion:
         self.history_manager=HistoryManager(self)
         self.maintenance_error=None
         self.last_config_sync = 0
+        from companion_experience import CompanionExperience
+        self.experience = CompanionExperience(self)
 
     def setting(self, key, default=''):
         with self.lock:
@@ -399,6 +401,9 @@ class Companion:
                 'interpretation': 'Body names are user labels. Pressure is raw ADC, not calibrated force. Infer actions cautiously.'}
 
     def call(self, name, args):
+        from companion_experience import TOOLS as EXPERIENCE_TOOLS
+        if name in EXPERIENCE_TOOLS:
+            return self.experience.call(name, args)
         if not isinstance(args, dict):
             raise ValueError('arguments must be an object')
         history_methods={'export_history':'export','get_history_statistics':'statistics',

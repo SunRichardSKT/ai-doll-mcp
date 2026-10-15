@@ -2,4 +2,9 @@
 !requirements-server.txt
 !tools/
 !tools/**
+!src/
+!src/**
+!delivery/
+!delivery/AI_Doll_Operit.toolpkg
 tools/__pycache__/
+src/**/__pycache__/

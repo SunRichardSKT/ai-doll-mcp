@@ -28,7 +28,7 @@ python3 tools/direct_server.py --data-dir /var/lib/ai-doll --public-url https://
 
 由原 HTTPS 代理转发这个独立服务，关闭 SSE 缓冲、读取超时大于 25 秒。不要因此公开 ESP32 设置页或电脑管理中心。
 
-也可在完整源码目录使用提供的 Compose：
+也可在完整源码目录使用提供的 Compose。源码仓库不保存生成的 `.toolpkg`；从源码构建前需 Python 3.12+、Node.js 18+，在项目根目录先运行 `python3 tools/package_operit.py`。它从 `clients/operit/` 构建并检查手机工具包，供 Docker 复制。Release 的 Linux 小型包已包含该文件，无需安装 Node：
 
 ```bash
 cd deploy/direct-server
@@ -72,7 +72,7 @@ location / {
 
 管理页在每个设备下提供 `https://域名/<连接随机串>/d/<配对ID>/mcp`。把完整地址填入原客户端的 Streamable HTTP MCP 配置，选择无需身份验证。原聊天后端也可使用 `http://127.0.0.1:8782/d/<配对ID>/mcp`，并添加 `Authorization: Bearer <mcp_token>`。令牌在数据目录的 `server-private.json`，与管理及设备令牌不同；不需要新账号或模型密钥。
 
-默认提供 13 个工具：两个状态工具、通道和能力、人设和偏好、历史和摘要及统计、开始/读取/结束互动会话。Compose 可用 `DOLL_MCP_PROFILE=history` 仅开放 9 个查询工具，`status` 仅开放 2 个状态工具；修改后重新创建容器。手工 Python 使用 `--mcp-profile`。撤销设备后相应 MCP 地址失效；正常重启和升级保留地址及历史。
+默认提供 19 个工具：原有状态、历史、会话工具，加六个自然陪伴工具（设置入口、设备概览、互动上下文、确认处理、部位局部更新、陪伴偏好局部更新）。Compose 可用 `DOLL_MCP_PROFILE=history` 仅开放 9 个查询工具，`status` 仅开放 2 个状态工具；修改后重新创建容器。手工 Python 使用 `--mcp-profile`。撤销设备后相应 MCP 地址失效；正常重启和升级保留地址及历史。
 
 在原聊天实际调用 `get_installation_status`、`doll_get_status`，核对设备信息与两个新的 `verification.call_id`，再查询模拟历史。开始互动需传稳定且非 `main` 的 `chat_id`；读取和结束都必须传该 `chat_id` 及 `session_id`。每次等待最多 20 秒，使用返回游标避免重复，60 秒测试传 `duration_sec=60`。离线时可查询已有历史；状态快照会明确标记是否在线和最后同步时间。
 

@@ -9,15 +9,28 @@
 
 | 连接 | 数量 | 数据与用途 |
 | --- | --- | --- |
-| 电脑 STDIO：`tools/companion_mcp.py` | 45 | 设备管理、电脑历史、人设、会话与维护 |
+| 电脑 STDIO：`tools/companion_mcp.py` | 51 | 设备管理、电脑历史、人设、会话与维护 |
 | 设备 `/mcp` | 26 | 设备操作、缓存确认和校时；没有电脑长期历史 |
 | HTTP `status` | 2 | `get_installation_status`、`doll_get_status` |
 | HTTP `history` | 9 | status，加能力、配置、人设、偏好、历史、摘要、统计 |
-| HTTP `interaction` | 13 | history，加开始、状态、新事件、结束会话 |
+| HTTP `interaction` | 19 | history，加会话和六个自然陪伴工具 |
 
 history 的七个附加工具为 `get_channel_capabilities`、`get_channel_config`、`get_persona`、`get_feedback_preferences`、`query_device_history`、`summarize_interactions`、`get_history_statistics`。interaction 再增加 `start_interaction`、`get_interaction_status`、`get_interaction_device_events`、`end_interaction`。
 
-本机 HTTP 网关默认 `127.0.0.1:8771/mcp`；私密远程网关和 Secure 使用专用入口。GET 返回 405 时不等于服务离线，客户端使用 POST。远程工具不开放模拟注入、配置写入、删除和物理控制。
+本机 HTTP 网关默认 `127.0.0.1:8771/mcp`；私密远程网关和 Secure 使用专用入口。GET 返回 405 时不等于服务离线，客户端使用 POST。interaction 仅新增部位展示信息与陪伴偏好的局部写入，不开放模拟注入、完整硬件配置、删除和物理控制。status/history 仍只读。
+
+## 自然陪伴（新增 6 个工具）
+
+| 工具 | 用途 |
+| --- | --- |
+| `get_settings_entry(section)` | body/feedback/status/hardware 链接与访问条件，不自动打开浏览器 |
+| `get_device_overview()` | 在线状态、最近同步、启用通道、有效读数与订阅状态 |
+| `get_chat_context(chat_id, after=0, limit=50)` | 最近未处理触摸、部位元数据、人设和偏好；返回稳定事件标识与 receipt_id |
+| `acknowledge_chat_context(chat_id, receipt_id)` | 处理完成后确认，按聊天隔离、重复确认幂等；不证明展示 |
+| `update_body_part(channel, changes)` | name/aliases/feedback_level(off/light/normal)/interaction_hint；保存名称不重置采样校准 |
+| `update_companion_preferences(changes)` | 局部修改 chat_integration_enabled/proactive_enabled，以及 feedback/policy |
+
+读取上下文不消费事件。默认 after=0 查询近期未确认事件；分页时处理并确认本页后再用 next_cursor；游标不是确认凭据。释放位于 updates，不产生主要反馈；单页最多 200。名称失败返回 updated=false、name_sync=not_confirmed，先核对设备，不能自动重发。新增工具在电脑与 Linux 直传一致提供，使用规则见 [自然陪伴](../daily/NATURAL_COMPANION.md)。
 
 ## 会话调用共同规则
 
@@ -25,7 +38,7 @@ history 的七个附加工具为 `get_channel_capabilities`、`get_channel_confi
 
 保持游标并分页；压力汇总和逐事件历史使用不同游标。历史读取不触发同步，后台采集器负责归档；离线时仍可返回已存历史和同步状态。模拟与故障值需明确标记。
 
-## STDIO 的全部 45 个工具
+## STDIO 的原有 45 个工具
 
 以下按任务分组，斜线合并的名称分别计数。具体参数以实时 schema 为准。
 

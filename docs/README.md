@@ -24,6 +24,7 @@
 | [DS18B20 温度](daily/DIGITAL_TEMPERATURE.md) | 数字温度探头接线与扫描 |
 | [互动历史](daily/HISTORY_MANAGEMENT.md) | 查询、统计、导出、删除和保留期限 |
 | [人设与反馈](daily/INTERACTION_OBSERVATIONS.md) | 语气、安静时段与动作摘要 |
+| [自然陪伴与聊天内设置](daily/NATURAL_COMPANION.md) | 部位别名、回应强度、聊天融入与主动开关 |
 | [断网缓存](daily/OFFLINE_RECORDS.md) | 补传容量、时间与丢失计数 |
 | [无线升级](daily/OTA_UPDATE.md) | 已安装固件的局域网升级 |
 
@@ -34,11 +35,15 @@
 - [自己的应用：本机接收](integrations/SERVER_QUICKSTART.md)。
 - [自己的应用：Linux 远程部署](integrations/REMOTE_SERVER_SETUP.md)。
 - [其他宿主与模板](integrations/HOST_INTEGRATIONS.md)。
+- [Operit 一次配置与原聊天验收](integrations/OPERIT_SETUP.md)：一个工具包，自动绑定与准备工作流。
+- [Operit 无电脑使用](integrations/OPERIT_NO_PC.md)：服务器直传，或安卓手机直连家庭设备。
 - [Sakura 兼容入口](integrations/REMOTE_MCP.md)：保留技术路线，普通 Chat 添加仍未通过。
 
 ## 04 开发者参考
 
 [开发与打包](developers/DEVELOPER_GUIDE.md) · [项目文件与清理规则](developers/REPOSITORY_LAYOUT.md) · [MCP 工具目录](developers/MCP_TOOLS.md) · [直传接口](developers/DIRECT_SERVER.md) · [接入原聊天](developers/EXISTING_CHAT.md) · [事件桥](developers/PROACTIVE_INTERACTION.md) · [后续计划](developers/DEVELOPMENT_PLAN.md)
+
+[统一代码、安装与日常使用规划](developers/UNIFIED_DELIVERY_PLAN.md)说明分阶段合并入口、配置和手机工具包；[2.19 实施记录](reports/RELEASE_2_19.md)区分已实现与待手机验收。
 
 ## 05 给 AI 执行
 
@@ -46,10 +51,14 @@
 
 ## 06 验证记录
 
-先看 [当前验证范围](reports/VALIDATION.md)和 [2.17 交付记录](reports/RELEASE_2_17.md)。历史报告保留当时版本，不代表新版本或你的新安装已经通过。
+先看 [当前验证范围](reports/VALIDATION.md)和 [2.20 交付记录](reports/RELEASE_2_20.md)。[2.17 记录](reports/RELEASE_2_17.md)及其他历史报告保留当时版本，不代表新版本或你的新安装已经通过。
+
+[2.18 自然陪伴本地交付记录](reports/RELEASE_2_18.md)说明本轮软件新增和目标聊天待验收范围。
 
 [MCP 阶段报告](reports/MCP_ACCEPTANCE_2_13.md) · [设备基础报告](reports/DEVICE_LAB_TEST_REPORT.md) · [管理中心报告](reports/GUI_ACCEPTANCE_2_14.md) · [直传报告](reports/DIRECT_SERVER_ACCEPTANCE.md) · [旧安装入口报告](reports/SIMPLE_SETUP_ACCEPTANCE.md)
 
 ## 卡住时
 
 直接找 [故障排查](TROUBLESHOOTING.md)，按现象处理。下载见 [交付说明](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/delivery/README.md)，板子采购和装配见 [硬件目录](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/rev-v2/README.md)。
+
+[2.19.1 Operit 1.12.2 导入兼容性](reports/RELEASE_2_19_1.md)记录旧工具包解析失败的原因与修正。

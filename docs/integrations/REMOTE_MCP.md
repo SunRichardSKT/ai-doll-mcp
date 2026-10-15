@@ -11,7 +11,7 @@ ESP32 → 电脑采集 → SQLite → 专用 MCP → Sakura HTTPS。电脑需持
 
 入口为 `https://主机及端口/64位随机十六进制串/mcp`，随机值由本机生成，重启保留、可重置，其他路径 404。完整地址用于连接，普通 `/mcp` 或管理 URL 不能代替。
 
-工具范围 status / history / interaction 为 2 / 9 / 13，见 [目录](../developers/MCP_TOOLS.md)。本机普通网关与此私密入口默认都用 8771，不能同时启动。
+工具范围 status / history / interaction 为 2 / 9 / 19，见 [目录](../developers/MCP_TOOLS.md)。本机普通网关与此私密入口默认都用 8771，不能同时启动。
 
 ## 已登录 Sakura 客户端时
 

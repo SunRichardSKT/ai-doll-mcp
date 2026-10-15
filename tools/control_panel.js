@@ -26,7 +26,7 @@
     el('globalNotice').hidden = !message;
   }
   function setBusy(value) {
-    for (const button of document.querySelectorAll('[data-action], #pairButton, #connectUsb, #autoPairUsb, #saveSecure, #saveStartSecure, #verifyChat, #saveStartup, #checkStartup, #upgradeSelected, #upgradeBundled')) button.disabled = value;
+    for (const button of document.querySelectorAll('[data-action], #operitStart, #operitConnection, #operitToolpkg, #pairButton, #connectUsb, #autoPairUsb, #saveSecure, #saveStartSecure, #verifyChat, #saveStartup, #checkStartup, #upgradeSelected, #upgradeBundled')) button.disabled = value;
   }
   async function copy(text) {
     if (!text) throw Error('请先完成配置。');
@@ -61,7 +61,7 @@
     el('deviceDetail').textContent = (state.device_id || '尚未识别设备') + (local.device_host || state.connection.device_host ? ' · ' + (local.device_host || state.connection.device_host) : '');
     const fresh = remote.checked_at && Date.now() / 1000 - remote.checked_at < 60;
     el('tunnelMetric').textContent = !cfg.configured ? '待配置' : !fresh ? '待检查' : remote.tunnel_connected ? '已连接' : remote.runtime_running ? '正在连接' : '未启动';
-    el('tunnelDetail').textContent = cfg.configured ? (cfg.profile + ' · ' + ({status: 2, history: 9, interaction: 13}[cfg.profile]) + ' 个工具' + (fresh ? '' : ' · 点击检查状态')) : '本机客户端可直接使用 STDIO';
+    el('tunnelDetail').textContent = cfg.configured ? (cfg.profile + ' · ' + ((state.profile_counts || {status: 2, history: 9, interaction: 19})[cfg.profile]) + ' 个工具' + (fresh ? '' : ' · 点击检查状态')) : '本机客户端可直接使用 STDIO';
     el('environmentInfo').textContent = state.environment_ready ? '运行环境已就绪。可继续配对或日常启动。' : '需要准备运行环境。点击下面的按钮自动安装依赖。';
     el('projectPath').textContent = '运行目录：' + state.project;
     el('version').textContent = 'Bridge ' + state.version;
@@ -89,6 +89,20 @@
       lastJobMessage = state.job.message;
     }
     checklist();
+    const op = state.operit || {};
+    el('operitStatus').textContent = op.error || (op.running ? '手机连接服务正在运行。导出连接后，在手机检查实际回复。' : '服务未启动。选择模式后点击保存并启动。');
+    const options = (op.addresses || []).join('|');
+    if (el('operitHost').dataset.options !== options) {
+      el('operitHost').dataset.options = options;
+      el('operitHost').replaceChildren(...(op.addresses || []).map(host => {
+        const option = document.createElement('option'); option.value = host; option.textContent = host; return option;
+      }));
+      if (!op.addresses?.length) {
+        const option = document.createElement('option'); option.value = ''; option.textContent = '未找到局域网，请先连接 Wi-Fi';el('operitHost').append(option);
+      }
+      if (op.host && op.addresses?.includes(op.host)) el('operitHost').value = op.host;
+    }
+    if (!el('operitMode').dataset.loaded && op.mode) {el('operitMode').value = op.mode;el('operitMode').dataset.loaded = 'true';}
     if (frame && !local.running) detachFrame();
     mountFrame();
   }
@@ -98,6 +112,8 @@
     return state;
   }
   function handleResult(action, result) {
+    if (action.startsWith('operit-')) el('operitStatus').textContent = result.error ||
+      (result.protocol_connected ? 'MCP 已连接，19 个工具发现通过。手机后台回复请在原聊天验收。' : result.stopped ? '已停止手机连接，历史保留。' : '配置已保存。');
     if (action === 'client-config') {
       configText = JSON.stringify(result, null, 2);
       el('localConfig').textContent = configText;
@@ -159,6 +175,19 @@
       try { await fn(); } catch (error) { notice(error.message, true); }
     });
   }
+  async function downloadOperit(path, filename, json) {
+    const response = await fetch(path, {headers:{'X-CSRF-Token':window.PANEL_CSRF}});
+    if (!response.ok) throw Error((await response.json()).error || '下载未完成');
+    const blob = json ? new Blob([JSON.stringify(await response.json(), null, 2)], {type:'application/json'}) : await response.blob();
+    const url = URL.createObjectURL(blob), a = document.createElement('a');a.href = url;a.download = filename;a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  bind('operitStart', async () => {
+    await run('operit-save', {mode:el('operitMode').value,host:el('operitHost').value});
+    await run('operit-start');
+  });
+  bind('operitToolpkg', () => downloadOperit('/api/operit-toolpkg','AI_Doll_Operit.toolpkg',false));
+  bind('operitConnection', () => downloadOperit('/api/operit-connection','AI_Doll_Connection.json',true));
   function showStep(index) {
     currentStep = Math.max(0, Math.min(3, index));
     for (const panel of document.querySelectorAll('[data-step-panel]')) panel.hidden = Number(panel.dataset.stepPanel) !== currentStep;

@@ -3,13 +3,13 @@
 > 给维护原聊天应用的开发者；普通用户先读入门区。 [全部目录](../README.md)
 
 
-此页给开发者。普通 Chat 推荐 [Secure](SECURE_MCP.md)。Operit、OpenClaw / 微信尚未用真实账号验收，以下是模板和接口契约，不是开箱即用的账号连接。
+此页给开发者。普通 Chat 使用 [Secure](SECURE_MCP.md)。Operit 已提供统一工具包，用户报告原聊天能回应触摸；服务器与仅手机模式见 [免电脑指南](OPERIT_NO_PC.md)，需分别实测。OpenClaw / 微信仍未完成真实账号验收，下面的通用模板不能代替该验收。
 
 ## 先选通路
 
 | 客户端 | 查询通路 | 事件反馈需要 |
 | --- | --- | --- |
-| 本机 MCP 客户端 | STDIO 45 工具 | 宿主提供实际事件 / 消息入口 |
+| 本机 MCP 客户端 | STDIO 51 工具 | 宿主提供实际事件 / 消息入口 |
 | 手机客户端 | 可达的有限范围 LAN HTTP MCP | 手机原应用接收服务和原聊天回调 |
 | 云端自建宿主 | HTTPS MCP 或自行配置的网络转发 | 云端原聊天生成队列与去重 |
 | 自定义前后端 | 电脑事件桥或设备直传 | `DollBridgeClient` / 后端接收接口 |
@@ -51,9 +51,11 @@ Secure ID 不是通用 URL。模板不能自动取得用户原对话上下文，
 
 ## Operit 模板
 
+首次安装使用 [统一工具包](OPERIT_SETUP.md)，不再手填聊天 ID、状态文件路径或手动画工作流。支持电脑导入、服务器导入和家庭网络手机直连；原模型与人设不变。[旧原型](OPERIT_PROTOTYPE.md)仅供兼容回溯。
+
 `templates/operit/ai_doll.js` 提供 `call_mcp` 与 `respond_to_event`。前者查询实际 HTTP MCP，后者供外部工作流把通知送往明确的原聊天，不能在 AI 同一执行轮里递归调用。
 
-用户需按自己的 Operit 版本导入包、提供接收服务与现有工作流。目标必须是真实原聊天 ID，不猜测。包接口已用测试替身验证，真实账号和发送效果待验收。
+独立旧模板仍需调用者提供真实原聊天 ID，不猜测。统一工具包通过标题确认绑定并生成本安装的工作流。新增路径与手机后台表现的验收范围见 [验证汇总](../reports/VALIDATION.md)。
 
 ## OpenClaw 模板
 
@@ -69,7 +71,7 @@ Secure ID 不是通用 URL。模板不能自动取得用户原对话上下文，
 .\python\python.exe tools/remote_mcp.py --listen-host 192.168.1.20 --port 8775 --profile history --folder build/device-lab/custom-host-mcp --print-address
 ```
 
-手机填输出的完整地址。history 为 9 个只读工具，interaction 为 13 个；只开放 MCP，不开放数据库和管理页。默认仍是回环，明确选可信 LAN 地址；跨网络需实际受信任的连接方式。
+手机填输出的完整地址。history 为 9 个只读工具，interaction 为 19 个；只开放 MCP，不开放数据库和管理页。默认仍是回环，明确选可信 LAN 地址；跨网络需实际受信任的连接方式。
 
 ## 验证顺序
 

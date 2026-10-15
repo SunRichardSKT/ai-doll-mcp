@@ -86,7 +86,7 @@ class ChatGatewayTests(unittest.IsolatedAsyncioTestCase):
             async with self.connect(gateway) as (client, _):
                 tools = await client.list_tools()
                 self.assertEqual({tool.name for tool in tools.tools}, set(INTERACTION_TOOLS))
-                self.assertEqual(len(tools.tools), 13)
+                self.assertEqual(len(tools.tools), 19)
                 self.assertTrue((await client.call_tool('start_interaction', {})).isError)
                 self.assertTrue((await client.call_tool('start_interaction', {'chat_id': 'main'})).isError)
                 self.assertEqual(calls, [])

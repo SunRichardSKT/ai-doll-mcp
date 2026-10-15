@@ -112,6 +112,9 @@ class Handler(BaseHTTPRequestHandler):
         if self.path=='/bridge/status':
             if not self.allowed() or not self.authorized():return self.send(403,{'error':'Forbidden'})
             return self.send(200,COMPANION.bridge.state())
+        if self.path == '/companion-experience.js':
+            raw=(ROOT/'tools/companion_experience.js').read_bytes()
+            self.send_response(200);self.send_header('Content-Type','application/javascript; charset=utf-8');self.send_header('Content-Length',str(len(raw)));self.end_headers();self.wfile.write(raw);return
         if self.path in ('/channel-editor.js','/history-manager.js'):
             if not self.allowed():return self.send(403,{'error':'Forbidden'})
             data=(ROOT/'tools'/('channel_editor.js' if self.path=='/channel-editor.js' else 'history_manager.js')).read_bytes()
@@ -198,6 +201,12 @@ def initialize_service(server):
     COMPANION_TOKEN=json.loads(private.read_text(encoding='utf-8'))['token']
     COMPANION=Companion(WORK/'interactions.sqlite3',exchange,LOCK)
     COMPANION.discovery_callback=getattr(DEVICE_LINK,'discover',None)
+    def settings_entries(section):
+        entries=[dict(url='http://127.0.0.1:8768/companion#'+section,scope='computer',access='在运行软件的电脑打开；手机不能使用这个回环地址。')]
+        if getattr(DEVICE_LINK,'host',None):
+            entries.append(dict(url='http://'+DEVICE_LINK.host+'/',scope='lan',access='设备局域网页，需与设备网络互通；部位反馈偏好在电脑管理页设置。'))
+        return entries
+    COMPANION.settings_entry_provider=settings_entries
     COMPANION.runtime_info=dict(transport=CONNECTION['transport'],service_address='http://127.0.0.1:8768',
                                device_endpoint='authenticated LAN HTTP MCP' if CONNECTION['transport']=='wifi' else 'USB serial',
                                local_mcp_auth='Bearer')

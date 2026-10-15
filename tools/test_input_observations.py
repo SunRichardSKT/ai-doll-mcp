@@ -115,6 +115,9 @@ class ObservationBridgeTests(unittest.TestCase):
     def tearDown(self):self.c.db.close();self.temp.cleanup()
 
     def sub(self,**kwargs):
+        self.c.set_setting('companion_preferences',json.dumps({'proactive_enabled':True}))
+        self.c.set_setting('bridge_policy',json.dumps(dict(self.c.bridge.preferences()['policy'],notify_pressure_patterns=True)))
+        kwargs['policy']=dict(notify_pressure_patterns=True,**kwargs.get('policy',{}))
         return self.c.bridge.subscribe('local-owner','chat','s','doll',now=self.now,**kwargs)
 
     def ingest(self,when,phase='start',touch='a',channel=0,duration_ms=0,quality='ok',source='simulation'):

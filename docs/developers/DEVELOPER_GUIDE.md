@@ -11,6 +11,8 @@
 | --- | --- |
 | `firmware/src/` | 设备固件、网页、传感器与上传驱动 |
 | `firmware/prebuilt/` | 当前四个烧录文件与校验清单 |
+| `src/ai_doll/core/` | 共享上下文、事件策略、摘要与历史管理；旧 tools 路径兼容 |
+| `clients/operit/` | 统一手机 ToolPkg、配置、工作流和设置面板 |
 | `tools/` | 采集、MCP、事件桥、管理页和测试 |
 | `deploy/direct-server/` | Linux Docker / Caddy 配置 |
 | `templates/` | 公共连接 / 宿主示例，非个人配置 |
@@ -32,7 +34,7 @@
 | 8782 | 直传数据库 MCP | Python `--mcp` 启用；Linux Compose 默认启用 |
 | UDP 28768 | 已配对设备发现 | 可信局域网广播 |
 
-设备根网页与 MCP 地址是不同用途。Linux 小型包共用接收数据库并提供 13 工具，地址绑定单个配对设备。接口分别见 [工具目录](MCP_TOOLS.md)、[事件桥](PROACTIVE_INTERACTION.md)、[直传服务](DIRECT_SERVER.md)。
+设备根网页与 MCP 地址是不同用途。Linux 小型包共用接收数据库并提供 19 工具，地址绑定单个配对设备。接口分别见 [工具目录](MCP_TOOLS.md)、[事件桥](PROACTIVE_INTERACTION.md)、[直传服务](DIRECT_SERVER.md)。
 
 ## 编译固件
 
@@ -65,13 +67,13 @@ Node / Playwright 页面测试需要开发者另装对应环境，运行 `tools/
 
 ```powershell
 .\python\python.exe tools/package_companion.py
-.\python\python.exe tools/audit_delivery.py delivery/AI_Doll_Code_v2.17.0.zip
-.\python\python.exe tools/audit_delivery.py delivery/AI_Doll_Server_v2.17.0.tar.gz
-.\python\python.exe tools/check_documentation.py --archive delivery/AI_Doll_Code_v2.17.0.zip
-.\python\python.exe tools/check_documentation.py --archive delivery/AI_Doll_Server_v2.17.0.tar.gz
+.\python\python.exe tools/audit_delivery.py delivery/AI_Doll_Code_v2.20.0.zip
+.\python\python.exe tools/audit_delivery.py delivery/AI_Doll_Server_v2.20.0.tar.gz
+.\python\python.exe tools/check_documentation.py --archive delivery/AI_Doll_Code_v2.20.0.zip
+.\python\python.exe tools/check_documentation.py --archive delivery/AI_Doll_Server_v2.20.0.tar.gz
 ```
 
-包内 `MANIFEST.json` 是逐文件 SHA-256，`DELIVERY_MANIFEST.json` 是三个交付包的总清单。Windows Python 从官方 CPython 和固定 wheel 构建，入口 `tools/build_portable_python.py`；不能打包本机 `.venv`。
+ZIP / TAR 内 `MANIFEST.json` 是逐文件 SHA-256，ToolPkg 使用 `CHECKSUMS.json`。`DELIVERY_MANIFEST.json` 和 `SHA256SUMS.txt` 记录 Windows、Linux、PCB 与独立手机工具包的哈希。Windows Python 从官方 CPython 和固定 wheel 构建，入口 `tools/build_portable_python.py`；不能打包本机 `.venv`。
 
 完整包发布到 GitHub Releases；源码中的 delivery 只保存下载入口与校验清单。Linux 安装器从相同版本的 Release 下载包和校验文件。目录与冗余清理规则见 [项目结构](REPOSITORY_LAYOUT.md)。
 
@@ -82,3 +84,9 @@ Node / Playwright 页面测试需要开发者另装对应环境，运行 `tools/
 新传感器需实现真实驱动、参数验证、资源冲突与故障质量，再加入能力列表，见 [通道扩展](../daily/SENSOR_CHANNELS.md)。原应用事件接入必须持久去重、处理取消和共享聊天队列，见 [原聊天指南](EXISTING_CHAT.md)。
 
 当前范围与后续工作见 [验证汇总](../reports/VALIDATION.md)和 [开发计划](DEVELOPMENT_PLAN.md)。
+
+## Operit 统一入口
+
+手机主源码在 `clients/operit/`，运行 `python tools/package_operit.py` 生成单个 `.toolpkg`。完整包构建会自动包含它。旧 `templates/operit/` 为冻结的独立脚本兼容参考，不再开发新的增量安装入口。当前 Android 调度、文件选择器和真实后台回复边界见 [统一使用指南](../integrations/OPERIT_SETUP.md)。
+
+源码构建 Docker 前同样需要先生成该 ToolPkg，要求开发环境具有 Node.js 18+；使用 Release 的 Linux 包部署时已包含工具包，用户不需要安装 Node 或另装手机服务。

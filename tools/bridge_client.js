@@ -20,6 +20,33 @@ class DollBridgeClient {
     const result=await response.json();if(!response.ok)throw Error(result.error||'Bridge request failed');return result;
   }
   tool(name,args={}){return this.api('/companion/tool',{name,arguments:args})}
+  async replyWithContext({generate,display,signal}) {
+    if(typeof generate!=='function'||typeof display!=='function')throw Error('generate and display callbacks required');
+    // Use the host's ordinary chat queue. Obtain context after entering the queue,
+    // not while another reply is still being generated.
+    return this.runDelivery(async()=>{
+      if(signal?.aborted)throw Error('Reply cancelled');
+      const empty=()=>({events:[],updates:[],receipt_id:null,instructions:'Continue the ordinary conversation; no verified fresh touch context is available.'});
+      let context;
+      try{context=await this.tool('get_chat_context',{chat_id:this.target})}catch(error){context=empty()}
+      let answer=await generate(context,{signal});
+      if(signal?.aborted)throw Error('Reply cancelled');
+      // The host must honour cancellation while generating. Do not insert expired
+      // touch-driven text; keep ordinary replies working even without doll events.
+      let invalid=context.events.length&&context.expires_at<=Date.now()/1000;
+      if(context.receipt_id){
+        try{
+          const current=await this.tool('get_chat_context',{chat_id:this.target});
+          if(!current.preferences.chat_integration_enabled||!context.events.every(e=>current.events.some(v=>v.event_id===e.event_id)))invalid=true;
+        }catch(error){invalid=true}
+      }
+      if(invalid){context=empty();answer=await generate(context,{signal});}
+      if(signal?.aborted)throw Error('Reply cancelled');
+      await display(answer,{signal});
+      if(context.receipt_id)await this.tool('acknowledge_chat_context',{chat_id:this.target,receipt_id:context.receipt_id});
+      return answer;
+    },{signal});
+  }
   async start(options={}) {
     if(this.stopping){await this.stopping;return this.start(options)}
     if(this.starting)return this.starting;
@@ -37,6 +64,8 @@ class DollBridgeClient {
     try{
       const current=await this.tool('get_interaction_status');this.checkStart(token);
       if(current.active_session&&current.active_session.chat_id!==this.target)throw Error('另一个聊天正在互动，请先在原窗口结束互动。');
+      const overview=await this.tool('get_device_overview');this.checkStart(token);
+      if(!overview.preferences.proactive_enabled)throw Error('请先开启触摸主动回应；开启后仍需绑定当前聊天的订阅。');
       const status=await this.tool('doll_get_status');this.checkStart(token);
       // Let mutation responses settle so a cancelled start can clean up their real IDs.
       const {idle_timeout_sec=300,duration_sec,ttl_sec=300}=options;

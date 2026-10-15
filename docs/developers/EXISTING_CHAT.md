@@ -7,11 +7,25 @@
 
 ## 普通使用者
 
-按 [安装](../start/AI_INSTALL.md)添加 MCP，在原聊天先 [调用状态工具](../integrations/CHAT_MCP.md)，再查询历史或开启 60 秒互动。未开启互动时只记录；到期或用户结束后停止读取新动作。
+按 [安装](../start/AI_INSTALL.md)添加 MCP，在原聊天先 [调用状态工具](../integrations/CHAT_MCP.md)，日常使用近期上下文融入正常回复，也可查询历史或开启 60 秒互动。主动回应需要独立开关与聊天订阅；会话到期或结束后停止该订阅，日常融入仍按用户开关运行。
 
 Secure 已通过普通 Chat 的模拟文字反馈；空闲自动唤醒尚未验证。能够查询工具不意味着模型会在没有用户消息时自动运行。
 
 ## 自己的应用开发者
+
+2.18 增加普通聊天融入。在同一个原聊天队列中调用 `bridge.replyWithContext({generate,display,signal})`：generate 接收近期互动上下文，并使用原模型、当前人设和话题；display 幂等保存原消息。不要再将该方法放进同一个 queue.run 外层，否则会重复排队。方法已经通过 runDelivery 进入共享队列，在显示成功后确认 receipt_id；中止、过期和静音的结果不插入。服务不可用时使用空互动上下文，原聊天继续。数据不是模型指令。示例：
+
+```javascript
+function sendWithDoll(text, signal) {
+  return bridge.replyWithContext({
+    signal,
+    generate: (context, {signal}) => existingGenerateReply(chatId, text, context, {signal}),
+    display: (answer, {signal}) => existingSaveAndDisplay(chatId, answer, {signal})
+  });
+}
+```
+
+原后端仍需使用本轮用户消息 ID 做幂等保存；客户端返回确认不证明显示。调用失败后不要凭 receipt_id 重复插入一条已显示的回复，应先核对原消息记录。
 
 接入 `DollBridgeClient`，将事件送入原后端的生成队列。使用原聊天稳定 ID，按持久事件 ID 去重；模型失败不返回演示文字冒充 AI。
 

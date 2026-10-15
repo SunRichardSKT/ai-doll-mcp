@@ -12,7 +12,8 @@ import urllib.request
 from device_lab import CONFIG, WORK, SerialLink
 from device_discovery import discover_paired_device
 
-VERSION = 'doll-bridge-2.17.0'
+from _source_path import load
+VERSION = load('ai_doll.core.version').BRIDGE_VERSION
 PROTOCOL = '2025-11-25'
 
 

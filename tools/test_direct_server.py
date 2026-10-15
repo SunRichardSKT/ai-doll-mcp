@@ -42,6 +42,7 @@ class DirectTests(unittest.TestCase):
         self.pair = self.app.pair('我的娃娃')
         self.key = self.pair['device_token']
         self.device = self.app.resolve(self.pair['id'])
+        self.device.c.experience.update_preferences({'proactive_enabled':True})
 
     def tearDown(self):
         self.app.close();self.tmp.cleanup()

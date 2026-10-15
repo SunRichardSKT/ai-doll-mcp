@@ -10,6 +10,7 @@ function fixture({pauseAt,existing=null,failSubscribe=false}={}){
    calls.push(name);
    if(name===pauseAt)await paused.promise;
    if(name==='get_interaction_status')return {active_session:existing};
+   if(name==='get_device_overview')return {preferences:{proactive_enabled:true}};
    if(name==='doll_get_status')return {device_id:'device'};
    if(name==='start_interaction')return existing||{id:'session',chat_id:'original-chat'};
    if(name==='end_interaction'){assert.equal(args.session_id,(existing||{id:'session'}).id);return {ended:true}}

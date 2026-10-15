@@ -27,6 +27,11 @@ async function devices(){
       copy.textContent='复制 MCP 地址';copy.className='secondary';
       copy.onclick=async()=>{try{await navigator.clipboard.writeText(address.value);notice('MCP 地址已复制。')}catch{address.select();notice('请复制选中的 MCP 地址。')}};
       info.append(label,address,copy);
+      const operit=document.createElement('a');operit.href='/d/'+encodeURIComponent(device.id)+'/operit-connection.json';
+      operit.textContent='下载 Operit 连接文件';operit.download='AI_Doll_Operit_Connection.json';
+      const note=document.createElement('p');note.className='muted';
+      note.textContent='安卓手机：先安装本页工具包，再导入此设备连接。设备直接上传服务器，电脑无需运行。';
+      info.append(note,operit);
     }
     const latest=document.createElement('span');latest.className='muted';latest.textContent=device.last_sync?'最后同步 '+new Date(device.last_sync*1000).toLocaleString():'尚未同步';row.append(latest);el('devices').append(row);
   }

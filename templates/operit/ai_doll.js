@@ -4,7 +4,7 @@
   "description": "把娃娃接入原有聊天。查询使用可达的私密 MCP URL；主动反馈仅由用户启用的 workflow 调用 respond_to_event，沿用指定原聊天。",
   "category": "NETWORK",
   "tools": [
-    {"name":"call_mcp","description":"实际调用 AI Doll MCP 的状态、历史、人设或会话工具，不开启物理输出。","parameters":[{"name":"mcp_url","description":"本设备可达的完整私密 MCP URL，Secure tunnel ID 不适用","type":"string","required":true},{"name":"tool","description":"13 个 interaction 工具中的名称","type":"string","required":true},{"name":"arguments_json","description":"工具参数 JSON，默认 {}","type":"string","required":false}]},
+    {"name":"call_mcp","description":"实际调用 AI Doll MCP 的状态、历史、人设、设置或会话工具，不开启物理输出。","parameters":[{"name":"mcp_url","description":"本设备可达的完整私密 MCP URL，Secure tunnel ID 不适用","type":"string","required":true},{"name":"tool","description":"19 个 interaction 工具中的名称","type":"string","required":true},{"name":"arguments_json","description":"工具参数 JSON，默认 {}","type":"string","required":false}]},
     {"name":"respond_to_event","description":"仅由已启用的外部事件 workflow 调用，向指定原聊天发送结构化感知数据，由原模型反馈。普通 AI 工具调用不得递归调用它。接收服务先持久去重。","parameters":[{"name":"chat_id","description":"用户选择的现有 Operit 聊天 ID","type":"string","required":true},{"name":"event_json","description":"ai-doll.host-event.v1 JSON，来自认证且已去重的接收服务","type":"string","required":true}]}
   ]
 }
@@ -13,7 +13,9 @@
 const allowedTools = new Set(['get_installation_status','doll_get_status','get_channel_config',
   'get_channel_capabilities','get_persona','get_feedback_preferences','query_device_history',
   'summarize_interactions','get_history_statistics','get_interaction_status',
-  'start_interaction','get_interaction_device_events','end_interaction']);
+  'start_interaction','get_interaction_device_events','end_interaction',
+  'get_settings_entry','get_device_overview','get_chat_context','acknowledge_chat_context',
+  'update_body_part','update_companion_preferences']);
 
 async function request(url, body, version) {
   const response = await Tools.Net.http({url,method:'POST',follow_redirects:false,ignore_ssl:false,

@@ -15,6 +15,7 @@
 | 本机 MCP 客户端 | ESP32 → 电脑 SQLite → STDIO / 本机 HTTP | Windows `AI_Doll.cmd` | [工具目录](../developers/MCP_TOOLS.md) |
 | 自建应用，在电脑测试 | ESP32 → 本机接收服务 → 原应用 | Windows `AI_Doll_Server.cmd` | [本机服务](../integrations/SERVER_QUICKSTART.md) |
 | 自建应用，部署远程服务器 | ESP32 → HTTPS 接收服务器 → 原应用 | Linux `Install_Server.sh` | [快捷部署](../integrations/REMOTE_SERVER_SETUP.md)、[接口](../developers/DIRECT_SERVER.md) |
+| Operit，家里没有电脑 | ESP32 → 服务器或手机直连 → 原 Operit 聊天 | 手机 ToolPkg | [免电脑使用](../integrations/OPERIT_NO_PC.md) |
 
 Linux 小型服务包已整合 Streamable HTTP MCP，直接读取接收服务数据库。在管理页的配对设备下复制专用 MCP 地址；管理页面 URL 不能替代它。GitHub URL 也不是运行中的服务地址。Secure 的 `tunnel_…` ID 不能作为其他客户端的 HTTP URL。已有网站部署见 [直传服务](../developers/DIRECT_SERVER.md#同一台服务器部署原聊天与-mcp)。
 
@@ -26,9 +27,9 @@ Linux 小型服务包已整合 Streamable HTTP MCP，直接读取接收服务数
 - 只有聊天工具：使用当前会话实际开放的 MCP 工具，不能声称自己安装了本机程序。
 - 没有相应工具：明确说明缺少什么，给出用户下一步，不把读文档当作调用。
 
-以客户端实际发现的 schema 为准，不根据本文件猜测参数。当前 STDIO 为 45 个工具；HTTP 的 `status` / `history` / `interaction` 为 2 / 9 / 13 个。设备 `/mcp` 为 26 个设备工具，没有电脑长期历史。完整名称见 [目录](../developers/MCP_TOOLS.md)。
+以客户端实际发现的 schema 为准，不根据本文件猜测参数。当前 STDIO 为 51 个工具；HTTP 的 `status` / `history` / `interaction` 为 2 / 9 / 19 个。设备 `/mcp` 为 26 个设备工具，没有电脑长期历史。完整名称见 [目录](../developers/MCP_TOOLS.md)。
 
-当前源码交付版本为 Bridge 2.17.0、固件 2.9.0；实际下载包、镜像清单和开发板版本仍需核对，不能由源码版本推断 GitHub 已发布。旧验收报告只能证明其记录的环境。
+当前源码交付版本为 Bridge 2.20.0、固件 2.9.0；实际下载包、镜像清单和开发板版本仍需核对，不能由源码版本推断 GitHub 已发布。旧验收报告只能证明其记录的环境。
 
 ## 3. Windows 安装流程
 
@@ -36,7 +37,7 @@ Linux 小型服务包已整合 Streamable HTTP MCP，直接读取接收服务数
 
 固定配置页为 `http://192.168.4.1/`，前提是手机或电脑实际连接设备热点；家庭配网后热点保留。家庭 LAN 地址用实际状态取得，不能把固定热点地址当成家庭静态 IP。电脑管理中心固定在 `http://127.0.0.1:8769/`，烧录界面为 `http://127.0.0.1:8770/`。
 
-1. 检查是否为完整 `AI_Doll_Code_v2.17.0.zip`，完整解压，保留 `python/` 与 `tools/`。不要先要求用户安装系统 Python。
+1. 检查是否为完整 `AI_Doll_Code_v2.20.0.zip`，完整解压，保留 `python/` 与 `tools/`。不要先要求用户安装系统 Python。
 2. 启动 `AI_Doll.cmd`，打开本机管理中心 8769；已有服务先识别归属并复用，不杀其他程序。
 3. 设备连接 2.4 GHz Wi-Fi，电脑与设备网络互通。已有固件时不要为了电脑文档更新重刷。
 4. 优先 USB 一次识别并配对 Wi-Fi；手工配对使用实际 IP 与设备 MCP 令牌。失败不覆盖原配置。
@@ -56,6 +57,10 @@ Linux 小型服务包已整合 Streamable HTTP MCP，直接读取接收服务数
 服务器管理连接、设备上传令牌、MCP 配对令牌和 Platform 运行密钥用途不同，不能互换。公共模板不包含用户配置。停服务 / 更新保留数据卷，不执行 `down -v`。
 
 ## 5. 状态与历史调用
+
+日常优先 [自然陪伴](../daily/NATURAL_COMPANION.md)：保持原聊天人设和话题，用 get_chat_context 获取近期未处理触摸。必要时自然融入普通回复，回应后按 receipt_id 确认；读取不是消费。释放更新时长，不重复主要反馈。不要把诊断报告、ADC、编号或倒计时放进日常陪伴，也不要每轮宣布人设为空。用户明确要求安装验证、状态或测试时，再执行下述报告流程。
+
+用户明确要求改部位或偏好时使用 update_body_part / update_companion_preferences，只传要修改的字段。别名匹配多个通道时先询问，不能猜；只有收到 updated=true/name_sync=confirmed 才说名称同步成功。设置入口链接需说明访问条件，不能把电脑回环链接当手机可用链接。开启主动偏好不等于订阅已建立，更不等于空闲唤醒已验收。
 
 先实际调用 `get_installation_status` 和 `doll_get_status`。报告：设备 ID、版本、通信方式、Wi-Fi、传感器模式、物理输出、采集错误和最后同步情况。
 
@@ -78,7 +83,7 @@ Linux 小型服务包已整合 Streamable HTTP MCP，直接读取接收服务数
 
 远程 `end_interaction` 要求 `chat_id` 与 `session_id`；旧 STDIO schema 可能只要 `session_id`，按实际 schema 调用。设备事件游标与压力汇总游标不同，不混用。争用时不能抢占另一个聊天。
 
-模拟注入不在远程 13 工具中，由用户在本机界面操作；STDIO 的模拟工具只有在用户要求模拟测试时使用。测试结束关闭本次订阅和会话，保持物理输出关闭。
+模拟注入不在远程 19 工具中，由用户在本机界面操作；STDIO 的模拟工具只有在用户要求模拟测试时使用。测试结束关闭本次订阅和会话，保持物理输出关闭。
 
 ## 7. 如何解释传感器
 

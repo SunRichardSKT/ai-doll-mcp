@@ -152,6 +152,7 @@ class OfflineArchiveTests(unittest.TestCase):
         self.assertEqual(self.c.db.execute('SELECT COUNT(*) FROM events').fetchone()[0],0)
 
     def test_recent_current_boot_can_notify_but_replayed_event_cannot(self):
+        self.c.experience.update_preferences({'proactive_enabled':True})
         now=time.time()
         with self.c.db:self.c.db.execute("INSERT INTO sessions VALUES('s','chat',?,NULL,?,60,NULL)",(now-10,now-10))
         sub=self.c.bridge.subscribe('local-owner',target_id='chat',session_id='s',device_id='test-device',

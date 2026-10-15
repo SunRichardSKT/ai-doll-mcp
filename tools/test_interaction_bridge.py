@@ -25,12 +25,14 @@ class BridgeTests(unittest.TestCase):
         self.c=Companion(self.path,None,threading.Lock());self.now=time.time()
         with self.c.db:self.c.db.execute("INSERT INTO sessions VALUES('s','chat',?,NULL,?,300,NULL)",(self.now-1,self.now-1))
         self.c.device=lambda name,args:dict(device_id='doll')
+        self.c.experience.update_preferences({'proactive_enabled':True})
         self.seq=0
 
     def tearDown(self):
         self.c.db.close();self.tmp.cleanup()
 
     def subscribe(self,**kwargs):
+        self.c.experience.update_preferences({'proactive_enabled':True,'policy':{'notify_pressure_patterns':True}})
         return self.c.bridge.subscribe('local-owner','chat','s','doll',now=self.now,**kwargs)
 
     def event(self,when=.1,kind='pressure',phase='start',channel=0,value=2400,source='simulation'):

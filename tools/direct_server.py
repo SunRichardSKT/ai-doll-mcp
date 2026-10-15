@@ -246,6 +246,12 @@ class DirectServer:
                 raise ValueError('Unknown or revoked device')
             if ident not in self.devices:
                 self.devices[ident] = Device(self.folder, ident)
+                device = self.devices[ident]
+                device.c.experience_status_provider = lambda: dict(device.snapshot().get('status', {}), online=device.online())
+                device.c.settings_entry_provider = lambda section: [dict(
+                    url=(self.public_url or 'http://127.0.0.1:8781')+'/d/'+ident+'/companion#'+section,
+                    scope='server' if self.public_url else 'server_loopback',
+                    access='使用已有服务器管理连接；MCP凭据不能替代管理授权。' if self.public_url else '仅在服务器本机打开；未配置远程管理地址。')]
             return self.devices[ident]
 
     def receive(self, token, data):
@@ -277,6 +283,17 @@ class DirectServer:
             return None
         origin = self.public_url or 'http://127.0.0.1:'+str(self.mcp_info['port'])
         return origin+'/'+self.mcp_token+'/d/'+ident+'/mcp'
+
+    def operit_connection(self, ident):
+        self.resolve(ident)  # Reject unknown or revoked pairings.
+        if not self.mcp_info['enabled'] or self.mcp_info.get('profile') != 'interaction':
+            raise ValueError('Operit 互动需要启用 interaction MCP 配置')
+        if not self.public_url:
+            raise ValueError('请先配置手机能访问的服务器 HTTPS 地址，再导出 Operit 连接')
+        with self.lock:
+            label = self.db.execute('SELECT label FROM devices WHERE id=?', (ident,)).fetchone()['label']
+        return dict(schema=1, kind='ai-doll-operit-connection', mode='server',
+                    label=label, mcp_url=self.mcp_connection(ident))
 
     def close(self):
         self.stop.set()
@@ -328,6 +345,11 @@ def handler_for(app):
             self.begin_response(code, length=len(raw))
             self.end_headers()
             self.wfile.write(raw)
+
+        def download(self, raw, filename, content_type):
+            self.begin_response(200, content_type, len(raw))
+            self.send_header('Content-Disposition', 'attachment; filename="'+filename+'"')
+            self.end_headers(); self.wfile.write(raw)
 
         def body(self):
             size = int(self.headers.get('Content-Length', '0'))
@@ -391,10 +413,10 @@ def handler_for(app):
             if parsed.path == '/healthz':
                 ready = not app.mcp_info['enabled'] or app.mcp_thread.is_alive()
                 return self.send(200 if ready else 503, {'ready': ready, 'mode': 'device_push', 'mcp_enabled': app.mcp_info['enabled']})
-            if parsed.path in ('/', '/direct-server.js', '/bridge-client.js', '/conversation-queue.js', '/channel-editor.js', '/history-manager.js', '/console-embed.js'):
+            if parsed.path in ('/', '/direct-server.js', '/bridge-client.js', '/conversation-queue.js', '/channel-editor.js', '/history-manager.js', '/console-embed.js', '/companion-experience.js'):
                 asset = {'/': 'direct_server.html', '/direct-server.js': 'direct_server.js',
                          '/bridge-client.js': 'bridge_client.js', '/conversation-queue.js': 'conversation_queue.js',
-                         '/channel-editor.js': 'channel_editor.js', '/history-manager.js': 'history_manager.js', '/console-embed.js': 'console_embed.js'}[parsed.path]
+                         '/channel-editor.js': 'channel_editor.js', '/history-manager.js': 'history_manager.js', '/console-embed.js': 'console_embed.js', '/companion-experience.js': 'companion_experience.js'}[parsed.path]
                 raw = Path(__file__).with_name(asset).read_bytes()
                 self.begin_response(200, 'text/html; charset=utf-8' if asset.endswith('.html') else 'application/javascript; charset=utf-8', len(raw))
                 self.end_headers(); self.wfile.write(raw)
@@ -408,7 +430,15 @@ def handler_for(app):
                         'installation_id': digest('installation:' + app.admin_token)})
                 if parsed.path == '/api/devices':
                     return self.send(200, {'devices': app.list_devices()})
+                if parsed.path == '/api/operit/toolpkg':
+                    package = Path(__file__).resolve().parents[1]/'delivery/AI_Doll_Operit.toolpkg'
+                    if not package.is_file():
+                        return self.send(503, {'error': '当前部署缺少手机工具包，请安装包含 Operit 的完整服务器包'})
+                    return self.download(package.read_bytes(), 'AI_Doll_Operit.toolpkg', 'application/zip')
                 device, path = self.device_path()
+                if path == '/operit-connection.json':
+                    raw = json.dumps(app.operit_connection(device.id), ensure_ascii=False).encode('utf-8')
+                    return self.download(raw, 'AI_Doll_Operit_Connection.json', 'application/json; charset=utf-8')
                 if path == '/companion':
                     page = Path(__file__).with_name('companion.html').read_text(encoding='utf-8')
                     page = page.replace("const csrf='__CSRF__'", "const deviceBase="+json.dumps('/d/'+device.id)+";const csrf=''")

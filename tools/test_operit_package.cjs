@@ -14,6 +14,9 @@ vm.runInNewContext(source,context);
   await context.exports.call_mcp({mcp_url:'https://example.com/private/mcp',tool:'doll_get_status'});
   assert.equal(calls.length,3);assert.equal(result.verification.call_id,'fixture');
   assert.equal(calls[2].headers['MCP-Protocol-Version'],'2025-11-25');
+  for(const tool of ['get_settings_entry','get_device_overview','get_chat_context','acknowledge_chat_context',
+    'update_body_part','update_companion_preferences'])
+    await context.exports.call_mcp({mcp_url:'https://example.com/private/mcp',tool,arguments_json:'{}'});
   await assert.rejects(()=>context.exports.call_mcp({mcp_url:'https://example.com/private/mcp',tool:'doll_vibrate'}));
   const body={schema:'ai-doll.host-event.v1',target_id:'existing-chat',event_id:'evt_'+'a'.repeat(32),expires_at:Date.now()/1000+30,
     event:{eventId:'evt_'+'a'.repeat(32),data:{events:[{direction:'input',sensor_type:'pressure',source:'simulation'}]}}};

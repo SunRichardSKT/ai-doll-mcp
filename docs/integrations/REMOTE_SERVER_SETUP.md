@@ -9,6 +9,8 @@
 
 这条路线需要已有的 Linux 服务器和域名。没有服务器也能先用 Windows 本机方式测试，不需要为了试按压就购买服务器。
 
+Operit 用户部署后可直接在服务器管理页下载手机工具包与设备连接文件，电脑无需运行。仅安卓手机且无服务器时，可改用家庭局域网直连，见 [Operit 免电脑指南](OPERIT_NO_PC.md)。
+
 ## 1. 准备服务器和域名
 
 - 一台可以通过 SSH 登录的 Ubuntu / Debian 服务器。安装入口会自动准备缺少的 Docker 和 Compose。
@@ -67,7 +69,7 @@ sudo ai-doll-server link
 
 在管理页的已配对设备下点击 **复制 MCP 地址**。在原聊天客户端添加 Streamable HTTP MCP，填入完整地址，选择无需身份验证。自建聊天后端可以在同一台服务器使用它，不需要另外启动电脑采集器。
 
-MCP 和接收服务共用数据库，默认提供 13 个状态、历史与互动工具。实际调用 `get_installation_status` 和 `doll_get_status`，取得两个新的 `verification.call_id`；再查询模拟记录并开始 60 秒互动。设备离线时仍能查询已存历史，返回最后同步时间和离线信息。
+MCP 和接收服务共用数据库，默认提供 19 个状态、历史与互动工具。实际调用 `get_installation_status` 和 `doll_get_status`，取得两个新的 `verification.call_id`；再查询模拟记录并开始 60 秒互动。设备离线时仍能查询已存历史，返回最后同步时间和离线信息。
 
 管理页地址不能替代 MCP 地址。已有网站或需要后端本机连接时，见 [同机部署与反向代理](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/developers/DIRECT_SERVER.md#同一台服务器部署原聊天与-mcp)。按压后主动向原聊天发送回复还需原应用监听事件并调用模型；普通 Chat 空闲主动唤醒不作为本轮承诺。
 
@@ -108,12 +110,12 @@ sudo bash Install_Server.sh --domain doll.your-domain.com
 sudo bash Install_Server.sh --domain doll.your-domain.com --dry-run
 ```
 
-也可从 [交付目录](https://github.com/SunRichardSKT/ai-doll-mcp/tree/main/delivery)下载 `AI_Doll_Server_v2.17.0.tar.gz` 与对应 `.sha256`，上传到服务器同一目录：
+也可从 [交付目录](https://github.com/SunRichardSKT/ai-doll-mcp/tree/main/delivery)下载 `AI_Doll_Server_v2.20.0.tar.gz` 与对应 `.sha256`，上传到服务器同一目录：
 
 ```bash
-sha256sum -c AI_Doll_Server_v2.17.0.tar.gz.sha256
+sha256sum -c AI_Doll_Server_v2.20.0.tar.gz.sha256
 mkdir ai-doll-server
-tar -xzf AI_Doll_Server_v2.17.0.tar.gz -C ai-doll-server
+tar -xzf AI_Doll_Server_v2.20.0.tar.gz -C ai-doll-server
 sudo bash ai-doll-server/Install_Server.sh
 ```
 

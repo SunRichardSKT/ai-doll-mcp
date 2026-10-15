@@ -1,5 +1,5 @@
 param(
-    [string]$Port='COM3',
+    [string]$Port='',
     [ValidateSet('saved','usb','wifi')][string]$Transport='saved',
     [string]$DeviceHost='',
     [switch]$Background

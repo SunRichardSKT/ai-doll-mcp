@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "toolpkg_id": "org.ai_doll.companion",
+  "version": "2.20.0",
+  "api_version": "1.0.0",
+  "display_name": "AI Doll",
+  "description": "在已有聊天中接收身体互动。一次配置，开始、停止与检查集中管理。",
+  "main": "main.js",
+  "subpackages": [
+    {
+      "id": "ai_doll_companion",
+      "entry": "packages/companion.js",
+      "enabled_by_default": true,
+      "display_name": "AI Doll 陪伴",
+      "description": "管理已有聊天绑定、有限互动任务与发送恢复，不创建聊天或更换模型。"
+    }
+  ],
+  "resources": []
+}

@@ -18,6 +18,9 @@ from urllib.parse import urlsplit
 import webbrowser
 
 from service_lifecycle import ExclusiveLoopbackServer, ServiceLease, ServiceAlreadyRunning
+from _source_path import load
+
+VERSION = load('ai_doll.core.version').VERSION
 
 ROOT = Path(__file__).resolve().parents[1]
 WORK = ROOT / 'build/device-lab'
@@ -25,7 +28,7 @@ PORT = 8769
 COLLECTOR = 'http://127.0.0.1:8768'
 FLAGS = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
 OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))
-PROFILE_COUNTS = {'status': 2, 'history': 9, 'interaction': 13}
+PROFILE_COUNTS = {'status': 2, 'history': 9, 'interaction': 19}
 
 
 def read_json(path, default=None):
@@ -109,6 +112,19 @@ def pair_device(data):
 
 def worker(action, data):
     """Runs in the installed environment; credentials arrive on stdin, never argv."""
+    if action.startswith('operit-'):
+        import operit_service
+        if action == 'operit-save':
+            return operit_service.save(data.get('mode', 'device'), data.get('host'))
+        if action == 'operit-start':
+            cfg = operit_service.config()
+            if cfg and cfg['mode'] == 'device':
+                collector_start()
+            return operit_service.start()
+        if action == 'operit-stop':
+            return operit_service.stop()
+        if action == 'operit-status':
+            return operit_service.status(verify=True)
     if action == 'pair':
         return pair_device(data)
     if action == 'usb-pair-wifi':
@@ -155,6 +171,8 @@ def worker(action, data):
                         device_error='设备当前不可达，请检查供电、局域网及 MCP 开关。电脑历史仍可查询。')
     if action == 'collector-stop':
         import secure_mcp
+        import operit_service
+        operit_service.stop()
         secure_mcp.stop()
         return collector_stop()
     if action == 'secure-save':
@@ -276,13 +294,19 @@ class Panel:
         if not self.ready:
             raise ValueError('请先在“安装引导”中准备运行环境。')
         if action == 'daily-start':
-            self.note('正在启动电脑采集服务…')
-            local = self.run_worker('collector-start')
+            operit = read_json(WORK / 'operit/settings-private.json', {})
+            local = None
+            if operit.get('mode') != 'simulation' or read_json(WORK / 'connection-private.json'):
+                self.note('正在启动电脑采集服务…')
+                local = self.run_worker('collector-start')
             config = read_json(WORK / 'secure-mcp/secure-private.json', {})
             if config.get('runtime_api_key'):
                 self.note('正在连接 ChatGPT 隧道…')
                 self.secure = self.run_worker('secure-start')
             self.run_worker('client-config')
+            if operit.get('enabled'):
+                self.note('正在恢复已保存的 Operit 连接…')
+                self.run_worker('operit-start')
             return dict(collector=local, secure=self.secure)
         result = self.run_worker(action, data)
         if action.startswith('secure-'):
@@ -294,7 +318,8 @@ class Panel:
     def submit(self, action, data):
         allowed = {'install', 'pair', 'usb', 'usb-pair-wifi', 'discover', 'collector-start', 'collector-stop',
             'secure-save', 'secure-start', 'secure-stop', 'secure-status', 'secure-reset', 'collector-check',
-            'client-config', 'verify-chat', 'startup', 'tunnel-install', 'daily-start', 'ota'}
+            'client-config', 'verify-chat', 'startup', 'tunnel-install', 'daily-start', 'ota',
+            'operit-save', 'operit-start', 'operit-stop', 'operit-status'}
         if action not in allowed:
             raise ValueError('未知操作。')
         with self.lock:
@@ -327,13 +352,15 @@ class Panel:
             pass
         with self.lock:
             task, messages = dict(self.job), list(self.messages)
+        import operit_service
+        operit = operit_service.status()
         return dict(environment_ready=self.ready, python_version=sys.version.split()[0],
             paired=bool(pairing.get('mcp_token') and pairing.get('device_id')),
             device_id=pairing.get('device_id'), connection=connection, collector=local,
             secure_config=dict(configured=bool(cfg), tunnel_id=cfg.get('tunnel_id', ''),
                 profile=cfg.get('profile', 'interaction'), key_saved=bool(cfg.get('runtime_api_key'))),
             secure=self.secure, job=task, messages=messages,
-            project=str(ROOT), version='2.17.0')
+            project=str(ROOT), version=VERSION, profile_counts=PROFILE_COUNTS, operit=operit)
 
 
 def make_handler(panel):
@@ -376,6 +403,17 @@ def make_handler(panel):
             if path == '/api/diagnostics':
                 # Structured state only: no raw exception log, history or credentials.
                 return self.send(200, panel.state())
+            if path == '/api/operit-connection':
+                import operit_service
+                try:
+                    return self.send(200, operit_service.export_connection())
+                except ValueError as error:
+                    return self.send(400, {'error': str(error)})
+            if path == '/api/operit-toolpkg':
+                target = ROOT / 'delivery/AI_Doll_Operit.toolpkg'
+                if not target.is_file():
+                    return self.send(404, {'error': '工具包缺失，请重新解压完整软件包。'})
+                return self.send(200, target.read_bytes(), 'application/octet-stream')
             return self.send(404, {'error': 'Not found'})
 
         def do_POST(self):
@@ -400,9 +438,9 @@ def main():
     global PORT
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--worker')
-    parser.add_argument('--no-browser', action='store_true')
-    parser.add_argument('--autostart', action='store_true')
-    parser.add_argument('--port', type=int, default=8769)
+    parser.add_argument('--no-browser', '-NoBrowser', action='store_true')
+    parser.add_argument('--autostart', '-AutoStart', action='store_true')
+    parser.add_argument('--port', '-PanelPort', type=int, default=8769)
     args = parser.parse_args()
     if not 1024 <= args.port <= 65535:
         parser.error('port must be 1024..65535')
@@ -424,7 +462,8 @@ def main():
             server = ExclusiveLoopbackServer(('127.0.0.1', PORT), make_handler(panel))
             if panel.ready and panel.python == ROOT/'python/python.exe' and not (WORK/'mcp-client-config.json').is_file():
                 panel.install()
-            if args.autostart and panel.ready and read_json(WORK / 'connection-private.json'):
+            if args.autostart and panel.ready and (read_json(WORK / 'connection-private.json') or
+                    read_json(WORK / 'operit/settings-private.json', {}).get('enabled')):
                 panel.submit('daily-start', {})
             if not args.no_browser:
                 webbrowser.open(url)

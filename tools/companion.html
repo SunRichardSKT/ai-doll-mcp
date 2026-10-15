@@ -4,7 +4,7 @@
 <style>
 body{font:16px system-ui;background:#f3f1e9;color:#263e33;max-width:960px;margin:30px auto;padding:20px}section{background:#fff;padding:24px;border-radius:18px;margin:16px 0}h1{margin-bottom:8px}button,input,select,textarea{box-sizing:border-box;font:inherit;border:1px solid #bdcbc0;border-radius:8px;padding:10px;margin:5px 0}button{background:#2b6249;color:#fff;cursor:pointer}button:disabled{opacity:.5}textarea{width:100%;min-height:90px}.parts{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}.parts input{width:100%}.muted{color:#63736a;font-size:14px}.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:10px 5px;text-align:left;border-bottom:1px solid #eee}#notice{white-space:pre-wrap}#mode{font-weight:600}a{color:#2b6249}.table{overflow:auto}#error{color:#a1372a}
 </style>
-<h1>共感娃娃 · 互动记录</h1><p>普通模式安静记录；互动模式把新触摸交给你选择的 AI。</p><p id="connection" class="muted"></p>
+<h1>共感娃娃 · 互动记录</h1><p>日常安静记录；触摸可以融入原 AI 聊天，是否主动回应由你选择。</p><p id="connection" class="muted"></p>
 <p><a href="/">Wi-Fi 与设备设置</a> · <a href="/bridge">主动互动测试与反馈偏好</a> · <a href="/install-guide">给你的 AI 的安装文档</a></p><p id="error" role="alert"></p>
 <section><div class="row"><span id="mode">连接中…</span><button id="start">开始互动</button><button id="end">结束互动</button></div><p id="health" class="muted"></p><p class="muted">页面显示事件，不冒充 AI 回复。将 MCP 接入你的 AI 后，可说“我要和你互动啦”或“查询今天的互动”。</p><p id="session" class="muted"></p></section>
 <section><h2>通道类型与部位</h2><p class="muted">最多 16 个逻辑通道，现有 4051 有 8 个物理模拟输入。预设压力、NTC 温度输入和震动输出。名称及配置保存在设备，历史保留发生时的类型和名称。</p><div id="parts" class="parts"></div><button id="addChannel">添加通道</button><button id="saveParts">保存全部配置</button><span id="saved"></span><p class="muted">温度默认 NTC10k/B3950，4051 分支保留 4.7k 串联、10k 下拉；可展开调整参数。震动输出需要独立 GPIO 和板外电机驱动。新增或改类型时默认仅模拟。</p></section>
@@ -48,3 +48,4 @@ $('date').value=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Shanghai',year:'
 <script src="/history-manager.js"></script>
 
 <script src="/console-embed.js"></script>
+<script src="/companion-experience.js"></script>

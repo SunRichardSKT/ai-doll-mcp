@@ -22,6 +22,7 @@ from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
 from mcp.types import ToolAnnotations
 from pydantic import StrictInt
+from companion_experience import TOOLS as EXPERIENCE_TOOLS, NATURAL_INSTRUCTIONS
 
 ROOT = Path(__file__).resolve().parents[1]
 STATUS_TOOLS = ('get_installation_status', 'doll_get_status')
@@ -34,6 +35,7 @@ INTERACTION_TOOLS = STATUS_TOOLS + (
 )
 HISTORY_TOOLS = tuple(name for name in INTERACTION_TOOLS if name not in {
     'start_interaction', 'get_interaction_status', 'get_interaction_device_events', 'end_interaction'})
+INTERACTION_TOOLS += EXPERIENCE_TOOLS
 PROFILES = {'status': STATUS_TOOLS, 'history': HISTORY_TOOLS, 'interaction': INTERACTION_TOOLS}
 
 
@@ -214,7 +216,7 @@ def create_gateway(profile='status', port=8771, folder=None, public_origin=None,
         invoke.__signature__ = inspect.signature(function).replace(return_annotation=dict[str, Any])
         schemes = [{'type': 'noauth'}]
         server.add_tool(invoke, name=name, meta={'securitySchemes': schemes}, annotations=ToolAnnotations(
-            readOnlyHint=name not in {'start_interaction', 'end_interaction'},
+            readOnlyHint=name not in {'start_interaction', 'end_interaction', 'acknowledge_chat_context', 'update_body_part', 'update_companion_preferences'},
             destructiveHint=False, idempotentHint=True, openWorldHint=False))
 
     for name in names:

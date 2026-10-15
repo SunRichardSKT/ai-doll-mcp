@@ -39,5 +39,21 @@ function client(onInteraction,onReply){const c=new DollBridgeClient({targetId:'t
  failed.onDeliveryState=busy=>failedStates.push(busy);
  await assert.rejects(failed.handle(message,new AbortController().signal),/existing model failed/);
  assert.deepEqual(failedStates,[true,false]);
+ // Ordinary messages still use the original model and queue, even if the doll
+ // service is unavailable. No context is consumed until display succeeds.
+ const natural=new DollBridgeClient({targetId:'chat',onInteraction:()=>{},runDelivery:operation=>operation()});
+ let consumed=0,shown=0;
+ const ctx={events:[{event_id:'e'}],receipt_id:'receipt',expires_at:Date.now()/1000+30,preferences:{chat_integration_enabled:true}};
+ natural.tool=async name=>{if(name==='get_chat_context')return ctx;consumed++;return {acknowledged:true}};
+ await natural.replyWithContext({generate:async context=>{assert.equal(context.events.length,1);assert.equal(consumed,0);return '自然回应'},display:async()=>{assert.equal(consumed,0);shown++}});
+ assert.equal(consumed,1);assert.equal(shown,1);
+ await assert.rejects(natural.replyWithContext({generate:async()=> 'failed display',display:async()=>{throw Error('save failed')}}),/save failed/);
+ assert.equal(consumed,1);
+ natural.tool=async()=>{throw Error('doll service offline')};
+ await natural.replyWithContext({generate:async context=>{assert.equal(context.events.length,0);return '原聊天继续'},display:async()=>shown++});
+ assert.equal(shown,2);
+ let generations=0;natural.tool=async()=>({...ctx,expires_at:0});
+ await natural.replyWithContext({generate:async context=>{generations++;return context.events.length?'stale':'普通回应'},display:async answer=>assert.equal(answer,'普通回应')});
+ assert.equal(generations,2);
  console.log('Client duplicate reuse, ACK-before-render, cancelled generation and expired lease retry PASS');
 })().catch(e=>{console.error(e);process.exitCode=1});
