@@ -73,7 +73,11 @@ SHARED_SOURCE = ('src/ai_doll/__init__.py', 'src/ai_doll/core/__init__.py', 'src
 PCB_FILES = (
     'AI_Doll_V2_标准化完成_20261003.epro2', 'AI_Doll_V2_标准化采购BOM_20261003.csv',
     'AI_Doll_V2_板外器件与测试点_20261003.csv', '元器件标准化核对记录.md',
+    'AI_Doll_V2_丝印镜像修正_20261016.epro2', '丝印镜像修正说明_20261016.md', 'README.md',
 )
+PCB_PACKAGE = 'AI_Doll_PCB_V2_20261016.zip'
+PCB_MIRROR_PROOF = ('audit.json', '3d-confirmation.json', 'bottom-3d-confirmed.png',
+                    'bottom-2d-mirrored.png', 'drc-after.json')
 PROOF = (
     'standardize-completion-proof.json', 'standardize-sch-final.json',
     'standardize-pcb-list-final.json', 'standardize-pcb-final.json',
@@ -85,7 +89,7 @@ PCB_README = '''# AI_Doll_V2 PCB 交付
 
 ## 打开工程和准备元器件
 
-1. 在嘉立创 EDA 专业版导入 `hardware/rev-v2/AI_Doll_V2_标准化完成_20261003.epro2`，包含原理图和 PCB。
+1. 在嘉立创 EDA 专业版 V4 导入 `hardware/rev-v2/AI_Doll_V2_丝印镜像修正_20261016.epro2`，包含原理图和 PCB。20261003 工程保留供前版对照。
 2. 按同目录的标准化采购 BOM 购买板上器件；SuperMini、FSR、电池与板外充放电模块单独准备。
 3. 焊接前读 [器件与电源核对](hardware/rev-v2/元器件标准化核对记录.md)和 [已下单焊位](hardware/rev-v2/ordered-gerber-20260920/已下单PCB封装核对.md)。
 
@@ -97,7 +101,7 @@ PCB_README = '''# AI_Doll_V2 PCB 交付
 
 ## 验证边界
 
-原生 PCB DRC 为 0；原理图无 error / fatal，仍有 2 个聚合 warn。标准化不改变板框、铜图形、焊盘或丝印镜像，无需只因料号更新重新下单裸板。
+2026-10-16 已优化丝印位置并修正背面 33 处文字，用户提供的新版 3D 图已确认背面文字正向；两轮保存重载回读通过，电路、铜图形和焊盘保持原样。当前原生 DRC 仍有 1 项网表不匹配，不能沿用 20261003 的 DRC 0 历史结论；重新下单前需单独核对。见 [本次检查说明](hardware/rev-v2/丝印镜像修正说明_20261016.md)。
 
 `ordered-gerber-20260920/` 是原已下单文件，不是新导出的生产文件。`verification/` 保留回读、几何和 DRC 证据。新主板 CH0 实体 FSR 的按压、释放和电脑归档已实测；其余通道、温度、电机和电池仍待验收。完整 [通道教程](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/daily/SENSOR_CHANNELS.md) 与 [当前验证范围](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/reports/VALIDATION.md)分开说明。
 
@@ -224,7 +228,8 @@ def main():
         pcb += [p for p in (hardware/'verification/catalog-20261003').iterdir() if p.suffix in {'.pdf', '.json'}]
         preview = hardware/'verification/standardized-preview/standardized-complete'
         pcb += [p for p in preview.iterdir() if p.is_file() and p.suffix in {'.png','.json'}]
-        outputs.append(package(delivery/'AI_Doll_PCB_V2_20261003.zip', pcb, PCB_README, 'AI_Doll_V2-standardized-20261003'))
+        pcb += [hardware/'verification/silkscreen-mirror-20261016'/name for name in PCB_MIRROR_PROOF]
+        outputs.append(package(delivery/PCB_PACKAGE, pcb, PCB_README, 'AI_Doll_V2-silkscreen-corrected-20261016'))
     outputs.append(server_package(delivery))
     outputs.append(dict(phone_package, bytes=(delivery/phone_package['file']).stat().st_size))
     (delivery/'DELIVERY_MANIFEST.json').write_text(json.dumps({'packages': outputs}, ensure_ascii=False, indent=2), encoding='utf-8')
@@ -238,14 +243,14 @@ def main():
     purposes = {
         'AI_Doll_Code_v2.20.0.zip': ('Windows 用户 / 软件开发者', '普通 Chat 双击 AI_Doll.cmd；自建应用本机接收双击 AI_Doll_Server.cmd'),
         'AI_Doll_Server_v2.20.0.tar.gz': ('远程 Linux 服务器', '运行 sudo bash Install_Server.sh，按提示填写域名'),
-        'AI_Doll_PCB_V2_20261003.zip': ('采购和手工焊接主板', '用嘉立创 EDA 专业版打开原生工程，核对 BOM 与装配面'),
+        PCB_PACKAGE: ('采购和手工焊接主板', '打开新版丝印工程与 BOM；重新下单前核对现有网表不匹配'),
         'AI_Doll_Operit.toolpkg': ('Operit 安卓用户', '在包管理中导入，选择电脑、服务器或仅手机连接，按标题绑定原聊天'),
     }
     for item in outputs:
         who, action = purposes[item['file']]
         readme += f"| [{item['file']}]({RELEASE_BASE}/{item['file']}) · {item['bytes']/1048576:.2f} MiB | {who} | {action} |\n"
     readme += '\nOperit 无需为了取得手机工具包下载 Windows 包。服务器管理页可导出连接文件；仅手机模式填写家庭设备 IP。原电脑入口继续兼容，完整包仍内含相同工具包。[统一安装](../docs/integrations/OPERIT_SETUP.md) · [免电脑指南](../docs/integrations/OPERIT_NO_PC.md)。\n'
-    readme += '\nWindows 包内置 Python，无需另装。Linux 小型包不含 Windows Python，由容器准备运行环境。PCB 包只因文档整理更新说明，物理工程和原下单文件保持。\n\n'
+    readme += '\nWindows 包内置 Python，无需另装。Linux 小型包不含 Windows Python，由容器准备运行环境。20261016 PCB 包已优化丝印并修正背面文字，电路与原下单文件保持；当前仍有 1 项网表不匹配，重新下单前须核对。[丝印与 3D 核对](../hardware/rev-v2/丝印镜像修正说明_20261016.md)。\n\n'
     readme += '[Windows 首次安装](../docs/start/AI_INSTALL.md) · [远程部署](../docs/integrations/REMOTE_SERVER_SETUP.md) · [给 AI 的执行指南](../docs/ai/AI_GUIDE.md) · [全部文档](../docs/README.md)\n\n'
     readme += '## 如何校验下载\n\n[DELIVERY_MANIFEST.json](DELIVERY_MANIFEST.json) 与 [SHA256SUMS.txt](SHA256SUMS.txt) 记录下载哈希；ZIP / TAR 内的 MANIFEST.json 记录逐文件校验，ToolPkg 使用 CHECKSUMS.json。Linux 包另提供 [.sha256]('+RELEASE_BASE+'/AI_Doll_Server_v2.20.0.tar.gz.sha256)，可运行 sha256sum -c 对应文件名。\n\n'
     readme += '[单独下载 Linux 安装入口]('+RELEASE_BASE+'/Install_Server.sh)。大型文件只存 GitHub Releases，不加入源码仓库。\n\n'

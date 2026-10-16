@@ -50,7 +50,7 @@
 | Windows 用户 | [Windows 完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.20.0/AI_Doll_Code_v2.20.0.zip) | 完整解压，保留内置 Python，双击对应入口 |
 | Operit 安卓用户 | [AI_Doll_Operit.toolpkg](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.20.0/AI_Doll_Operit.toolpkg) | 在 Operit 包管理中导入，选择连接方式并绑定原聊天 |
 | Linux 服务器用户 | [Linux 小型服务包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.20.0/AI_Doll_Server_v2.20.0.tar.gz) | 按 [服务器指南](docs/integrations/REMOTE_SERVER_SETUP.md)运行安装脚本 |
-| 采购、制作或焊接主板 | [PCB 与硬件交付包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.20.0/AI_Doll_PCB_V2_20261003.zip) | 核对原生工程、采购 BOM 与装配说明 |
+| 采购、制作或焊接主板 | [PCB 与硬件交付包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.20.0/AI_Doll_PCB_V2_20261016.zip) | 新版丝印与背面镜像已修正；重新下单前核对现有网表不匹配 |
 
 Windows 完整包自带运行环境，**无需另装 Python 或 Arduino**。仅使用 Operit 手机直连时，不需要下载 Windows 包，也不需要安装额外的服务器软件。
 

@@ -21,7 +21,8 @@
 | 接收服务内置 MCP | 当前 SDK 实测 19 工具，历史／摘要／统计、自然陪伴、会话隔离、到期、地址鉴权与撤销 | `tools/test_direct_mcp.py`；[2.20 记录](RELEASE_2_20.md)，新增容器与目标客户端仍待实测 |
 | Operit 免电脑代码 | 服务器实际 HTTP／MCP 与模拟上传；手机直连的身份、历史、回执、去重、期限和停止；Android、模型及手机直连设备接口使用明确替身 | [2.20 记录](RELEASE_2_20.md) |
 | OTA 与离线 | 裸板正常无线升级；容量、软件重启补传和去重 | [设备报告](DEVICE_LAB_TEST_REPORT.md) |
-| PCB 标准化 | 原生 PCB DRC 0，原理图无 error / fatal、2 个聚合 warn；几何保持 | [硬件核对](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/rev-v2/元器件标准化核对记录.md) |
+| PCB 标准化（20261003 历史） | 当时原生 PCB DRC 0，原理图无 error / fatal、2 个聚合 warn；不覆盖当前修订 | [硬件核对](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/rev-v2/元器件标准化核对记录.md) |
+| PCB 丝印修正（20261016） | 文字避让、背面 33 处镜像及用户提供的 3D 图已核对，两轮保存重载通过，电气几何保持；当前仍有 1 项网表不匹配 | [本次检查](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/rev-v2/丝印镜像修正说明_20261016.md) |
 
 ## 明确未完成的验收
 

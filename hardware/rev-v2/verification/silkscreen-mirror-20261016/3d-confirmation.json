@@ -1,0 +1,14 @@
+{
+  "status": "confirmed-user-provided-3d-screenshot",
+  "date": "2026-10-16",
+  "source": "User attachment in the current chat",
+  "artifact": "bottom-3d-confirmed.png",
+  "sha256": "310136560f47bcdfcdee067f06b14922db19f42c5d2751a23e12dfe07e033086",
+  "visuallyReadableLabels": [
+    "R1",
+    "R16",
+    "C9",
+    "TP_5V"
+  ],
+  "scope": "Visual bottom-side text orientation; does not certify Gerber, electrical DRC or a reimported native archive."
+}
