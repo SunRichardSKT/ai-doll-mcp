@@ -1,46 +1,179 @@
 # AI 共感娃娃
 
-把娃娃的按压记录接入你正在使用的 AI 聊天。继续使用原模型和人设，可以查询互动历史，也可以开始限时互动。
+把娃娃的触摸与按压，接入你正在使用的 AI 聊天。继续使用原来的模型、人设和上下文，让 AI 在原对话中回应身体互动，也能查询过去的互动记录。
 
-**2.20.0 预发布版 · ESP32-C3 固件 2.9.0**。Windows 完整包自带运行环境，无需安装 Python 或 Arduino。[下载本版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.20.0)。新增免电脑模式仍需在自己的手机与网络实测。
+**当前版本：2.20.0 预发布版 · ESP32-C3 固件：2.9.0**
 
-## 第一次使用，只做这几步
+[下载与发布说明](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.20.0) · [完整教程目录](docs/README.md) · [故障排查](docs/TROUBLESHOOTING.md) · [给 AI 的安装指南](docs/ai/AI_GUIDE.md)
 
-1. 从 [下载入口](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/delivery/README.md)取得 **Windows 完整包**并完整解压。
-2. 开发板还没装程序：接 USB 数据线，双击 **Flash_ESP32.cmd**，点击 **一键烧录**。看见成功后进入下一步。[图文步骤](docs/start/QUICK_FLASH.md)
-3. 手机连接烧录成功页显示的 **AI-Doll-…** 热点，打开 **http://192.168.4.1/**，选择家庭的 2.4 GHz Wi-Fi 并保存。[配网步骤](docs/daily/WIFI_CONNECTION.md)
-4. 双击 **AI_Doll.cmd**，按 [首次安装](docs/start/AI_INSTALL.md)连接你的原 AI 聊天。
+## 目录
 
-**配网成功后，娃娃热点和 192.168.4.1 设置页仍保留。** 每次要修改设置，连接娃娃热点即可。这个地址在家庭 Wi-Fi 下不是娃娃的固定局域网 IP。
+- [项目能做什么](#项目能做什么)
+- [选择适合你的使用方式](#选择适合你的使用方式)
+- [下载哪个文件](#下载哪个文件)
+- [第一次使用](#第一次使用)
+- [文档导航](#文档导航)
+- [项目目录](#项目目录)
+- [已验证与待验证的能力](#已验证与待验证的能力)
+- [常见问题与访问地址](#常见问题与访问地址)
+- [数据与许可证](#数据与许可证)
 
-## 三个入口，各做一件事
+## 项目能做什么
 
-| 双击哪个文件 | 用来做什么 | 这台电脑上的地址 |
+- **在原聊天中回应触摸**：读取已配置部位的按压与释放，结合当前话题自然回应。
+- **查询互动历史**：查看记录、摘要与统计，保留事件来源、部位和时间信息。
+- **设置部位与反馈**：调整部位名称、人设补充、回应偏好和聊天融入开关。
+- **通过 MCP 接入 AI**：提供本机 STDIO、HTTP 和服务器 MCP，沿用已有聊天客户端。
+- **使用 Operit 主动陪伴**：绑定已有聊天，明确开启后进行限时互动；支持电脑、服务器或安卓手机直连。
+
+项目不提供新的聊天模型或第二套聊天窗口。**触摸主动回应默认关闭**，需要用户开启；能否在后台触发回复取决于客户端及其运行状态，不代表所有 AI 客户端都支持空闲唤醒。
+
+## 选择适合你的使用方式
+
+先选一条路线，不必把所有入口都安装一遍。
+
+| 你的环境或目标 | 从这里开始 | 使用期间需要运行 |
 | --- | --- | --- |
-| Flash_ESP32.cmd | USB 烧录，保存日志并生成新设备名称 | http://127.0.0.1:8770/ |
-| AI_Doll.cmd | 管理娃娃、保存历史、接入原 AI | http://127.0.0.1:8769/ |
-| AI_Doll_Server.cmd | 给自建应用启动本机接收服务 | 以启动页面显示为准 |
+| ChatGPT 普通 Chat，使用 Windows 电脑连接设备 | [Windows 安装](docs/start/AI_INSTALL.md) → [Secure MCP 隧道](docs/integrations/SECURE_MCP.md) | 娃娃、电脑采集服务、隧道 |
+| Operit，使用电脑采集 | [Operit 统一安装](docs/integrations/OPERIT_SETUP.md) | 娃娃、电脑服务、Operit |
+| Operit，只有安卓手机与家庭 Wi-Fi | [手机直连家庭设备](docs/integrations/OPERIT_NO_PC.md#只有安卓手机没有电脑和服务器) | 娃娃、同一家庭网络中的 Operit |
+| Operit，设备直传自己的服务器 | [Operit 服务器模式](docs/integrations/OPERIT_NO_PC.md#有自己的服务器) | 娃娃、服务器、Operit；电脑无需常开 |
+| 本机支持 MCP 的其他 AI 客户端 | [Windows 安装](docs/start/AI_INSTALL.md) → [MCP 工具与接入](docs/developers/MCP_TOOLS.md) | 娃娃、电脑采集服务 |
+| 自己的聊天前后端，需要本机或服务器接入 | [本机接收服务](docs/integrations/SERVER_QUICKSTART.md) / [Linux 部署](docs/integrations/REMOTE_SERVER_SETUP.md) | 娃娃、接收服务、原聊天应用 |
 
-自己有 Linux 服务器、希望电脑不用常开时，用 [远程部署教程](docs/integrations/REMOTE_SERVER_SETUP.md)。不确定选哪条路线，先看 [连接方式选择](docs/start/MCP_TRANSPORT_DECISION.md)。
+更详细的区别见 [连接方式选择](docs/start/MCP_TRANSPORT_DECISION.md)。服务器与仅手机模式是 2.20 新增能力，仍需在自己的手机、网络和部署环境中验收。
 
-**Operit 用户无需电脑也能使用**：可让设备直传自己的服务器，或由安卓手机在家庭 Wi-Fi 内直接读取设备。两种方式使用同一个手机工具包，继续原聊天。见 [免电脑使用指南](docs/integrations/OPERIT_NO_PC.md)。
+## 下载哪个文件
 
-## 烧录和首次启动
+| 使用者 | 下载 | 下载后做什么 |
+| --- | --- | --- |
+| Windows 用户 | [Windows 完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.20.0/AI_Doll_Code_v2.20.0.zip) | 完整解压，保留内置 Python，双击对应入口 |
+| Operit 安卓用户 | [AI_Doll_Operit.toolpkg](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.20.0/AI_Doll_Operit.toolpkg) | 在 Operit 包管理中导入，选择连接方式并绑定原聊天 |
+| Linux 服务器用户 | [Linux 小型服务包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.20.0/AI_Doll_Server_v2.20.0.tar.gz) | 按 [服务器指南](docs/integrations/REMOTE_SERVER_SETUP.md)运行安装脚本 |
+| 采购、制作或焊接主板 | [PCB 与硬件交付包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.20.0/AI_Doll_PCB_V2_20261003.zip) | 核对原生工程、采购 BOM 与装配说明 |
 
-每次 USB 烧录产生新设备后缀，并在 `build/flash/日期时间-编号/` 保存日志与结果；日常重启保持名称。标准烧录保留已有配置，明确选择“恢复出厂”才清空设备。新板默认未配网、手动模式、真实输入和电机输出关闭。[默认设置说明](docs/start/FACTORY_SETTINGS.md)
+Windows 完整包自带运行环境，**无需另装 Python 或 Arduino**。仅使用 Operit 手机直连时，不需要下载 Windows 包，也不需要安装额外的服务器软件。
 
-## 接好传感器后
+文件校验与交付范围见 [下载目录](delivery/README.md)；历史版本见 [GitHub Releases](https://github.com/SunRichardSKT/ai-doll-mcp/releases)。源码仓库用于阅读和开发，大型完整包统一放在 Releases。
 
-只启用已安装的通道，确认读数随按压变化，再做 [压力校准](docs/daily/CALIBRATION_AND_DAILY_MODE.md)。日常模式可在重启后恢复输入，电机输出不会自动恢复。
+## 第一次使用
 
-已实测 CH0 实体 FSR 的按压、释放和本机历史保存。其他通道、温度探头、电机及整机电池仍需分别验收；限时互动不等于 AI 空闲时自动唤醒。[当前验证范围](docs/reports/VALIDATION.md)
+1. **准备已安装固件的开发板与传感器。** 新板可在 Windows 完整包中双击 `Flash_ESP32.cmd`，按 [快速烧录指南](docs/start/QUICK_FLASH.md)完成写入、启动和设备身份确认。已有正常固件时，按对应升级说明操作。
+2. **给娃娃配网。** 手机连接设备显示的 `AI-Doll-…` 热点，打开 `http://192.168.4.1/`，配置家庭 2.4 GHz Wi-Fi。参见 [配网与设置页](docs/daily/WIFI_CONNECTION.md)。
+3. **只启用实际安装的通道。** 核对 [通道与接线](docs/daily/SENSOR_CHANNELS.md)，再按 [压力校准与日常模式](docs/daily/CALIBRATION_AND_DAILY_MODE.md)确认按压和释放。
+4. **连接你原来的 AI 聊天。** 按上方选定路线安装，先查询实际设备状态，再测试一次按压反馈。Operit 用户按标题绑定已有聊天，不用手填聊天 ID 或状态文件路径。
 
-## 完整目录
+仅安卓手机路线要求开发板已安装本项目固件；目前不提供安卓 USB 烧录流程。先测试硬件时，可以暂不配置 AI，直接使用设备设置页。
 
-[新手与日常教程](docs/README.md) · [故障排查](docs/TROUBLESHOOTING.md) · [给 AI 的执行指南](docs/ai/AI_GUIDE.md) · [AI 维护入口](AGENTS.md) · [开发与打包](docs/developers/DEVELOPER_GUIDE.md) · [硬件与 BOM](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/rev-v2/README.md)
+**Windows 完整包的三个入口：**
 
-电脑模式需要电脑采集服务运行，直传模式需要接收服务器运行，手机直连模式需要 Operit 在设备所在家庭网络运行。查询云端 AI 时，所查询的记录会提供给该平台。个人配置与历史保存在各自电脑、服务器或手机，不随公共包发布。
+| 入口 | 用途 |
+| --- | --- |
+| `Flash_ESP32.cmd` | 快速烧录、设备身份确认与日志 |
+| `AI_Doll.cmd` | 电脑管理中心、采集、MCP 与 Operit 连接 |
+| `AI_Doll_Server.cmd` | 在本机启动供自建应用使用的接收服务 |
 
-原创代码与文档使用 [MIT License](LICENSE)。第三方依赖的许可随完整包保留。
+## 文档导航
 
-Operit 手机接入：[下载独立工具包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.20.0/AI_Doll_Operit.toolpkg)，按环境选择电脑、服务器或仅安卓手机，按标题绑定原聊天。[操作指南](docs/integrations/OPERIT_SETUP.md) · [免电脑指南](docs/integrations/OPERIT_NO_PC.md) · [2.20 验证边界](docs/reports/RELEASE_2_20.md)。
+### 入门与安装
+
+| 文档 | 解决的问题 |
+| --- | --- |
+| [完整教程目录](docs/README.md) | 按入门、日常、接入和开发分类查找全部教程 |
+| [连接方式选择](docs/start/MCP_TRANSPORT_DECISION.md) | 判断自己需要电脑、手机直连还是服务器 |
+| [快速烧录](docs/start/QUICK_FLASH.md) | 新板写入固件、确认启动与新设备名称 |
+| [新板与恢复出厂设置](docs/start/FACTORY_SETTINGS.md) | 默认开关、恢复出厂和配置保留规则 |
+| [Wi-Fi 配置与连接恢复](docs/daily/WIFI_CONNECTION.md) | 配网、查看设备 IP、热点与断线恢复 |
+| [Windows 首次安装](docs/start/AI_INSTALL.md) | 用完整包连接设备与原 AI 客户端 |
+
+### AI 聊天接入
+
+| 文档 | 适用场景 |
+| --- | --- |
+| [ChatGPT Secure MCP](docs/integrations/SECURE_MCP.md) | 将电脑 MCP 接入普通 Chat |
+| [ChatGPT 调用与互动验收](docs/integrations/CHAT_MCP.md) | 实际状态查询、历史和限时互动 |
+| [Operit 统一安装](docs/integrations/OPERIT_SETUP.md) | 一个工具包、聊天绑定、自动工作流与互动开关 |
+| [Operit 免电脑使用](docs/integrations/OPERIT_NO_PC.md) | 服务器直传，或安卓手机直连家庭设备 |
+| [自建应用本机接收](docs/integrations/SERVER_QUICKSTART.md) | 先在本机运行设备接收服务 |
+| [Linux 服务器部署](docs/integrations/REMOTE_SERVER_SETUP.md) | 部署接收服务与 MCP，让电脑无需常开 |
+| [其他宿主与转发模板](docs/integrations/HOST_INTEGRATIONS.md) | 对接自有客户端、事件接收与生成队列 |
+
+### 日常设置与维护
+
+| 文档 | 解决的问题 |
+| --- | --- |
+| [日常使用与管理页面](docs/daily/USER_GUIDE.md) | 启动、页面入口、设备状态与日常操作 |
+| [自然陪伴与部位设置](docs/daily/NATURAL_COMPANION.md) | 部位名称、别名、回应等级与聊天融入 |
+| [人设、反馈与互动解释](docs/daily/INTERACTION_OBSERVATIONS.md) | 人设补充、回应语气、安静时段与事件含义 |
+| [通道与接线](docs/daily/SENSOR_CHANNELS.md) | 配置各路传感器与硬件绑定 |
+| [压力校准与日常模式](docs/daily/CALIBRATION_AND_DAILY_MODE.md) | 校准输入、按压阈值与重启后的采样恢复 |
+| [互动历史](docs/daily/HISTORY_MANAGEMENT.md) | 查询、摘要、统计、导出与保留设置 |
+| [断网缓存](docs/daily/OFFLINE_RECORDS.md) | 离线记录、补传和丢失计数 |
+| [无线升级](docs/daily/OTA_UPDATE.md) | 给已联网设备更新固件 |
+| [DS18B20 温度](docs/daily/DIGITAL_TEMPERATURE.md) | 数字温度探头的接线与配置 |
+| [运行环境与账号密码](docs/daily/RUNTIME_AND_LOGIN.md) | Python、设置页登录和不同连接令牌的用途 |
+
+### 硬件、开发与 AI 助手
+
+| 文档 | 内容 |
+| --- | --- |
+| [硬件与 BOM](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/rev-v2/README.md) | PCB 工程、采购与装配资料 |
+| [开发、测试与打包](docs/developers/DEVELOPER_GUIDE.md) | 环境准备、固件构建、检查与交付 |
+| [项目结构与文件规则](docs/developers/REPOSITORY_LAYOUT.md) | 源码、生成物和本机数据各放哪里 |
+| [MCP 工具目录](docs/developers/MCP_TOOLS.md) | 本机、HTTP 和设备 MCP 的范围与接口 |
+| [直传与同机部署接口](docs/developers/DIRECT_SERVER.md) | 自建前后端、服务器 MCP 和 HTTPS 代理 |
+| [接入原聊天](docs/developers/EXISTING_CHAT.md) | 沿用原模型、上下文与消息队列 |
+| [主动互动与事件桥](docs/developers/PROACTIVE_INTERACTION.md) | 订阅、租约、去重、取消与确认 |
+| [后续计划](docs/developers/DEVELOPMENT_PLAN.md) | 尚待开发或实际环境验收的工作 |
+| [统一代码与交付规划](docs/developers/UNIFIED_DELIVERY_PLAN.md) | 入口、配置和代码整理的阶段进度 |
+| [给 AI 的安装与验证指南](docs/ai/AI_GUIDE.md) | 交给 AI 助手执行安装、调用和硬件检查 |
+| [AI 维护入口](AGENTS.md) | 本仓库的维护约定 |
+
+旧原型、兼容通路与历史报告从 [教程总目录](docs/README.md)查阅。新用户优先使用上方当前入口。
+
+## 项目目录
+
+| 目录 | 用途 |
+| --- | --- |
+| [firmware/](firmware/) | ESP32 固件源码、设备网页与预编译镜像 |
+| [hardware/](https://github.com/SunRichardSKT/ai-doll-mcp/tree/main/hardware) | PCB、BOM、制造文件与核对资料 |
+| [clients/operit/](clients/operit/) | Operit 手机工具包与设置面板源码 |
+| [src/ai_doll/](src/ai_doll/) | 共享互动策略、上下文、摘要与历史核心 |
+| [tools/](tools/) | 采集服务、MCP、管理页面、安装与测试工具 |
+| [deploy/](deploy/) | Linux 容器与服务部署配置 |
+| [templates/](templates/) | 公共接入模板与兼容示例 |
+| [docs/](docs/) | 使用教程、开发资料与验证记录 |
+| [delivery/](delivery/) | Release 下载入口、交付清单与校验值 |
+| [python/](python/) | 内置 Python 的说明与版本元数据；运行文件随完整包提供 |
+
+运行后的个人配置、数据库与日志放在本机 `build/` 或对应服务器／手机的数据目录，不随源码仓库发布。
+
+## 已验证与待验证的能力
+
+| 范围 | 当前状态 |
+| --- | --- |
+| CH0 实体 FSR | 已有真实按压、释放与电脑归档记录；不能据此确认其他通道 |
+| ChatGPT 普通 Chat | Secure 状态、历史与限时模拟文字反馈已有验证；空闲主动唤醒未验证 |
+| Operit 原聊天 | 用户已报告能回应触摸；不能据此确认所有部署与后台场景 |
+| 新增免电脑模式 | 代码、本机 SDK 与明确的接口替身测试已通过；目标手机、实际服务器、15 分钟持续运行及锁屏仍需实测 |
+| 其他硬件 | 温度、电机、其他压力通道及整机电池体验需分别验收 |
+
+完整证据与边界见 [当前验证范围](docs/reports/VALIDATION.md)和 [2.20 实施记录](docs/reports/RELEASE_2_20.md)。模拟数据会保留来源标记，不能用来证明实体传感器或执行器工作正常。
+
+## 常见问题与访问地址
+
+| 要做什么 | 地址或处理方式 |
+| --- | --- |
+| 打开设备配置页 | 连接设备热点后访问 `http://192.168.4.1/`；家庭 Wi-Fi 下使用设备实际 IP |
+| 打开 Windows 管理中心 | 在运行软件的电脑访问 `http://127.0.0.1:8769/` |
+| 打开 Windows 烧录页面 | 启动烧录入口后，在该电脑访问 `http://127.0.0.1:8770/` |
+| 手机连接电脑服务 | 使用手机可达的电脑局域网地址，不能使用电脑的 `127.0.0.1` |
+| 设备离线、连接失败或没有反馈 | 先看 [故障排查](docs/TROUBLESHOOTING.md)，再核对所选路线的操作指南 |
+
+配网成功后，设备热点和固定配置页仍保留；`192.168.4.1` 不是设备在家庭网络中的固定地址。每次 USB 烧录会生成新设备名称，日常重启保持名称；标准烧录保留配置，恢复出厂才按对应流程清空。
+
+## 数据与许可证
+
+电脑、服务器与手机直连路线分别保存自己的记录。使用云端 AI 时，提供给模型的互动内容会发送到该平台。更新软件时保留已有数据与校准，具体保留范围见对应升级指南。
+
+原创代码与文档使用 [MIT License](LICENSE)。第三方依赖许可随完整包保留。
