@@ -6,7 +6,7 @@
 
 | 包 | 适合谁 | 解压后做什么 |
 | --- | --- | --- |
-| [AI_Doll_Code_v2.20.0.zip](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.20.0/AI_Doll_Code_v2.20.0.zip) · 30.81 MiB | Windows 用户 / 软件开发者 | 普通 Chat 双击 AI_Doll.cmd；自建应用本机接收双击 AI_Doll_Server.cmd |
+| [AI_Doll_Code_v2.20.0.zip](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.20.0/AI_Doll_Code_v2.20.0.zip) · 30.82 MiB | Windows 用户 / 软件开发者 | 普通 Chat 双击 AI_Doll.cmd；自建应用本机接收双击 AI_Doll_Server.cmd |
 | [AI_Doll_PCB_V2_20261003.zip](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.20.0/AI_Doll_PCB_V2_20261003.zip) · 9.94 MiB | 采购和手工焊接主板 | 用嘉立创 EDA 专业版打开原生工程，核对 BOM 与装配面 |
 | [AI_Doll_Server_v2.20.0.tar.gz](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.20.0/AI_Doll_Server_v2.20.0.tar.gz) · 0.11 MiB | 远程 Linux 服务器 | 运行 sudo bash Install_Server.sh，按提示填写域名 |
 | [AI_Doll_Operit.toolpkg](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.20.0/AI_Doll_Operit.toolpkg) · 0.03 MiB | Operit 安卓用户 | 在包管理中导入，选择电脑、服务器或仅手机连接，按标题绑定原聊天 |
@@ -23,7 +23,7 @@ Windows 包内置 Python，无需另装。Linux 小型包不含 Windows Python�
 
 [单独下载 Linux 安装入口](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.20.0/Install_Server.sh)。大型文件只存 GitHub Releases，不加入源码仓库。
 
-- `AI_Doll_Code_v2.20.0.zip`：`d9cd5c6a1c37941d12a681b2a3a6d593d34c148aac817215aaab38ed1a8db20b`
+- `AI_Doll_Code_v2.20.0.zip`：`1356e167c6b444aebec6377dbfb9f7c99e8192f4bf164c9df86bf1cc297ed60a`
 - `AI_Doll_PCB_V2_20261003.zip`：`7d595877706d4fb9ca48edb253562f0dfa09a77b8485ff0fceae46a4c76a1946`
 - `AI_Doll_Server_v2.20.0.tar.gz`：`f621a087eb0af390b66e8b8312b8a57012848c8ccc3bb9828ab1ac353c2e7046`
 - `AI_Doll_Operit.toolpkg`：`a2a143396259533fc32225a44ff409611b6a45379eee745a867def32f12f2944`

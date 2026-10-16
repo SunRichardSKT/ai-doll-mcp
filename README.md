@@ -54,7 +54,7 @@
 
 Windows 完整包自带运行环境，**无需另装 Python 或 Arduino**。仅使用 Operit 手机直连时，不需要下载 Windows 包，也不需要安装额外的服务器软件。
 
-文件校验与交付范围见 [下载目录](delivery/README.md)；历史版本见 [GitHub Releases](https://github.com/SunRichardSKT/ai-doll-mcp/releases)。源码仓库用于阅读和开发，大型完整包统一放在 Releases。
+文件校验与交付范围见 [下载目录](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/delivery/README.md)；历史版本见 [GitHub Releases](https://github.com/SunRichardSKT/ai-doll-mcp/releases)。源码仓库用于阅读和开发，大型完整包统一放在 Releases。
 
 ## 第一次使用
 
