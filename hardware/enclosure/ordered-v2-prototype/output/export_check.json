@@ -1,0 +1,22 @@
+{
+  "stepRoundtrip": {
+    "base": {
+      "valid": true,
+      "volumeMm3": 11008.706350013657
+    },
+    "lid": {
+      "valid": true,
+      "volumeMm3": 5186.20876104894
+    }
+  },
+  "fitTrayWatertight": true,
+  "fitTrayWindingConsistent": true,
+  "userHeightInput": {
+    "value": 8.0,
+    "unit": "mm",
+    "quality": "approximate",
+    "datum": "main PCB upper surface to highest USB shell surface",
+    "date": "2026-10-17"
+  },
+  "physicallyFitTested": false
+}

@@ -55,7 +55,7 @@ TOOLS = (
     'input_observations.py', 'test_input_observations.py',
     'test_feedback_features.py', 'test_feedback_features_ui.cjs',
     'device_discovery.py', 'discover_device.py', 'service_lifecycle.py',
-    'run_background.py', 'configure_startup.py', 'test_device_discovery.py',
+    'run_background.py', 'configure_startup.py', 'test_device_discovery.py', 'test_connection_recovery.py',
     'test_service_lifecycle.py', 'test_wireless_recovery.py', 'test_wireless_recovery_ui.cjs',
 )
 DOCS = ('integrations/REMOTE_SERVER_SETUP.md', 'integrations/SERVER_QUICKSTART.md', 'reports/SIMPLE_SETUP_ACCEPTANCE.md','daily/RUNTIME_AND_LOGIN.md','developers/DIRECT_SERVER.md', 'reports/DIRECT_SERVER_ACCEPTANCE.md', 'daily/USER_GUIDE.md', 'reports/GUI_ACCEPTANCE_2_14.md', 'developers/EXISTING_CHAT.md', 'developers/MCP_TOOLS.md', 'daily/DIGITAL_TEMPERATURE.md', 'daily/OTA_UPDATE.md', 'daily/HISTORY_MANAGEMENT.md', 'daily/OFFLINE_RECORDS.md', 'start/AI_INSTALL.md', 'daily/USER_GUIDE.md', 'reports/DEVICE_LAB_TEST_REPORT.md', 'daily/SENSOR_CHANNELS.md', 'developers/PROACTIVE_INTERACTION.md', 'integrations/CHAT_MCP.md', 'daily/WIFI_CONNECTION.md', 'daily/CALIBRATION_AND_DAILY_MODE.md', 'developers/DEVELOPMENT_PLAN.md', 'daily/INTERACTION_OBSERVATIONS.md', 'daily/WIFI_CONNECTION.md')
@@ -64,6 +64,7 @@ DOCS += ('integrations/OPERIT_PROTOTYPE.md', 'reports/OPERIT_PROTOTYPE_VALIDATIO
 DOCS += ('developers/UNIFIED_DELIVERY_PLAN.md', 'integrations/OPERIT_SETUP.md', 'reports/RELEASE_2_19.md')
 DOCS += ('reports/RELEASE_2_19_1.md',)
 DOCS += ('integrations/OPERIT_NO_PC.md', 'reports/RELEASE_2_20.md')
+DOCS += ('reports/UPDATE_20261019.md',)
 SOURCE = ('remote_uplink.h', 'digital_temperature.h', 'ota_update.h', 'event_storage.h', 'event_integrity.h', 'lab_main.cpp', 'device_page.h', 'touch_events.h', 'network_state.h', 'network_policy.h',
           'channel_devices.h', 'channel_rpc.h', 'pressure_calibration.h', 'device_discovery.h')
 PREBUILT = ('firmware.bin', 'bootloader.bin', 'partitions.bin', 'boot_app0.bin', 'FLASH_MANIFEST.json', 'README.md')

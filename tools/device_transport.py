@@ -10,7 +10,7 @@ import urllib.parse
 import urllib.request
 
 from device_lab import CONFIG, WORK, SerialLink
-from device_discovery import discover_paired_device
+from device_discovery import discover_paired_device, paired_identity
 
 from _source_path import load
 VERSION = load('ai_doll.core.version').BRIDGE_VERSION
@@ -62,6 +62,9 @@ class WifiLink:
         self.timeout = timeout
         self.initialized = False
         self.ident = 0
+        self.retry_after = 0
+        self.retry_delay = 2
+        self.verify_on_start = False
         self.opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
 
     def close(self):
@@ -137,7 +140,7 @@ class WifiLink:
         if type(update_connection) is not bool:
             raise ValueError('update_connection must be boolean')
         self.last_discovery = time.monotonic()
-        found = self.discovery(self.config)
+        found = self.discovery(dict(self.config, device_host=self.host))
         if not found:
             return {'found': False, 'updated': False,
                     'message': 'No authenticated reply; check power, same LAN, MCP and UDP broadcast permission'}
@@ -148,6 +151,7 @@ class WifiLink:
             if self.on_recovered:
                 self.on_recovered(host)
             self.host, self.base, self.initialized = host, 'http://' + host, False
+        self.retry_after, self.retry_delay = 0, 2
         return dict(found, found=True, updated=bool(changed))
 
     @staticmethod
@@ -166,19 +170,40 @@ class WifiLink:
                     'get_operating_mode', 'get_pressure_calibration', 'get_event_storage_status'})
 
     def exchange(self, command, timeout=None):
+        read_only = self._read_only(command)
+        if read_only and self.verify_on_start:
+            self.verify_on_start = False
+            # Saved IPs can be stale after a router restart. Discover before the
+            # first HTTP request, rather than waiting for its connect timeout.
+            try:
+                self.discover(update_connection=True)
+            except (ValueError, OSError):
+                pass  # UDP may be blocked while the known HTTP address still works.
+        if read_only and time.monotonic() < self.retry_after:
+            raise DeviceConnectionError('Device reconnect pending; saved history remains available')
         try:
-            return self._exchange_once(command)
+            result = self._exchange_once(command)
+            self.retry_after, self.retry_delay = 0, 2
+            return result
         except DeviceConnectionError:
             self.initialized = False
             # Only reads may be retried at a newly authenticated address. A timed-out
             # LED/motor/configuration operation is never replayed, even after recovery.
-            if self._read_only(command) and time.monotonic() - self.last_discovery >= 10:
+            if read_only and time.monotonic() - self.last_discovery >= 10:
                 try:
                     recovered = self.discover(update_connection=True)
                 except (ValueError, OSError):
                     recovered = {'updated': False}
-                if recovered['updated']:
-                    return self._exchange_once(command)
+                if recovered.get('found'):
+                    try:
+                        result = self._exchange_once(command)
+                        self.retry_after, self.retry_delay = 0, 2
+                        return result
+                    except DeviceConnectionError:
+                        pass
+            if read_only:
+                self.retry_after = time.monotonic()+self.retry_delay
+                self.retry_delay = min(30, self.retry_delay*2)
             raise
 
     def _exchange_once(self, command):
@@ -224,6 +249,75 @@ def save_connection(path, mode, host='', port='COM3'):
     os.replace(temp, path)
 
 
+class RecoveringSerialLink(SerialLink):
+    """Saved USB may recover to the same paired LAN device on immutable reads.
+
+    Explicit USB overrides never use this class. No discovery result changes the
+    saved mode until HTTP status has also proved the exact paired identity.
+    """
+    def __init__(self, port, config, promote, recovered):
+        super().__init__(port)
+        self.config, self.promote, self.recovered = config, promote, recovered
+        self.wifi = None
+        self.retry_after, self.retry_delay = 0, 2
+
+    @property
+    def host(self):
+        return self.wifi.host if self.wifi else None
+
+    def close(self):
+        super().close()
+        if self.wifi:
+            self.wifi.close()
+
+    def discover(self, update_connection=False):
+        if self.wifi:
+            return self.wifi.discover(update_connection)
+        if type(update_connection) is not bool:
+            raise ValueError('update_connection must be boolean')
+        found = discover_paired_device(self.config)
+        if not found:
+            return {'found': False, 'updated': False, 'message': 'No authenticated paired LAN device found'}
+        candidate = WifiLink(found['device_host'], self.config, timeout=2,
+                             on_recovered=self.recovered)
+        try:
+            status = candidate._exchange_once({'cmd': 'status'})
+            if status.get('device_id') != candidate.expected_device:
+                raise DeviceConnectionError('Device ID differs from paired device')
+            if update_connection:
+                self.promote(candidate.host)  # Save first; a failed save keeps USB.
+                super().close()
+                self.wifi = candidate
+                self.retry_after, self.retry_delay = 0, 2
+            return dict(found, found=True, updated=update_connection,
+                        transport='wifi' if update_connection else 'usb')
+        finally:
+            if self.wifi is not candidate:
+                candidate.close()
+
+    def exchange(self, command, timeout=8):
+        if self.wifi:
+            return self.wifi.exchange(command, timeout)
+        read_only = WifiLink._read_only(command)
+        if read_only and time.monotonic() < self.retry_after:
+            raise DeviceConnectionError('USB reconnect pending; saved history remains available')
+        try:
+            result = super().exchange(command, timeout)
+            self.retry_after, self.retry_delay = 0, 2
+            return result
+        except (OSError, TimeoutError):
+            if read_only:
+                try:
+                    found = self.discover(update_connection=True)
+                    if found.get('updated'):
+                        return self.wifi.exchange(command, timeout)
+                except (ValueError, OSError, DeviceConnectionError):
+                    pass
+                self.retry_after = time.monotonic()+self.retry_delay
+                self.retry_delay = min(30, self.retry_delay*2)
+            raise
+
+
 def create_device_link(environ=None, config_path=CONFIG, connection_path=None):
     environ = os.environ if environ is None else environ
     connection_path = pathlib.Path(connection_path or WORK/'connection-private.json')
@@ -232,8 +326,15 @@ def create_device_link(environ=None, config_path=CONFIG, connection_path=None):
     host = environ.get('DOLL_DEVICE_HOST') or saved.get('device_host', '')
     mode = explicit or ('wifi' if environ.get('DOLL_DEVICE_HOST') else saved.get('transport', 'usb'))
     port = environ.get('DOLL_SERIAL_PORT') or saved.get('serial_port', 'COM3')
-    if mode == 'wifi':
+    try:
         config = json.loads(pathlib.Path(config_path).read_text(encoding='utf-8-sig')) if pathlib.Path(config_path).exists() else {}
+        if not isinstance(config,dict):
+            raise ValueError('Invalid saved pairing')
+    except (ValueError,OSError):
+        if mode == 'wifi':
+            raise ValueError('Saved Wi-Fi pairing could not be read; pair the device again') from None
+        config = {}  # Bad optional Wi-Fi data must not block explicit USB.
+    if mode == 'wifi':
         host = host or config.get('state', {}).get('ip', '')
         if host in ('', '0.0.0.0'):
             found = discover_paired_device(config)
@@ -250,10 +351,24 @@ def create_device_link(environ=None, config_path=CONFIG, connection_path=None):
     info = {'bridge_version': VERSION, 'transport': mode,
                   'device_host': host if mode == 'wifi' else None,
                   'serial_port': port if mode == 'usb' else None}
+    def recovered(new_host):
+        save_connection(connection_path, 'wifi', new_host, port)
+        info.update(transport='wifi', device_host=new_host, serial_port=None,
+                    last_address_recovery=time.time())
     if mode == 'wifi':
-        def recovered(new_host):
-            save_connection(connection_path, mode, new_host, port)
-            info['device_host'] = new_host
-            info['last_address_recovery'] = time.time()
         link.on_recovered = recovered
+        if not environ.get('DOLL_DEVICE_HOST') and ':' not in link.host and not ipaddress.ip_address(link.host).is_loopback:
+            try:
+                paired_identity(config)
+            except ValueError:
+                pass
+            else:
+                link.verify_on_start = True
+    elif not explicit and not environ.get('DOLL_SERIAL_PORT'):
+        try:
+            paired_identity(config)
+        except ValueError:
+            pass
+        else:
+            link = RecoveringSerialLink(port, config, recovered, recovered)
     return link, info

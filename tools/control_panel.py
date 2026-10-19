@@ -167,8 +167,11 @@ def worker(action, data):
             device = request_collector('/companion/tool', {'name': 'doll_get_status', 'arguments': {}})
             return dict(installation=installation, device=device, device_error=None)
         except (OSError, ValueError):
+            usb = installation.get('runtime', {}).get('transport') == 'usb'
             return dict(installation=installation, device=None,
-                        device_error='设备当前不可达，请检查供电、局域网及 MCP 开关。电脑历史仍可查询。')
+                        device_error=('当前使用 USB，但串口或设备未响应；设备已配网时请点击“搜索设备”。'
+                                      if usb else '设备当前不可达，请检查供电、局域网及 MCP 开关。')
+                                     + '电脑历史仍可查询。')
     if action == 'collector-stop':
         import secure_mcp
         import operit_service

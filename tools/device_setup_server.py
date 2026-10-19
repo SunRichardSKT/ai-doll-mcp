@@ -14,7 +14,13 @@ from service_lifecycle import ServiceLease,ServiceAlreadyRunning,ExclusiveLoopba
 DEVICE_LINK=None
 CONNECTION=None
 def exchange(command):
-    return DEVICE_LINK.exchange(command)
+    try:
+        return DEVICE_LINK.exchange(command)
+    finally:
+        if COMPANION is not None and hasattr(COMPANION,'runtime_info'):
+            mode=CONNECTION['transport']
+            COMPANION.runtime_info.update(transport=mode,
+                device_endpoint='authenticated LAN HTTP MCP' if mode=='wifi' else 'USB serial')
 COMPANION=None
 COMPANION_TOKEN=""
 EVENTS_ADAPTER=None
@@ -48,7 +54,7 @@ PAGE=PAGE.replace("'设备网页账号：admin；密码：'+d.ap_password","(d.a
 PAGE=PAGE.replace('<pre id="status">','<button id="discover" onclick="discoverDevice()">查找已配对娃娃并更新地址</button><p id="discoveryHint">路由器更换设备 IP 后可重新查找。仅识别本机已配对的设备。</p><pre id="status">')
 PAGE=PAGE.replace('</html>',"""<script>
 let discovering=false;
-async function refreshConnection(){try{const c=await api('/connection');document.getElementById('connection').textContent=c.transport==='wifi'?'当前连接：Wi-Fi · '+c.device_host+'（无需 USB 数据连接）':'当前连接：USB · '+c.serial_port;document.getElementById('discover').disabled=discovering||c.transport!=='wifi';}catch(e){document.getElementById('connection').textContent='连接信息暂不可用';}}
+async function refreshConnection(){try{const c=await api('/connection');document.getElementById('connection').textContent=c.transport==='wifi'?'当前连接：Wi-Fi · '+c.device_host+'（无需 USB 数据连接）':'当前连接：USB · '+c.serial_port;document.getElementById('discover').disabled=discovering||!(c.discovery_available??(c.transport==='wifi'));}catch(e){document.getElementById('connection').textContent='连接信息暂不可用';}}
 async function discoverDevice(){if(discovering)return;discovering=true;const b=document.getElementById('discover'),h=document.getElementById('discoveryHint');b.disabled=true;h.textContent='正在查找…';try{const d=await api('/companion/tool',{name:'discover_paired_device',arguments:{update_connection:true}});h.textContent=d.found?'已验证 '+d.device_id+' · '+d.device_host+(d.updated?'，地址已更新。':'，当前地址有效。'):'未收到已配对设备回复。请检查供电、同一局域网、MCP 开关和 UDP 广播权限。';await refresh();}catch(e){h.textContent=e.message;}finally{discovering=false;await refreshConnection();}}
 refreshConnection();setInterval(refreshConnection,4000);
 </script></html>""")
@@ -128,7 +134,8 @@ class Handler(BaseHTTPRequestHandler):
             raw=PAGE.encode();self.send_response(200);self.send_header('Content-Type','text/html; charset=utf-8');self.send_header('Content-Length',str(len(raw)));self.send_header('Cache-Control','no-store');self.end_headers();self.wfile.write(raw);return
         if self.path=='/connection':
             if not self.authorized():return self.send(403,{'error':'Forbidden'})
-            return self.send(200,dict(CONNECTION,collector_error=COMPANION.error,last_sync=COMPANION.last_sync))
+            return self.send(200,dict(CONNECTION,collector_error=COMPANION.error,last_sync=COMPANION.last_sync,
+                discovery_available=callable(getattr(DEVICE_LINK,'discover',None))))
         if self.headers.get('X-CSRF-Token')!=CSRF:return self.send(403,{'error':'Forbidden'})
         if self.path=='/companion/state':
             return self.send(200,{'active_session':COMPANION.active(),'collector_error':COMPANION.error,'last_sync':COMPANION.last_sync,'persona':COMPANION.setting('persona')})

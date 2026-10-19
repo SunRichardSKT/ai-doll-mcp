@@ -8,7 +8,7 @@ import unittest
 from unittest.mock import Mock, patch
 
 from device_discovery import (PROTOCOL, discover_paired_device, interface_bindings,
-                              signature, verify_reply)
+                              paired_identity, signature, verify_reply)
 from device_transport import DeviceConnectionError, WifiLink, create_device_link
 
 TOKEN = 'unit-test-token-0123456789abcdef'
@@ -26,6 +26,40 @@ def reply(nonce=NONCE, **overrides):
 
 
 class DiscoveryTests(unittest.TestCase):
+    def test_factory_and_standard_flash_identity_formats(self):
+        for device in (DEVICE, 'AI-Doll-'+'a1'*10):
+            with self.subTest(device=device):
+                self.assertEqual(paired_identity(dict(CONFIG,device_id=device)),(device,TOKEN))
+        for suffix in ('a'*5,'a'*7,'a'*19,'a'*21,'A'*20,'g'*20,'a'*20+'\n'):
+            with self.subTest(suffix=suffix),self.assertRaises(ValueError):
+                paired_identity(dict(CONFIG,device_id='AI-Doll-'+suffix))
+
+    def test_actual_udp_roundtrip_for_standard_flash_identity(self):
+        device='AI-Doll-'+'a1'*10
+        sock=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
+        sock.bind(('127.0.0.1',0));sock.settimeout(3)
+        errors=[]
+        def respond():
+            try:
+                raw,source=sock.recvfrom(4096);request=json.loads(raw)
+                self.assertEqual(request['device_id'],device)
+                self.assertNotIn(TOKEN.encode(),raw)
+                data=dict(protocol=PROTOCOL,nonce=request['nonce'],device_id=device,
+                          port=80,firmware='doll-lab-2.9.0')
+                data['proof']=signature(TOKEN,data['nonce'],device,data['firmware'])
+                sock.sendto(json.dumps(data).encode(),source)
+            except Exception as exc:errors.append(exc)
+        worker=threading.Thread(target=respond);worker.start()
+        try:
+            found=discover_paired_device(dict(CONFIG,device_id=device),timeout=1,
+                  bindings=[('127.0.0.1','127.0.0.1')],port=sock.getsockname()[1])
+            self.assertIsNotNone(found)
+            self.assertEqual(found['device_id'],device)
+            self.assertTrue(found['verified'])
+        finally:
+            worker.join(4);sock.close()
+        self.assertFalse(errors)
+
     def test_authentication_and_sender_address(self):
         found = verify_reply(reply(), ('10.97.128.103', 28768), NONCE, DEVICE, TOKEN)
         self.assertEqual(found['device_host'], '10.97.128.103')
@@ -92,7 +126,8 @@ class DiscoveryTests(unittest.TestCase):
                 dict(IPAddress='127.0.0.1', PrefixLength=8),
                 dict(IPAddress='169.254.4.2', PrefixLength=16),
                 dict(IPAddress='8.8.8.8', PrefixLength=24)]
-        with patch('device_discovery.subprocess.run', return_value=Mock(returncode=0,stdout=json.dumps(rows).encode())) as run:
+        with patch('device_discovery._windows_ipv4_rows',side_effect=OSError('not available')), \
+             patch('device_discovery.subprocess.run', return_value=Mock(returncode=0,stdout=json.dumps(rows).encode())) as run:
             self.assertEqual(interface_bindings(), [('10.97.128.106', '10.97.143.255'),
                                                    ('192.168.1.19', '192.168.1.255')])
             self.assertIn('-NonInteractive', run.call_args.args[0])
@@ -128,14 +163,14 @@ class DiscoveryTests(unittest.TestCase):
             for _ in range(3):
                 with self.assertRaises(DeviceConnectionError):
                     link.exchange({'cmd':'events'})
-            self.assertEqual(call.call_count, 3)
+            self.assertEqual(call.call_count, 1)  # Offline cooldown avoids repeated HTTP waits.
         discover.assert_called_once()
         link, discover = self.link()
         discover.return_value['device_host'] = link.host
         with patch.object(link, '_exchange_once', side_effect=DeviceConnectionError('offline')) as call:
             with self.assertRaises(DeviceConnectionError):
                 link.exchange({'cmd':'status'})
-            self.assertEqual(call.call_count, 1)
+            self.assertEqual(call.call_count, 2)  # Fresh signed reply can recover the same IP.
 
     def test_save_failure_preserves_current_address(self):
         link, _ = self.link()

@@ -1,5 +1,7 @@
 # 下载与交付文件
 
+2026-10-19 的设备搜索与连接恢复、PCB 候选和外壳设计已更新到源码，见 [更新说明](../docs/reports/UPDATE_20261019.md)。本页列出的 v2.20.0 下载包仍是 2026-10-16 交付，尚未重新打包本次源码改动；外壳 STEP／STL 从 [设计入口](../hardware/enclosure/README.md)取得。
+
 **2.20.0 预发布版 / 固件 2.9.0**，发布更新于 2026-10-16。[本版 Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.20.0)。新增服务器与仅手机模式仍需目标环境实测。普通 Windows 用户使用完整包，无需安装 Python 或 Arduino。
 
 ## 应该下载哪个

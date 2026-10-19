@@ -1,0 +1,287 @@
+{
+  "date": "2026-10-17",
+  "status": "live-verified-routed-candidate",
+  "layoutAcceptedByUser": true,
+  "manufacturingReady": false,
+  "routing": "routed",
+  "nativeDrc": {
+    "passed": true,
+    "total": 0,
+    "counts": {},
+    "violations": []
+  },
+  "readbackAudit": {
+    "scope": "identity, declared NC, mechanical preservation, route proofs, duplicate vias, populated ground and two explicit geometry crosschecks; not a replacement for native DRC",
+    "source": "after-user-import-reloaded.json",
+    "sha256": "7869153526848e43f7df05571ae48ab92ef62eea98d1d173365ce32f588637d6",
+    "components": 51,
+    "pads": 126,
+    "tracks": 355,
+    "vias": 21,
+    "pours": 2,
+    "proofs": [
+      {
+        "from": "R17.2",
+        "to": "U1.9",
+        "net": "ADC_IN",
+        "connected": true,
+        "layers": [
+          1,
+          2
+        ],
+        "viaCount": 1,
+        "minWidthMil": 10,
+        "lengthMil": 600.3712
+      },
+      {
+        "from": "C12.1",
+        "to": "U1.14",
+        "net": "3V3",
+        "connected": true,
+        "layers": [
+          1
+        ],
+        "viaCount": 0,
+        "minWidthMil": 20,
+        "lengthMil": 99.8
+      },
+      {
+        "from": "C10.1",
+        "to": "U2.16",
+        "net": "3V3",
+        "connected": true,
+        "layers": [
+          2
+        ],
+        "viaCount": 0,
+        "minWidthMil": 20,
+        "lengthMil": 66.2
+      },
+      {
+        "from": "U2.3",
+        "to": "R17.1",
+        "net": "MUX_COM",
+        "connected": true,
+        "layers": [
+          2
+        ],
+        "viaCount": 0,
+        "minWidthMil": 10,
+        "lengthMil": 120.4337
+      },
+      {
+        "from": "J1.2",
+        "to": "U2.13",
+        "net": "CH0",
+        "connected": true,
+        "layers": [
+          2
+        ],
+        "viaCount": 0,
+        "minWidthMil": 10,
+        "lengthMil": 659.5657
+      },
+      {
+        "from": "J2.2",
+        "to": "U2.14",
+        "net": "CH1",
+        "connected": true,
+        "layers": [
+          2
+        ],
+        "viaCount": 0,
+        "minWidthMil": 10,
+        "lengthMil": 900.9416
+      },
+      {
+        "from": "J3.2",
+        "to": "U2.15",
+        "net": "CH2",
+        "connected": true,
+        "layers": [
+          1,
+          2
+        ],
+        "viaCount": 2,
+        "minWidthMil": 10,
+        "lengthMil": 826.9263
+      },
+      {
+        "from": "J4.2",
+        "to": "U2.12",
+        "net": "CH3",
+        "connected": true,
+        "layers": [
+          2
+        ],
+        "viaCount": 0,
+        "minWidthMil": 10,
+        "lengthMil": 1416.7932
+      },
+      {
+        "from": "J5.2",
+        "to": "U2.1",
+        "net": "CH4",
+        "connected": true,
+        "layers": [
+          2
+        ],
+        "viaCount": 0,
+        "minWidthMil": 10,
+        "lengthMil": 1270.2606
+      },
+      {
+        "from": "J6.2",
+        "to": "U2.5",
+        "net": "CH5",
+        "connected": true,
+        "layers": [
+          1,
+          2
+        ],
+        "viaCount": 1,
+        "minWidthMil": 10,
+        "lengthMil": 1009.839
+      },
+      {
+        "from": "J7.2",
+        "to": "U2.2",
+        "net": "CH6",
+        "connected": true,
+        "layers": [
+          1,
+          2
+        ],
+        "viaCount": 1,
+        "minWidthMil": 10,
+        "lengthMil": 1260.7744
+      },
+      {
+        "from": "J8.2",
+        "to": "U2.4",
+        "net": "CH7",
+        "connected": true,
+        "layers": [
+          1,
+          2
+        ],
+        "viaCount": 1,
+        "minWidthMil": 10,
+        "lengthMil": 1277.2543
+      }
+    ],
+    "ovalViaCrosschecks": [
+      {
+        "via": "d38fd2599919afab",
+        "pad": "U2.6",
+        "geometry": "OVAL capsule and circular via from rounded SDK coordinates",
+        "clearanceMil": 8.06602262187426,
+        "liveMinimumMil": 5.98
+      },
+      {
+        "via": "37e47b23533f0e56",
+        "pad": "U2.3",
+        "geometry": "OVAL capsule and circular via from rounded SDK coordinates",
+        "clearanceMil": 6.9162558658021,
+        "liveMinimumMil": 5.98
+      }
+    ],
+    "issues": [],
+    "passed": true
+  },
+  "supplementaryDfm": {
+    "danglingEnds": 0,
+    "acuteAngles": 0,
+    "nonOrthogonal": 0,
+    "trackOverPad": 0,
+    "clearance": 2,
+    "silkscreenFlipped": 0,
+    "overlappingVias": 0,
+    "singleLayerVias": 0,
+    "widthMismatches": 28,
+    "duplicateSegments": 0,
+    "parallelCoupling": 9,
+    "antennaKeepout": 0,
+    "netlessPours": 0,
+    "viaCrossesPlane": 0,
+    "floatingIslands": 0,
+    "powerNotPoured": 1,
+    "netlessViaInPad": 0,
+    "widthUnderSpec": 0,
+    "silkOverPad": 0,
+    "silkOffBoard": 0,
+    "decapTooFar": 1,
+    "viaInPad": 0,
+    "copperNearEdge": 0,
+    "fiducialMissing": 0,
+    "zoneViolation": 0,
+    "internalOnEdge": 0,
+    "connectorPlugClearance": 6,
+    "connectorMatingBlocked": 0,
+    "connectorOpeningInward": 0,
+    "errors": 2,
+    "warnings": 19,
+    "total": 47
+  },
+  "twoRoundReview": {
+    "saved": true,
+    "reloaded": true,
+    "dataEqual": true,
+    "fixesBetweenRounds": false,
+    "captures": [
+      {
+        "stage": "routed-round-1-top",
+        "imageValid": true,
+        "sha256": "ca542e42f38bfedf8e3ba7074f833e28c7061ae7bcfa925455c76f3e55d7c1da",
+        "identityVerified": true
+      },
+      {
+        "stage": "routed-round-1-bottom",
+        "imageValid": true,
+        "sha256": "4eab308730ad50cfbcdda43f3a7a639e760a9046d304bbdf2293230dcf17c380",
+        "identityVerified": true
+      },
+      {
+        "stage": "routed-round-2-top",
+        "imageValid": true,
+        "sha256": "1c29f9cdc3ab6040785aafb1833297135d2ad7dfe81df2e9638877ff5060fe2b",
+        "identityVerified": true
+      },
+      {
+        "stage": "routed-round-2-bottom",
+        "imageValid": true,
+        "sha256": "15853b88d244f3b207dfeca9d2da1e61274c22a58ee85f6bcf8db5b558afd9b7",
+        "identityVerified": true
+      }
+    ]
+  },
+  "export": {
+    "bytes": 502810,
+    "format": "epro2",
+    "restoreVerified": false,
+    "sha256": "1677987c13e835341565d0b3eecf959872ca405d3d72f8ecc4338f776d76e1d1",
+    "uuid": "7a4a5aed224f625033b9fad4edf1877314c90d2c9c5fc19578666b4f63c35967",
+    "zipIntegrityVerified": true
+  },
+  "pending": [
+    "hand-solder toe and physical SuperMini fit",
+    "USB and underside clearances",
+    "physical bottom 3D and fabrication preview"
+  ],
+  "netlistSync": {
+    "performedBy": "user in native editor",
+    "saved": true,
+    "reloaded": true,
+    "unchangedReadbackFields": [
+      "components",
+      "silk",
+      "outline",
+      "copper",
+      "rules",
+      "semanticSha256"
+    ],
+    "nativeDrcBeforeSavePassed": true,
+    "nativeDrcAfterReloadPassed": true,
+    "metadataDifferenceDetailsAvailable": false
+  }
+}

@@ -56,7 +56,7 @@
     el('serviceLabel').textContent = local.running ? '本机采集运行中' : '本机采集未启动';
     el('collectorMetric').textContent = local.running ? '运行中' : state.environment_ready ? '未启动' : '待安装';
     const recentlySynced = local.last_sync && Date.now()/1000-local.last_sync < 15;
-    el('collectorDetail').textContent = local.collector_error ? '设备同步暂不可用；已存历史可查询' : local.last_sync ? '最近同步：' + new Date(local.last_sync * 1000).toLocaleString('zh-CN') : '等待同步 / 启动';
+    el('collectorDetail').textContent = local.collector_error ? (local.transport === 'usb' ? 'USB 暂未响应；已配网设备可点击搜索恢复' : '正在等待设备重连；已存历史可查询') : local.last_sync ? '最近同步：' + new Date(local.last_sync * 1000).toLocaleString('zh-CN') : '等待同步 / 启动';
     el('deviceMetric').textContent = !state.paired && state.connection.transport !== 'usb' ? '待配对' : local.running ? (local.collector_error ? '同步异常' : recentlySynced ? '正在同步' : '等待设备') : '已保存连接';
     el('deviceDetail').textContent = (state.device_id || '尚未识别设备') + (local.device_host || state.connection.device_host ? ' · ' + (local.device_host || state.connection.device_host) : '');
     const fresh = remote.checked_at && Date.now() / 1000 - remote.checked_at < 60;

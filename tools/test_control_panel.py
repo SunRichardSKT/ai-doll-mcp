@@ -141,6 +141,14 @@ class ControlPanelTests(unittest.TestCase):
         self.assertIsNone(result['device'])
         self.assertIn('历史仍可查询', result['device_error'])
 
+    def test_usb_failure_explains_transport_and_suggests_discovery(self):
+        with patch.object(ui,'collector_start'), \
+             patch.object(ui,'request_collector',side_effect=[{'runtime':{'transport':'usb'}},ValueError('offline')]):
+            result=ui.worker('collector-check',{})
+        self.assertIn('USB',result['device_error'])
+        self.assertIn('搜索',result['device_error'])
+        self.assertIn('历史仍可查询',result['device_error'])
+
     def test_duplicate_actions_are_rejected_while_live_job_runs(self):
         started, release = threading.Event(), threading.Event()
         def action(*args):

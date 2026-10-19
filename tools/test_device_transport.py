@@ -114,8 +114,9 @@ class TransportTests(unittest.TestCase):
             self.assertEqual(len(c.history()['touches']),1)
             self.mode = 'ok'
             self.events.append(dict(event,seq=2,phase='end',uptime_ms=2000,duration_ms=1000))
-            c.sync()
-            c.sync()
+            with patch('device_transport.time.monotonic',return_value=self.link.retry_after+1):
+                c.sync()
+                c.sync()
             self.assertEqual(len(c.history()['touches']),1)
             self.assertEqual(c.history()['touches'][0]['duration_ms'],1000)
             self.assertEqual(sum(f[1]['method']=='initialize' for f in self.frames),2)

@@ -1,0 +1,14 @@
+{
+  "stepRoundtrip": {
+    "base": {
+      "valid": true,
+      "volumeMm3": 10948.820595393061
+    },
+    "lid": {
+      "valid": true,
+      "volumeMm3": 5102.696989366086
+    }
+  },
+  "fitTrayWatertight": true,
+  "fitTrayWindingConsistent": true
+}

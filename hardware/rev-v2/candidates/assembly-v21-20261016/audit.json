@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-16",
+  "scope": "mechanical-layout-candidate",
+  "state": "live-verified mechanical edits; manufacturing incomplete",
+  "source_project": "AI_Doll_V21_Assembly_Candidate_20261016",
+  "rounds": [
+    {
+      "round": "checked-round1.json",
+      "components_unchanged": 51,
+      "copper_unchanged": true,
+      "cutouts_verified": 18,
+      "new_labels": 10,
+      "min_cutout_to_straight_board_edge_mm": 0.8193,
+      "min_cutout_to_component_envelope_mm": 1.6543,
+      "min_cutout_to_new_text_envelope_mm": 0.2319
+    },
+    {
+      "round": "checked-round2.json",
+      "components_unchanged": 51,
+      "copper_unchanged": true,
+      "cutouts_verified": 18,
+      "new_labels": 10,
+      "min_cutout_to_straight_board_edge_mm": 0.8193,
+      "min_cutout_to_component_envelope_mm": 1.6543,
+      "min_cutout_to_new_text_envelope_mm": 0.2319
+    }
+  ],
+  "size_mm": [
+    42.418,
+    46.482
+  ],
+  "not_verified": [
+    "SuperMini castellated footprint and underside clearance",
+    "wire gauge, tie fit, pull strength, enclosure",
+    "native 3D and Gerber production",
+    "schematic netlist mismatch and existing DFM findings"
+  ],
+  "note": "Native DRC remains failed with existing one Netlist Error; no routing performed."
+}

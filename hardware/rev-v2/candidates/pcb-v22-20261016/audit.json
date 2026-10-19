@@ -1,0 +1,108 @@
+{
+  "status": "live-verified-layout-candidate",
+  "routing": "unrouted",
+  "designAccepted": false,
+  "sourceSemanticSha256": "91a0fbdaf5ea6434069b7acf484232eeddaace9dd2a92499beefa881e88d675c",
+  "geometricReadbackCheck": {
+    "scope": "readback geometric layout; no electrical continuity/manufacturing certification",
+    "source": "round-2-recovered.json",
+    "sha256": "dd9dd7da0f2416c7cbe61ce9f710efaee7907965724a457dc7fd4917a3f1e50d",
+    "components": 51,
+    "pads": 126,
+    "visibleText": 70,
+    "issues": [],
+    "measurements": {
+      "C12_3V3_to_U1_14_centres_mil": 99.80000000000001
+    },
+    "passed": true
+  },
+  "twoRounds": {
+    "dataEqual": true,
+    "saved": true,
+    "reloaded": true,
+    "nativeCaptures": [
+      {
+        "name": "round-1-top",
+        "imageValid": true,
+        "sha256": "fc25976d586d71b09cb2427cd8f773139f3716799db1b7ab1adf8e9a40cb3af9",
+        "identityVerified": true
+      },
+      {
+        "name": "round-1-bottom",
+        "imageValid": true,
+        "sha256": "3fed552e6188ddcb5b7818b735eb6b2e93d61b79d1ff3c12d6aded0ef7642d46",
+        "identityVerified": true
+      },
+      {
+        "name": "round-2-top",
+        "imageValid": true,
+        "sha256": "74ea712b39115f16b7fcae7227602446350b41f07154bfc7587ad176eddc1e19",
+        "identityVerified": true
+      },
+      {
+        "name": "round-2-bottom",
+        "imageValid": true,
+        "sha256": "a8f2af7a6ef04f3bdc84df608a2a6b298941ca7ca23d8d6db6cb41e1d163602d",
+        "identityVerified": true
+      }
+    ],
+    "fixesBetweenRounds": false
+  },
+  "drc": {
+    "passed": false,
+    "counts": {
+      "Connection Error": 117,
+      "Netlist Error": 1
+    }
+  },
+  "supplementaryCheck": {
+    "danglingEnds": 0,
+    "acuteAngles": 0,
+    "nonOrthogonal": 0,
+    "trackOverPad": 0,
+    "clearance": 0,
+    "silkscreenFlipped": 0,
+    "overlappingVias": 0,
+    "singleLayerVias": 0,
+    "widthMismatches": 0,
+    "duplicateSegments": 0,
+    "parallelCoupling": 0,
+    "antennaKeepout": 0,
+    "netlessPours": 0,
+    "viaCrossesPlane": 0,
+    "floatingIslands": 0,
+    "powerNotPoured": 2,
+    "netlessViaInPad": 0,
+    "widthUnderSpec": 0,
+    "silkOverPad": 0,
+    "silkOffBoard": 0,
+    "decapTooFar": 1,
+    "viaInPad": 0,
+    "copperNearEdge": 0,
+    "fiducialMissing": 0,
+    "zoneViolation": 0,
+    "internalOnEdge": 0,
+    "connectorPlugClearance": 6,
+    "connectorMatingBlocked": 0,
+    "connectorOpeningInward": 0,
+    "errors": 0,
+    "warnings": 9,
+    "total": 9
+  },
+  "pending": [
+    "hand-solder toe and physical module fit",
+    "netlist mismatch",
+    "whole-board routing and ground return",
+    "USB plug and module underside clearance",
+    "new physical bottom 3D confirmation",
+    "cutout fab interpretation and wire fit"
+  ],
+  "nativeExport": {
+    "bytes": 354784,
+    "format": "epro2",
+    "restoreVerified": false,
+    "sha256": "f603799e9aca8df2d12f1c7b75cc77512db938346528f2354adef197b0a20a3f",
+    "uuid": "7a4a5aed224f625033b9fad4edf1877314c90d2c9c5fc19578666b4f63c35967",
+    "zipIntegrityVerified": true
+  }
+}
