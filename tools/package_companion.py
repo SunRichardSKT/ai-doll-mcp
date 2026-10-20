@@ -8,12 +8,12 @@ import io
 import tarfile
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-RELEASE_BASE = 'https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.20.0'
+RELEASE_BASE = 'https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.21.0'
 TOOLS = (
     'test_operit_phone.cjs', 'test_operit_server.py', 'operit_server_sdk_runner.cjs', 'test_operit_no_pc_ui.cjs',
     '_source_path.py', 'test_shared_core.py',
     'test_operit_registration.cjs', 'prepare_operit_registration_check.py', 'test_operit_ui_bridge.cjs',
-    'test_companion_startup.py',
+    'test_companion_startup.py', 'test_flash_ui.cjs', 'test_operit_address.cjs', 'test_developer_ui.cjs',
     'companion_experience.py', 'companion_experience.js', 'test_companion_experience.py', 'test_companion_experience_sdk.py', 'test_companion_experience_ui.cjs',
     'flash_esp32.py', 'test_flash_esp32.py', 'flash_server.py', 'flash.html', 'open_flash.ps1', 'test_flash_server.py', 'export_firmware.py', 'test_network_policy.cpp',
     'check_documentation.py', 'operit_service.py', 'package_operit.py', 'test_operit_service.py', 'test_operit_unified.cjs', 'operit_test_host.cjs', 'test_operit_unified_sdk.py', 'operit_unified_sdk_runner.cjs', 'test_operit_setup_ui.cjs',
@@ -45,7 +45,7 @@ TOOLS = (
     'companion_mcp.py', 'companion.html', 'test_companion.py',
     'test_companion_device.py', 'test_companion_ui.cjs',
     'test_mcp_sdk_device.py', 'test_device_portal.cjs', 'package_companion.py',
-    'channel_editor.js', 'embed_channel_editor.py', 'test_channel_devices.py',
+    'channel_editor.js', 'embed_channel_editor.py', 'test_embed_assets.py', 'test_channel_devices.py',
     'test_channel_ui.cjs', 'test_pressure_calibration.cpp',
     'test_sensor_experience.py', 'test_sensor_experience_ui.cjs',
     'interaction_bridge.py', 'webhook_delivery.py', 'mcp_events_adapter.py',
@@ -64,7 +64,7 @@ DOCS += ('integrations/OPERIT_PROTOTYPE.md', 'reports/OPERIT_PROTOTYPE_VALIDATIO
 DOCS += ('developers/UNIFIED_DELIVERY_PLAN.md', 'integrations/OPERIT_SETUP.md', 'reports/RELEASE_2_19.md')
 DOCS += ('reports/RELEASE_2_19_1.md',)
 DOCS += ('integrations/OPERIT_NO_PC.md', 'reports/RELEASE_2_20.md')
-DOCS += ('reports/UPDATE_20261019.md',)
+DOCS += ('reports/UPDATE_20261019.md', 'reports/RELEASE_2_21.md', 'developers/STABILITY_AND_DAILY_USE_PLAN.md')
 SOURCE = ('remote_uplink.h', 'digital_temperature.h', 'ota_update.h', 'event_storage.h', 'event_integrity.h', 'lab_main.cpp', 'device_page.h', 'touch_events.h', 'network_state.h', 'network_policy.h',
           'channel_devices.h', 'channel_rpc.h', 'pressure_calibration.h', 'device_discovery.h')
 PREBUILT = ('firmware.bin', 'bootloader.bin', 'partitions.bin', 'boot_app0.bin', 'FLASH_MANIFEST.json', 'README.md')
@@ -180,10 +180,10 @@ def server_package(delivery):
         'Operit 手机可在管理页下载工具包与连接文件，直接使用服务器，无需电脑。见 [Operit 免电脑指南](docs/integrations/OPERIT_NO_PC.md)。\n\n'
         '完整步骤与故障处理见 [远程部署指南](docs/integrations/REMOTE_SERVER_SETUP.md)。'
         '无需上传 Windows Python；不包含个人配置或互动历史。\n').encode()
-    manifest = dict(version='ai-doll-server-2.20.0',files={
+    manifest = dict(version='ai-doll-server-2.21.0',files={
         name:hashlib.sha256(raw).hexdigest() for name,raw in contents.items()})
     contents['MANIFEST.json'] = json.dumps(manifest,ensure_ascii=False,indent=2).encode()
-    output = delivery/'AI_Doll_Server_v2.20.0.tar.gz'
+    output = delivery/'AI_Doll_Server_v2.21.0.tar.gz'
     # Stable tar metadata and gzip timestamps produce reproducible downloads.
     with output.open('wb') as handle, gzip.GzipFile(fileobj=handle,mode='wb',filename='',mtime=0) as compressed:
         with tarfile.open(fileobj=compressed,mode='w') as archive:
@@ -220,7 +220,7 @@ def main():
     files += [ROOT/'templates'/name for name in ('chatgpt-mcp-config.json','README.md','operit/ai_doll.js','operit/ai_doll_prototype.js','operit/ai_doll_chat_probe.js','host-event.example.json','openclaw-hook.example.json')]
     files += [ROOT/'firmware/src'/name for name in SOURCE]
     files += [ROOT/'firmware/prebuilt'/name for name in PREBUILT]
-    outputs = [package(delivery/'AI_Doll_Code_v2.20.0.zip', files, CODE_README, 'doll-bridge-2.20.0')]
+    outputs = [package(delivery/'AI_Doll_Code_v2.21.0.zip', files, CODE_README, 'doll-bridge-2.21.0')]
     hardware = ROOT/'hardware/rev-v2'
     if hardware.exists():
         pcb = [hardware/name for name in PCB_FILES]
@@ -233,19 +233,31 @@ def main():
         outputs.append(package(delivery/PCB_PACKAGE, pcb, PCB_README, 'AI_Doll_V2-silkscreen-corrected-20261016'))
     outputs.append(server_package(delivery))
     outputs.append(dict(phone_package, bytes=(delivery/phone_package['file']).stat().st_size))
+    for name in ('AI_Doll_Enclosures_103450_20261020.zip', 'AI_Doll_Enclosure_Stacked_103450_20261020.zip'):
+        path = delivery/name
+        with zipfile.ZipFile(path) as archive:
+            manifest = json.loads(archive.read('MANIFEST.json'))
+            assert archive.testzip() is None
+            assert set(archive.namelist()) == set(manifest['files']) | {'MANIFEST.json'}
+            for relative, digest in manifest['files'].items():
+                assert hashlib.sha256(archive.read(relative)).hexdigest() == digest, relative
+        outputs.append(dict(file=name, files=len(manifest['files']), bytes=path.stat().st_size,
+                            sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
     (delivery/'DELIVERY_MANIFEST.json').write_text(json.dumps({'packages': outputs}, ensure_ascii=False, indent=2), encoding='utf-8')
     checksums = {item['file']: item['sha256'] for item in outputs}
     for name in ('DELIVERY_MANIFEST.json',):
         checksums[name] = hashlib.sha256((delivery/name).read_bytes()).hexdigest()
     checksums['Install_Server.sh'] = hashlib.sha256((ROOT/'Install_Server.sh').read_bytes()).hexdigest()
     (delivery/'SHA256SUMS.txt').write_text(''.join(digest+'  '+name+'\n' for name,digest in sorted(checksums.items())), encoding='ascii')
-    readme = '# 下载与交付文件\n\n**2.20.0 预发布版 / 固件 2.9.0**，发布更新于 2026-10-16。[本版 Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.20.0)。新增服务器与仅手机模式仍需目标环境实测。普通 Windows 用户使用完整包，无需安装 Python 或 Arduino。\n\n'
+    readme = '# 下载与交付文件\n\n**2.21.0 / 固件 2.10.0**，构建更新于2026-10-20。[本版Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.21.0)。服务器与仅手机模式仍需目标环境实测，外壳仍需打印试装。普通Windows用户使用完整包，无需安装Python或Arduino。\n\n'
     readme += '## 应该下载哪个\n\n| 包 | 适合谁 | 解压后做什么 |\n| --- | --- | --- |\n'
     purposes = {
-        'AI_Doll_Code_v2.20.0.zip': ('Windows 用户 / 软件开发者', '普通 Chat 双击 AI_Doll.cmd；自建应用本机接收双击 AI_Doll_Server.cmd'),
-        'AI_Doll_Server_v2.20.0.tar.gz': ('远程 Linux 服务器', '运行 sudo bash Install_Server.sh，按提示填写域名'),
+        'AI_Doll_Code_v2.21.0.zip': ('Windows 用户 / 软件开发者', '普通 Chat 双击 AI_Doll.cmd；自建应用本机接收双击 AI_Doll_Server.cmd'),
+        'AI_Doll_Server_v2.21.0.tar.gz': ('远程 Linux 服务器', '运行 sudo bash Install_Server.sh，按提示填写域名'),
         PCB_PACKAGE: ('采购和手工焊接主板', '打开新版丝印工程与 BOM；重新下单前核对现有网表不匹配'),
         'AI_Doll_Operit.toolpkg': ('Operit 安卓用户', '在包管理中导入，选择电脑、服务器或仅手机连接，按标题绑定原聊天'),
+        'AI_Doll_Enclosures_103450_20261020.zip': ('3D打印与机械修改', '三个候选：旧板平铺、新板平铺、旧板堆叠；按主板选STL或STEP'),
+        'AI_Doll_Enclosure_Stacked_103450_20261020.zip': ('只需要旧板上下堆叠壳', '保持原长宽46.29×56.45mm，总厚35.2mm；打印底壳、绝缘载架、上盖'),
     }
     for item in outputs:
         who, action = purposes[item['file']]
@@ -253,13 +265,13 @@ def main():
     readme += '\nOperit 无需为了取得手机工具包下载 Windows 包。服务器管理页可导出连接文件；仅手机模式填写家庭设备 IP。原电脑入口继续兼容，完整包仍内含相同工具包。[统一安装](../docs/integrations/OPERIT_SETUP.md) · [免电脑指南](../docs/integrations/OPERIT_NO_PC.md)。\n'
     readme += '\nWindows 包内置 Python，无需另装。Linux 小型包不含 Windows Python，由容器准备运行环境。20261016 PCB 包已优化丝印并修正背面文字，电路与原下单文件保持；当前仍有 1 项网表不匹配，重新下单前须核对。[丝印与 3D 核对](../hardware/rev-v2/丝印镜像修正说明_20261016.md)。\n\n'
     readme += '[Windows 首次安装](../docs/start/AI_INSTALL.md) · [远程部署](../docs/integrations/REMOTE_SERVER_SETUP.md) · [给 AI 的执行指南](../docs/ai/AI_GUIDE.md) · [全部文档](../docs/README.md)\n\n'
-    readme += '## 如何校验下载\n\n[DELIVERY_MANIFEST.json](DELIVERY_MANIFEST.json) 与 [SHA256SUMS.txt](SHA256SUMS.txt) 记录下载哈希；ZIP / TAR 内的 MANIFEST.json 记录逐文件校验，ToolPkg 使用 CHECKSUMS.json。Linux 包另提供 [.sha256]('+RELEASE_BASE+'/AI_Doll_Server_v2.20.0.tar.gz.sha256)，可运行 sha256sum -c 对应文件名。\n\n'
+    readme += '## 如何校验下载\n\n[DELIVERY_MANIFEST.json](DELIVERY_MANIFEST.json) 与 [SHA256SUMS.txt](SHA256SUMS.txt) 记录下载哈希；ZIP / TAR 内的 MANIFEST.json 记录逐文件校验，ToolPkg 使用 CHECKSUMS.json。Linux 包另提供 [.sha256]('+RELEASE_BASE+'/AI_Doll_Server_v2.21.0.tar.gz.sha256)，可运行 sha256sum -c 对应文件名。\n\n'
     readme += '[单独下载 Linux 安装入口]('+RELEASE_BASE+'/Install_Server.sh)。大型文件只存 GitHub Releases，不加入源码仓库。\n\n'
     for item in outputs:
         readme += f"- `{item['file']}`：`{item['sha256']}`\n"
     readme += '\n## 交付范围\n\n公共包只包含代码、文档、固件、PCB 和公共模板，不包含个人配对、Wi-Fi、令牌或互动数据库。更新保留自己的 build 数据，远程部署保留数据卷。\n\n'
     readme += '新板烧录：双击 Flash_ESP32.cmd，点击一键烧录。日常管理：双击 AI_Doll.cmd。手机连接娃娃热点后，固定设置页为 http://192.168.4.1/，配家庭 Wi-Fi 后仍保留。\n\n'
-    readme += '每次 USB 烧录产生新设备名称并保留独立日志；标准烧录保留设置，恢复出厂才清空设备。CH0 实体按压/释放及电脑归档已实测；其他硬件、普通 Chat 空闲唤醒和真实公网部署仍按 [验证汇总](../docs/reports/VALIDATION.md)列出的范围。\n'
+    readme += '每次 USB 烧录产生新内部配对编号；可选择自定义显示名和热点名并保留独立日志；标准烧录保留设置，恢复出厂才清空设备。CH0 实体按压/释放及电脑归档已实测；其他硬件、普通 Chat 空闲唤醒和真实公网部署仍按 [验证汇总](../docs/reports/VALIDATION.md)列出的范围。\n'
     (delivery/'README.md').write_text(readme, encoding='utf-8')
     for item in outputs:
         print(item['file'], item['files'], 'files, verified')

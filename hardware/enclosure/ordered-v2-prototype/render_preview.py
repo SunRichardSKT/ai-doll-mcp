@@ -25,9 +25,13 @@ const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);for(const [
 const dims=data.dimensions, hex=s=>[1,3,5].map(i=>parseInt(s.slice(i,i+2),16));
 const meshes=data.parts.map(p=>({...p,rgb:hex(p.color)}));
 function draw(){const r=c.getBoundingClientRect(),dpr=Math.min(devicePixelRatio,2);c.width=r.width*dpr;c.height=r.height*dpr;const w=r.width,h=r.height;gl.viewport(0,0,c.width,c.height);gl.clearColor(229/255,233/255,223/255,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
- const explode=mode==='exploded',centerX=explode?dims.width+15:dims.width/2,centerY=dims.length/2,centerZ=9;
- const scale=Math.min(w/(explode?133:83),h/92)*zoom,cy=Math.cos(yaw),sy=Math.sin(yaw),se=Math.sin(elev),ce=Math.cos(elev);
- const project=([x,y,z])=>{x-=centerX;y-=centerY;z-=centerZ;const xx=cy*x-sy*y,yy=sy*x+cy*y;return[w/2+scale*xx,h/2-scale*(se*yy+ce*z),-ce*yy+se*z]};
+ const explode=mode==='exploded',cy=Math.cos(yaw),sy=Math.sin(yaw),se=Math.sin(elev),ce=Math.cos(elev);
+ const basis=([x,y,z])=>{const xx=cy*x-sy*y,yy=sy*x+cy*y;return[xx,se*yy+ce*z,-ce*yy+se*z]};
+ const shown=meshes.filter(p=>mode==='lid'?p.name==='lid':mode==='base'?p.name!=='lid':true);
+ let xmin=Infinity,xmax=-Infinity,ymin=Infinity,ymax=-Infinity;
+ for(const part of shown){const off=part.name==='lid'&&explode?[dims.width+13,0,-11]:[0,0,0];for(const v of part.geometry.vertices){const q=basis(v.map((x,i)=>x+off[i]));xmin=Math.min(xmin,q[0]);xmax=Math.max(xmax,q[0]);ymin=Math.min(ymin,q[1]);ymax=Math.max(ymax,q[1]);}}
+ const scale=Math.min((w-72)/Math.max(1,xmax-xmin),(h-80)/Math.max(1,ymax-ymin))*zoom,centerX=(xmin+xmax)/2,centerY=(ymin+ymax)/2;
+ const project=v=>{const q=basis(v);return[w/2+scale*(q[0]-centerX),h/2-scale*(q[1]-centerY),q[2]]};
  const floats=[];
  for(const part of meshes){if(mode==='lid'&&part.name!=='lid')continue;if(mode==='base'&&part.name==='lid')continue;
   const off=part.name==='lid'&&explode?[dims.width+13,0,-11]:[0,0,0];const verts=part.geometry.vertices.map(v=>[v[0]+off[0],v[1]+off[1],v[2]+off[2]]),q=verts.map(project);
@@ -49,14 +53,21 @@ def run():
     data=json.loads((OUT/'meshes.json').read_text(encoding='utf-8'))
     page=TEMPLATE
     replacements={
-        'AI Doll · 外壳 P01':'AI Doll · 已制板外壳 P02',
-        'AI DOLL / HARDWARE / V22-ENC-P01':'AI DOLL / ORDERED PCB 20260920 / CASE P02',
-        '圆角双片外壳':'已制板专用外壳',
+        'AI Doll · 外壳 P01':'AI Doll · 已制板电池卡扣壳 P03',
+        'AI DOLL / HARDWARE / V22-ENC-P01':'AI DOLL / ORDERED PCB 20260920 / CASE P03',
+        '圆角双片外壳':'电池仓 · 卡扣双片外壳',
+        '46.29 × 56.45':'62.00 × 100.45',
         '20.4 / 1.8 mm':f"{data['dimensions']['height']:.1f} / 1.8 mm",
-        '边缘托座固定 PCB，不使用板上的线束固定孔。':'边缘托座固定旧版 PCB，无需在主板打孔。壳体底面提供五组扎带通道。',
-        '正面独立 J9 出线口与开关检修口；':'右侧上方为 J9 出线口，右上角为开关检修口；',
-        '灰色元件是包络参考，USB 不是已验证插拔模型。':'模块叠高按你量得的约 8 mm，顶部另留 2.6 mm。USB 和按钮形状仅作示意，仍需试装。',
-        '模型来自当前 PCB 实际 XY 回读；Z 向包络采用公开标注的假设。':'模型按原下单板框及飞针坐标制作；模块高度采用用户约 8 mm 测量，其余高度假设另有标注。'
+        '4 × M2':'4 处可释放卡扣',
+        '为当前布线板留出的空间':'已制板 + 103450 电池',
+        'J9 日常供电 · USB 开盖维护 · 八路带线传感输入':'免螺丝上盖 · 独立锂电池仓 · LED 观察窗',
+        '边缘托座固定 PCB，不使用板上的线束固定孔。':'边缘托座固定旧版主板，无需打孔；保留八路带线传感接口与壳体扎带通道。',
+        '正面独立 J9 出线口与开关检修口；松开上盖后操作 USB、BOOT / RST。天线端不布置紧固螺钉。':'底盒侧窗可按压释放卡扣：先解除一对、轻抬盖，再解除另一对。右侧 J9 出线，USB、BOOT / RST 开盖维护；14 × 12 mm 窗观察模块灯。',
+        '元件高度、板厚与线径为预留假设。灰色元件是包络参考，USB 不是已验证插拔模型。':'前方独立 52 × 36 × 12 mm 电池净空，黄色块为 50 × 34 × 10 mm 103450 参考。出线端另留 7.2 mm，导线松弯向上，经隔板顶槽进入 PH2.0 区；不挤电芯或封边。',
+        '先打印 fit_tray，再检查焊点、线束弯折和开关可达性。此结构没有防水等级，也不包含电池。':'建议 PETG 打印；卡扣弹性和电池封边需实装。单节 3.7 V 电池不能直接代替 J9 的 5 V，充电/保护/升压需另选。观察窗无防水等级。',
+        '模型来自当前 PCB 实际 XY 回读；Z 向包络采用公开标注的假设。':'仅打印底盒与上盖两件。按旧版实板及约 8 mm 模块叠高设计，实物卡扣、LED、插头尺寸仍待核对。',
+        '2026-10-17':'2026-10-20',
+        '<i style="background:#22736c"></i>PCB 位置参考</span>':'<i style="background:#22736c"></i>PCB 位置参考</span><span><i style="background:#dfbc5e"></i>103450 电池参考</span>'
     }
     for before,after in replacements.items():
         assert before in page,before

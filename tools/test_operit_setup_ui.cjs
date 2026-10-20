@@ -31,13 +31,38 @@ const {chromium}=require('playwright');
   });
   try {
     await page.goto('http://127.0.0.1:8769/#operit');await page.locator('#operitMode').waitFor({state:'visible'});
-    await page.selectOption('#operitMode','simulation');await page.click('#operitStart');
-    await page.waitForFunction(()=>document.getElementById('globalNotice').textContent==='操作完成。');
+    assert.equal(await page.inputValue('#operitMode'),'device','physical device is the ordinary default');
+    await page.check('#operitDeveloper');await page.selectOption('#operitMode','simulation');await page.click('#operitStart');
+    await page.waitForFunction(()=>document.getElementById('globalNotice').textContent.startsWith('操作完成'));
     assert.deepEqual(actions.slice(0,2).map(x=>x.action),['operit-save','operit-start']);
     assert.equal(actions[0].data.host,'192.168.1.20','single network selected without typing');
     const connection=page.waitForEvent('download');await page.click('#operitConnection');
     assert.equal((await connection).suggestedFilename(),'AI_Doll_Connection.json');
     const pkg=page.waitForEvent('download');await page.click('#operitToolpkg');assert.equal((await pkg).suggestedFilename(),'AI_Doll_Operit.toolpkg');
+    state.collector={running:true,device_ip:'192.168.1.50',last_sync:Date.now()/1000};
+    state.connection.device_host='192.168.1.99';
+    await page.click('[data-view="device"]');
+    await page.waitForFunction(()=>document.getElementById('deviceAddress').textContent.includes('192.168.1.50'));
+    assert.equal(await page.getAttribute('#openDevice','href'),'http://192.168.1.50/','settings uses confirmed device IP rather than saved host');
+    state.collector={running:true,device_ip:null,collector_error:'offline'};
+    await page.waitForFunction(()=>document.getElementById('deviceAddress').textContent.includes('尚未确认'));
+    assert.equal(await page.getAttribute('#openDevice','href'),'http://192.168.4.1/');
+    state.operit.addresses=['192.168.1.21'];
+    await page.click('[data-view="operit"]');
+    await page.waitForFunction(()=>document.getElementById('operitStatus').textContent.includes('已不在当前网络'));
+    assert.equal(await page.inputValue('#operitHost'),'192.168.1.21','new available PC IP is selectable');
+    state.collector={running:false};
+    await page.click('[data-view="simulation"]');
+    assert.equal(await page.locator('#developerPanel').getAttribute('open'),null,'developer iframe remains opt-in');
+    assert.equal(await page.locator('iframe').count(),0,'closed developer panel mounts no hidden iframe');
+    state.secure_config={configured:true,profile:'interaction',tunnel_id:'tunnel_fixture'};
+    state.secure={checked_at:Date.now()/1000,connection_message:'上游服务暂时限流',runtime_running:true,tunnel_connected:false};
+    await page.click('[data-view="mcp"]');
+    await page.click('#view-mcp [data-action="repair-connection"]');
+    await page.waitForFunction(()=>document.getElementById('globalNotice').textContent.startsWith('操作完成'));
+    assert.equal(actions.at(-1).action,'repair-connection');
+    assert.ok((await page.textContent('#tunnelDetail')).includes('上游服务暂时限流'),'show concrete tunnel connection reason');
+    await page.click('[data-view="operit"]');
     const output=path.resolve(__dirname,'../build/operit-unified-ui');fs.mkdirSync(output,{recursive:true});
     for(const width of [1360,390]) {
       await page.setViewportSize({width,height:960});
@@ -46,5 +71,6 @@ const {chromium}=require('playwright');
     }
     assert.deepEqual(errors,[]);
     console.log('PASS actual Operit manager UI: navigation, mode choice, automatic network, saved startup and both downloads, desktop/mobile. API fixture, not device/Android proof.');
-  } finally {await browser.close();}
+  } catch(error) {console.error('UI state:',await page.textContent('#globalNotice'),'actions:',actions);throw error;}
+  finally {if(errors.length)console.error('Browser errors:',errors);await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

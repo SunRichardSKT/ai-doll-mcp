@@ -1,6 +1,7 @@
 """Fast authenticated search, USB recovery, persistence and replay boundaries."""
 import json
 from pathlib import Path
+import time
 import tempfile
 import threading
 import socket
@@ -101,6 +102,9 @@ class RecoveryTests(unittest.TestCase):
         self.root=Path(self.temp.name);self.cfg=self.root/'pair.json';self.saved=self.root/'connection.json'
         self.cfg.write_text(json.dumps(CONFIG),encoding='utf-8')
         transport.save_connection(self.saved,'usb',port='COM99')
+        from serial.tools import list_ports
+        ports_patch=patch.object(list_ports,'comports',return_value=[])
+        ports_patch.start();self.addCleanup(ports_patch.stop)
 
     def link(self,env=None):
         return transport.create_device_link({} if env is None else env,self.cfg,self.saved)
@@ -115,6 +119,31 @@ class RecoveryTests(unittest.TestCase):
         self.assertIsNone(info['serial_port'])
         self.assertEqual(json.loads(self.saved.read_text())['device_host'],FOUND['device_host'])
         self.assertNotIn(TOKEN,self.saved.read_text())
+
+    def test_saved_usb_recovers_changed_com_for_same_device_only(self):
+        from serial.tools import list_ports
+        link,info=self.link()
+        ports=[SimpleNamespace(device='COM77',vid=0x303a),SimpleNamespace(device='COM78',vid=0x303a)]
+        def read(instance,command,timeout=8):
+            if instance.port=='COM99':raise OSError('USB removed')
+            return {'device_id':'other'} if instance.port=='COM77' else {'device_id':DEVICE,'ok':True}
+        with patch.object(list_ports,'comports',return_value=ports), \
+             patch.object(transport.SerialLink,'exchange',autospec=True,side_effect=read), \
+             patch.object(transport,'discover_paired_device') as find:
+            self.assertTrue(link.exchange({'cmd':'status'})['ok'])
+        find.assert_not_called()
+        self.assertEqual(info['serial_port'],'COM78')
+        self.assertEqual(json.loads(self.saved.read_text())['serial_port'],'COM78')
+        self.assertEqual(info['transport'],'usb')
+
+    def test_ip_is_only_reported_from_recent_online_device_status(self):
+        import device_setup_server as server
+        now=time.time()
+        c=SimpleNamespace(error=None,last_device_status=(now,{'wifi_connected':True,'ip':'10.0.0.8'}))
+        self.assertEqual(server.current_device_ip(c),'10.0.0.8')
+        c.error='offline';self.assertIsNone(server.current_device_ip(c))
+        c.error=None;c.last_device_status=(now-30,{'wifi_connected':True,'ip':'10.0.0.8'})
+        self.assertIsNone(server.current_device_ip(c))
 
     def test_explicit_usb_override_is_not_switched(self):
         link,_=self.link({'DOLL_TRANSPORT':'usb'})

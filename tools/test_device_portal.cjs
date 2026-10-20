@@ -14,7 +14,8 @@ const fs=require('fs'),path=require('path');const {chromium}=require('playwright
   const original=await page.evaluate(()=>tool('get_body_map'));
   try{
    await page.fill('#part6','页面测试部位');await page.click('#saveParts');await page.waitForFunction(()=>document.querySelector('#partResult').textContent.includes('已保存'));
-   await page.selectOption('#channel','6');await page.click('#press');await page.waitForFunction(()=>document.querySelector('#logs').textContent.includes('页面测试部位'));
+   await page.locator('#developerOptions>summary').click();await page.locator('#debugReadings>summary').click();await page.locator('#debugEvents>summary').click();
+   await page.selectOption('#channel','6');await page.click('#press');await page.waitForFunction(()=>document.querySelector('#debugEventsData').textContent.includes('页面测试部位'));
    await page.uncheck('#enabled');await page.click('#saveMcp');await page.waitForFunction(()=>document.querySelector('#result').textContent.includes('开关已保存'));
    const parts=await page.evaluate(()=>tool('get_body_map'));if(parts.parts[6].name!=='页面测试部位')throw Error('Admin settings unavailable with MCP disabled');
    await page.check('#enabled');await page.click('#saveMcp');await page.waitForFunction(()=>!document.querySelector('#saveMcp').disabled);

@@ -58,10 +58,10 @@ def alive(value):
     return bool(value and identity(value.get('pid'))=={k:value.get(k) for k in ('born','executable')})
 
 
-def launch(arguments, cwd):
+def launch(arguments, cwd, env=None):
     flags = subprocess.CREATE_NO_WINDOW if os.name=='nt' else 0
     child = subprocess.Popen(arguments,cwd=cwd,stdin=subprocess.DEVNULL,
-                             stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,creationflags=flags)
+                             stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,creationflags=flags,env=env)
     try: return child, record(child.pid)
     except Exception:
         if child.poll() is None:

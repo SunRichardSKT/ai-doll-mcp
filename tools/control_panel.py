@@ -182,11 +182,11 @@ def worker(action, data):
         import secure_mcp
         return secure_mcp.configure(secure_mcp.DEFAULT, data.get('tunnel_id', ''),
             data.get('api_key', ''), data.get('profile', 'interaction'))
-    if action in ('secure-start', 'secure-stop', 'secure-status', 'secure-reset'):
+    if action in ('secure-start', 'secure-repair', 'secure-stop', 'secure-status', 'secure-reset'):
         import secure_mcp
-        if action == 'secure-start':
+        if action in ('secure-start', 'secure-repair'):
             collector_start()
-        fn = {'secure-start': secure_mcp.start, 'secure-stop': secure_mcp.stop,
+        fn = {'secure-start': secure_mcp.start, 'secure-repair': secure_mcp.repair, 'secure-stop': secure_mcp.stop,
               'secure-status': lambda: secure_mcp.status(verify=True), 'secure-reset': secure_mcp.reset_address}[action]
         return fn()
     if action == 'tunnel-install':
@@ -232,6 +232,7 @@ class Panel:
         self.job = dict(state='idle', action='', message='欢迎使用 AI Doll。', result=None)
         self.messages = deque(maxlen=80)
         self.secure = {}
+        self.secure_checked_at = 0
         self.ready = self.check_environment()
 
     @property
@@ -296,21 +297,30 @@ class Panel:
             return self.install()
         if not self.ready:
             raise ValueError('请先在“安装引导”中准备运行环境。')
-        if action == 'daily-start':
+        if action in ('daily-start', 'repair-connection'):
             operit = read_json(WORK / 'operit/settings-private.json', {})
-            local = None
+            result = dict(errors={})
+            def restore(name, command):
+                self.note('正在恢复：' + name)
+                try:
+                    result[name] = self.run_worker(command)
+                except (ValueError, OSError, subprocess.SubprocessError) as error:
+                    result['errors'][name] = str(error)
             if operit.get('mode') != 'simulation' or read_json(WORK / 'connection-private.json'):
-                self.note('正在启动电脑采集服务…')
-                local = self.run_worker('collector-start')
+                restore('collector', 'collector-start')
             config = read_json(WORK / 'secure-mcp/secure-private.json', {})
-            if config.get('runtime_api_key'):
-                self.note('正在连接 ChatGPT 隧道…')
-                self.secure = self.run_worker('secure-start')
-            self.run_worker('client-config')
+            # Independent routes: a Secure error never blocks Operit or local config.
             if operit.get('enabled'):
-                self.note('正在恢复已保存的 Operit 连接…')
-                self.run_worker('operit-start')
-            return dict(collector=local, secure=self.secure)
+                restore('operit', 'operit-start')
+            restore('client_config', 'client-config')
+            if config.get('runtime_api_key'):
+                restore('secure', 'secure-repair' if action == 'repair-connection' else 'secure-start')
+                self.secure = result.get('secure', {})
+                if self.secure and not self.secure.get('tunnel_connected'):
+                    result['errors']['secure'] = self.secure.get('connection_message', '隧道正在连接，请稍后检查。')
+            result['message'] = ('本地可用服务已恢复；' + '；'.join(result['errors'].values())
+                                 if result['errors'] else '已恢复配置的日常服务。')
+            return result
         result = self.run_worker(action, data)
         if action.startswith('secure-'):
             self.secure = result
@@ -320,8 +330,8 @@ class Panel:
 
     def submit(self, action, data):
         allowed = {'install', 'pair', 'usb', 'usb-pair-wifi', 'discover', 'collector-start', 'collector-stop',
-            'secure-save', 'secure-start', 'secure-stop', 'secure-status', 'secure-reset', 'collector-check',
-            'client-config', 'verify-chat', 'startup', 'tunnel-install', 'daily-start', 'ota',
+            'secure-save', 'secure-start', 'secure-repair', 'secure-stop', 'secure-status', 'secure-reset', 'collector-check',
+            'client-config', 'verify-chat', 'startup', 'tunnel-install', 'daily-start', 'repair-connection', 'ota',
             'operit-save', 'operit-start', 'operit-stop', 'operit-status'}
         if action not in allowed:
             raise ValueError('未知操作。')
@@ -333,7 +343,7 @@ class Panel:
             try:
                 result = self.perform(action, data)
                 with self.lock:
-                    self.job.update(state='done', message='操作完成。', result=result)
+                    self.job.update(state='done', message=result.get('message') or result.get('connection_message') or '操作完成。', result=result)
             except (OSError, ValueError, subprocess.SubprocessError) as error:
                 message = str(error) if isinstance(error, ValueError) else '操作超时或服务未响应，请检查连接并重试。'
                 if action == 'ota' and isinstance(error, subprocess.TimeoutExpired):
@@ -347,6 +357,14 @@ class Panel:
         pairing = read_json(WORK / 'device-private.json', {})
         connection = read_json(WORK / 'connection-private.json', {})
         cfg = read_json(WORK / 'secure-mcp/secure-private.json', {})
+        if cfg and self.ready and time.monotonic()-self.secure_checked_at > 10:
+            self.secure_checked_at = time.monotonic()
+            import secure_mcp
+            try:
+                self.secure = secure_mcp.status()
+            except (OSError, RuntimeError, ValueError) as error:
+                self.secure = dict(checked_at=time.time(), tunnel_connected=False,
+                                   connection_message=str(error))
         local = dict(running=False)
         try:
             current = request_collector('/connection', timeout=1)
@@ -461,6 +479,9 @@ def main():
     url = f'http://127.0.0.1:{PORT}/'
     try:
         with ServiceLease(WORK / 'control-panel.lock'):
+            if os.name == 'nt':
+                from configure_startup import migrate_enabled
+                migrate_enabled()
             panel = Panel()
             server = ExclusiveLoopbackServer(('127.0.0.1', PORT), make_handler(panel))
             if panel.ready and panel.python == ROOT/'python/python.exe' and not (WORK/'mcp-client-config.json').is_file():

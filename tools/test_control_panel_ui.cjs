@@ -29,8 +29,13 @@ const {chromium} = require('playwright');
     if (!(await page.locator('#deviceHost').isVisible())) throw Error('Pair form missing after navigation');
     for (const [view, selectors] of [['channels', ['#parts']], ['persona', ['#persona']], ['history', ['#history', '#historyManagement']], ['simulation', ['#values', '#vibrationChannel']], ['maintenance', ['#storageStatus']]]) {
       await page.click('[data-view="'+view+'"]');
+      if(view==='simulation')await page.locator('#developerPanel>summary').click();
       await page.locator('iframe').waitFor();
       const inner = page.frameLocator('iframe');
+      if(view==='simulation'){
+        await inner.locator('#developerOptions>summary').click();
+        await inner.locator('#debugReadings>summary').click();
+      }
       for (const selector of selectors) await inner.locator(selector).locator('xpath=ancestor-or-self::section[1]').waitFor({state: 'visible', timeout: 20000});
       if (view === 'history') {
         await inner.locator('#all').click();

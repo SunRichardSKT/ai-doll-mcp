@@ -2,10 +2,11 @@
 {
   "name":"ai_doll_companion",
   "enabledByDefault":true,
-  "version":"2.20.0",
+  "version":"2.21.0",
   "description":"AI Doll 统一入口。配置与启动请使用工具箱的 AI Doll 面板；不从目标聊天递归等待或发送。",
   "category":"NETWORK",
   "tools":[
+    {"name":"update_computer_address","description":"用户修改电脑局域网 IP，检查后保存，保留聊天和发送记录。","parameters":[{"name":"host","type":"string","required":true,"description":"电脑当前局域网 IPv4"}]},
     {"name":"status","description":"查看连接、聊天绑定和后台任务状态，不发送消息。","parameters":[]},
     {"name":"setup","description":"设置面板导入连接文件，一次保存。","parameters":[{"name":"connection_file","type":"string","required":false,"description":"系统选择器提供的本地文件"},{"name":"connection_json","type":"string","required":false,"description":"管理中心导出的连接 JSON"}]},
     {"name":"list_chats","description":"列出已有聊天，让用户按标题选择绑定。","parameters":[]},
@@ -38,7 +39,8 @@ async function refreshJob() {
 async function status() {
   const cfg=await store.config(),job=await refreshJob();
   const journal=cfg.binding?await store.read('delivery_'+cfg.binding+'.json'):null;
-  return {configured:!!cfg.connection,connection:cfg.connection?{label:cfg.connection.label,mode:cfg.connection.mode}:null,
+  return {configured:!!cfg.connection,connection:cfg.connection?{label:cfg.connection.label,mode:cfg.connection.mode,
+    computer_host:cfg.connection.kind==='ai-doll-operit-connection'&&cfg.connection.mode!=='server'?cfg.connection.mcp_url.match(/^https?:\/\/([^/:]+)/)?.[1]:null}:null,
     chat:cfg.chat,background_user_confirmed:cfg.background_verified===cfg.binding,
     duration_sec:cfg.duration_sec,job,uncertain_delivery:journal?.pending?.phase==='sending',
     display_verified:false,storage_managed:true};
@@ -73,6 +75,23 @@ async function setup_device(p) {
   }
   cfg.connection=connection;await store.write('settings.json',cfg);
   return {saved:true,label:connection.label,mode:connection.mode,device_id:connection.device_id};
+}
+async function update_computer_address(p) {
+  const cfg=await store.config(),connection=store.replaceComputerIP(cfg.connection,p.host);
+  // Probe the candidate before touching jobs, binding or durable send receipts.
+  const tool=await interaction.connect(connection.mcp_url,connection);
+  await tool('get_installation_status');
+  const job=await refreshJob();
+  if(job&&['scheduled','running','stopping','interrupted'].includes(job.phase)){
+    job.phase='stopping';await store.write('job.json',job);
+    await flows.disable(cfg);
+    // The same private path reaches the moved service. Stop only this chat's session.
+    if(cfg.chat&&cfg.binding)await interaction.stop_interaction({...store.parameters(cfg),connection,mcp_url:connection.mcp_url});
+    job.phase='stopped';job.error=null;await store.write('job.json',job);
+  }
+  cfg.connection=connection;await store.write('settings.json',cfg);
+  return {saved:true,host:connection.mcp_url.match(/^https?:\/\/([^/:]+)/)[1],chat_preserved:true,delivery_preserved:true,
+    message:'电脑地址已更新，聊天绑定与发送记录保留。可在原聊天重新开始互动。'};
 }
 async function set_experience(p) {
   await refreshJob();
@@ -229,5 +248,5 @@ async function recover(p) {
 }
 // Export plain functions for tests and tools. Native complete is called only at
 // the public boundary, never from a shared engine that could end the wrong turn.
-for (const [name,fn] of Object.entries({status,setup,setup_device,set_experience,view_history,list_chats,bind_chat,check_connection,schedule,
+for (const [name,fn] of Object.entries({status,setup,setup_device,update_computer_address,set_experience,view_history,list_chats,bind_chat,check_connection,schedule,
   stop,confirm_probe,recover,run_task,import_legacy_state})) exports[name]=async(p={})=>complete(await fn(p));

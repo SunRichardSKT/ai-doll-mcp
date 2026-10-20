@@ -35,7 +35,8 @@ async function load(p) {
   const value = JSON.parse(file.content);
   const samePhone=p.connection?.kind==='ai-doll-device-connection'&&
     value.connection_device_id===p.connection.device_id&&value.connection_storage_key===p.connection.storage_key;
-  if (value.schema !== 1 || value.chat_id !== p.chat_id || (value.mcp_url !== p.mcp_url&&!samePhone))
+  const movedComputer=require('./settings.js').sameComputer(value.mcp_url,p.connection);
+  if (value.schema !== 1 || value.chat_id !== p.chat_id || (value.mcp_url !== p.mcp_url&&!samePhone&&!movedComputer))
     throw Error('State belongs to another chat/connection; use a different path');
   return {...value,mcp_url:p.mcp_url};
 }

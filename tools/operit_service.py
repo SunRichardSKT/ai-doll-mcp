@@ -55,9 +55,15 @@ def save(mode='device', host=None):
         raise ValueError('请选择手机和电脑所在的局域网地址；只有一个可用地址时会自动选择。')
     with ServiceLease(WORK / 'control.lock'):
         current = read(WORK / 'settings-private.json')
-        if alive(read(WORK / 'process-private.json')) and current and (current['host'] != host or current['mode'] != mode):
-            raise ValueError('请先停止 Operit 服务，再切换运行模式或网络。')
-        write_json(WORK / 'settings-private.json', dict(schema=1, mode=mode, host=host, port=8775, enabled=True))
+        process = read(WORK / 'process-private.json')
+        if alive(process) and current and (current['host'] != host or current['mode'] != mode):
+            terminate(process)
+            if alive(process):
+                raise ValueError('旧 Operit 服务尚未停止，原配置保留。')
+            if process['pid'] in CHILDREN:
+                CHILDREN.pop(process['pid']).wait(timeout=5)
+        write_json(WORK / 'settings-private.json', dict(schema=1, mode=mode, host=host,
+                   port=current['port'] if current else 8775, enabled=True))
     return dict(saved=True, mode=mode, host=host)
 
 
@@ -101,9 +107,11 @@ def status(verify=False):
     result = dict(configured=bool(value), running=alive(process), protocol_connected=False,
                   mode=value.get('mode') if value else None,
                   host=value.get('host') if value else None, addresses=lan_addresses(),
+                  port=value.get('port') if value else 8775,
                   background_chat_verified=False)
+    result['host_available'] = result['host'] in result['addresses']
     if value and result['host'] not in result['addresses']:
-        result['error'] = '电脑网络地址已变化，请重新选择并导出连接。'
+        result['error'] = '电脑 IP 已变化，请选择当前地址并保存启动，再在手机 AI Doll 设置修改电脑 IP。无需重新导入或绑定聊天。'
         return result
     if verify and value and result['running']:
         try:
@@ -160,7 +168,7 @@ def export_connection():
         raise ValueError('请先启动并检查 Operit 服务，再导出手机连接。')
     return dict(schema=1, kind='ai-doll-operit-connection', mcp_url=address(cfg),
                 mode=cfg['mode'], label='AI Doll · '+('模拟演示' if cfg['mode'] == 'simulation' else '真实设备'),
-                version='2.20.0')
+                version='2.21.0')
 
 
 def serve():

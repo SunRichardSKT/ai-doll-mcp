@@ -3,6 +3,7 @@ import argparse
 import asyncio
 import datetime as dt
 import getpass
+import hashlib
 import json
 import logging
 import os
@@ -65,6 +66,8 @@ def configure(folder, tunnel_id, api_key='', profile='interaction', port=DEFAULT
         # Stop using the OLD configuration first, so its ownership remains checkable.
         if previous and value != previous:
             _stop(folder, previous)
+            if check_native_owner(folder, previous):
+                native(folder, ['rm', previous['alias']])
         write_json(folder / 'secure-private.json', value)
         if value['runtime_api_key']:
             write_private(folder / 'runtime-api.key', value['runtime_api_key'] + '\n')
@@ -83,18 +86,6 @@ def native(folder, args, timeout=55):
     # Never accidentally inherit admin or unrelated runtime credentials.
     for name in ('CONTROL_PLANE_API_KEY', 'OPENAI_ADMIN_KEY', 'OPENAI_API_KEY'):
         env.pop(name, None)
-    # Go does not automatically use Windows Internet Settings. Honor the proxy
-    # already chosen on this PC for outbound OpenAI traffic, without changing
-    # system settings or proxying loopback MCP / the LAN device.
-    proxies = urllib.request.getproxies()
-    proxy = env.get('CONTROL_PLANE_HTTP_PROXY') or proxies.get('https') or proxies.get('http')
-    if proxy:
-        target = urlsplit(proxy)
-        if target.scheme not in ('http', 'https') or not target.hostname:
-            raise SecureError('当前出站代理无效；请检查电脑网络代理设置。')
-        env.update(CONTROL_PLANE_HTTP_PROXY=proxy, HTTPS_PROXY=proxy)
-    bypass = [item.strip() for item in env.get('NO_PROXY', env.get('no_proxy', '')).split(',') if item.strip()]
-    env['NO_PROXY'] = ','.join(dict.fromkeys(bypass + ['127.0.0.1', 'localhost', '::1']))
     flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
     try:
         result = subprocess.run([str(executable), 'runtimes', *args, '--json'],
@@ -247,7 +238,96 @@ def poll_observation(health, now=None):
                                and details.get('consecutive_failures') == 0),
                 state=component.get('state', 'not_observed'),
                 http_status=details.get('http_status'), last_success=details.get('last_success'),
-                next_retry=details.get('next_retry'))
+                next_retry=details.get('next_retry'), reason_code=component.get('reason_code'),
+                failure_category=details.get('failure_category'),
+                consecutive_failures=details.get('consecutive_failures', 0))
+
+
+def outbound_proxy():
+    proxies = urllib.request.getproxies()
+    value = os.environ.get('CONTROL_PLANE_HTTP_PROXY') or proxies.get('https') or proxies.get('http') or ''
+    if value:
+        target = urlsplit(value)
+        if target.scheme not in ('http', 'https') or not target.hostname:
+            raise SecureError('当前出站代理无效，请检查电脑代理设置。')
+    return value
+
+
+def runtime_record(folder, cfg):
+    record = read_json(Path(folder) / 'runtime-process-private.json', {})
+    if record and (record.get('tunnel_id') != cfg['tunnel_id'] or record.get('alias') != cfg['alias']):
+        raise SecureError('运行记录不属于当前隧道，未接管其他进程。')
+    return record
+
+
+def runtime_health(folder):
+    base = (Path(folder) / 'runtime-health.url').read_text(encoding='utf-8').strip().rstrip('/')
+    # Validate before even probing; local_health rejects non-loopback and redirects.
+    return local_health(base + '/health?details=true'), base
+
+
+def connection_message(report):
+    if report.get('tunnel_connected'):
+        return '本地 MCP 与 ChatGPT 隧道已连接。'
+    poll = report.get('poll', {})
+    if poll.get('http_status') == 429:
+        return '隧道服务返回 429，客户端正在退避重连；无需重新配对或重置地址。'
+    if poll.get('http_status') in (401, 403):
+        return '隧道身份验证失败，请检查运行密钥和 Tunnels 权限。'
+    if poll.get('failure_category') == 'network_error':
+        return '本地 MCP 可用，隧道出站网络连接失败；请检查电脑网络和代理，或点击修复连接。'
+    return '隧道正在等待连接，可继续使用本机历史。' if report.get('runtime_running') else '隧道尚未启动。'
+
+
+def start_runtime(folder, cfg):
+    """Official run flags apply proxy explicitly; reuse the project's PID ownership.
+
+    Migrate an older managed alias once. No second supervisor is installed;
+    reconnect/backoff belongs to tunnel-client itself.
+    """
+    proxy = outbound_proxy()
+    fingerprint = hashlib.sha256(proxy.encode()).hexdigest()
+    record = runtime_record(folder, cfg)
+    if alive(record) and record.get('proxy_fingerprint') == fingerprint:
+        return True  # Includes 429/network backoff: never restart on each poll.
+    if alive(record):
+        terminate(record)  # A changed proxy needs a new official run invocation.
+    if check_native_owner(folder, cfg):
+        stopped = native(folder, ['stop', cfg['alias']])
+        check_native_owner(folder, cfg, stopped)
+        if stopped.get('process_running'):
+            raise SecureError('旧隧道尚未停止，未启动重复连接。')
+    executable, version = install_client()
+    health_path = folder / 'runtime-health.url'
+    health_path.unlink(missing_ok=True)
+    args = [str(executable), 'run', '--control-plane.tunnel-id', cfg['tunnel_id'],
+            '--control-plane.api-key', 'file:' + str(folder / 'runtime-api.key'),
+            '--mcp.server-url', local_url(folder, cfg),
+            '--health.listen-addr', '127.0.0.1:0', '--health.url-file', str(health_path),
+            '--mcp.startup-wait-timeout', '20s']
+    if proxy:
+        # The official flag supports env references; credentials stay out of argv.
+        args += ['--control-plane.http-proxy', 'env:AI_DOLL_TUNNEL_PROXY']
+    env = dict(os.environ)
+    for key in ('TUNNEL_CLIENT_CONFIG', 'TUNNEL_CLIENT_PROFILE', 'TUNNEL_CLIENT_PROFILE_FILE',
+                'CONTROL_PLANE_API_KEY', 'OPENAI_API_KEY', 'OPENAI_ADMIN_KEY'):
+        env.pop(key, None)
+    env['AI_DOLL_TUNNEL_PROXY'] = proxy
+    child, record = launch(args, ROOT, env=env)
+    record.update(alias=cfg['alias'], tunnel_id=cfg['tunnel_id'], version=version,
+                  proxy_fingerprint=fingerprint, proxy_enabled=bool(proxy))
+    try:
+        write_json(folder / 'runtime-process-private.json', record)
+    except OSError:
+        terminate(record)
+        raise
+    for _ in range(40):
+        if child.poll() is not None:
+            raise SecureError('官方隧道客户端启动失败，请检查代理配置和本地 MCP。')
+        if health_path.is_file():
+            return False
+        time.sleep(.25)
+    raise SecureError('隧道启动中，健康接口尚未就绪，请稍后检查。')
 
 
 def status(folder=DEFAULT, verify=False):
@@ -266,10 +346,27 @@ def status(folder=DEFAULT, verify=False):
         and acceptance.get('run_id') == gateway.get('run_id')
         and acceptance.get('profile') == cfg['profile'])
     report['gateway_running'] = alive(gateway_state(folder, cfg))
+    previous_check = read_json(folder / 'local-health-private.json', {})
+    report['local_mcp_verified'] = bool(report['gateway_running'] and
+        time.time()-previous_check.get('checked_at', 0) < 60)
     if verify and report['gateway_running']:
         verify_local(folder, cfg)
         report['local_mcp_verified'] = True
-    if check_native_owner(folder, cfg):
+    owned = runtime_record(folder, cfg)
+    if owned:
+        report['runtime_running'] = alive(owned)
+        report['proxy_enabled'] = owned.get('proxy_enabled', False)
+        if report['runtime_running']:
+            try:
+                health, base = runtime_health(folder)
+                report.update(native_healthy=health.get('live') is True, native_ready=health.get('ready') is True,
+                              native_ui_url=base + '/ui', poll=poll_observation(health))
+                report['proxy_routes'] = health.get('components', {}).get('proxy', {}).get('details', {}).get('routes', [])
+                report['tunnel_connected'] = bool(report['poll']['connected'] and report['gateway_running']
+                                                   and report['native_healthy'] and report['native_ready'])
+            except (OSError, ValueError, SecureError):
+                report['health_error'] = '本机健康报告暂时不可用。'
+    elif check_native_owner(folder, cfg):
         payload = native(folder, ['status', cfg['alias']])
         check_native_owner(folder, cfg, payload)
         report.update(runtime_running=payload.get('process_running') is True,
@@ -289,17 +386,24 @@ def status(folder=DEFAULT, verify=False):
             parsed = urlsplit(ui)
             if parsed.scheme == 'http' and parsed.hostname == '127.0.0.1':
                 report['native_ui_url'] = ui
+    report['connection_message'] = connection_message(report)
     write_json(folder / 'status-private.json', report)
     return report
 
 
 def _stop(folder, cfg):
+    value = gateway_state(folder, cfg)
+    owned = runtime_record(folder, cfg)
+    if owned:
+        terminate(owned)
+        if alive(owned):
+            raise SecureError('本项目隧道进程尚未退出，请稍后检查。')
+        write_json(Path(folder) / 'runtime-process-private.json', {})
     if check_native_owner(folder, cfg):
         payload = native(folder, ['stop', cfg['alias']])
         check_native_owner(folder, cfg, payload)
         if payload.get('process_running') is True:
             raise SecureError('隧道客户端尚未停止，请再次检查状态。')
-    value = gateway_state(folder, cfg)
     terminate(value)
     write_json(Path(folder) / 'gateway-process-private.json', {})
 
@@ -332,15 +436,7 @@ def start(folder=DEFAULT, local_only=False):
         # Offline devices must not prevent access to the computer's saved history.
         verify_local(folder, cfg, calls=device_online)
         if not local_only:
-            existing = check_native_owner(folder, cfg)
-            current = native(folder, ['status', cfg['alias']]) if existing else {}
-            if existing:
-                check_native_owner(folder, cfg, current)
-            if current.get('process_running') is not True:
-                native(folder, ['connect', '--alias', cfg['alias'], '--tunnel-id', cfg['tunnel_id'],
-                               '--profile', cfg['alias'], '--profile-dir', str(folder / 'profiles'),
-                               '--mcp-server-url', local_url(folder, cfg),
-                               '--runtime-api-key', 'file:' + str(folder / 'runtime-api.key')], timeout=90)
+            start_runtime(folder, cfg)
     report = status(folder, verify=True)
     report.update(gateway_reused=reused, local_only=local_only, device_online=device_online, history_available=True)
     return report
@@ -356,9 +452,20 @@ def reset_address(folder=DEFAULT):
     return start(folder, local_only=not bool(cfg.get('runtime_api_key')))
 
 
+def repair(folder=DEFAULT):
+    """Restart an unresponsive owned runtime, while letting network backoff proceed."""
+    folder = private_directory(Path(folder).resolve())
+    with ServiceLease(folder / 'operation.lock'):
+        cfg = configuration(folder, required=True)
+        observed = status(folder)
+        if observed.get('runtime_running') and observed.get('health_error'):
+            terminate(runtime_record(folder, cfg))
+    return start(folder)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action', choices=('configure', 'start', 'local-test', 'status', 'stop', 'reset-address'))
+    parser.add_argument('action', choices=('configure', 'start', 'repair', 'local-test', 'status', 'stop', 'reset-address'))
     parser.add_argument('--folder', type=Path, default=DEFAULT)
     parser.add_argument('--tunnel-id')
     parser.add_argument('--profile', choices=PROFILES, default='interaction')
@@ -368,6 +475,7 @@ def main():
             result = configure(args.folder, args.tunnel_id or input('Tunnel ID: '),
                                getpass.getpass('Runtime API key (blank keeps saved key): '), args.profile)
         elif args.action == 'start': result = start(args.folder)
+        elif args.action == 'repair': result = repair(args.folder)
         elif args.action == 'local-test': result = start(args.folder, local_only=True)
         elif args.action == 'status': result = status(args.folder, verify=True)
         elif args.action == 'stop': result = stop(args.folder)

@@ -1,0 +1,205 @@
+{
+  "models": {
+    "ordered-v2-prototype": {
+      "revision": "ORDERED-V2-ENC-P03",
+      "passed": true,
+      "exported_dimensions_mm": [
+        62.0000002,
+        100.45000019999999,
+        20.800000100000002
+      ],
+      "checks": {
+        "base": {
+          "step_valid": true,
+          "step_solids": 1,
+          "stl_watertight": true,
+          "stl_single_body": true,
+          "stl_positive_volume": true,
+          "stl_step_relative_volume_error": 1.386230439464437e-05
+        },
+        "lid": {
+          "step_valid": true,
+          "step_solids": 1,
+          "stl_watertight": true,
+          "stl_single_body": true,
+          "stl_positive_volume": true,
+          "stl_step_relative_volume_error": 3.3672375951891275e-06
+        }
+      },
+      "base_lid_overlap_mm3": 0.0,
+      "battery_nominal_mm": [
+        50.0,
+        34.0,
+        10.0
+      ],
+      "battery_clearance_mm": [
+        52,
+        36,
+        12
+      ],
+      "battery_clearance_origin_mm": [
+        2.0,
+        3.4000000000000004,
+        1.8
+      ],
+      "connector_clearance_mm": [
+        12.0,
+        8.0,
+        10.0
+      ],
+      "connector_origin_mm": [
+        40.0,
+        41.6,
+        2.2
+      ],
+      "snap_count": 4,
+      "led_window": {
+        "centerMm": [
+          24.825,
+          83.512
+        ],
+        "sizeMm": [
+          14.0,
+          12.0
+        ],
+        "alignment": "Broad U1 USB/middle observation window; LED exact point requires user module fit check."
+      },
+      "wire_end_reserved_origin_mm": [
+        54.0,
+        4.4,
+        1.8
+      ],
+      "wire_end_reserved_mm": [
+        6,
+        34,
+        12
+      ],
+      "wire_end_to_wall_mm": 7.200000000000003,
+      "clearance_collisions": {
+        "base": {
+          "nominal_battery_mm3": 0.0,
+          "battery_clearance_mm3": 0.0,
+          "connector_clearance_mm3": 0.0,
+          "wire_end_clearance_mm3": 0.0
+        },
+        "lid": {
+          "nominal_battery_mm3": 0.0,
+          "battery_clearance_mm3": 0.0,
+          "connector_clearance_mm3": 0.0,
+          "wire_end_clearance_mm3": 0.0
+        }
+      },
+      "fit_tray_watertight": true,
+      "physical_fit_tested": false,
+      "snap_life_tested": false,
+      "files": {
+        "base.stl": "bcf566158a34b2d1495e0ecd796cbaa62cf0f62aade210ea021eaa4bb4d4952a",
+        "lid.stl": "d971b6dd6d019cd2c14290daaebd0d981e3e96c282ba28b109b0e1b29d1149ea",
+        "base.step": "9d48c871ccd7aa6ed04262d63bce42464c1e5b9c8d2e198165335030835b4ced",
+        "lid.step": "2f8cc007bbb6dd5d8c7eaf8dba3e811a147a68036ef52de36898d33a673a4c5a",
+        "assembly_reference.step": "f87265cca59afd0f3b5627b74c8acea1676f7ce6e31ed9663953ca2be13865be"
+      }
+    },
+    "v22-prototype": {
+      "revision": "V22-ENC-P02",
+      "passed": true,
+      "exported_dimensions_mm": [
+        62.0000002,
+        100.45000019999999,
+        20.4000001
+      ],
+      "checks": {
+        "base": {
+          "step_valid": true,
+          "step_solids": 1,
+          "stl_watertight": true,
+          "stl_single_body": true,
+          "stl_positive_volume": true,
+          "stl_step_relative_volume_error": 1.4112344539478065e-05
+        },
+        "lid": {
+          "step_valid": true,
+          "step_solids": 1,
+          "stl_watertight": true,
+          "stl_single_body": true,
+          "stl_positive_volume": true,
+          "stl_step_relative_volume_error": 2.954337276799833e-06
+        }
+      },
+      "base_lid_overlap_mm3": 0.0,
+      "battery_nominal_mm": [
+        50.0,
+        34.0,
+        10.0
+      ],
+      "battery_clearance_mm": [
+        52,
+        36,
+        12
+      ],
+      "battery_clearance_origin_mm": [
+        2.0,
+        3.4000000000000004,
+        1.8
+      ],
+      "connector_clearance_mm": [
+        12.0,
+        8.0,
+        10.0
+      ],
+      "connector_origin_mm": [
+        27.0,
+        41.6,
+        2.2
+      ],
+      "snap_count": 4,
+      "led_window": {
+        "centerMm": [
+          26.5,
+          82.13377
+        ],
+        "openingMm": [
+          14.0,
+          12.0
+        ],
+        "positionStatus": "approximate SuperMini GPIO8 blue LED; verify actual module before final print"
+      },
+      "wire_end_reserved_origin_mm": [
+        54.0,
+        4.4,
+        1.8
+      ],
+      "wire_end_reserved_mm": [
+        6,
+        34,
+        12
+      ],
+      "wire_end_to_wall_mm": 7.200000000000003,
+      "clearance_collisions": {
+        "base": {
+          "nominal_battery_mm3": 0.0,
+          "battery_clearance_mm3": 0.0,
+          "connector_clearance_mm3": 0.0,
+          "wire_end_clearance_mm3": 0.0
+        },
+        "lid": {
+          "nominal_battery_mm3": 0.0,
+          "battery_clearance_mm3": 0.0,
+          "connector_clearance_mm3": 0.0,
+          "wire_end_clearance_mm3": 0.0
+        }
+      },
+      "fit_tray_watertight": true,
+      "physical_fit_tested": false,
+      "snap_life_tested": false,
+      "files": {
+        "base.stl": "41ea972142673a34b248df2ea94ec4de2a7c889a8a1f15059df0830b7be3fc2a",
+        "lid.stl": "a0d18a21251322f54fb682fd4d9d4da45099917451d84c02b10b443d4de50eb1",
+        "base.step": "6b7e6425c42e77d3f3940e6cfec7e362d6df22e802825b125261ddf44c40f5ad",
+        "lid.step": "76351ee956e6946cf5c3f1df2f85fba8f4cce42b48509d751c5eacff1b7bf0a6",
+        "assembly_reference.step": "3b1d7e1ea655370c5d3575d113454803a1f6b1f76ca17f1367740f9b34fd431b"
+      }
+    }
+  },
+  "scope": "Exported STEP/STL geometry and nominal rectangular clearance; no physical snap or battery certification"
+}

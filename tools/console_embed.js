@@ -8,7 +8,7 @@
   document.head.append(style);
   const selectors = {
     channels: ['#parts', '#sensorExperience'],
-    simulation: ['#values', '#vibrationChannel'],
+    simulation: ['#developerSection'],
     persona: ['#persona'], preferences: ['#feedbackSettings'],
     history: ['#history', '#historyManagement'], maintenance: ['#storageStatus']
   };

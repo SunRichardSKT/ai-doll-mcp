@@ -1,12 +1,13 @@
 {
-  "revision": "V22-ENC-P01",
+  "revision": "V22-ENC-P02",
+  "date": "2026-10-20",
   "units": "mm",
   "manufacturingReady": false,
   "printedOrFitTested": false,
   "sourcePcbSha256": "c13aed3294a88d7007249f6a164013a1270391c39eadb7228596700b31f5d439",
   "dimensionsMm": {
-    "width": 46.29,
-    "length": 56.45,
+    "width": 62.0,
+    "length": 100.45,
     "height": 20.400000000000002
   },
   "boardBottomZ": 5.8,
@@ -16,7 +17,10 @@
     "base": {
       "validBrep": true,
       "solidCount": 1,
-      "volumeMm3": 10948.820595392282,
+      "volumeMm3": 21638.594803796757,
+      "stepReadbackValid": true,
+      "stepReadbackSolidCount": 1,
+      "stepReadbackVolumeMm3": 21638.59480379696,
       "meshWatertight": true,
       "meshWindingConsistent": true,
       "meshBodyCount": 1,
@@ -27,8 +31,8 @@
           0.0
         ],
         [
-          46.290000915527344,
-          56.45000076293945,
+          62.0,
+          100.44999694824219,
           18.600000381469727
         ]
       ]
@@ -36,7 +40,10 @@
     "lid": {
       "validBrep": true,
       "solidCount": 1,
-      "volumeMm3": 5102.696989366013,
+      "volumeMm3": 11907.436743721502,
+      "stepReadbackValid": true,
+      "stepReadbackSolidCount": 1,
+      "stepReadbackVolumeMm3": 11907.43674372159,
       "meshWatertight": true,
       "meshWindingConsistent": true,
       "meshBodyCount": 1,
@@ -47,15 +54,156 @@
           1.0000000116860974e-07
         ],
         [
-          46.290000915527344,
-          56.45000076293945,
-          12.75
+          62.0,
+          100.44999694824219,
+          15.0
         ]
       ]
     }
   },
   "baseLidOverlapMm3": 0.0,
   "componentEnvelopeCollisions": [],
+  "batteryReferenceCollisions": [],
+  "batteryBay": {
+    "origin": [
+      2.0,
+      3.4,
+      1.8
+    ],
+    "clearanceMm": [
+      52.0,
+      36.0,
+      12.0
+    ],
+    "nominalBatteryMm": [
+      50.0,
+      34.0,
+      10.0
+    ],
+    "referenceOrigin": [
+      3.0,
+      4.4,
+      2.2
+    ],
+    "wireEndSide": "+X",
+    "wireEndClearanceMm": 7.2,
+    "wireEndAllowance": {
+      "origin": [
+        54.0,
+        4.4,
+        1.8
+      ],
+      "sizeMm": [
+        6.0,
+        34.0,
+        12.0
+      ]
+    },
+    "wireRoute": "Factory lead end toward +X; loose bend in end allowance, then above the cell to the top-open partition notch. No lead pinched by lid/lip or flex arms.",
+    "partitionY": 39.8,
+    "partitionThicknessMm": 1.6,
+    "partitionTopZ": 16.0,
+    "wireSlotMm": [
+      12.0,
+      8.0
+    ],
+    "wireSlotTopOpen": true,
+    "batteryHeldByLidCompression": false
+  },
+  "connectorAllowance": {
+    "origin": [
+      27.0,
+      41.6,
+      2.2
+    ],
+    "sizeMm": [
+      12.0,
+      8.0,
+      10.0
+    ]
+  },
+  "ledWindow": {
+    "centerMm": [
+      26.5,
+      82.13377
+    ],
+    "openingMm": [
+      14.0,
+      12.0
+    ],
+    "positionStatus": "approximate SuperMini GPIO8 blue LED; verify actual module before final print"
+  },
+  "snapLid": {
+    "count": 4,
+    "armThicknessMm": 1.0,
+    "armLengthMm": 13.200000000000001,
+    "rootRadiusMm": 0.8,
+    "locationClearanceMm": 0.4,
+    "windows": [
+      {
+        "side": "left",
+        "centerY": 44.5,
+        "bottomZ": 5.300000000000001,
+        "topZ": 7.800000000000001
+      },
+      {
+        "side": "right",
+        "centerY": 44.5,
+        "bottomZ": 5.300000000000001,
+        "topZ": 7.800000000000001
+      },
+      {
+        "side": "left",
+        "centerY": 87.0,
+        "bottomZ": 5.300000000000001,
+        "topZ": 7.800000000000001
+      },
+      {
+        "side": "right",
+        "centerY": 87.0,
+        "bottomZ": 5.300000000000001,
+        "topZ": 7.800000000000001
+      }
+    ],
+    "releaseSpaceChecks": [
+      {
+        "side": "left",
+        "centerY": 44.5,
+        "boundedReleaseTravelMm": 1.3,
+        "blockedPositions": [],
+        "elasticStrainVerified": false
+      },
+      {
+        "side": "right",
+        "centerY": 44.5,
+        "boundedReleaseTravelMm": 1.3,
+        "blockedPositions": [],
+        "elasticStrainVerified": false
+      },
+      {
+        "side": "left",
+        "centerY": 87.0,
+        "boundedReleaseTravelMm": 1.3,
+        "blockedPositions": [],
+        "elasticStrainVerified": false
+      },
+      {
+        "side": "right",
+        "centerY": 87.0,
+        "boundedReleaseTravelMm": 1.3,
+        "blockedPositions": [],
+        "elasticStrainVerified": false
+      }
+    ],
+    "installationSweepVerified": false,
+    "fatigueOrRetentionForceVerified": false
+  },
+  "powerExit": {
+    "side": "right",
+    "centerY": 52.0,
+    "widthMm": 6.0,
+    "minimumWallToAdjacentSensorNotchMm": 1.4359999999999955
+  },
   "ports": [
     {
       "ref": "J1",
@@ -63,7 +211,7 @@
       "side": "left",
       "y": 25.4,
       "x": -0.5,
-      "yWorld": 31.4,
+      "yWorld": 75.4,
       "width": 4.4,
       "zBottom": 9.0
     },
@@ -73,7 +221,7 @@
       "side": "left",
       "y": 19.811999999999998,
       "x": -0.5,
-      "yWorld": 25.811999999999998,
+      "yWorld": 69.812,
       "width": 4.4,
       "zBottom": 9.0
     },
@@ -83,7 +231,7 @@
       "side": "left",
       "y": 14.224,
       "x": -0.5,
-      "yWorld": 20.224,
+      "yWorld": 64.224,
       "width": 4.4,
       "zBottom": 9.0
     },
@@ -93,7 +241,7 @@
       "side": "left",
       "y": 8.636,
       "x": -0.5,
-      "yWorld": 14.636,
+      "yWorld": 58.635999999999996,
       "width": 4.4,
       "zBottom": 9.0
     },
@@ -102,8 +250,8 @@
       "channel": "CH4",
       "side": "right",
       "y": 25.4,
-      "x": 43.99,
-      "yWorld": 31.4,
+      "x": 59.7,
+      "yWorld": 75.4,
       "width": 4.4,
       "zBottom": 9.0
     },
@@ -112,8 +260,8 @@
       "channel": "CH5",
       "side": "right",
       "y": 19.811999999999998,
-      "x": 43.99,
-      "yWorld": 25.811999999999998,
+      "x": 59.7,
+      "yWorld": 69.812,
       "width": 4.4,
       "zBottom": 9.0
     },
@@ -122,8 +270,8 @@
       "channel": "CH6",
       "side": "right",
       "y": 14.224,
-      "x": 43.99,
-      "yWorld": 20.224,
+      "x": 59.7,
+      "yWorld": 64.224,
       "width": 4.4,
       "zBottom": 9.0
     },
@@ -132,19 +280,20 @@
       "channel": "CH7",
       "side": "right",
       "y": 8.636,
-      "x": 43.99,
-      "yWorld": 14.636,
+      "x": 59.7,
+      "yWorld": 58.635999999999996,
       "width": 4.4,
       "zBottom": 9.0
     }
   ],
   "supportContact": "0.6 mm board edge patches at local y=4 and 31 mm",
-  "scope": "BRep + STL topology and case-vs-reference intersections. Component heights, PCB thickness and cable sizes are assumed, not physical measurements.",
+  "scope": "BRep + STEP readback + STL topology, static case/PCB/component/cell/bay/connector intersections and bounded free lower-arm release travel. No elastic snap or lid insertion sweep analysis.",
   "pending": [
+    "actual battery pack edge seal and connector fit",
+    "lid insertion and elastic retention/release test",
     "assembled heights and USB removal access",
-    "wire bundle diameter and bend radius",
-    "switch actuator reach",
-    "printed lid fit and screw pilot",
+    "wire bundle bend radius and strain relief",
+    "actual LED position and side-wall print strength",
     "RF and thermal test",
     "SuperMini hand-solder footprint adaptation"
   ]

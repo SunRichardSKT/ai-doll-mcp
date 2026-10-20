@@ -85,6 +85,14 @@ class LifecycleTests(unittest.TestCase):
         finally:
             server.server_close()
 
+    def test_upgrade_keeps_startup_opt_in(self):
+        import configure_startup as startup
+        for enabled,matches,expected in [(False,False,1),(True,True,1),(True,False,2)]:
+            with patch.object(startup,'configure',return_value={'enabled':enabled,'matches_current_project':matches}) as configure:
+                startup.migrate_enabled()
+            self.assertEqual(configure.call_count,expected)
+            if expected==2:self.assertEqual(configure.call_args.args,('install',))
+
     @unittest.skipUnless(os.name == 'nt', 'Windows startup')
     def test_startup_dry_run_does_not_edit_registry(self):
         import winreg
@@ -95,17 +103,19 @@ class LifecycleTests(unittest.TestCase):
         self.assertEqual(before, after)
         self.assertEqual(preview['enabled'], before['enabled'])
         self.assertIn('pythonw.exe', preview['command'])
-        self.assertIn('run_background.py', preview['command'])
+        self.assertIn('control_panel.py', preview['command'])
+        self.assertIn('--autostart',preview['command'])
+        self.assertIn('--no-browser',preview['command'])
 
     def test_startup_command_quotes_paths_and_rejects_missing_runtime(self):
         with tempfile.TemporaryDirectory(prefix='AI Doll startup ') as folder:
             root = pathlib.Path(folder)
             (root/'tools').mkdir()
-            (root/'tools/run_background.py').write_text('pass')
+            (root/'tools/control_panel.py').write_text('pass')
             (root/'pythonw.exe').write_text('fixture')
             command = startup_command(root/'python.exe', root)
             self.assertEqual(command, subprocess.list2cmdline([
-                str((root/'pythonw.exe').resolve()), str((root/'tools/run_background.py').resolve())]))
+                str((root/'pythonw.exe').resolve()), '-X', 'utf8', str((root/'tools/control_panel.py').resolve()), '--no-browser', '--autostart']))
             self.assertTrue(command.startswith('"'))
             with self.assertRaises(ValueError):
                 startup_command(root/'missing/python.exe', root)

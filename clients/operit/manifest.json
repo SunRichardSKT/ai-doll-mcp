@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "toolpkg_id": "org.ai_doll.companion",
-  "version": "2.20.0",
+  "version": "2.21.0",
   "api_version": "1.0.0",
   "display_name": "AI Doll",
   "description": "在已有聊天中接收身体互动。一次配置，开始、停止与检查集中管理。",

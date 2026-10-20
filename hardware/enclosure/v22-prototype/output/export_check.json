@@ -1,14 +1,12 @@
 {
-  "stepRoundtrip": {
-    "base": {
-      "valid": true,
-      "volumeMm3": 10948.820595393061
-    },
-    "lid": {
-      "valid": true,
-      "volumeMm3": 5102.696989366086
-    }
-  },
-  "fitTrayWatertight": true,
-  "fitTrayWindingConsistent": true
+  "revision": "V22-ENC-P02",
+  "date": "2026-10-20",
+  "javascriptErrors": [],
+  "modesChecked": 4,
+  "pngFiles": [
+    "preview.png",
+    "assembled.png",
+    "cutaway.png",
+    "lid.png"
+  ]
 }

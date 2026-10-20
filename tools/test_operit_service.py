@@ -41,13 +41,46 @@ class OperitServiceTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     service.save('simulation', host)
 
-    def test_running_mode_change_preserves_original_configuration(self):
+    def test_running_mode_change_that_cannot_stop_preserves_configuration(self):
         service.save('simulation')
         before = service.config()
-        with patch.object(service, 'alive', return_value=True):
-            with self.assertRaisesRegex(ValueError, '先停止'):
+        with patch.object(service, 'alive', return_value=True), patch.object(service, 'terminate') as terminate:
+            with self.assertRaisesRegex(ValueError, '原配置保留'):
                 service.save('device')
+            terminate.assert_called_once()
         self.assertEqual(service.config(), before)
+
+    def test_changed_address_stops_only_owned_service_and_keeps_private_path_history_and_port(self):
+        service.save('device')
+        current = service.config()
+        current['port'] = 8778
+        service.write_json(service.WORK / 'settings-private.json', current)
+        previous_url = service.address(current)
+        history = service.WORK / 'history.sqlite3'
+        history.write_bytes(b'preserve personal history')
+        process = {'pid': 123, 'fixture': True}
+        service.write_json(service.WORK / 'process-private.json', process)
+        with patch.object(service, 'lan_addresses', return_value=['192.168.1.30']), \
+                patch.object(service, 'alive', side_effect=[True, False]), \
+                patch.object(service, 'terminate') as terminate:
+            changed = service.save('device', '192.168.1.30')
+        terminate.assert_called_once_with(process)
+        self.assertTrue(changed['saved'])
+        saved = service.read(service.WORK / 'settings-private.json')
+        self.assertEqual(saved['port'], 8778)
+        self.assertEqual(service.address(saved), previous_url.replace('192.168.1.20', '192.168.1.30'))
+        self.assertEqual(history.read_bytes(), b'preserve personal history')
+
+    def test_stale_address_status_guides_manual_phone_update_without_exposing_private_path(self):
+        service.save('device')
+        private_url = service.address(service.config())
+        with patch.object(service, 'lan_addresses', return_value=['192.168.1.30']):
+            result = service.status()
+        self.assertFalse(result['host_available'])
+        self.assertEqual(result['addresses'], ['192.168.1.30'])
+        self.assertEqual(result['port'], 8775)
+        self.assertIn('无需重新导入或绑定聊天', result['error'])
+        self.assertNotIn(private_url.rsplit('/', 2)[1], json.dumps(result))
 
     def test_repeated_start_reuses_owned_process_and_discovers_real_tools(self):
         service.save('simulation')

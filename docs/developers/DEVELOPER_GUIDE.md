@@ -49,7 +49,7 @@ python -m venv .venv
 
 唯一目标 `supermini-lab`。确认用户需要烧录、实际串口和占用情况后，才用 `build_lab.ps1 -Upload -Port 实际串口`。不自动全片擦除。镜像地址见 [预编译说明](../../firmware/prebuilt/README.md)。
 
-构建后运行 `python tools/export_firmware.py`，导出本次三个编译镜像并为完整四文件更新清单。网页嵌入头文件在构建前生成，不提交。正式 USB 烧录使用 `Flash_ESP32.cmd` 或 `tools/flash_esp32.py`，才能生成新的设备名称及完整日志；PlatformIO 的直接 Upload 仅供开发调试，保留既有设备编号。
+构建后运行 `python tools/export_firmware.py`，导出本次三个编译镜像并为完整四文件更新清单。网页嵌入头文件在构建前生成，不提交。正式 USB 烧录使用 `Flash_ESP32.cmd` 或 `tools/flash_esp32.py`，才能生成新的内部设备编号、可选显示名及完整日志；PlatformIO 的直接 Upload 仅供开发调试，保留既有设备编号。
 
 ## 验证原则与入口
 
@@ -67,10 +67,10 @@ Node / Playwright 页面测试需要开发者另装对应环境，运行 `tools/
 
 ```powershell
 .\python\python.exe tools/package_companion.py
-.\python\python.exe tools/audit_delivery.py delivery/AI_Doll_Code_v2.20.0.zip
-.\python\python.exe tools/audit_delivery.py delivery/AI_Doll_Server_v2.20.0.tar.gz
-.\python\python.exe tools/check_documentation.py --archive delivery/AI_Doll_Code_v2.20.0.zip
-.\python\python.exe tools/check_documentation.py --archive delivery/AI_Doll_Server_v2.20.0.tar.gz
+.\python\python.exe tools/audit_delivery.py delivery/AI_Doll_Code_v2.21.0.zip
+.\python\python.exe tools/audit_delivery.py delivery/AI_Doll_Server_v2.21.0.tar.gz
+.\python\python.exe tools/check_documentation.py --archive delivery/AI_Doll_Code_v2.21.0.zip
+.\python\python.exe tools/check_documentation.py --archive delivery/AI_Doll_Server_v2.21.0.tar.gz
 ```
 
 ZIP / TAR 内 `MANIFEST.json` 是逐文件 SHA-256，ToolPkg 使用 `CHECKSUMS.json`。`DELIVERY_MANIFEST.json` 和 `SHA256SUMS.txt` 记录 Windows、Linux、PCB 与独立手机工具包的哈希。Windows Python 从官方 CPython 和固定 wheel 构建，入口 `tools/build_portable_python.py`；不能打包本机 `.venv`。

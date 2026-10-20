@@ -14,6 +14,7 @@ from mcp import ClientSession
 from mcp.client.streamable_http import streamable_http_client
 from operit_demo import DemoBackend
 from remote_mcp import create_private_remote
+from operit_service import lan_addresses
 
 
 class UnifiedSDKTests(unittest.IsolatedAsyncioTestCase):
@@ -24,11 +25,12 @@ class UnifiedSDKTests(unittest.IsolatedAsyncioTestCase):
             try:
                 with patch('companion_mcp.call', side_effect=demo.call):
                     with socket.socket() as sock:
-                        sock.bind(('127.0.0.1', 0))
+                        host = next(iter(lan_addresses()), '127.0.0.1')
+                        sock.bind((host, 0))
                         port = sock.getsockname()[1]
-                    _, app, store = create_private_remote(folder / 'mcp', port=port)
-                    url = store.local_url('127.0.0.1', port)
-                    server = uvicorn.Server(uvicorn.Config(app, host='127.0.0.1', port=port,
+                    _, app, store = create_private_remote(folder / 'mcp', port=port, listen_host=host)
+                    url = store.local_url(host, port)
+                    server = uvicorn.Server(uvicorn.Config(app, host=host, port=port,
                                                           log_level='critical', access_log=False))
                     thread = threading.Thread(target=server.run, daemon=True)
                     thread.start()

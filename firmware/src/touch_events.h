@@ -161,6 +161,13 @@ static void touchInit(){
    resumeInputs=stored["resume_inputs"].is<bool>()&&stored["resume_inputs"].as<bool>();
   }
  }
+ // Only a genuinely blank installation gets the physical CH0 default.
+ // Older manual/calibrated configurations, including invalid saved data, remain untouched.
+ if(!prefs.isKey("token")&&!prefs.isKey("channels")&&!prefs.isKey("chcfg_blob")){
+  for(int i=0;i<8;i++)channels[i].enabled=(i==0);
+  resumeInputs=true;String error;
+  if(!persistChannels(channels,error,true))resumeInputs=false;
+ }
  // No actuator can resume automatically after reboot.
  initOutputPins();
  if(resumeInputs)applyInputEnabled(true);

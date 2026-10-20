@@ -46,10 +46,21 @@ async function test(ui) {
   assert.ok(good.calls.includes(prefix+'status')&&good.calls.includes(prefix+'list_chats')&&
     good.calls.includes(prefix+'bind_chat')&&good.calls.includes(prefix+'check_connection'));
   tree=await good.context.exports.default(good.bundle.ctx);
+  const address=tree.children.find(n=>n.type==='TextField'&&n.props.label==='电脑 IP（电脑重启后可修改）');
+  assert.equal(address.props.value,'192.168.1.20');
+  await good.bundle.invokeAction(address.props.onValueChange.__actionId,{__composeTextFieldPayload:true,value:'192.168.1.30'});
+  tree=await good.context.exports.default(good.bundle.ctx);
+  const binding=good.f.cfg().binding;
+  await good.bundle.invokeAction(find(tree,'检查并保存电脑 IP').props.onClick.__actionId);
+  assert.equal(good.f.cfg().connection.mcp_url.split('/')[2],'192.168.1.30:8775');
+  assert.equal(good.f.cfg().binding,binding);
+  assert.ok(good.bundle.state.message.includes('聊天绑定与发送记录保留'));
+  tree=await good.context.exports.default(good.bundle.ctx);
   await good.bundle.invokeAction(find(tree,'仅用安卓手机').props.onClick.__actionId);
   tree=await good.context.exports.default(good.bundle.ctx);
   const field=tree.children.find(n=>n.type==='TextField');
   assert.equal(field.props.label,'设备家庭 IP');
+  assert.equal(tree.children.filter(n=>n.type==='TextField').length,1,'phone device IP and computer IP are distinct modes');
   await good.bundle.invokeAction(field.props.onValueChange.__actionId,{__composeTextFieldPayload:true,value:'192.168.1.50'});
   assert.equal(good.bundle.state.deviceHost,'192.168.1.50');
   await good.bundle.invokeAction(find(tree,'15 分钟陪伴').props.onClick.__actionId);

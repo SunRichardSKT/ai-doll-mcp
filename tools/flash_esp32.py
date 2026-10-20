@@ -165,12 +165,26 @@ def capture_existing(port):
         link.close()
 
 
-def set_identity(port, job, expected, timeout):
+def validate_name(name):
+    if name is None:
+        return None
+    if not isinstance(name, str):
+        raise ValueError('设备名称必须是文字。')
+    name = name.strip()
+    if not name or len(name.encode('utf-8')) > 32 or any(ord(c) < 32 or ord(c) == 127 for c in name):
+        raise ValueError('名称需为 1～32 个 UTF-8 字节，不含控制字符；中文通常每字占 3 字节。')
+    return name
+
+
+def set_identity(port, job, expected, timeout, name=None):
     from device_lab import SerialLink
     link = SerialLink(port)
     try:
         try:
-            reply = link.exchange({'cmd':'flash_identity','suffix':job.suffix,'flash_id':job.id}, timeout=3)
+            command = {'cmd':'flash_identity','suffix':job.suffix,'flash_id':job.id}
+            if name is not None:
+                command['name'] = name
+            reply = link.exchange(command, timeout=3)
             if reply.get('error') or reply.get('ok') is not True:
                 raise RuntimeError('设备未保存新编号：'+str(reply.get('error','无有效确认')))
         except (OSError, TimeoutError):
@@ -181,6 +195,9 @@ def set_identity(port, job, expected, timeout):
     state = boot_status(port, expected, timeout=timeout, device_id=job.report['target_device_id'])
     if state.get('flash_id') != job.id:
         raise RuntimeError('烧录编号回读不一致。')
+    expected_name = name or job.report['target_device_id']
+    if state.get('configuration_hotspot') != expected_name or (name and state.get('device_name') != name):
+        raise RuntimeError('名称或热点回读不一致；请使用支持自定义名称的配套固件。')
     return state
 
 
@@ -208,6 +225,8 @@ def _flash(args, job):
     resume = False
     state = {}
     try:
+        name = validate_name(getattr(args, 'name', None))
+        job.update(naming_mode='custom' if name else 'random', requested_name=name)
         job.update(full_erase=bool(args.factory), mode='factory' if args.factory else 'update')
         manifest, pairs = validate_images(args.images)
         job.update(firmware=manifest['firmware'], written_images=manifest['images'],
@@ -239,22 +258,22 @@ def _flash(args, job):
         job.message('写入校验通过，正在确认启动。如未启动，仅点按 RST。')
         state = boot_status(port, manifest['firmware'], timeout=args.boot_timeout)
         job.update(boot_verified=True, phase='identity')
-        state = set_identity(state['serial_port'], job, manifest['firmware'], args.boot_timeout)
+        state = set_identity(state['serial_port'], job, manifest['firmware'], args.boot_timeout, name)
         job.update(identity_verified=True, device_id=state['device_id'], port=state['serial_port'],
                    sensor_mode=state.get('sensor_mode'), network_mode=state.get('network_mode'),
                    configuration_url=state.get('configuration_url'),
                    configuration_hotspot=state.get('configuration_hotspot'),
-                   factory_profile=state.get('factory_profile'))
+                   factory_profile=state.get('factory_profile'), device_name=state.get('device_name',state['device_id']))
         if state.get('configuration_url') != 'http://192.168.4.1/' or not state.get('config_ap_open'):
             raise RuntimeError('启动成功，但固定配置热点未通过回读检查。')
-        if args.factory and (state.get('wifi_connected') or state.get('sensor_mode') != 'simulation'
+        if args.factory and (state.get('wifi_connected') or state.get('sensor_mode') != 'sensor'
                              or state.get('physical_outputs_enabled')
-                             or state.get('factory_profile') != 'safe-manual-v1'):
+                             or state.get('factory_profile') != 'physical-ch0-v1'):
             raise RuntimeError('恢复出厂后的默认状态检查未通过。')
         job.update(pairing_refreshed=refresh_pairing(previous,state))
         job.update(status='success', phase='done', finished_at=dt.datetime.now(dt.timezone.utc).isoformat())
         job.message('烧录成功：'+state['device_id'])
-        job.message('连接热点 '+state['device_id']+'，浏览器打开 http://192.168.4.1/')
+        job.message('连接热点 '+state['configuration_hotspot']+'，浏览器打开 http://192.168.4.1/')
         return job.report
     except Exception as error:
         job.message('失败：'+str(error))
@@ -288,6 +307,7 @@ def flash(args, job=None):
 def main():
     parser = argparse.ArgumentParser(description='ESP32-C3 快速烧录：自动串口、镜像校验、写入校验、启动检查。')
     parser.add_argument('--port')
+    parser.add_argument('--name', help='自定义显示名与热点名，最多 32 个 UTF-8 字节；省略使用随机名称')
     parser.add_argument('--baud', type=int, choices=(115200, 230400, 460800, 921600), default=460800)
     parser.add_argument('--images', type=Path, default=ROOT/'firmware/prebuilt')
     parser.add_argument('--check', action='store_true', help='只校验镜像，不访问开发板')

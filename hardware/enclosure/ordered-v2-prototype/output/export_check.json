@@ -1,16 +1,23 @@
 {
+  "revision": "ORDERED-V2-ENC-P03",
+  "date": "2026-10-20",
   "stepRoundtrip": {
     "base": {
       "valid": true,
-      "volumeMm3": 11008.706350013657
+      "volumeMm3": 21195.875354212887,
+      "solidCount": 1,
+      "volumeDifferenceMm3": 2.0372681319713593e-10
     },
     "lid": {
       "valid": true,
-      "volumeMm3": 5186.20876104894
+      "volumeMm3": 12608.575528398054,
+      "solidCount": 1,
+      "volumeDifferenceMm3": 3.637978807091713e-11
     }
   },
   "fitTrayWatertight": true,
   "fitTrayWindingConsistent": true,
+  "fitTrayBodyCount": 1,
   "userHeightInput": {
     "value": 8.0,
     "unit": "mm",
@@ -18,5 +25,6 @@
     "datum": "main PCB upper surface to highest USB shell surface",
     "date": "2026-10-17"
   },
-  "physicallyFitTested": false
+  "physicallyFitTested": false,
+  "elasticStressTested": false
 }

@@ -51,15 +51,89 @@ class FlashTests(unittest.TestCase):
                 self.assertTrue(job.logfile.exists())
                 self.assertEqual(json.loads(job.reportfile.read_text())['target_device_id'],'AI-Doll-'+job.suffix)
 
-    def run_flash(self, factory=False, probe='Detected flash size: 4MB\nMAC: aa:bb:cc:dd:ee:ff', boot_error=None):
+    def test_names_use_utf8_bytes_and_preserve_spaces_inside(self):
+        self.assertIsNone(flasher.validate_name(None))
+        self.assertEqual(flasher.validate_name('  小 樱  '), '小 樱')
+        self.assertEqual(flasher.validate_name('樱'*10+'AB'), '樱'*10+'AB')
+        for name in ('樱'*11, 'a'*33, '', '  ', 'head\nfoot', 'a\x00b', 42):
+            with self.subTest(name=repr(name)), self.assertRaises(ValueError):
+                flasher.validate_name(name)
+
+    def identity_state(self, job, name=None):
+        return {'serial_port':'COM4', 'device_id':job.report['target_device_id'],
+                'flash_id':job.id, 'device_name':name or job.report['target_device_id'],
+                'configuration_hotspot':name or job.report['target_device_id']}
+
+    def test_custom_name_is_sent_to_board_and_internal_id_stays_random(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            job = flasher.FlashJob(temporary)
+            state = self.identity_state(job, '小樱')
+            with patch('device_lab.SerialLink') as serial, patch.object(flasher, 'boot_status', return_value=state) as boot:
+                serial.return_value.exchange.return_value = {'ok':True}
+                self.assertEqual(flasher.set_identity('COM4',job,'manifest-version',5,'小樱'),state)
+            serial.return_value.exchange.assert_called_once_with(
+                {'cmd':'flash_identity','suffix':job.suffix,'flash_id':job.id,'name':'小樱'},timeout=3)
+            boot.assert_called_once_with('COM4','manifest-version',timeout=5,device_id='AI-Doll-'+job.suffix)
+            self.assertNotEqual(state['device_id'], state['device_name'])
+            serial.return_value.close.assert_called_once()
+
+    def test_random_name_omits_custom_field_and_verifies_hotspot_after_reboot(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            job = flasher.FlashJob(temporary)
+            state = self.identity_state(job)
+            with patch('device_lab.SerialLink') as serial, patch.object(flasher, 'boot_status', return_value=state):
+                serial.return_value.exchange.side_effect = TimeoutError('reboot acknowledgement lost')
+                self.assertEqual(flasher.set_identity('COM4',job,'manifest-version',5),state)
+            self.assertNotIn('name',serial.return_value.exchange.call_args.args[0])
+
+    def test_wrong_name_or_flash_id_is_not_reported_as_success(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            job = flasher.FlashJob(temporary)
+            for changes in ({'device_name':'old'}, {'configuration_hotspot':'old'}, {'flash_id':'old'}):
+                state = dict(self.identity_state(job,'小樱'), **changes)
+                with self.subTest(changes=changes), patch('device_lab.SerialLink') as serial, \
+                     patch.object(flasher, 'boot_status', return_value=state):
+                    serial.return_value.exchange.return_value = {'ok':True}
+                    with self.assertRaises(RuntimeError):
+                        flasher.set_identity('COM4',job,'manifest-version',5,'小樱')
+
+    def test_device_rejection_does_not_proceed_to_boot_verification(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            job = flasher.FlashJob(temporary)
+            with patch('device_lab.SerialLink') as serial, patch.object(flasher,'boot_status') as boot:
+                serial.return_value.exchange.return_value = {'error':'unsupported name'}
+                with self.assertRaisesRegex(RuntimeError,'unsupported name'):
+                    flasher.set_identity('COM4',job,'manifest-version',5,'小樱')
+                boot.assert_not_called()
+
+    def test_custom_hotspot_is_not_used_as_pairing_identity(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            folder=Path(temporary)
+            job=flasher.FlashJob(folder/'flash')
+            state=self.identity_state(job,'小樱')
+            config=folder/'device-private.json'
+            config.write_text(json.dumps({'device_id':'AI-Doll-old','history_path':'keep.db',
+                                          'calibration_note':'keep'}),encoding='utf-8')
+            with patch('device_lab.CONFIG',config),patch('device_lab.SerialLink') as serial:
+                serial.return_value.exchange.return_value={'ap_ssid':'小樱','mcp_token':'fixture-token'}
+                self.assertTrue(flasher.refresh_pairing({'device_id':'AI-Doll-old'},state))
+            saved=json.loads(config.read_text(encoding='utf-8'))
+            self.assertEqual(saved['device_id'],job.report['target_device_id'])
+            self.assertEqual(saved['ap_ssid'],'小樱')
+            self.assertEqual(saved['history_path'],'keep.db')
+            self.assertEqual(saved['calibration_note'],'keep')
+
+    def run_flash(self, factory=False, probe='Detected flash size: 4MB\nMAC: aa:bb:cc:dd:ee:ff', boot_error=None, name=None, state_changes=None):
         temporary=tempfile.TemporaryDirectory();self.addCleanup(temporary.cleanup)
         root=Path(temporary.name)
-        args=SimpleNamespace(images=ROOT/'firmware/prebuilt',port='COM4',baud=460800,factory=factory,boot_timeout=5)
+        args=SimpleNamespace(images=ROOT/'firmware/prebuilt',port='COM4',baud=460800,factory=factory,boot_timeout=5,name=name)
         job=flasher.FlashJob(root/'build/flash')
         state={'serial_port':'COM4','firmware':'test','device_id':job.report['target_device_id'],
-               'configuration_url':'http://192.168.4.1/','configuration_hotspot':job.report['target_device_id'],
-               'config_ap_open':True,'sensor_mode':'simulation','physical_outputs_enabled':False,
-               'wifi_connected':False,'factory_profile':'safe-manual-v1','flash_id':job.id}
+               'configuration_url':'http://192.168.4.1/','configuration_hotspot':name or job.report['target_device_id'],
+               'device_name':name or job.report['target_device_id'],
+               'config_ap_open':True,'sensor_mode':'sensor','physical_outputs_enabled':False,
+               'wifi_connected':False,'factory_profile':'physical-ch0-v1','flash_id':job.id}
+        state.update(state_changes or {})
         with patch.object(flasher,'ROOT',root), patch.object(flasher,'pause_collector',return_value=False), \
              patch.object(flasher,'capture_existing',return_value={}), patch.object(flasher,'select_port',return_value='COM4'), \
              patch.object(flasher,'run_tool',return_value=probe) as tool, \
@@ -82,6 +156,28 @@ class FlashTests(unittest.TestCase):
         self.assertEqual(result['status'],'success')
         calls=[c.args[0] for c in tool.call_args_list]
         self.assertIn('erase_flash',calls[1]);self.assertIn('write_flash',calls[2])
+
+    def test_factory_defaults_require_real_input_and_disarmed_outputs(self):
+        for changes in ({'sensor_mode':'simulation'}, {'physical_outputs_enabled':True},
+                        {'factory_profile':'safe-manual-v1'}):
+            with self.subTest(changes=changes):
+                result,_,_=self.run_flash(factory=True,state_changes=changes)
+                self.assertEqual(result['status'],'failed')
+                self.assertIn('默认状态',result['error'])
+
+    def test_named_flash_keeps_random_pairing_id_and_records_actual_hotspot(self):
+        result,_,job=self.run_flash(name='小樱')
+        self.assertEqual(result['status'],'success')
+        self.assertEqual(result['device_id'],'AI-Doll-'+job.suffix)
+        self.assertEqual(result['configuration_hotspot'],'小樱')
+        self.assertEqual(result['naming_mode'],'custom')
+
+    def test_invalid_name_never_accesses_board(self):
+        with tempfile.TemporaryDirectory() as temporary, patch.object(flasher,'ROOT',Path(temporary)):
+            with patch.object(flasher,'pause_collector') as pause, patch.object(flasher,'run_tool') as tool:
+                result=flasher.flash(SimpleNamespace(name='a'*33))
+            self.assertEqual(result['status'],'failed')
+            pause.assert_not_called();tool.assert_not_called()
 
     def test_wrong_chip_capacity_never_writes(self):
         result,tool,job=self.run_flash(probe='Detected flash size: 8MB')

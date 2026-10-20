@@ -1,0 +1,219 @@
+{
+  "revision": "ORDERED-V2-STACK-P01",
+  "units": "mm",
+  "dimensionsMm": {
+    "width": 46.29,
+    "length": 56.45,
+    "height": 35.2
+  },
+  "physicalFitTested": false,
+  "sourcePcbIdentity": "ordered-gerber-20260920",
+  "sourceHashes": {
+    "Gerber_BoardOutlineLayer.GKO": "f1d7b80135dc224b1e422e4676be557f8011b96a7933f585ff61aeef7d7e7d3c",
+    "FlyingProbeTesting.json": "7bc61db2388efb332ca0e212e718002ed51946e173f6d3331f5e0b70954893a4",
+    "Drill_PTH_Through.DRL": "4e439ef549dd07724207f5b2c72e169713ceb5498ac0d09c87787733df7db573"
+  },
+  "userMeasurement": {
+    "date": "2026-10-20",
+    "pin_tip_to_switch_top_mm": 15.0,
+    "bottom_pin_length_mm": 5.0,
+    "quality": "approximate",
+    "module_height_above_pcb_mm": 8.0,
+    "module_measurement_date": "2026-10-17",
+    "interpretation": "15 mm includes 5 mm bottom pins, assumed 1.6 mm PCB, and 8.4 mm above PCB to switch actuator tip. This is an envelope, not a vendor switch body height."
+  },
+  "heightStackMm": {
+    "floorTop": 1.8,
+    "batteryReferenceTop": 12.2,
+    "batteryReserveTop": 13.8,
+    "trayBottom": 13.8,
+    "trayTop": 15.200000000000001,
+    "pinTip": 16.200000000000003,
+    "pcbBottom": 21.200000000000003,
+    "pcbTop": 22.800000000000004,
+    "switchActuatorTip": 31.200000000000003,
+    "moduleTop": 30.800000000000004,
+    "roofBottom": 33.400000000000006,
+    "lidTop": 35.2
+  },
+  "printedParts": [
+    "base",
+    "tray",
+    "lid"
+  ],
+  "footprintUnchangedFromNoBattery": true,
+  "checks": {
+    "base": {
+      "validBrep": true,
+      "solids": 1,
+      "meshWatertight": true,
+      "meshWindingConsistent": true,
+      "meshBodies": 1,
+      "volumeMm3": 15565.475545981386,
+      "stepRoundtripVolumeError": 2.3646862246096134e-10,
+      "stlRelativeVolumeError": 3.8393652139849897e-05
+    },
+    "tray": {
+      "validBrep": true,
+      "solids": 1,
+      "meshWatertight": true,
+      "meshWindingConsistent": true,
+      "meshBodies": 1,
+      "volumeMm3": 3490.2377339297273,
+      "stepRoundtripVolumeError": 2.7284841053187847e-12,
+      "stlRelativeVolumeError": 1.1077627336459124e-06
+    },
+    "lid": {
+      "validBrep": true,
+      "solids": 1,
+      "meshWatertight": true,
+      "meshWindingConsistent": true,
+      "meshBodies": 1,
+      "volumeMm3": 5585.371618058578,
+      "stepRoundtripVolumeError": 6.366462912410498e-12,
+      "stlRelativeVolumeError": 9.273207770078375e-06
+    }
+  },
+  "componentEnvelopeCollisions": [],
+  "partIntersectionsMm3": {
+    "base/tray": 0.0,
+    "base/lid": 0.0,
+    "tray/lid": 0.0
+  },
+  "reservedClearancesMm3": {
+    "battery_36x52x12": {
+      "base": 0.0,
+      "tray": 0.0,
+      "lid": 0.0
+    },
+    "PH2_allowance_12x8x10": {
+      "base": 0.0,
+      "tray": 0.0,
+      "lid": 0.0
+    },
+    "wire_riser": {
+      "base": 0.0,
+      "tray": 0.0,
+      "lid": 0.0
+    }
+  },
+  "snapRetractedChecksMm3": [
+    {
+      "base": 0.0,
+      "tray": 0.0,
+      "battery_clearance": 0.0,
+      "PCB": 0.0,
+      "module": 0.0,
+      "base_sampled_lift_0_to_13mm": 0.0
+    },
+    {
+      "base": 0.0,
+      "tray": 0.0,
+      "battery_clearance": 0.0,
+      "PCB": 0.0,
+      "module": 0.0,
+      "base_sampled_lift_0_to_13mm": 0.0
+    },
+    {
+      "base": 0.0,
+      "tray": 0.0,
+      "battery_clearance": 0.0,
+      "PCB": 0.0,
+      "module": 0.0,
+      "base_sampled_lift_0_to_13mm": 0.0
+    },
+    {
+      "base": 0.0,
+      "tray": 0.0,
+      "battery_clearance": 0.0,
+      "PCB": 0.0,
+      "module": 0.0,
+      "base_sampled_lift_0_to_13mm": 0.0
+    }
+  ],
+  "battery": {
+    "nominalMm": [
+      34,
+      50,
+      10
+    ],
+    "clearanceMm": [
+      36,
+      52,
+      12
+    ],
+    "orientation": "long axis +Y, leads +Y then upward through tray notch",
+    "wireExitEndGapMm": 1.8500000000000085,
+    "cellToTrayGapMm": 1.6000000000000014,
+    "cellToLowestPinMm": 4.0000000000000036,
+    "wireBendTested": false
+  },
+  "tray": {
+    "thicknessMm": 1.4,
+    "bottomPinClearanceMm": 1.0000000000000018,
+    "removable": true,
+    "pressureOnBattery": false
+  },
+  "switchWell": {
+    "centerMm": [
+      35.210127,
+      47.2750127
+    ],
+    "floorTopMm": 30.200000000000003,
+    "actuatorTipMm": 31.200000000000003,
+    "actuatorAboveLocalFloorMm": 1.0,
+    "actuatorBelowOuterTopMm": 4.0,
+    "openingMm": [
+      10.4,
+      5.8
+    ],
+    "reachPhysicallyTested": false,
+    "description": "Recessed finger well, no claim actuator protrudes above the whole roof"
+  },
+  "ledWindow": {
+    "centerMm": [
+      16.97,
+      39.512
+    ],
+    "sizeMm": [
+      14.0,
+      12.0
+    ],
+    "physicalAlignmentTested": false
+  },
+  "snaps": {
+    "count": 4,
+    "walls": [
+      "front",
+      "back"
+    ],
+    "deflectionMm": 0.5000000000000002,
+    "elasticTested": false
+  },
+  "connectorAllowance": {
+    "x": 16.5,
+    "y": 7.2,
+    "z": 22.95,
+    "width": 12.0,
+    "length": 8.0,
+    "height": 10.0
+  },
+  "wireRiser": {
+    "x": 17.145,
+    "y": 50.85,
+    "z": 12.2,
+    "width": 12.0,
+    "length": 3.5,
+    "height": 10.0
+  },
+  "scope": "Exported topology, declared rigid clearances and sampled clip envelope. Not stress, continuous insertion, thermal or RF validation.",
+  "pending": [
+    "actual pin and switch measurements",
+    "battery seam and upward lead bend",
+    "connector and wire route above PCB",
+    "switch lever finger access",
+    "PETG snap fit and fatigue",
+    "RF with battery below antenna",
+    "temperature and drop test"
+  ]
+}

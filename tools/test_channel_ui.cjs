@@ -13,6 +13,8 @@ const fs=require('fs'),path=require('path');const {chromium}=require('playwright
   ]){
    const errors=[];page.on('pageerror',e=>errors.push(e.message));if(url)await page.goto(url);
    await page.waitForFunction(()=>document.querySelectorAll('#parts input[name=channel_name]').length===8);
+   await page.locator('#developerOptions>summary').click();
+   await page.locator('#debugReadings>summary').click();
    const original=await page.evaluate(()=>tool('get_channel_config'));
    try{
     await page.click('#addChannel');await page.selectOption('#type8','temperature');await page.fill('#part8','页面温度测试');

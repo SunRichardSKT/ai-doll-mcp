@@ -11,6 +11,19 @@ const url=process.argv[2];
   await f.invoke('setup',{connection_json:JSON.stringify({...f.connection,mcp_url:url})});
   await f.invoke('bind_chat',{chat_id:'operit-sdk-chat'});
   await f.invoke('check_connection');
+  if(new URL(url).hostname!=='127.0.0.1'){
+    // Only the stale phone-side address is a fixture. Candidate probing uses
+    // the actual MCP HTTP service with its persisted private path and port.
+    const saved=f.cfg(),binding=saved.binding,workflowIds=JSON.stringify(saved.workflows);
+    const old=new URL(url);old.hostname=old.hostname==='192.168.254.254'?'192.168.254.253':'192.168.254.254';
+    saved.connection.mcp_url=old.toString();f.disk.set('/managed/settings.json',JSON.stringify(saved));
+    const journalPath='/managed/delivery_'+binding+'.json';
+    f.disk.set(journalPath,JSON.stringify({schema:1,chat_id:saved.chat.id,mcp_url:old.toString(),pending:null,session_id:null}));
+    await f.invoke('update_computer_address',{host:new URL(url).hostname});
+    assert.equal(f.cfg().connection.mcp_url,url);assert.equal(f.cfg().binding,binding);
+    assert.equal(JSON.stringify(f.cfg().workflows),workflowIds);
+    assert.equal(f.messages.length,0,'DHCP repair only probes MCP; it does not send to chat');
+  }
   const settings=f.cfg();settings.duration_sec=3;
   f.disk.set('/managed/settings.json',JSON.stringify(settings));
   // First prove only host return semantics using the visible diagnostic path.

@@ -258,6 +258,7 @@ class RecoveringSerialLink(SerialLink):
     def __init__(self, port, config, promote, recovered):
         super().__init__(port)
         self.config, self.promote, self.recovered = config, promote, recovered
+        self.serial_recovered = None
         self.wifi = None
         self.retry_after, self.retry_delay = 0, 2
 
@@ -295,6 +296,29 @@ class RecoveringSerialLink(SerialLink):
             if self.wifi is not candidate:
                 candidate.close()
 
+    def recover_serial(self):
+        """Try CDC candidates with a status read only, then require paired identity."""
+        from serial.tools.list_ports import comports
+        expected, _ = paired_identity(self.config)
+        for port in comports():
+            if port.device == self.port or port.vid not in (0x303a, 0x1a86, 0x10c4):
+                continue
+            candidate = SerialLink(port.device)
+            try:
+                state = candidate.exchange({'cmd': 'status'}, timeout=2)
+                if state.get('device_id') != expected:
+                    continue
+                if self.serial_recovered:
+                    self.serial_recovered(port.device)
+                super().close()
+                self.port = port.device
+                return True
+            except (OSError, TimeoutError):
+                continue
+            finally:
+                candidate.close()
+        return False
+
     def exchange(self, command, timeout=8):
         if self.wifi:
             return self.wifi.exchange(command, timeout)
@@ -308,6 +332,8 @@ class RecoveringSerialLink(SerialLink):
         except (OSError, TimeoutError):
             if read_only:
                 try:
+                    if self.recover_serial():
+                        return super().exchange(command, timeout)
                     found = self.discover(update_connection=True)
                     if found.get('updated'):
                         return self.wifi.exchange(command, timeout)
@@ -371,4 +397,8 @@ def create_device_link(environ=None, config_path=CONFIG, connection_path=None):
             pass
         else:
             link = RecoveringSerialLink(port, config, recovered, recovered)
+            def serial_recovered(new_port):
+                save_connection(connection_path, 'usb', host, new_port)
+                info.update(transport='usb', device_host=None, serial_port=new_port, last_address_recovery=time.time())
+            link.serial_recovered = serial_recovered
     return link, info

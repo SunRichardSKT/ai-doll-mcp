@@ -8,7 +8,7 @@ import threading
 from types import SimpleNamespace
 import webbrowser
 
-from flash_esp32 import ROOT, FlashJob, flash, validate_images, select_port
+from flash_esp32 import ROOT, FlashJob, flash, validate_images, select_port, validate_name
 from service_lifecycle import ExclusiveLoopbackServer, ServiceLease, ServiceAlreadyRunning
 
 PORT = 8770
@@ -49,19 +49,20 @@ class Flasher:
                     result_folder=str(job.folder) if job else None)
 
     def start(self, data):
-        if not isinstance(data,dict) or set(data)-{'port','factory','factory_confirmed'}:
+        if not isinstance(data,dict) or set(data)-{'port','factory','factory_confirmed','name'}:
             raise ValueError('请求格式不正确。')
         if not isinstance(data.get('port',''),str) or type(data.get('factory',False)) is not bool:
             raise ValueError('串口或烧录方式不正确。')
         if data.get('factory') and data.get('factory_confirmed') is not True:
             raise ValueError('恢复出厂需要勾选清除设备设置确认。')
+        name = validate_name(data.get('name'))
         with self.lock:
             if self.running:
                 raise RuntimeError('正在烧录，请等待完成。')
             self.job = FlashJob()
             self.running = True
             job = self.job
-        args = SimpleNamespace(port=data.get('port') or None, baud=460800,
+        args = SimpleNamespace(port=data.get('port') or None, baud=460800, name=name,
                                images=ROOT/'firmware/prebuilt', factory=data.get('factory',False), boot_timeout=180)
         def worker():
             try:

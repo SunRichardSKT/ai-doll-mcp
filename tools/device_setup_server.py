@@ -1,6 +1,7 @@
 """Loopback companion UI; device transport may be USB or authenticated LAN Wi-Fi."""
 from http.server import ThreadingHTTPServer,BaseHTTPRequestHandler
 import json,secrets,threading,time,os,hmac,traceback
+import ipaddress
 import asyncio
 from urllib.parse import urlsplit,parse_qs
 from mcp_events_adapter import MCPEventsAdapter
@@ -13,6 +14,16 @@ from device_transport import VERSION,create_device_link
 from service_lifecycle import ServiceLease,ServiceAlreadyRunning,ExclusiveLoopbackServer
 DEVICE_LINK=None
 CONNECTION=None
+
+def current_device_ip(companion):
+    checked, status = getattr(companion, 'last_device_status', (0, {}))
+    if companion.error or time.time()-checked > 15 or not status.get('wifi_connected'):
+        return None
+    try:
+        address = ipaddress.ip_address(status.get('ip', ''))
+        return str(address) if address.version == 4 and not (address.is_unspecified or address.is_loopback) else None
+    except ValueError:
+        return None
 def exchange(command):
     try:
         return DEVICE_LINK.exchange(command)
@@ -135,6 +146,7 @@ class Handler(BaseHTTPRequestHandler):
         if self.path=='/connection':
             if not self.authorized():return self.send(403,{'error':'Forbidden'})
             return self.send(200,dict(CONNECTION,collector_error=COMPANION.error,last_sync=COMPANION.last_sync,
+                device_ip=current_device_ip(COMPANION),
                 discovery_available=callable(getattr(DEVICE_LINK,'discover',None))))
         if self.headers.get('X-CSRF-Token')!=CSRF:return self.send(403,{'error':'Forbidden'})
         if self.path=='/companion/state':

@@ -1,5 +1,5 @@
 param(
-    [ValidateSet('install','configure','start','status','stop','reset-address')][string]$Action='start',
+    [ValidateSet('install','configure','start','repair','status','stop','reset-address')][string]$Action='start',
     [string]$DeviceHost=''
 )
 $ErrorActionPreference='Stop'

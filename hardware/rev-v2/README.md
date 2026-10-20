@@ -4,7 +4,8 @@
 
 | 文件或目录 | 用途 |
 | --- | --- |
-| [已制旧板外壳 P02](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/ordered-v2-prototype/README.md) | 按原下单位置制作；通孔架高安装，采用用户约 8 mm 叠高，总高 20.8 mm；待试装 |
+| [已制旧板平铺外壳 P03](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/ordered-v2-prototype/README.md) | 按原下单位置制作；通孔架高安装，采用用户约 8 mm 叠高，总高 20.8 mm；待试装 |
+| [旧板上下堆叠外壳 P01](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/ordered-v2-stacked/README.md) | 电池下置、绝缘载架、下沉开关口；46.29×56.45×35.2mm；待打印试装 |
 | [外壳设计入口](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/README.md) | 区分已制旧板与 V2.2 新紧凑板，避免混用外壳 |
 | [V2.2 双层布线候选（2026-10-17）](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/rev-v2/candidates/pcb-v22-routed-20261017/README.md) | 26 网已布线、双面地铜；网表同步后完整原生 DRC 通过，手焊封装和装配适配待定版，不能下单 |
 | [V2.2 紧凑贴片布局候选（2026-10-16）](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/rev-v2/candidates/pcb-v22-20261016/README.md) | SuperMini 贴片安装、两组线束固定孔、原板尺寸；未布线、不能下单，先查看布局预览及封装适配限制 |

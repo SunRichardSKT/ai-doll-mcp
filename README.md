@@ -2,9 +2,9 @@
 
 把娃娃的触摸与按压，接入你正在使用的 AI 聊天。继续使用原来的模型、人设和上下文，让 AI 在原对话中回应身体互动，也能查询过去的互动记录。
 
-**当前版本：2.20.0 预发布版 · ESP32-C3 固件：2.9.0**
+**当前发布：2.21.0 · ESP32-C3 固件：2.10.0**
 
-[下载与发布说明](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.20.0) · [完整教程目录](docs/README.md) · [故障排查](docs/TROUBLESHOOTING.md) · [给 AI 的安装指南](docs/ai/AI_GUIDE.md)
+[下载与发布说明](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.21.0) · [完整教程目录](docs/README.md) · [故障排查](docs/TROUBLESHOOTING.md) · [给 AI 的安装指南](docs/ai/AI_GUIDE.md)
 
 ## 目录
 
@@ -33,9 +33,9 @@
 
 2026-10-19 源码更新：改进已配对设备的快速搜索、IP 变化恢复和 USB 失效后的 Wi-Fi 恢复，保留历史与校准。相关 59 项测试通过，本机已验证恢复链路；无需重新烧录。操作见 [连接恢复](docs/daily/WIFI_CONNECTION.md)。
 
-硬件新增 [V2.2 双层布线候选](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/rev-v2/candidates/pcb-v22-routed-20261017/README.md)和 [外壳设计入口](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/README.md)。已制旧板使用 P02 外壳，不能与新紧凑板的 P01 混用；两者均待实物试装。
+硬件新增 [V2.2 双层布线候选](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/rev-v2/candidates/pcb-v22-routed-20261017/README.md)和 [外壳设计入口](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/README.md)。平铺电池仓包括旧板 P03、新紧凑板 P02；另有旧板 [上下堆叠 P01](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/ordered-v2-stacked/README.md)，保持原无电池壳46.29×56.45mm长宽，总厚35.2mm，带可拆绝缘载架和下沉开关口。三种候选均有103450电池空间与指示灯窗口，均待打印试装。
 
-[本次更新与验证范围](docs/reports/UPDATE_20261019.md)。上述更新已进入源码；下方 v2.20.0 完整安装包仍为 2026-10-16 的交付，尚未包含本次连接恢复改动。
+[2.21 改动与验证范围](docs/reports/RELEASE_2_21.md)：完整启动恢复、Operit 修改电脑 IP、自定义烧录名称、真实 CH0 默认和开发者调试窗口。Windows、Linux、Operit、PCB及独立外壳模型均从本版Release下载；目标手机、新固件实机升级和外壳试装边界见更新记录。[此前更新](docs/reports/UPDATE_20261019.md)。
 
 ## 选择适合你的使用方式
 
@@ -56,10 +56,11 @@
 
 | 使用者 | 下载 | 下载后做什么 |
 | --- | --- | --- |
-| Windows 用户 | [Windows 完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.20.0/AI_Doll_Code_v2.20.0.zip) | 完整解压，保留内置 Python，双击对应入口 |
-| Operit 安卓用户 | [AI_Doll_Operit.toolpkg](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.20.0/AI_Doll_Operit.toolpkg) | 在 Operit 包管理中导入，选择连接方式并绑定原聊天 |
-| Linux 服务器用户 | [Linux 小型服务包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.20.0/AI_Doll_Server_v2.20.0.tar.gz) | 按 [服务器指南](docs/integrations/REMOTE_SERVER_SETUP.md)运行安装脚本 |
-| 采购、制作或焊接主板 | [PCB 与硬件交付包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.20.0/AI_Doll_PCB_V2_20261016.zip) | 新版丝印与背面镜像已修正；重新下单前核对现有网表不匹配 |
+| Windows 用户 | [Windows 完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.21.0/AI_Doll_Code_v2.21.0.zip) | 完整解压，保留内置 Python，双击对应入口 |
+| Operit 安卓用户 | [AI_Doll_Operit.toolpkg](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.21.0/AI_Doll_Operit.toolpkg) | 在 Operit 包管理中导入，选择连接方式并绑定原聊天 |
+| Linux 服务器用户 | [Linux 小型服务包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.21.0/AI_Doll_Server_v2.21.0.tar.gz) | 按 [服务器指南](docs/integrations/REMOTE_SERVER_SETUP.md)运行安装脚本 |
+| 采购、制作或焊接主板 | [PCB 与硬件交付包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.21.0/AI_Doll_PCB_V2_20261016.zip) | 新版丝印与背面镜像已修正；重新下单前核对现有网表不匹配 |
+| 3D打印外壳 | [全部模型](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.21.0/AI_Doll_Enclosures_103450_20261020.zip) / [旧板上下堆叠版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.21.0/AI_Doll_Enclosure_Stacked_103450_20261020.zip) | 含STL、STEP、离线预览及检查说明；先按实物主板选择版本 |
 
 Windows 完整包自带运行环境，**无需另装 Python 或 Arduino**。仅使用 Operit 手机直连时，不需要下载 Windows 包，也不需要安装额外的服务器软件。
 
@@ -179,7 +180,7 @@ Windows 完整包自带运行环境，**无需另装 Python 或 Arduino**。仅�
 | 手机连接电脑服务 | 使用手机可达的电脑局域网地址，不能使用电脑的 `127.0.0.1` |
 | 设备离线、连接失败或没有反馈 | 先看 [故障排查](docs/TROUBLESHOOTING.md)，再核对所选路线的操作指南 |
 
-配网成功后，设备热点和固定配置页仍保留；`192.168.4.1` 不是设备在家庭网络中的固定地址。每次 USB 烧录会生成新设备名称，日常重启保持名称；标准烧录保留配置，恢复出厂才按对应流程清空。
+配网成功后，设备热点和固定配置页仍保留；`192.168.4.1` 不是设备在家庭网络中的固定地址。每次 USB 烧录会生成新内部设备编号，显示名可自定义，日常重启保持名称；标准烧录保留配置，恢复出厂才按对应流程清空。
 
 ## 数据与许可证
 

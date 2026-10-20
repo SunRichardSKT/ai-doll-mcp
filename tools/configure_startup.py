@@ -14,10 +14,10 @@ NAME = 'AI_Doll_MCP_' + hashlib.sha256(str(ROOT).casefold().encode()).hexdigest(
 
 def startup_command(python=None, root=ROOT):
     executable = pathlib.Path(python or sys.executable).with_name('pythonw.exe')
-    script = pathlib.Path(root)/'tools/run_background.py'
+    script = pathlib.Path(root)/'tools/control_panel.py'
     if not executable.is_file() or not script.is_file():
         raise ValueError('A usable pythonw.exe and the companion background entry point are required')
-    return subprocess.list2cmdline([str(executable.resolve()), str(script.resolve())])
+    return subprocess.list2cmdline([str(executable.resolve()), '-X', 'utf8', str(script.resolve()), '--no-browser', '--autostart'])
 
 
 def configure(action, dry_run=False):
@@ -47,7 +47,15 @@ def configure(action, dry_run=False):
     return dict(action=action, dry_run=dry_run, enabled=stored is not None,
                 matches_current_project=bool(command and stored == command),
                 command=command, registry_value=NAME, applies_at='next Windows login',
-                message='Uses saved transport and existing pairing; does not start or stop the current service')
+                message='下次登录恢复采集、本地 MCP、已配置隧道和已启用 Operit；不会自动开始互动。')
+
+
+def migrate_enabled():
+    """Keep the user's opt-in; upgrade only this installation's legacy entry."""
+    state = configure('status')
+    if state['enabled'] and not state['matches_current_project']:
+        return configure('install')
+    return state
 
 
 if __name__ == '__main__':

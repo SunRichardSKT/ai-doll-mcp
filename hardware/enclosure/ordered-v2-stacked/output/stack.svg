@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="650" viewBox="0 0 1040 650">
+<defs><marker id="arrow" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" orient="auto-start-reverse"><path d="M0,0 L7,3.5 L0,7" fill="#576c60"/></marker></defs>
+<rect width="1040" height="650" rx="22" fill="#f4f5ef"/>
+<g font-family="Segoe UI,Microsoft YaHei,sans-serif" fill="#294536">
+<text x="48" y="48" font-size="14" letter-spacing="2">AI DOLL · STACK P01 · 已制板上下堆叠版</text>
+<text x="48" y="90" font-size="29" font-weight="650">保留原长宽，只增加厚度</text>
+<text x="48" y="121" font-size="15" fill="#677b6c">46.29 × 56.45 × 35.2 mm　·　以下为宽度方向层叠示意，非精密器件剖面</text>
+<!-- Exterior floor, side walls and upper roof. Coordinates use 9 px/mm. -->
+<g fill="#bdc8bb" stroke="#687f6d" stroke-width="1.2">
+<path d="M70,229.4 H86.2 V513.8 H470.41 V229.4 H486.61 V530 H70 Z"/>
+<path d="M70,213.2 H332.9 V229.4 H70 Z M449.9,213.2 H486.61 V229.4 H449.9 Z" fill="#e5eadf"/>
+<path d="M332.9,228 V269 H340 V258.2 H340 V228 Z M442.7,228 V258.2 H433.7 V269 H449.9 V228 Z" fill="#e5eadf"/>
+</g>
+<!-- Cell below removable insulating carrier; no pin touches the battery. -->
+<rect x="125.305" y="420.2" width="306" height="90" rx="7" fill="#e9c967" stroke="#b89b40" stroke-width="1.5"/>
+<text x="278" y="459" text-anchor="middle" font-size="20" font-weight="650">103450 电池</text>
+<text x="278" y="485" text-anchor="middle" font-size="15">34 × 50 × 10 mm</text>
+<path d="M86.2,405.8 H109 V513.8 H86.2 Z M447,405.8 H470.4 V513.8 H447 Z" fill="#bdc8bb"/>
+<rect x="89.35" y="393.2" width="377.91" height="12.6" rx="2" fill="#c7af8a" stroke="#947f60"/>
+<path d="M89.35,339.2 H128 V393.2 H89.35 Z M428,339.2 H467.26 V393.2 H428 Z" fill="#c7af8a"/>
+<rect x="124" y="324.8" width="308.61" height="14.4" fill="#277568" stroke="#1c5a4f"/>
+<g fill="#a8aaa0" stroke="#7f897f"><rect x="141" y="339.2" width="6" height="45"/><rect x="187" y="339.2" width="6" height="45"/><rect x="233" y="339.2" width="6" height="45"/><rect x="279" y="339.2" width="6" height="45"/><rect x="391" y="339.2" width="6" height="45"/></g>
+<rect x="168.73" y="252.8" width="162" height="72" rx="3" fill="#405462"/>
+<text x="249" y="283" text-anchor="middle" fill="#eef2ec" font-size="14">SuperMini</text>
+<text x="249" y="306" text-anchor="middle" fill="#d6e0d8" font-size="12">约8 mm上方包络</text>
+<rect x="346.9" y="280" width="80" height="44.8" fill="#7d8177"/>
+<rect x="373" y="249.2" width="28" height="31" rx="2" fill="#424b46"/>
+<!-- Dimension and callout leaders. -->
+<g fill="none" stroke="#748a79" stroke-width="1.2">
+<path d="M70,190 H486.61" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+<path d="M48,213.2 V530" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+<path d="M400,249.2 H545 L568,233"/>
+<path d="M398,384.2 H545 L568,367"/>
+<path d="M467,399.5 H545 L568,425"/>
+<path d="M433,420.2 H530 L568,487"/>
+<path d="M88,324.8 H110 M433,324.8 H546 L568,315"/>
+</g>
+<text x="278" y="180" text-anchor="middle" font-size="14">原宽 46.29 mm</text>
+<text transform="translate(33,374) rotate(-90)" text-anchor="middle" font-size="14">总厚 35.2 mm</text>
+<text x="584" y="231" font-size="18" font-weight="600">下沉开关口</text>
+<text x="584" y="258" font-size="15">拨杆高于局部底面约1 mm</text>
+<text x="584" y="281" font-size="13" fill="#697e6b">不用让拨杆伸出整个外壳最高面</text>
+<text x="584" y="319" font-size="17" font-weight="600">上层主板</text>
+<text x="584" y="345" font-size="14">针脚最底端至开关顶约15 mm</text>
+<text x="584" y="380" font-size="17" font-weight="600">5 mm底针，下方另留1 mm</text>
+<text x="584" y="429" font-size="17" font-weight="600">1.4 mm可拆绝缘载架</text>
+<text x="584" y="455" font-size="14">载荷经侧轨传到壳壁，不靠电池支撑</text>
+<text x="584" y="497" font-size="17" font-weight="600">电池与托板间隙1.6 mm</text>
+<text x="584" y="523" font-size="14">引线从后端向上穿过载架开口</text>
+<text x="48" y="578" font-size="15" font-weight="600">三件打印：底壳 + 绝缘载架 + 卡扣上盖</text>
+<text x="48" y="605" font-size="13" fill="#697e6b">按用户近似测量生成；电池封边、线材上弯、开关手感和卡扣配合仍需实物试装。未改PCB或电气参数。</text>
+</g></svg>

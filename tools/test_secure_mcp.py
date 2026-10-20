@@ -77,7 +77,7 @@ class SecureDeploymentTests(unittest.TestCase):
             with self.assertRaises(service.SecureError): service.stop(self.folder)
             terminate.assert_not_called()
 
-    def test_native_environment_is_isolated_and_uses_existing_proxy(self):
+    def test_legacy_management_environment_is_isolated(self):
         result = subprocess.CompletedProcess([], 0, b'{"aliases":[]}', b'')
         def directory(path):
             Path(path).mkdir(parents=True, exist_ok=True)
@@ -91,8 +91,6 @@ class SecureDeploymentTests(unittest.TestCase):
             service.native(self.folder, ['list'])
         env = run.call_args.kwargs['env']
         self.assertEqual(env['TUNNEL_CLIENT_STATE_DIR'], str(self.folder / 'native-state'))
-        self.assertEqual(env['CONTROL_PLANE_HTTP_PROXY'], 'http://127.0.0.1:7897')
-        self.assertIn('127.0.0.1', env['NO_PROXY'])
         self.assertNotIn('OPENAI_API_KEY', env)
         self.assertNotIn('OPENAI_ADMIN_KEY', env)
         self.assertNotIn(FIXTURE_KEY, str(run.call_args))
@@ -106,32 +104,53 @@ class SecureDeploymentTests(unittest.TestCase):
             terminate.assert_not_called()
 
     def test_existing_runtime_is_reused_even_during_network_backoff(self):
-        self.alias_record()
-        payload = dict(alias=self.cfg['alias'], tunnel_id=FIXTURE_ID, process_running=True,
-                       healthy=True, ready=True)
-        with patch('companion_mcp.get_installation_status', return_value={'database_open': True}), \
-             patch.object(service, 'ensure_gateway', return_value=True), \
-             patch.object(service, 'verify_local', return_value={}), \
-             patch.object(service, 'status', return_value={'tunnel_connected': False}), \
-             patch.object(service, 'native', return_value=payload) as native:
-            result = service.start(self.folder)
-        self.assertTrue(result['gateway_reused'])
-        self.assertEqual([call.args[1][0] for call in native.call_args_list], ['status'])
+        import hashlib
+        record = dict(proxy_fingerprint=hashlib.sha256(b'').hexdigest())
+        with patch.object(service, 'runtime_record', return_value=record), \
+             patch.object(service, 'alive', return_value=True), \
+             patch.object(service, 'outbound_proxy', return_value=''), \
+             patch.object(service, 'launch') as launch, patch.object(service, 'native') as native:
+            self.assertTrue(service.start_runtime(self.folder, self.cfg))
+        launch.assert_not_called(); native.assert_not_called()
 
     def test_connect_uses_file_reference_and_only_scoped_http_gateway(self):
-        with patch('companion_mcp.get_installation_status', return_value={'database_open': True}), \
-             patch.object(service, 'ensure_gateway', return_value=False), \
-             patch.object(service, 'verify_local', return_value={}), \
-             patch.object(service, 'status', return_value={}), \
-             patch.object(service, 'native', return_value={}) as native:
-            service.start(self.folder)
-        args = native.call_args.args[1]
-        self.assertEqual(args[0], 'connect')
-        self.assertEqual(args[args.index('--tunnel-id')+1], FIXTURE_ID)
-        self.assertTrue(args[args.index('--runtime-api-key')+1].startswith('file:'))
-        self.assertIn('127.0.0.1:8774/', args[args.index('--mcp-server-url')+1])
+        child = Mock(); child.poll.return_value = None
+        def launch_child(args, root, env=None):
+            (self.folder/'runtime-health.url').write_text('http://127.0.0.1:12345')
+            self.assertEqual(env['AI_DOLL_TUNNEL_PROXY'], 'http://127.0.0.1:7897')
+            return child, {'pid':123,'born':456,'executable':'official.exe'}
+        with patch.object(service, 'install_client', return_value=(Path('official.exe'), 'v0.0.16')), \
+             patch.object(service, 'outbound_proxy', return_value='http://127.0.0.1:7897'), \
+             patch.object(service, 'launch', side_effect=launch_child) as launch:
+            service.start_runtime(self.folder, self.cfg)
+        args = launch.call_args.args[0]
+        self.assertIn('run', args)
+        self.assertEqual(args[args.index('--control-plane.tunnel-id')+1], FIXTURE_ID)
+        self.assertTrue(args[args.index('--control-plane.api-key')+1].startswith('file:'))
+        self.assertIn('127.0.0.1:8774/', args[args.index('--mcp.server-url')+1])
+        self.assertEqual(args[args.index('--control-plane.http-proxy')+1], 'env:AI_DOLL_TUNNEL_PROXY')
         self.assertNotIn(FIXTURE_KEY, ' '.join(args))
-        self.assertNotIn('--mcp-command', args)
+
+    def test_rate_limit_and_credentials_messages_are_distinct(self):
+        self.assertIn('退避',service.connection_message({'poll':{'http_status':429}}))
+        self.assertIn('权限',service.connection_message({'poll':{'http_status':403}}))
+        self.assertIn('网络',service.connection_message({'poll':{'failure_category':'network_error'}}))
+
+    def test_repair_does_not_restart_rate_limited_or_offline_runtime(self):
+        for poll in ({'http_status':429},{'failure_category':'network_error'},{'http_status':403}):
+            with patch.object(service,'status',return_value={'runtime_running':True,'poll':poll}), \
+                 patch.object(service,'start',return_value={'history_available':True}), \
+                 patch.object(service,'terminate') as terminate:
+                self.assertTrue(service.repair(self.folder)['history_available'])
+                terminate.assert_not_called()
+
+    def test_unresponsive_owned_runtime_can_be_repaired(self):
+        record={'pid':123}
+        with patch.object(service,'status',return_value={'runtime_running':True,'health_error':'unavailable'}), \
+             patch.object(service,'runtime_record',return_value=record), \
+             patch.object(service,'start',return_value={}) as start, patch.object(service,'terminate') as terminate:
+            service.repair(self.folder)
+        terminate.assert_called_once_with(record);start.assert_called_once()
 
     def test_reset_invalidates_old_address_even_if_native_stop_fails(self):
         store = service.CapabilityStore(self.folder / 'gateway')

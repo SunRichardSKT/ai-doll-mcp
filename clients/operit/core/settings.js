@@ -54,6 +54,29 @@ function validateConnection(value) {
   return {schema:1,kind:value.kind,mcp_url:value.mcp_url,
     mode:['simulation','server'].includes(value.mode)?value.mode:'device',label:String(value.label||'AI Doll').slice(0,80)};
 }
+function computerEndpoint(url) {
+  return typeof url==='string'?url.match(/^(https?:\/\/)([^/:]+)(:\d+)?(\/[0-9a-f]{64}\/mcp)$/):null;
+}
+function sameComputer(url, connection) {
+  if (connection?.kind!=='ai-doll-operit-connection'||!['device','simulation'].includes(connection.mode))return false;
+  const previous=computerEndpoint(url),current=computerEndpoint(connection.mcp_url);
+  // The private path identifies the same installation across DHCP changes.
+  return !!(previous&&current&&previous[1]===current[1]&&previous[3]===current[3]&&previous[4]===current[4]);
+}
+function replaceComputerIP(connection, host) {
+  if (!connection || connection.kind!=='ai-doll-operit-connection' || connection.mode==='server')
+    throw Error('该入口用于已保存的电脑连接，请先导入电脑连接文件。');
+  host=String(host||'').trim();
+  const parts=host.split('.');
+  if(parts.length!==4||parts.some(v=>!/^\d{1,3}$/.test(v)||Number(v)>255)||
+     !((Number(parts[0])===10)||(Number(parts[0])===172&&Number(parts[1])>=16&&Number(parts[1])<=31)||
+       (Number(parts[0])===192&&Number(parts[1])===168)))
+    throw Error('请输入电脑当前的局域网 IPv4 地址，例如 192.168.1.20。');
+  host=parts.map(Number).join('.');
+  const match=computerEndpoint(connection.mcp_url);
+  if(!match)throw Error('原电脑地址无法识别，请重新导入连接文件。');
+  return {...connection,mcp_url:match[1]+host+(match[3]||'')+match[4]};
+}
 async function noRunningJob() {
   const job=await read('job.json');
   if (job && ['scheduled','running','stopping'].includes(job.phase))
@@ -62,3 +85,5 @@ async function noRunningJob() {
 exports.read=read; exports.write=write; exports.config=config; exports.path=path;
 exports.id=id; exports.parameters=parameters; exports.validateConnection=validateConnection;
 exports.noRunningJob=noRunningJob;
+exports.replaceComputerIP=replaceComputerIP;
+exports.sameComputer=sameComputer;

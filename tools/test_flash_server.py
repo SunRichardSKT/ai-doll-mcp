@@ -46,8 +46,20 @@ class FlashPageTests(unittest.TestCase):
             self.assertEqual(code,400);self.assertIn('确认',reply['error']);run.assert_not_called()
 
     def test_request_types_are_strict(self):
-        for data in ([], {'factory':'false'},{'port':123},{'images':'untrusted.bin'}):
+        for data in ([], {'factory':'false'},{'port':123},{'images':'untrusted.bin'},
+                     {'name':123},{'name':''},{'name':'a'*33}):
             self.assertEqual(self.request(data)[0],400)
+
+    def test_custom_name_reaches_flash_worker_without_replacing_internal_id(self):
+        finished=threading.Event()
+        def fake(args,job):
+            self.assertEqual(args.name,'小樱')
+            self.assertTrue(job.report['target_device_id'].startswith('AI-Doll-'))
+            self.assertNotEqual(job.report['target_device_id'],args.name)
+            finished.set()
+        with patch.object(ui,'flash',side_effect=fake) as run:
+            self.assertEqual(self.request({'port':'COM4','name':'  小樱  '})[0],202)
+            self.assertTrue(finished.wait(2));self.assertEqual(run.call_count,1)
 
     def test_repeated_click_does_not_start_a_second_write(self):
         hold=threading.Event();done=threading.Event()

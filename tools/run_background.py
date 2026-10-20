@@ -1,4 +1,4 @@
-"""Hidden collector entry point for Windows login startup and manual launch."""
+"""Collector-only child entry. The control panel owns full daily/login startup."""
 import contextlib
 import logging
 import logging.handlers

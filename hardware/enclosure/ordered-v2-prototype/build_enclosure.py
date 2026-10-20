@@ -56,7 +56,7 @@ def build(out):
     out.mkdir(parents=True, exist_ok=True)
     w, h = r['width'], r['length']
     ox, oy = p['board_offset_x'], p['board_offset_y']
-    W, H = w+2*p['side_margin'], h+p['front_margin']+p['rear_margin']
+    W, H = p['outer_width'], h+p['front_margin']+p['rear_margin']
     wall,lt = p['wall'],p['lid_thickness']
     bh=p['floor']+p['bottom_component_space']+r['thickness']+p['module_height_above_main_pcb']+p['top_clearance']
     bz = p['floor']+p['bottom_component_space']
@@ -75,14 +75,26 @@ def build(out):
     # Stops stay outside the outline and away from the central antenna keepout.
     for x in [ox-.35-.8, ox+w+.35]:
         base = base.fuse(box(x,oy+29.5,p['floor']-.1,.8,3,board_top-p['floor']+.1))
-    for x in [ox, ox+w-1.8]:
-        for y in [oy-.35-.8, oy+h+.35]:
+    for y,xs in [(oy-.35-.8,[ox,ox+w/2]),(oy+h+.35,[ox,ox+w-1.8])]:
+        for x in xs:
             base = base.fuse(box(x,y,p['floor']-.1,1.8,.8,board_top-p['floor']+.1))
-    # M2 bosses lie outside the PCB. Front pair and rear pair are below antenna zone.
-    screws = [(x, y) for x in [p['boss_x_inset'], W-p['boss_x_inset']] for y in p['boss_y']]
-    for x, y in screws:
-        base = base.fuse(cylinder(x, y, p['floor']-.1, p['boss_radius'], bh-p['floor']+.1))
-        base = base.cut(cylinder(x, y, bh-p['screw_pilot_depth'], p['screw_pilot_diameter']/2, p['screw_pilot_depth']+.2))
+    # A full-height insulating divider separates the pouch cell from all PCB
+    # solder tails. The narrow top-entry slot is for insulated leads only.
+    divider_y=p['battery_divider_y']; divider_h=p['battery_clear_height']
+    divider=box(wall-.1,divider_y,p['floor']-.1,W-2*wall+.2,p['battery_divider_thickness'],divider_h+.1)
+    slot_x=p['battery_wire_slot_x']; slot_w=p['battery_wire_slot_width']; slot_z=p['battery_wire_slot_bottom']
+    slot=cq.Solid.makeCylinder(slot_w/2,p['battery_divider_thickness']+.4,
+           cq.Vector(slot_x,divider_y-.2,slot_z+slot_w/2),cq.Vector(0,1,0))
+    slot=slot.fuse(box(slot_x-slot_w/2,divider_y-.2,slot_z+slot_w/2,slot_w,p['battery_divider_thickness']+.4,bh))
+    divider=divider.cut(slot)
+    base=base.fuse(divider)
+    clips=[]
+    for side in ['left','right']:
+        for yy in p['snap_y']:
+            clips.append({'side':side,'y':yy})
+            xx=-.2 if side=='left' else W-wall-.2
+            base=base.cut(box(xx,yy-p['snap_width']/2-p['snap_clearance'],p['snap_window_bottom'],
+                            wall+.4,p['snap_width']+2*p['snap_clearance'],p['snap_window_height']))
     ports = []
     # U notches allow already soldered pigtails to drop into the base from above.
     # Lid fingers fill the upper notch; assembled free opening is nominally 4.4 mm.
@@ -114,8 +126,10 @@ def build(out):
     ring = rounded(inset, inset, bh-1.6, W-2*inset, H-2*inset, 1.8, p['corner_radius']-inset)
     inner = rounded(inset+1, inset+1, bh-1.8, W-2*(inset+1), H-2*(inset+1), 2.2, .9)
     ring = ring.cut(inner)
-    for x,y in screws:
-        ring = ring.cut(cylinder(x,y,bh-2,p['boss_radius']+gap,3))
+    for clip in clips:
+        # Isolate each cantilever from the locating ring below its lid root.
+        xx=wall if clip['side']=='left' else W-wall-3
+        ring=ring.cut(box(xx,clip['y']-p['snap_width']/2-.6,bh-2,3,p['snap_width']+1.2,3))
     lid = lid.fuse(ring)
     for port in ports:
         sz = port['width']; z = p['sensor_port_bottom']+sz
@@ -128,17 +142,37 @@ def build(out):
     for local_y in p['support_y']:
         for xx,end in [(wall+gap,ox+p['support_overlap']),(ox+w-p['support_overlap'],W-wall-gap)]:
             rib=box(xx,oy+local_y-p['support_length']/2,stop_z,end-xx,p['support_length'],bh-stop_z+.1)
-            for sx,sy in screws:rib=rib.cut(cylinder(sx,sy,stop_z-.1,p['boss_radius']+gap,bh-stop_z+.3))
             lid=lid.fuse(rib)
-    for x, y in screws:
-        lid = lid.cut(cylinder(x,y,bh-2,p['lid_screw_diameter']/2,lt+4))
-        lid = lid.cut(cylinder(x,y,bh+lt-p['lid_head_recess'],p['lid_head_diameter']/2,p['lid_head_recess']+1))
+    snap_shapes=[]
+    for clip in clips:
+        # Inward-flexing PETG leg with an insertion ramp and a flat retaining
+        # shoulder. Access windows expose the recessed hook for manual release.
+        yy=clip['y']; inside=wall+p['snap_clearance']; thick=p['snap_thickness']
+        z0=bh-p['snap_length']; hook_top=p['snap_hook_top']; hook_tip=p['snap_hook_tip_x']
+        points=[(inside+thick,z0),(inside,z0),(hook_tip,hook_top-1.5),
+                (hook_tip,hook_top),(inside,hook_top),(inside,bh+.15),(inside+thick,bh+.15)]
+        if clip['side']=='right':points=[(W-x,z) for x,z in points][::-1]
+        snap=cq.Workplane('XZ').polyline(points).close().extrude(p['snap_width']).translate((0,yy+p['snap_width']/2,0)).val()
+        lid=lid.fuse(snap); snap_shapes.append(snap)
     # Entire switch body exposed from above; actual actuator reach remains a fit check.
     sw = comps['SW1']; swx, swy = ox+sw['x'], oy+sw['y']
     lid = lid.cut(rounded(swx-5.75, swy-3.5, bh-2, 11.5, 7, lt+4, 1))
+    led=p['led_window']; led_x=ox+comps['U1']['x']+led['offset_x']; led_y=oy+comps['U1']['y']+led['offset_y']
+    lid=lid.cut(rounded(led_x-led['width']/2,led_y-led['length']/2,bh-2,
+                       led['width'],led['length'],lt+4,1.2))
     # Engraved text preserves a flat outside print face. No metallic antenna label.
-    label = cq.Workplane('XY').text('AI DOLL', 4, .6, combine=True).translate((W/2, H*.58, bh+lt-.3)).val()
+    label = cq.Workplane('XY').text('AI DOLL', 4, .6, combine=True).translate((W/2, 22, bh+lt-.3)).val()
     lid = lid.cut(label)
+    # Rounded inner roots lower the stress concentration without extending
+    # outward into the base wall. Elastic life is still a physical print test.
+    root_edges=[]
+    for edge in lid.Edges():
+        bb=edge.BoundingBox()
+        if bb.xlen<1e-5 and bb.zlen<1e-5 and abs(bb.zmin-bh)<1e-5 and abs(bb.ylen-p['snap_width'])<1e-5:
+            if any(abs(bb.xmin-xx)<1e-5 for xx in [wall+p['snap_clearance']+p['snap_thickness'],W-wall-p['snap_clearance']-p['snap_thickness']]):
+                root_edges.append(edge)
+    if len(root_edges)!=4:raise ValueError('Four snap inner root edges required')
+    lid=lid.fillet(p['snap_root_radius'],root_edges)
     base, lid = base.clean(), lid.clean()
     # Accurate board outline in XY; thickness is an explicit prototype assumption.
     pcb = cq.Workplane('XY').polyline(r['outline']).close().extrude(r['thickness']).translate((ox,oy,bz)).val()
@@ -174,12 +208,34 @@ def build(out):
     for tail in r['solderTailReference']:
         components.append((tail['name']+'_tail',cylinder(ox+tail['x'],oy+tail['y'],
                             bz-tail['protrusion'],tail['radius'],tail['protrusion']), '#aaa491','bottom'))
+    battery=p['battery']; battery_shape=box(battery['x'],battery['y'],battery['z'],battery['length'],battery['width'],battery['thickness'])
+    reserve=p['battery_reserved']; reserve_shape=box(reserve['x'],reserve['y'],reserve['z'],reserve['length'],reserve['width'],reserve['height'])
+    connector=p['connector_allowance']; connector_shape=box(connector['x'],connector['y'],connector['z'],connector['width'],connector['length'],connector['height'])
+    turn=p['battery_wire_turn']; turn_shape=box(turn['x'],turn['y'],turn['z'],turn['width'],turn['length'],turn['height'])
     # Physical collision checks are scoped to declared 2D envelopes + assumed Z.
     collision=[]
-    for name,shape,color,side in [('PCB',pcb,'#22736c','board'),('U1_conservative_Z_envelope',module_envelope,'','top')]+components:
+    for name,shape,color,side in [('PCB',pcb,'#22736c','board'),('U1_conservative_Z_envelope',module_envelope,'','top'),('Battery_103450_reference',battery_shape,'#dfbc5e','battery')]+components:
         for case_name, case_shape in [('base',base),('lid',lid)]:
             overlap=volume_common(shape,case_shape)
             if overlap>1e-5:collision.append({'part':name,'case':case_name,'overlapMm3':overlap})
+    for name,shape,color,side in [('PCB',pcb,'','board'),('U1_envelope',module_envelope,'','top')]+components:
+        overlap=volume_common(battery_shape,shape)
+        if overlap>1e-5:collision.append({'part':'battery','case':name,'overlapMm3':overlap})
+    clearance_checks={name:{case_name:volume_common(shape,case_shape) for case_name,case_shape in [('base',base),('lid',lid)]}
+                      for name,shape in [('battery52x36x12',reserve_shape),('connector12x8x10',connector_shape),('wireTurn5x14x12',turn_shape)]}
+    for name,result in clearance_checks.items():
+        if any(v>1e-5 for v in result.values()):raise ValueError('Reserved clearance collision: '+str(clearance_checks))
+    clip_envelope_checks=[]
+    for clip,snap in zip(clips,snap_shapes):
+        inward=(wall+.1-p['snap_hook_tip_x'])*(1 if clip['side']=='left' else -1)
+        released=snap.translate((inward,0,0))
+        obstacles=[('base',base),('PCB',pcb),('module',module_envelope),('battery',reserve_shape),('connector',connector_shape)]
+        result={name:volume_common(released,shape) for name,shape in obstacles}
+        # Rigid fully-retracted leg sampled along vertical lid removal. This is
+        # a geometry envelope check, not a simulation of bending or latch force.
+        result['maxBaseOverlapDuringSampledLift']=max(volume_common(released.translate((0,0,float(dz))),base) for dz in range(14))
+        if any(v>1e-5 for v in result.values()):raise ValueError('Retracted snap clearance collision: '+str(result))
+        clip_envelope_checks.append(result)
     shapes = {'base':base,'lid':lid}
     meshes=[]; checks={}
     for name, shape in shapes.items():
@@ -189,21 +245,31 @@ def build(out):
         bb=printing.BoundingBox(); printing=printing.translate((-bb.xmin,-bb.ymin,-bb.zmin))
         cq.exporters.export(printing,str(out/(name+'.stl')),tolerance=.04,angularTolerance=.12)
         tm=trimesh.load_mesh(out/(name+'.stl'))
+        step_back=cq.importers.importStep(str(out/(name+'.step'))).val()
         body_count=mesh_body_count(tm)
         checks[name]={'validBrep':shape.isValid(),'solidCount':len(shape.Solids()),'volumeMm3':shape.Volume(),
                        'meshWatertight':bool(tm.is_watertight),'meshWindingConsistent':bool(tm.is_winding_consistent),
-                       'meshBodyCount':body_count,'printBoundsMm':tm.bounds.tolist()}
+                       'meshBodyCount':body_count,'printBoundsMm':tm.bounds.tolist(),
+                       'stepReadbackValid':step_back.isValid(),'stepReadbackSolids':len(step_back.Solids()),
+                       'stepVolumeDifferenceMm3':abs(step_back.Volume()-shape.Volume())}
         if not tm.is_watertight or not tm.is_winding_consistent or body_count!=1:raise ValueError(name+' STL invalid')
+        if not step_back.isValid() or len(step_back.Solids())!=1 or abs(step_back.Volume()-shape.Volume())>1e-5:
+            raise ValueError(name+' STEP roundtrip invalid')
         meshes.append({'name':name,'color':'#bdc8bb' if name=='base' else '#e5eadf','geometry':mesh(shape)})
     # A low tray is faster to print first; confirms board edge and bottom clearance only.
     fit=base.intersect(box(-1,-1,-1,W+2,H+2,bz+1.4))
     cq.exporters.export(fit,str(out/'fit_tray.stl'),tolerance=.04,angularTolerance=.12)
+    fit_mesh=trimesh.load_mesh(out/'fit_tray.stl')
+    if not fit_mesh.is_watertight or not fit_mesh.is_winding_consistent or mesh_body_count(fit_mesh)!=1:
+        raise ValueError('fit_tray STL invalid')
     assy=cq.Assembly(name=p['revision'])
     assy.add(base,name='Base',color=cq.Color(.72,.77,.70));assy.add(lid,name='Lid',color=cq.Color(.88,.90,.85))
     assy.add(pcb,name='PCB_reference',color=cq.Color(.1,.39,.32))
+    assy.add(battery_shape,name='Battery_103450_reference_NOT_FOR_PRINT',color=cq.Color(.9,.72,.25))
     for name,shape,color,side in components:assy.add(shape,name=name+'_ASSUMED_HEIGHT',color=cq.Color(.24,.25,.29))
     assy.save(str(out/'assembly_reference.step'))
     meshes.append({'name':'PCB','color':'#22736c','geometry':mesh(pcb)})
+    meshes.append({'name':'Battery_103450_reference','color':'#dfbc5e','geometry':mesh(battery_shape)})
     for name,shape,color,side in components:meshes.append({'name':name,'color':color,'geometry':mesh(shape)})
     preview={'dimensions':{'width':W,'length':H,'height':bh+lt},'parts':meshes}
     (out/'meshes.json').write_text(json.dumps(preview,separators=(',',':')),encoding='utf-8')
@@ -211,15 +277,41 @@ def build(out):
             'sourcePcbIdentity':r['sourcePcbIdentity'],'sourceHashes':r['sourceHashes'],'dimensionsMm':preview['dimensions'],
             'boardBottomZ':bz,'boardTopZ':board_top,'topInternalRoofZ':bh,'checks':checks,
             'moduleHeightInput':p.get('user_measurement'),
+            'batteryBay':{'nominalBatteryMm':[50,34,10],'innerBoundsMm':[[wall,wall,p['floor']],[W-wall,divider_y,p['floor']+divider_h]],
+                'minimumReservedClearanceMm':[52,36,12],'reservedClearanceOriginMm':[reserve['x'],reserve['y'],reserve['z']],
+                'batteryBoundsMm':[[battery['x'],battery['y'],battery['z']],[battery['x']+50,battery['y']+34,battery['z']+10]],
+                'lidGapAboveBatteryMm':bh-battery['z']-10,'dividerThicknessMm':p['battery_divider_thickness'],
+                'connectorAllowanceMm':p['connector_allowance'],'wireSlot':{'centerX':slot_x,'width':slot_w,'bottomZ':slot_z},
+                'wireEndClearanceMm':W-wall-battery['x']-battery['length'],'wireTurnAllowanceMm':turn,
+                'wireRoute':'Orient cell short-edge leads toward +X; bend gently upward in the end allowance, route above the cell then over the open divider notch to connector bay. No lead pinching at foil seam.',
+                'reservedVolumeCaseIntersectionsMm3':clearance_checks,'referenceOnly':True,'electricalConnectionDesigned':False},
+            'ledWindow':{'centerMm':[led_x,led_y],'sizeMm':[led['width'],led['length']],
+                'alignment':'Broad U1 USB/middle observation window; LED exact point requires user module fit check.'},
+            'snaps':{'positions':clips,'widthMm':p['snap_width'],'lengthMm':p['snap_length'],
+                'thicknessMm':p['snap_thickness'],'clearanceMm':p['snap_clearance'],
+                'innerRootRadiusMm':p['snap_root_radius'],
+                'requiredInwardDeflectionMm':wall+.1-p['snap_hook_tip_x'],
+                'batterySnapIntersectionsMm3':[volume_common(battery_shape,s) for s in snap_shapes],
+                'fullyRetractedLegEnvelopeChecksMm3':clip_envelope_checks,
+                'sampledLiftStepMm':1,'sampledLiftRangeMm':[0,13],
+                'sweepAndStressValidated':False},
             'topAllowanceMm':p['top_clearance'],
             'baseLidOverlapMm3':volume_common(base,lid),'componentEnvelopeCollisions':collision,
             'ports':ports,'powerPort':{'side':'right','yLocal':comps['J9']['y'],'width':size},
             'tieAnchors':[{'x':x,'y':y} for x,y in tie_anchors],
             'supportContact':'0.45 mm board edge patches at local y=12.827 and 30 mm; 1.4 mm along edge',
             'scope':'BRep + STL topology and case-vs-reference intersections. Module total height uses user approximate 8 mm measurement; sub-part heights, PCB thickness, solder tails and cable sizes remain assumptions.',
-            'pending':['physical fit of approximate module height and assumed solder tails','USB plug and removal access','wire bundle diameter and bend radius','switch actuator reach','printed lid fit and screw pilot','RF and thermal test']}
+            'pending':['physical fit of approximate module height and assumed solder tails','USB plug and removal access','wire bundle diameter and bend radius','switch actuator reach','PETG snap fit, release force, flex fatigue and insertion sweep','battery pack actual seam/protection board/connector size','LED alignment on actual module','RF and thermal test']}
     (out/'audit.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     if collision or report['baseLidOverlapMm3']>1e-5:raise ValueError('Collision: see output/audit.json')
+    exported={'revision':p['revision'],'date':'2026-10-20',
+              'stepRoundtrip':{name:{'valid':value['stepReadbackValid'],'volumeMm3':value['volumeMm3'],
+                                    'solidCount':value['stepReadbackSolids'],'volumeDifferenceMm3':value['stepVolumeDifferenceMm3']}
+                               for name,value in checks.items()},
+              'fitTrayWatertight':bool(fit_mesh.is_watertight),'fitTrayWindingConsistent':bool(fit_mesh.is_winding_consistent),
+              'fitTrayBodyCount':mesh_body_count(fit_mesh),'userHeightInput':p['user_measurement'],
+              'physicallyFitTested':False,'elasticStressTested':False}
+    (out/'export_check.json').write_text(json.dumps(exported,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     print(json.dumps({k:v for k,v in report.items() if k in ['dimensionsMm','checks','componentEnvelopeCollisions','baseLidOverlapMm3']},ensure_ascii=False))
 
 

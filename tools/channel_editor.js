@@ -73,6 +73,7 @@ async function loadChannels(){
   const [caps,cfg]=await Promise.all([tool('get_cached_channel_capabilities'),tool('get_cached_channel_config')]);
   if(!caps.types||!cfg.channels){$('addChannel').disabled=true;$('saveParts').disabled=true;throw original;}
   channelCapabilities=caps;channelDraft=cfg.channels;renderChannelEditor();
+  installDeveloperOptions();
   for(const input of $('parts').closest('section').querySelectorAll('input,select,textarea,button'))input.disabled=true;
   $('saved').textContent='设备离线，显示电脑保存的只读配置。重新连接后重新打开此页即可编辑。';
   return;
@@ -101,6 +102,7 @@ async function updateChannelReadings(){
  $('press').disabled=!selected||(d.physical_inputs_enabled&&selected.driver!=='simulation');
  $('release').disabled=!selected||selected.type!=='pressure'||$('press').disabled;
  renderDiagnostics(d);
+ if($('calibrationReadings')&&latestCalibration?.capturing){const value=d.values.find(v=>v.channel===Number($('calibrationChannel').value));$('calibrationReadings').textContent=value?'本阶段实时读数：'+(value.value??'无有效值')+' '+value.unit+' · '+value.source+' / '+value.quality:'';}
  return d;
 }
 
@@ -123,7 +125,7 @@ function renderDiagnostics(d){
 function drawDiagnostic(){
  const v=diagnosticValues.find(v=>v.channel===Number($('diagnosticChannel').value));if(!v)return;
  $('diagnosticSummary').textContent='CH'+v.channel+' '+v.name+' · '+(v.value==null?'暂无有效值':v.value+' '+v.unit)+' · '+v.source+' / '+v.quality+(v.type==='pressure'?' · '+(v.calibrating?'校准中':v.active?'按压中':'已释放')+' · 阈值 '+v.release_threshold+' / '+v.press_threshold:'');
- const canvas=$('diagnosticCanvas'),width=canvas.clientWidth,height=canvas.clientHeight,scale=window.devicePixelRatio||1;
+ const canvas=$('diagnosticCanvas'),width=canvas.clientWidth,height=canvas.clientHeight,scale=window.devicePixelRatio||1;if(!width||!height)return;
  canvas.width=Math.round(width*scale);canvas.height=Math.round(height*scale);
  const ctx=canvas.getContext('2d');ctx.setTransform(scale,0,0,scale,0,0);
  ctx.clearRect(0,0,width,height);const points=diagnosticHistory.get(v.channel)||[];
@@ -146,6 +148,7 @@ const calibrationReasons={capture_all_stages:'请依次采集三个阶段',too_f
 const sensorActions=new Set();let latestCalibration=null;
 function showCalibration(c){
  latestCalibration=c;
+ if(!c.capturing&&$('calibrationReadings'))$('calibrationReadings').textContent='';
  $('calibrationStatus').textContent=(c.applied?'阈值已保存。':c.capturing?'正在采集，剩余 '+Math.ceil(c.remaining_ms/1000)+' 秒。':calibrationReasons[c.reason]||c.reason)+' '+(c.error||'')+'\n'+c.stages.map(s=>['静置','轻按','用力按'][s.stage]+'：'+s.samples+' 个样本，中位值 '+s.median).join('\n')+(c.press_threshold!=null?'\n推荐：按下 '+c.press_threshold+' / 释放 '+c.release_threshold:'');
  for(const [stage,id] of ['calibrateIdle','calibrateLight','calibrateStrong'].entries())$(id).disabled=sensorActions.has(id)||c.capturing||!$('calibrationChannel').options.length||(stage>0&&(!c.engaged||c.stages[stage-1].samples<20));
  $('applyCalibration').disabled=sensorActions.has('applyCalibration')||!c.ready;
@@ -154,18 +157,40 @@ async function refreshSensorExperience(){
  const mode=await tool('get_operating_mode');$('operatingStatus').textContent=(mode.mode==='daily'?'已保存日常模式：重启恢复真实输入。':'手动模式：重启关闭真实输入。')+(mode.physical_inputs_enabled?' 当前正在真实采样。':' 当前真实输入关闭。')+' 震动输出不会自动恢复。';
  showCalibration(await tool('get_pressure_calibration'));
 }
+function developerVisible(){const options=$('developerOptions');return !!options?.open&&options.getClientRects().length>0&&!document.hidden;}
+function installDeveloperOptions(){
+ if($('developerOptions'))return;
+ const holder=document.createElement('section');holder.id='developerSection';
+ holder.innerHTML='<details id="developerOptions"><summary>开发者选项 · 模拟与调试</summary><p>展开哪个窗口才刷新对应数据，收起后停止。诊断只读；模拟和输出按钮会发送明确标记的测试事件，不用于证明硬件可用。</p><details id="debugReadings"><summary>传感器读数与模拟测试</summary></details><details id="debugEvents"><summary>事件记录（最多 40 条）</summary><pre id="debugEventsData"></pre></details><details id="debugConfig"><summary>当前配置与校准</summary><pre id="debugConfigData"></pre></details><details id="debugDevice"><summary>设备连接诊断</summary><pre id="debugDeviceData"></pre></details><p id="debugError" role="status"></p></details>';
+ document.body.append(holder);
+ for(const id of ['values','vibrationChannel']){const section=$(id)?.closest('section');if(section&&section!==holder)$('debugReadings').append(section);}
+ const diagnostic=$('diagnosticCanvas')?.closest('details');if(diagnostic)$('debugReadings').append(diagnostic);
+ const refresh=async()=>{if(!developerVisible()||diagnosticPolling)return;diagnosticPolling=true;
+  try{
+   $('debugError').textContent='';
+   if($('debugReadings').open){await updateChannelReadings();if($('raw'))$('raw').textContent=JSON.stringify(await tool('get_sensor_config'),null,2);}
+   if($('debugConfig').open)$('debugConfigData').textContent=JSON.stringify({channels:await tool('get_channel_config'),operating:await tool('get_operating_mode'),calibration:await tool('get_pressure_calibration')},null,2);
+   if($('debugDevice').open)$('debugDeviceData').textContent=JSON.stringify(await tool('doll_get_status'),null,2);
+   if($('debugEvents').open){const result=await tool('get_touch_events',{after:0});$('debugEventsData').textContent=JSON.stringify({boot_id:result.boot_id,events:(result.events||[]).slice(-40)},null,2);}
+  }catch(e){$('debugError').textContent=e.message;}finally{diagnosticPolling=false;}
+ };
+ holder.addEventListener('toggle',refresh,true);
+ document.addEventListener('visibilitychange',refresh);
+ const timer=setInterval(refresh,1500);window.addEventListener('pagehide',()=>clearInterval(timer),{once:true});
+}
 async function installSensorExperience(){
  if(sensorExperienceReady){fillCalibrationChannels();return;}
  const section=document.createElement('section');section.id='sensorExperience';
- section.innerHTML='<h2>日常使用与压力校准</h2><p id="operatingStatus"></p><label><input id="dailyConfirmed" type="checkbox">我已安装主板和传感器，允许重启恢复真实输入</label><button id="dailyMode">保存日常模式</button><button id="manualMode">恢复手动模式</button><p>校准前启用真实输入，安装到玩偶内后逐路校准；校准期间本通道暂停触摸事件。保持对应姿势点击按钮，每阶段采集约 3 秒。无效数据不会保存；60 秒无操作自动退出。</p><select id="calibrationChannel" aria-label="校准压力通道"></select><button id="calibrateIdle">1. 静置采集</button><button id="calibrateLight">2. 轻按采集</button><button id="calibrateStrong">3. 用力按采集</button><pre id="calibrationStatus"></pre><button id="applyCalibration" disabled>保存推荐阈值</button><button id="cancelCalibration">取消校准</button><h2>实时通道诊断</h2><select id="diagnosticChannel" aria-label="诊断通道"></select><p id="diagnosticSummary"></p><canvas id="diagnosticCanvas" width="720" height="190" style="width:100%;height:190px" aria-label="通道数值曲线"></canvas><p id="diagnosticConnection">绿色是真实采样，棕色是模拟；曲线为等间距采样点，不是牛顿或时间标定曲线。</p>';
+ section.innerHTML='<h2>日常使用与压力校准</h2><p id="operatingStatus"></p><div id="realInputControls"></div><label><input id="dailyConfirmed" type="checkbox">我已安装主板和传感器，允许重启恢复真实输入</label><button id="dailyMode">保存日常模式</button><button id="manualMode">恢复手动模式</button><p>校准前启用真实输入，安装到玩偶内后逐路校准；校准期间本通道暂停触摸事件。保持对应姿势点击按钮，每阶段采集约 3 秒。无效数据不会保存；60 秒无操作自动退出。</p><select id="calibrationChannel" aria-label="校准压力通道"></select><button id="calibrateIdle">1. 静置采集</button><button id="calibrateLight">2. 轻按采集</button><button id="calibrateStrong">3. 用力按采集</button><pre id="calibrationStatus"></pre><p id="calibrationReadings"></p><button id="applyCalibration" disabled>保存推荐阈值</button><button id="cancelCalibration">取消校准</button><details open><summary>实时通道诊断</summary><select id="diagnosticChannel" aria-label="诊断通道"></select><p id="diagnosticSummary"></p><canvas id="diagnosticCanvas" width="720" height="190" style="width:100%;height:190px" aria-label="通道数值曲线"></canvas><p id="diagnosticConnection">绿色是真实采样，棕色是模拟；曲线为等间距采样点，不是牛顿或时间标定曲线。</p></details>';
  $('parts').closest('section').after(section);fillCalibrationChannels();
+ $('realInputControls').append($('physical').closest('label'),$('sensors'));
  const action=(id,fn)=>{$(id).onclick=async()=>{if(sensorActions.has(id))return;sensorActions.add(id);try{$(id).disabled=true;$('error').textContent='';await fn();await refreshSensorExperience()}catch(e){$('error').textContent=e.message}finally{sensorActions.delete(id);if(latestCalibration)showCalibration(latestCalibration);if(!id.startsWith('calibrate')&&id!=='applyCalibration')$(id).disabled=false}}};
  action('dailyMode',async()=>{if(!$('dailyConfirmed').checked)throw Error('请先确认传感器已经安装');await tool('set_operating_mode',{mode:'daily',hardware_confirmed:true});$('physical').checked=true;$('outputEnabled').checked=false});
  action('manualMode',async()=>{await tool('set_operating_mode',{mode:'manual'});$('physical').checked=false;$('dailyConfirmed').checked=false;$('outputEnabled').checked=false});
  for(const [stage,id] of ['calibrateIdle','calibrateLight','calibrateStrong'].entries())action(id,()=>tool('capture_pressure_calibration',{channel:Number($('calibrationChannel').value),stage,duration_ms:3000}));
  action('applyCalibration',async()=>{await tool('apply_pressure_calibration');channelDraft=(await tool('get_channel_config')).channels;renderChannelEditor()});
  action('cancelCalibration',()=>tool('cancel_pressure_calibration'));
- $('diagnosticChannel').onchange=drawDiagnostic;
+ $('diagnosticChannel').onchange=drawDiagnostic;installDeveloperOptions();
  try{await refreshSensorExperience();sensorExperienceReady=true;}catch(e){$('operatingStatus').textContent='当前固件尚未提供校准与日常模式，请升级到 v2.3。';return;}
- setInterval(async()=>{if(diagnosticPolling)return;diagnosticPolling=true;try{await updateChannelReadings();await refreshSensorExperience();$('diagnosticConnection').textContent='诊断连接正常 · 绿色：真实采样；棕色：模拟。';}catch(e){$('diagnosticConnection').textContent='诊断连接中断，曲线保留之前的读数。';}finally{diagnosticPolling=false}},750);
+ setInterval(async()=>{if(diagnosticPolling||document.hidden||!$('sensorExperience').getClientRects().length)return;diagnosticPolling=true;try{if(latestCalibration?.capturing)await updateChannelReadings();await refreshSensorExperience();$('diagnosticConnection').textContent='诊断连接正常 · 绿色：真实采样；棕色：模拟。';}catch(e){$('diagnosticConnection').textContent='诊断连接中断，曲线保留之前的读数。';}finally{diagnosticPolling=false}},750);
 }

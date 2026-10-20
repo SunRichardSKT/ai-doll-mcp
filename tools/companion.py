@@ -272,6 +272,7 @@ class Companion:
         with bounded_device_lock(self.sync_lock):
             with self.device_connection():
                 status = self.exchange({'cmd': 'status'})
+            self.last_device_status = (utcnow(), status)
             if status.get('remote_server', {}).get('enabled'):
                 raise ConnectionError('Device direct upload is enabled; disable it before using the computer collector')
             # Persist each page before advancing the cursor, so reconnects cannot duplicate history.

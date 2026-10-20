@@ -9,6 +9,8 @@ async function Screen(ctx) {
   const [loaded,setLoaded]=ctx.useState('loaded',false);
   const [mode,setMode]=ctx.useState('setupMode','import');
   const [host,setHost]=ctx.useState('deviceHost','');
+  const [computerHost,setComputerHost]=ctx.useState('computerHost','');
+  const [computerMode,setComputerMode]=ctx.useState('computerMode',false);
   const [token,setToken]=ctx.useState('deviceToken','');
   const [advanced,setAdvanced]=ctx.useState('advanced',false);
   const [duration,setDuration]=ctx.useState('duration',60);
@@ -33,6 +35,7 @@ async function Screen(ctx) {
   const button=(text,fn)=>UI.Button({text,enabled:!busy,onClick:()=>action(fn)});
   async function inspect() {
     const r=await call('status');
+    setComputerMode(!!r.connection?.computer_host);setComputerHost(r.connection?.computer_host||'');
     setDuration(r.duration_sec||60);
     setBinding(r.chat?.title||'尚未绑定');
     const phases={scheduled:'已安排，等待手机调度',running:'运行中',completed:'已完成',failed:'未完成',
@@ -46,6 +49,7 @@ async function Screen(ctx) {
   if (!loaded) {
     try {
       const saved=await call('status');
+      setComputerMode(!!saved.connection?.computer_host);setComputerHost(saved.connection?.computer_host||'');
       setDuration(saved.duration_sec||60);
       displayBinding=saved.chat?.title||'尚未绑定';setBinding(displayBinding);
       displayMessage=saved.configured?'已恢复保存的连接和聊天。可以查看状态、检查连接或开始互动。':message;
@@ -63,7 +67,7 @@ async function Screen(ctx) {
     button('仅用安卓手机',async()=>{setMode('phone');setMessage('手机与设备连接同一家庭 Wi-Fi。填写设备设置页显示的家庭 IP；不会修改采样、校准或输出开关。');}),
     ...(mode==='phone'?[
       UI.TextField({label:'设备家庭 IP',value:host,placeholder:'例如 192.168.1.50',singleLine:true,onValueChange:setHost}),
-      button('连接家庭设备',async()=>{const r=await call('setup_device',{host,token:token||undefined});setToken('');setMessage('已连接 '+r.label+'。下一步选择已有聊天。');}),
+      button('连接家庭设备',async()=>{const r=await call('setup_device',{host,token:token||undefined});setToken('');await inspect();setMessage('已连接 '+r.label+'。下一步选择已有聊天。');}),
       button('高级：设备开启了登录保护',async()=>setAdvanced(!advanced)),
       ...(advanced?[UI.TextField({label:'设备页中的 MCP 令牌',value:token,isPassword:true,singleLine:true,onValueChange:setToken})]:[]),
       UI.Text({text:'家庭 IP 在设备设置页查看；192.168.4.1 仅在连接设备热点时有效。家中路由器可为设备固定租约，减少 IP 变化。'})
@@ -73,8 +77,13 @@ async function Screen(ctx) {
       const item=selected?.files?.[0];
       if (!item) return;
       if (!item.path) throw Error('文件选择器未提供可读的本地文件，请更新 Operit。');
-      const r=await call('setup',{connection_file:item.path});setMessage('连接已保存：'+r.label+'。下一步绑定聊天。');
+      const r=await call('setup',{connection_file:item.path});await inspect();setMessage('连接已保存：'+r.label+'。下一步绑定聊天。');
     })]),
+    ...(computerMode&&mode!=='phone'?[
+      UI.TextField({label:'电脑 IP（电脑重启后可修改）',value:computerHost,singleLine:true,onValueChange:setComputerHost}),
+      UI.Text({text:'填电脑管理中心显示的局域网 IP；端口、私密路径和聊天绑定会保留。不要填写娃娃的 IP。'}),
+      button('检查并保存电脑 IP',async()=>{const r=await call('update_computer_address',{host:computerHost});setComputerHost(r.host);setMessage(r.message);})
+    ]:[]),
     UI.Text({text:'2 · 绑定原聊天',bold:true}),
     button('选择已有聊天',async()=>{
       const r=await call('list_chats');setChats(r.chats||[]);

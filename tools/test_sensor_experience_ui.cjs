@@ -13,6 +13,7 @@ const fs=require('fs'),path=require('path'),{chromium}=require('playwright');
   await page.click('#calibrateIdle');await page.waitForFunction(()=>document.querySelector('#error').textContent.includes('physical pressure'));
   if(!(await page.textContent('#error')).includes('physical pressure'))throw Error('Bare board calibration not rejected');
   if(!(await page.locator('#applyCalibration').isDisabled()))throw Error('Invalid calibration can be saved');
+  await page.locator('#developerOptions>summary').click();await page.locator('#debugReadings>summary').click();
   await page.selectOption('#channel','0');await page.fill('#pressure','1800');await page.click('#press');
   await page.waitForFunction(()=>document.querySelector('#diagnosticSummary').textContent.includes('1800'));
   if(!(await page.textContent('#diagnosticSummary')).includes('simulation'))throw Error('Source label missing');

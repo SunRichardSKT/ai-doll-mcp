@@ -58,18 +58,21 @@
     const recentlySynced = local.last_sync && Date.now()/1000-local.last_sync < 15;
     el('collectorDetail').textContent = local.collector_error ? (local.transport === 'usb' ? 'USB 暂未响应；已配网设备可点击搜索恢复' : '正在等待设备重连；已存历史可查询') : local.last_sync ? '最近同步：' + new Date(local.last_sync * 1000).toLocaleString('zh-CN') : '等待同步 / 启动';
     el('deviceMetric').textContent = !state.paired && state.connection.transport !== 'usb' ? '待配对' : local.running ? (local.collector_error ? '同步异常' : recentlySynced ? '正在同步' : '等待设备') : '已保存连接';
-    el('deviceDetail').textContent = (state.device_id || '尚未识别设备') + (local.device_host || state.connection.device_host ? ' · ' + (local.device_host || state.connection.device_host) : '');
+    el('deviceDetail').textContent = (state.device_id || '尚未识别设备') + (local.device_ip ? ' · 设备 IP：'+local.device_ip : ' · 设备 IP 尚未确认');
     const fresh = remote.checked_at && Date.now() / 1000 - remote.checked_at < 60;
     el('tunnelMetric').textContent = !cfg.configured ? '待配置' : !fresh ? '待检查' : remote.tunnel_connected ? '已连接' : remote.runtime_running ? '正在连接' : '未启动';
-    el('tunnelDetail').textContent = cfg.configured ? (cfg.profile + ' · ' + ((state.profile_counts || {status: 2, history: 9, interaction: 19})[cfg.profile]) + ' 个工具' + (fresh ? '' : ' · 点击检查状态')) : '本机客户端可直接使用 STDIO';
+    el('tunnelDetail').textContent = cfg.configured ? (cfg.profile + ' · ' + ((state.profile_counts || {status: 2, history: 9, interaction: 19})[cfg.profile]) + ' 个工具' + (fresh ? ' · '+(remote.connection_message||'') : ' · 点击检查状态')) : '本机客户端可直接使用 STDIO';
     el('environmentInfo').textContent = state.environment_ready ? '运行环境已就绪。可继续配对或日常启动。' : '需要准备运行环境。点击下面的按钮自动安装依赖。';
     el('projectPath').textContent = '运行目录：' + state.project;
     el('version').textContent = 'Bridge ' + state.version;
     el('connectionId').value = cfg.tunnel_id;
-    const host = local.device_host || state.connection.device_host;
+    const host = local.running && !local.collector_error ? local.device_ip : null;
     const deviceUrl = host ? 'http://' + host + '/' : 'http://192.168.4.1/';
     el('openDevice').href = deviceUrl;
     el('upgradeLink').href = deviceUrl;
+    el('openDevice').textContent = host ? '设备设置 · '+host : '热点设置 · 需连接娃娃热点';
+    el('deviceAddress').textContent = host ? '当前设备局域网 IP：'+host+' · 最近同步已确认；同一家庭网络可访问。' : '当前设备局域网 IP 尚未确认。先检查设备或搜索；192.168.4.1 仅连接娃娃热点时可用。';
+    if(el('debugConnection').open)el('connectionDebug').textContent=JSON.stringify({device:local,local_mcp:remote.local_mcp_verified,tunnel:remote,operit:state.operit},null,2);
     if (firstState) {
       el('deviceHost').value = state.connection.device_host || '';
       el('serialPort').value = state.connection.serial_port || 'COM3';
@@ -90,7 +93,8 @@
     }
     checklist();
     const op = state.operit || {};
-    el('operitStatus').textContent = op.error || (op.running ? '手机连接服务正在运行。导出连接后，在手机检查实际回复。' : '服务未启动。选择模式后点击保存并启动。');
+    const staleHost = op.host && !(op.addresses || []).includes(op.host);
+    el('operitStatus').textContent = op.error || (staleHost ? '原电脑地址 '+op.host+' 已不在当前网络。选择下面的可用地址并保存启动，再在手机 AI Doll 设置中修改电脑 IP，无需重新绑定聊天。' : op.running ? '手机连接服务正在运行。电脑 IP 改变后，在手机设置中修改电脑 IP 即可。' : '服务未启动。选择模式后点击保存并启动。');
     const options = (op.addresses || []).join('|');
     if (el('operitHost').dataset.options !== options) {
       el('operitHost').dataset.options = options;
@@ -137,14 +141,14 @@
       el('deviceHost').value = result.device_host;
       el('deviceCheckResult').textContent = '已验证：' + result.device_id + '\n当前地址：' + result.device_host;
     }
-    if (action.startsWith('secure-') || action === 'daily-start') {
+    if (action.startsWith('secure-') || ['daily-start','repair-connection'].includes(action)) {
       const s = result.secure || result;
-      el('secureResult').textContent = s.tunnel_connected ? '本地工具发现与隧道连接已通过。请继续在原聊天验证工具调用。' : s.runtime_running ? '客户端运行中，隧道尚未连接，请稍后检查状态。' : '操作完成；点击“检查状态”查看当前连接。';
+      el('secureResult').textContent = s.connection_message || (s.tunnel_connected ? '本地工具发现与隧道连接已通过。请继续在原聊天验证工具调用。' : s.runtime_running ? '客户端运行中，隧道尚未连接，请稍后检查状态。' : '操作完成；点击“检查状态”查看当前连接。');
     }
     if (action === 'verify-chat') el('chatVerification').textContent = '两个编号与当前服务的完成记录匹配。状态调用验收通过；互动反馈与空闲唤醒另行验收。';
     if (action === 'startup') {
       el('startupEnabled').checked = result.enabled;
-      el('startupResult').textContent = result.enabled ? '登录自动采集已开启，下次 Windows 登录生效。' : '登录自动采集已关闭。';
+      el('startupResult').textContent = result.enabled ? '登录恢复日常服务已开启，下次 Windows 登录生效。' : '登录恢复日常服务已关闭。';
     }
     if (action === 'ota') el('otaResult').textContent = '升级完成，新启动版本已验证：' + result.firmware;
   }
@@ -163,7 +167,7 @@
       }
       if (state.job.state === 'error') throw Error(state.job.message);
       handleResult(action, state.job.result || {});
-      notice('操作完成。');
+      notice(state.job.message || '操作完成。');
       return state.job.result;
     } finally {
       busy = false;
@@ -205,7 +209,7 @@
   }
   function mountFrame(panelOverride) {
     const slot = document.querySelector('#view-' + currentView + ' [data-embed]');
-    if (!slot) { detachFrame(); return; }
+    if (!slot || (currentView==='simulation'&&!el('developerPanel').open)) { detachFrame(); return; }
     const panel = panelOverride || slot.dataset.embed;
     if (!state?.collector.running) {
       if (!slot.querySelector('.embed-empty')) {
@@ -315,6 +319,10 @@
     document.querySelector('[data-step-panel="3"] [data-action="secure-status"]').hidden = !secure;
     el('verificationPrompt').value = secure ? '请实际调用 get_installation_status 和 doll_get_status，返回设备状态及两个结果中的 verification.call_id。没有工具时如实说明，不用阅读文档代替调用。' : '请实际调用 ai_doll 的 get_installation_status 和 doll_get_status，返回采集服务、设备连接与模拟模式状态。没有工具时如实说明，不用阅读文档代替调用。';
   };
+  el('developerPanel').ontoggle=()=>mountFrame();
+  el('debugConnection').ontoggle=()=>render();
+  el('operitMode').insertAdjacentHTML('afterend','<label><input id=operitDeveloper type=checkbox>开发者：显示模拟演示模式</label>');
+  el('operitDeveloper').onchange=()=>{const o=el('operitMode').querySelector('[value=simulation]');o.hidden=!el('operitDeveloper').checked;if(o.hidden&&el('operitMode').value==='simulation')el('operitMode').value='device';};
   refresh().then(() => { if (location.hash) navigate(location.hash.slice(1)); else if (!state.paired) { navigate('setup'); showStep(state.environment_ready ? 1 : 0); } }).catch(error => notice(error.message, true));
   setInterval(() => { if (!busy) refresh().catch(() => notice('管理服务暂不可用，请重新打开 AI_Doll.cmd。', true)); }, 4000);
 })();

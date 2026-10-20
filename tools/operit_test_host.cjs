@@ -66,7 +66,7 @@ function fixture(options={}) {
   const invoke=async(name,args={})=>{result=undefined;await app[name](args);return result;};
   const cfg=()=>JSON.parse(disk.get('/managed/settings.json'));
   const job=()=>JSON.parse(disk.get('/managed/job.json'));
-  const connection={schema:1,kind:'ai-doll-operit-connection',mcp_url:'http://192.168.1.20:8775/example/mcp',mode:'simulation',label:'演示'};
+  const connection={schema:1,kind:'ai-doll-operit-connection',mcp_url:'http://192.168.1.20:8775/'+ 'a'.repeat(64)+'/mcp',mode:'simulation',label:'演示'};
   const prepare=async()=>{await invoke('setup',{connection_json:JSON.stringify(connection)});await invoke('bind_chat',{chat_id:'chat-1'});};
   return {load,invoke,disk,dirs,flows,messages,calls,cfg,job,tools,options,connection,prepare,
     advance:ms=>{clock+=ms;},shared};

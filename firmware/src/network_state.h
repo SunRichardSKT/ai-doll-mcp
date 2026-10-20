@@ -32,8 +32,8 @@ static void openConfigAP(NetworkMode mode){
  // Scanning/provisioning can enable STA later without dropping this AP.
  bool radio=WiFi.mode(WIFI_AP);
  bool address=radio&&WiFi.softAPConfig(IPAddress(192,168,4,1),IPAddress(192,168,4,1),IPAddress(255,255,255,0));
- bool opened=address&&WiFi.softAP(apName.c_str(),nullptr,setupAPChannel,0,4);
- configAP=opened&&WiFi.softAPSSID()==apName&&WiFi.softAPIP()==IPAddress(192,168,4,1);
+ bool opened=address&&WiFi.softAP(deviceName.c_str(),nullptr,setupAPChannel,0,4);
+ configAP=opened&&WiFi.softAPSSID()==deviceName&&WiFi.softAPIP()==IPAddress(192,168,4,1);
  apStartError=configAP?"":!radio?"wifi_mode_failed":!address?"ap_ip_failed":!opened?"softap_start_failed":"ap_configuration_mismatch";
  if(configAP)dns.start(53,"*",WiFi.softAPIP());
  ledOverrideUntil=0;

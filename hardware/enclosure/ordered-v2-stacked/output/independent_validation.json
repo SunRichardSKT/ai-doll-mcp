@@ -1,0 +1,194 @@
+{
+  "passed": true,
+  "revision": "ORDERED-V2-STACK-P01",
+  "dimensionsMm": [
+    46.2900002,
+    56.450000200000005,
+    35.200000100000004
+  ],
+  "checks": {
+    "base": {
+      "validSingleStep": true,
+      "watertightSingleStl": true,
+      "relativeVolumeError": 3.8393652155041175e-05
+    },
+    "tray": {
+      "validSingleStep": true,
+      "watertightSingleStl": true,
+      "relativeVolumeError": 1.1077627344276588e-06
+    },
+    "lid": {
+      "validSingleStep": true,
+      "watertightSingleStl": true,
+      "relativeVolumeError": 9.27320777121821e-06
+    }
+  },
+  "partIntersectionsMm3": {
+    "base/tray": 0.0,
+    "base/lid": 0.0,
+    "tray/lid": 0.0
+  },
+  "reservedIntersectionsMm3": {
+    "battery": {
+      "base": 0.0,
+      "tray": 0.0,
+      "lid": 0.0
+    },
+    "battery_reserved": {
+      "base": 0.0,
+      "tray": 0.0,
+      "lid": 0.0
+    },
+    "connector_allowance": {
+      "base": 0.0,
+      "tray": 0.0,
+      "lid": 0.0
+    },
+    "wire_riser": {
+      "base": 0.0,
+      "tray": 0.0,
+      "lid": 0.0
+    }
+  },
+  "batteryInsertionMaxCollisionMm3": 0.0,
+  "trayLiftMaxCollisionMm3": 0.0,
+  "movementCheck": {
+    "sampleStepMm": 1,
+    "rangeMm": [
+      0,
+      36
+    ],
+    "continuousSweep": false
+  },
+  "tailChecks": [
+    {
+      "name": "J1_1_5mm_tail",
+      "heightMm": 5.0,
+      "gapMm": 1.0000000000000018
+    },
+    {
+      "name": "J1_2_5mm_tail",
+      "heightMm": 5.0,
+      "gapMm": 1.0000000000000018
+    },
+    {
+      "name": "J9_1_5mm_tail",
+      "heightMm": 5.0,
+      "gapMm": 1.0000000000000018
+    },
+    {
+      "name": "J9_2_5mm_tail",
+      "heightMm": 5.0,
+      "gapMm": 1.0000000000000018
+    },
+    {
+      "name": "SW1_1_5mm_tail",
+      "heightMm": 5.0,
+      "gapMm": 1.0000000000000018
+    },
+    {
+      "name": "SW1_2_5mm_tail",
+      "heightMm": 5.0,
+      "gapMm": 1.0000000000000018
+    },
+    {
+      "name": "SW1_3_5mm_tail",
+      "heightMm": 5.0,
+      "gapMm": 1.0000000000000018
+    },
+    {
+      "name": "U1_1_5mm_tail",
+      "heightMm": 5.0,
+      "gapMm": 1.0000000000000018
+    },
+    {
+      "name": "U1_2_5mm_tail",
+      "heightMm": 5.0,
+      "gapMm": 1.0000000000000018
+    },
+    {
+      "name": "U1_3_5mm_tail",
+      "heightMm": 5.0,
+      "gapMm": 1.0000000000000018
+    },
+    {
+      "name": "U1_4_5mm_tail",
+      "heightMm": 5.0,
+      "gapMm": 1.0000000000000018
+    },
+    {
+      "name": "U1_5_5mm_tail",
+      "heightMm": 5.0,
+      "gapMm": 1.0000000000000018
+    },
+    {
+      "name": "U1_6_5mm_tail",
+      "heightMm": 5.0,
+      "gapMm": 1.0000000000000018
+    },
+    {
+      "name": "U1_7_5mm_tail",
+      "heightMm": 5.0,
+      "gapMm": 1.0000000000000018
+    },
+    {
+      "name": "U1_8_5mm_tail",
+      "heightMm": 5.0,
+      "gapMm": 1.0000000000000018
+    },
+    {
+      "name": "U1_9_5mm_tail",
+      "heightMm": 5.0,
+      "gapMm": 1.0000000000000018
+    },
+    {
+      "name": "U1_10_5mm_tail",
+      "heightMm": 5.0,
+      "gapMm": 1.0000000000000018
+    },
+    {
+      "name": "U1_11_5mm_tail",
+      "heightMm": 5.0,
+      "gapMm": 1.0000000000000018
+    },
+    {
+      "name": "U1_12_5mm_tail",
+      "heightMm": 5.0,
+      "gapMm": 1.0000000000000018
+    },
+    {
+      "name": "U1_13_5mm_tail",
+      "heightMm": 5.0,
+      "gapMm": 1.0000000000000018
+    },
+    {
+      "name": "U1_14_5mm_tail",
+      "heightMm": 5.0,
+      "gapMm": 1.0000000000000018
+    },
+    {
+      "name": "U1_15_5mm_tail",
+      "heightMm": 5.0,
+      "gapMm": 1.0000000000000018
+    },
+    {
+      "name": "U1_16_5mm_tail",
+      "heightMm": 5.0,
+      "gapMm": 1.0000000000000018
+    }
+  ],
+  "switchAndLedSightLinesClear": true,
+  "files": {
+    "base.stl": "39321928b0aedd5a3f0759edb43453e09c5dd91e8f71f984ccfdf729876126d7",
+    "base.step": "e2a0af278a46671e99540a67f312c526f78cf07a2add36bd806b627c87337c5d",
+    "tray.stl": "7f041e9497fa7b805fb3afdd957c0d22fc78968fc1f1433e681e2398969e4a29",
+    "tray.step": "9d4d5638b0515746c8102fa82e05c5017e9d7d347b0b59cc2911e5deb0c7a1e5",
+    "lid.stl": "4816ed77066a5199a59ed101918781f60362aeb51ed345f150fbced40428810d",
+    "lid.step": "ec87938349dbc02457d99b228eb5b15a1e81a2751aedc3ca2a32d4273cd9cea8",
+    "assembly_reference.step": "abab25652e9d1c82ce5ba0061db1c172688881fe11acf7f108f5e1785c4a9dd1"
+  },
+  "physicalFitTested": false,
+  "wireBendTested": false,
+  "elasticStressTested": false,
+  "scope": "Exported BRep/STL and rigid vertical access. No real print, pouch tolerance, RF or electrical validation."
+}

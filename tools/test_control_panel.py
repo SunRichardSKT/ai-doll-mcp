@@ -34,6 +34,35 @@ class ControlPanelTests(unittest.TestCase):
         path.write_text(json.dumps(value), encoding='utf-8')
         return path
 
+    def test_daily_start_recovers_independent_routes_after_secure_failure(self):
+        self.panel.ready=True
+        self.put('connection-private.json', {'transport':'wifi'})
+        self.put('operit/settings-private.json', {'enabled':True,'mode':'device'})
+        self.put('secure-mcp/secure-private.json', {'runtime_api_key':'fixture'})
+        calls=[]
+        def run(action, data=None):
+            calls.append(action)
+            if action in ('secure-start','secure-repair'):raise ValueError('network unavailable')
+            return {'running':True}
+        with patch.object(self.panel,'run_worker',side_effect=run):
+            result=self.panel.perform('repair-connection',{})
+        self.assertIn('operit-start',calls)
+        self.assertIn('client-config',calls)
+        self.assertTrue(result['operit']['running'])
+        self.assertIn('secure',result['errors'])
+        self.assertIn('network unavailable',result['message'])
+
+    def test_collector_timeout_does_not_block_simulation_or_config(self):
+        self.panel.ready=True
+        self.put('operit/settings-private.json', {'enabled':True,'mode':'device'})
+        def run(action, data=None):
+            if action=='collector-start':raise subprocess.TimeoutExpired('collector',1)
+            return {'running':True}
+        with patch.object(self.panel,'run_worker',side_effect=run):
+            result=self.panel.perform('daily-start',{})
+        self.assertIn('collector',result['errors'])
+        self.assertTrue(result['operit']['running'])
+
     def test_bootstrap_without_sdk_or_pairing(self):
         self.assertFalse(self.panel.state()['environment_ready'])
         with self.assertRaisesRegex(ValueError, '准备运行环境'):

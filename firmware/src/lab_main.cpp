@@ -6,11 +6,11 @@
 #include <Preferences.h>
 #include <esp_system.h>
 
-// SuperMini firmware: simulation by default; physical 74HC4051 sampling is opt-in.
+// Assembled-board default: physical CH0; preserve every existing saved configuration.
 static WebServer web(80);
 static DNSServer dns;
 static Preferences prefs;
-static String apName, apPass, token, ssid, password, serialLine;
+static String apName, deviceName, apPass, token, ssid, password, serialLine;
 static bool mcpEnabled=true, led=false, connectPending=false;
 static bool adminAuthEnabled=false, adminPasswordSet=false;
 static String adminUser="admin";
@@ -19,7 +19,7 @@ static int pressChannel=-1, pressValue=0, lastWifi=-1;
 static constexpr int LED_PIN=8; // Common SuperMini blue LED, active low.
 static bool scanBusy=false;
 static uint32_t scanStartedAt=0;
-static const char* VERSION="doll-lab-2.9.0";
+static const char* VERSION="doll-lab-2.10.0";
 static const char* PROTOCOL="2025-11-25";
 
 static String encode(const JsonDocument &d){String s;serializeJson(d,s);return s;}
@@ -46,9 +46,9 @@ static void status(JsonObject o){
  o["boot_id"]=touchBoot;o["event_cursor"]=touchSeq;
  o["firmware"]=VERSION;o["device_id"]=apName;o["uptime_ms"]=millis();o["free_heap"]=ESP.getFreeHeap();
  o["flash_id"]=prefs.getString("flash_id","");o["factory_profile"]=prefs.getString("profile","legacy");
- o["configuration_url"]="http://192.168.4.1/";o["configuration_hotspot"]=apName;
+ o["configuration_url"]="http://192.168.4.1/";o["configuration_hotspot"]=deviceName;o["device_name"]=deviceName;
  o["wifi_connected"]=WiFi.status()==WL_CONNECTED;o["wifi_status"]=(int)WiFi.status();o["ssid"]=ssid;
- o["ip"]=WiFi.localIP().toString();o["ap_ip"]=WiFi.softAPIP().toString();o["ap_ssid"]=apName;
+ o["ip"]=WiFi.localIP().toString();o["ap_ip"]=WiFi.softAPIP().toString();o["ap_ssid"]=deviceName;
  o["mcp_enabled"]=mcpEnabled;o["mcp_path"]="/mcp";o["protocol_version"]=PROTOCOL;
  o["discovery_protocol"]=DISCOVERY_PROTOCOL;o["discovery_port"]=DISCOVERY_PORT;o["discovery_active"]=discoveryActive;
  eventStorageStatus(o["event_storage"].to<JsonObject>());
@@ -210,7 +210,7 @@ static void serialCommand(const String &line){
  else if(cmd=="setup_mode"){openConfigAP(NetworkMode::SETUP);out["ok"]=true;}
  else if(cmd=="radio_test"){String error;if(!radioTest(in.as<JsonVariantConst>(),out.to<JsonObject>(),error))out["error"]=error;}
  else if(cmd=="scan")scanWifi(out.to<JsonObject>(),in["start"]|false);
- else if(cmd=="setup"){out["ap_ssid"]=apName;out["ap_password"]=apPass;out["admin_user"]=adminUser;out["auth_enabled"]=adminAuthEnabled;out["mcp_token"]=token;}
+ else if(cmd=="setup"){out["ap_ssid"]=deviceName;out["device_name"]=deviceName;out["ap_password"]=apPass;out["admin_user"]=adminUser;out["auth_enabled"]=adminAuthEnabled;out["mcp_token"]=token;}
  else if(cmd=="remote_config"){String error;out["ok"]=remoteSave(in.as<JsonVariantConst>(),error);if(error.length())out["error"]=error;}
  else if(cmd=="wifi"){String error;out["ok"]=provision(in.as<JsonVariantConst>(),error);if(error.length())out["error"]=error;}
  else if(cmd=="mcp"){if(!in["enabled"].is<bool>()){out["error"]="enabled must be boolean";}else{mcpEnabled=in["enabled"];prefs.putBool("mcp",mcpEnabled);out["ok"]=true;}}
@@ -218,13 +218,18 @@ static void serialCommand(const String &line){
  else if(cmd=="flash_identity"){
   // Only physical USB provisioning exposes this command; never an HTTP/MCP tool.
   String suffix=in["suffix"]|"",identifier=in["flash_id"]|"";
+  String label=in["name"]|"";label.trim();
   bool valid=suffix.length()==20&&identifier.length()>0&&identifier.length()<=64;
   for(size_t i=0;i<suffix.length();i++)if(!((suffix[i]>='0'&&suffix[i]<='9')||(suffix[i]>='a'&&suffix[i]<='f')))valid=false;
   for(size_t i=0;i<identifier.length();i++)if(!((identifier[i]>='0'&&identifier[i]<='9')||(identifier[i]>='a'&&identifier[i]<='f')||identifier[i]=='-'))valid=false;
+  if(!in["name"].isNull()&&(!in["name"].is<String>()||label.isEmpty()||label.length()>32))valid=false;
+  for(size_t i=0;i<label.length();i++)if((uint8_t)label[i]<32||(uint8_t)label[i]==127)valid=false;
   if(!valid){out["error"]="Invalid flash identity";}
   else{
    disarmOutputs();
    bool saved=prefs.putString("identity",suffix)==suffix.length()&&prefs.putString("flash_id",identifier)==identifier.length();
+   if(label.isEmpty()){if(prefs.isKey("display_name"))saved=prefs.remove("display_name")&&saved;}
+   else saved=(prefs.putString("display_name",label)==label.length())&&saved;
    out["ok"]=saved;if(!saved)out["error"]="Identity save failed";
    else{out["device_id"]="AI-Doll-"+suffix;out["reboot"]=true;}
    if(in["serial_request_id"].is<String>())out["serial_request_id"]=in["serial_request_id"];
@@ -243,11 +248,12 @@ static void serialCommand(const String &line){
 void setup(){
  pinMode(LED_PIN,OUTPUT);setLed(false);Serial.setRxBufferSize(16384);Serial.setTxBufferSize(32768);Serial.setTxTimeoutMs(500);Serial.begin(115200);prefs.begin("doll-lab",false);
  // A blank board receives safe defaults. Updates never overwrite saved calibration.
- if(!prefs.isKey("token")){prefs.putString("profile","safe-manual-v1");}
+ if(!prefs.isKey("token")&&!prefs.isKey("channels")&&!prefs.isKey("chcfg_blob")){prefs.putString("profile","physical-ch0-v1");}
  touchInit();
  String identity=prefs.getString("identity","");
  if(identity.isEmpty()){uint64_t mac=ESP.getEfuseMac();char suffix[7];snprintf(suffix,sizeof(suffix),"%06lx",(unsigned long)(mac&0xffffff));identity=String(suffix);}
  apName="AI-Doll-"+identity;
+ deviceName=prefs.getString("display_name",apName);
  apPass=prefs.getString("apkey","");if(apPass.isEmpty()){apPass="Doll-"+randomHex().substring(0,10);prefs.putString("apkey",apPass);}
  token=prefs.getString("token","");if(token.isEmpty()){token=randomHex();prefs.putString("token",token);}
  ssid=prefs.getString("ssid","");password=prefs.getString("pass","");mcpEnabled=prefs.getBool("mcp",true);
@@ -255,8 +261,8 @@ void setup(){
  eventStorageInit();networkInit();remoteInit();
  const char* headers[]={"Authorization","Origin","X-Setup-Token","MCP-Protocol-Version"};web.collectHeaders(headers,4);
  web.on("/",HTTP_GET,[]{if(admin())web.send_P(200,"text/html; charset=utf-8",PAGE);});
- web.on("/channel-editor.js",HTTP_GET,[]{if(admin())web.send_P(200,"application/javascript; charset=utf-8",CHANNEL_EDITOR_JS);});
- web.on("/ota-manager.js",HTTP_GET,[]{if(admin())web.send_P(200,"application/javascript; charset=utf-8",OTA_MANAGER_JS);});
+ web.on("/channel-editor.js",HTTP_GET,[]{if(admin()){web.sendHeader("Content-Encoding","gzip");web.send_P(200,"application/javascript; charset=utf-8",(const char*)CHANNEL_EDITOR_GZIP,sizeof(CHANNEL_EDITOR_GZIP));}});
+ web.on("/ota-manager.js",HTTP_GET,[]{if(admin()){web.sendHeader("Content-Encoding","gzip");web.send_P(200,"application/javascript; charset=utf-8",(const char*)OTA_MANAGER_GZIP,sizeof(OTA_MANAGER_GZIP));}});
  web.on("/api/setup",HTTP_GET,[]{if(!admin())return;JsonDocument d;d["token"]=token;d["enabled"]=mcpEnabled;d["auth_enabled"]=adminAuthEnabled;d["admin_user"]=adminUser;d["password_set"]=adminPasswordSet;d["network_mode"]=networkModeName();sendJson(200,d);});
  web.on("/api/security",HTTP_POST,[]{
   if(!admin())return;

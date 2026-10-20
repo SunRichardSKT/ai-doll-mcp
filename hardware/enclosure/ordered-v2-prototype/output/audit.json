@@ -1,5 +1,5 @@
 {
-  "revision": "ORDERED-V2-ENC-P02",
+  "revision": "ORDERED-V2-ENC-P03",
   "units": "mm",
   "manufacturingReady": false,
   "printedOrFitTested": false,
@@ -10,8 +10,8 @@
     "Drill_PTH_Through.DRL": "4e439ef549dd07724207f5b2c72e169713ceb5498ac0d09c87787733df7db573"
   },
   "dimensionsMm": {
-    "width": 46.29,
-    "length": 56.45,
+    "width": 62.0,
+    "length": 100.45,
     "height": 20.8
   },
   "boardBottomZ": 6.8,
@@ -21,7 +21,7 @@
     "base": {
       "validBrep": true,
       "solidCount": 1,
-      "volumeMm3": 11008.706350012886,
+      "volumeMm3": 21195.875354212887,
       "meshWatertight": true,
       "meshWindingConsistent": true,
       "meshBodyCount": 1,
@@ -32,16 +32,19 @@
           0.0
         ],
         [
-          46.290000915527344,
-          56.45000076293945,
+          62.0,
+          100.44999694824219,
           19.0
         ]
-      ]
+      ],
+      "stepReadbackValid": true,
+      "stepReadbackSolids": 1,
+      "stepVolumeDifferenceMm3": 2.0372681319713593e-10
     },
     "lid": {
       "validBrep": true,
       "solidCount": 1,
-      "volumeMm3": 5186.208761048967,
+      "volumeMm3": 12608.575528398054,
       "meshWatertight": true,
       "meshWindingConsistent": true,
       "meshBodyCount": 1,
@@ -52,11 +55,14 @@
           1.0000000116860974e-07
         ],
         [
-          46.290000915527344,
-          56.45000076293945,
-          12.15000057220459
+          62.0,
+          100.44999694824219,
+          13.800000190734863
         ]
-      ]
+      ],
+      "stepReadbackValid": true,
+      "stepReadbackSolids": 1,
+      "stepVolumeDifferenceMm3": 3.637978807091713e-11
     }
   },
   "moduleHeightInput": {
@@ -65,6 +71,171 @@
     "quality": "approximate",
     "datum": "main PCB upper surface to highest USB shell surface",
     "date": "2026-10-17"
+  },
+  "batteryBay": {
+    "nominalBatteryMm": [
+      50,
+      34,
+      10
+    ],
+    "innerBoundsMm": [
+      [
+        1.8,
+        1.8,
+        1.8
+      ],
+      [
+        60.2,
+        39.8,
+        13.8
+      ]
+    ],
+    "minimumReservedClearanceMm": [
+      52,
+      36,
+      12
+    ],
+    "reservedClearanceOriginMm": [
+      2.0,
+      3.4,
+      1.8
+    ],
+    "batteryBoundsMm": [
+      [
+        3.0,
+        4.4,
+        2.2
+      ],
+      [
+        53.0,
+        38.4,
+        12.2
+      ]
+    ],
+    "lidGapAboveBatteryMm": 6.800000000000001,
+    "dividerThicknessMm": 1.6,
+    "connectorAllowanceMm": {
+      "x": 40.0,
+      "y": 41.6,
+      "z": 2.2,
+      "width": 12.0,
+      "length": 8.0,
+      "height": 10.0
+    },
+    "wireSlot": {
+      "centerX": 46.0,
+      "width": 8.0,
+      "bottomZ": 7.8
+    },
+    "wireEndClearanceMm": 7.200000000000003,
+    "wireTurnAllowanceMm": {
+      "x": 54.0,
+      "y": 20.0,
+      "z": 1.8,
+      "width": 5.0,
+      "length": 14.0,
+      "height": 12.0
+    },
+    "wireRoute": "Orient cell short-edge leads toward +X; bend gently upward in the end allowance, route above the cell then over the open divider notch to connector bay. No lead pinching at foil seam.",
+    "reservedVolumeCaseIntersectionsMm3": {
+      "battery52x36x12": {
+        "base": 0.0,
+        "lid": 0.0
+      },
+      "connector12x8x10": {
+        "base": 0.0,
+        "lid": 0.0
+      },
+      "wireTurn5x14x12": {
+        "base": 0.0,
+        "lid": 0.0
+      }
+    },
+    "referenceOnly": true,
+    "electricalConnectionDesigned": false
+  },
+  "ledWindow": {
+    "centerMm": [
+      24.825,
+      83.512
+    ],
+    "sizeMm": [
+      14.0,
+      12.0
+    ],
+    "alignment": "Broad U1 USB/middle observation window; LED exact point requires user module fit check."
+  },
+  "snaps": {
+    "positions": [
+      {
+        "side": "left",
+        "y": 45.8
+      },
+      {
+        "side": "left",
+        "y": 92.0
+      },
+      {
+        "side": "right",
+        "y": 45.8
+      },
+      {
+        "side": "right",
+        "y": 92.0
+      }
+    ],
+    "widthMm": 8.0,
+    "lengthMm": 12.0,
+    "thicknessMm": 1.0,
+    "clearanceMm": 0.35,
+    "innerRootRadiusMm": 0.8,
+    "requiredInwardDeflectionMm": 0.5000000000000002,
+    "batterySnapIntersectionsMm3": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "fullyRetractedLegEnvelopeChecksMm3": [
+      {
+        "base": 0.0,
+        "PCB": 0.0,
+        "module": 0.0,
+        "battery": 0.0,
+        "connector": 0.0,
+        "maxBaseOverlapDuringSampledLift": 0.0
+      },
+      {
+        "base": 0.0,
+        "PCB": 0.0,
+        "module": 0.0,
+        "battery": 0.0,
+        "connector": 0.0,
+        "maxBaseOverlapDuringSampledLift": 0.0
+      },
+      {
+        "base": 0.0,
+        "PCB": 0.0,
+        "module": 0.0,
+        "battery": 0.0,
+        "connector": 0.0,
+        "maxBaseOverlapDuringSampledLift": 0.0
+      },
+      {
+        "base": 0.0,
+        "PCB": 0.0,
+        "module": 0.0,
+        "battery": 0.0,
+        "connector": 0.0,
+        "maxBaseOverlapDuringSampledLift": 0.0
+      }
+    ],
+    "sampledLiftStepMm": 1,
+    "sampledLiftRangeMm": [
+      0,
+      13
+    ],
+    "sweepAndStressValidated": false
   },
   "topAllowanceMm": 2.6,
   "baseLidOverlapMm3": 0.0,
@@ -76,7 +247,7 @@
       "side": "left",
       "y": 22.352,
       "x": -0.5,
-      "yWorld": 28.352,
+      "yWorld": 72.352,
       "width": 4.4,
       "zBottom": 9.0
     },
@@ -86,7 +257,7 @@
       "side": "left",
       "y": 16.002,
       "x": -0.5,
-      "yWorld": 22.002,
+      "yWorld": 66.002,
       "width": 4.4,
       "zBottom": 9.0
     },
@@ -96,7 +267,7 @@
       "side": "left",
       "y": 9.652,
       "x": -0.5,
-      "yWorld": 15.652,
+      "yWorld": 59.652,
       "width": 4.4,
       "zBottom": 9.0
     },
@@ -106,7 +277,7 @@
       "side": "left",
       "y": 3.302,
       "x": -0.5,
-      "yWorld": 9.302,
+      "yWorld": 53.302,
       "width": 4.4,
       "zBottom": 9.0
     },
@@ -115,8 +286,8 @@
       "channel": "CH4",
       "side": "right",
       "y": 22.352,
-      "x": 43.99,
-      "yWorld": 28.352,
+      "x": 59.7,
+      "yWorld": 72.352,
       "width": 4.4,
       "zBottom": 9.0
     },
@@ -125,8 +296,8 @@
       "channel": "CH5",
       "side": "right",
       "y": 16.002,
-      "x": 43.99,
-      "yWorld": 22.002,
+      "x": 59.7,
+      "yWorld": 66.002,
       "width": 4.4,
       "zBottom": 9.0
     },
@@ -135,8 +306,8 @@
       "channel": "CH6",
       "side": "right",
       "y": 9.652,
-      "x": 43.99,
-      "yWorld": 15.652,
+      "x": 59.7,
+      "yWorld": 59.652,
       "width": 4.4,
       "zBottom": 9.0
     },
@@ -145,8 +316,8 @@
       "channel": "CH7",
       "side": "right",
       "y": 3.302,
-      "x": 43.99,
-      "yWorld": 9.302,
+      "x": 59.7,
+      "yWorld": 53.302,
       "width": 4.4,
       "zBottom": 9.0
     }
@@ -159,23 +330,23 @@
   "tieAnchors": [
     {
       "x": 3.9,
-      "y": 12.477
+      "y": 56.477000000000004
     },
     {
       "x": 3.9,
-      "y": 25.177
+      "y": 69.17699999999999
     },
     {
-      "x": 42.39,
-      "y": 12.477
+      "x": 58.1,
+      "y": 56.477000000000004
     },
     {
-      "x": 42.39,
-      "y": 25.177
+      "x": 58.1,
+      "y": 69.17699999999999
     },
     {
-      "x": 42.39,
-      "y": 40.29
+      "x": 58.1,
+      "y": 84.28999999999999
     }
   ],
   "supportContact": "0.45 mm board edge patches at local y=12.827 and 30 mm; 1.4 mm along edge",
@@ -185,7 +356,9 @@
     "USB plug and removal access",
     "wire bundle diameter and bend radius",
     "switch actuator reach",
-    "printed lid fit and screw pilot",
+    "PETG snap fit, release force, flex fatigue and insertion sweep",
+    "battery pack actual seam/protection board/connector size",
+    "LED alignment on actual module",
     "RF and thermal test"
   ]
 }

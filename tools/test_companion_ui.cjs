@@ -11,6 +11,8 @@ const {chromium}=require('playwright');
   await page.waitForFunction(()=>document.querySelector('#history tr'));
   await page.click('#start');
   await page.waitForFunction(()=>document.querySelector('#mode').textContent==='互动模式');
+  await page.locator('#developerOptions>summary').click();
+  await page.locator('#debugReadings>summary').click();
   await page.selectOption('#channel','4');
   await page.click('#press');
   await page.waitForFunction(()=>document.querySelector('#feedback').textContent.includes('模拟输入已发送'));
