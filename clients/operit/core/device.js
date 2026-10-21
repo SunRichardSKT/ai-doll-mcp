@@ -1,9 +1,10 @@
-// Phone-only adapter over the existing firmware MCP. It never changes sampling,
-// calibration, outputs, time or flash acknowledgements. No server is installed.
+// Phone-only adapter. Port writes are explicit user actions using the firmware's
+// local patch operation; polling never changes calibration or outputs.
 const store=require('./settings.js'),mcp=require('./mcp.js');
 function now(){return Date.now()/1000;}
 function localHost(input) {
   const text=String(input||'').trim().replace(/^http:\/\//,'').replace(/\/$/,'');
+  if(/^ai-doll-[a-f0-9]{12}\.local$/.test(text))return text;
   const parts=text.split('.');
   if(parts.length!==4||parts.some(p=>!/^\d{1,3}$/.test(p)||Number(p)>255))throw Error('请输入设备设置页显示的家庭局域网 IP，例如 192.168.1.50。');
   const [a,b]=parts.map(Number);
@@ -31,7 +32,8 @@ async function pair(host,token,prior) {
   const config=await tool('get_channel_config');
   if(!Array.isArray(config.channels))throw Error('设备未返回通道配置，请检查固件。');
   return {schema:1,kind:'ai-doll-device-connection',mode:'phone',mcp_url:origin+'/mcp',token,
-    device_id:status.device_id,storage_key:prior?.device_id===status.device_id?prior.storage_key:store.id(),label:status.device_id};
+    device_id:status.device_id,storage_key:prior?.device_id===status.device_id?prior.storage_key:store.id(),label:status.device_name||status.device_id,
+    ...(status.hostname&&/^ai-doll-[a-f0-9]{12}\.local$/.test(status.hostname)?{hostname:status.hostname}:{})};
 }
 function valid(c) {
   if(c.kind!=='ai-doll-device-connection'||c.mcp_url!=='http://'+localHost(c.mcp_url.replace(/^http:\/\//,'').replace(/\/mcp$/,''))+'/mcp'||
@@ -40,14 +42,46 @@ function valid(c) {
 }
 async function connect(c) {
   valid(c);
-  let remote;
-  const native=async(name,args={})=>{
-    if(!remote)remote=await mcp.connect(c.mcp_url,c.token);
-    return await remote(name,args);
-  };
   const prefix='device_'+c.storage_key+'_';
   const read=(name,def)=>store.read(prefix+name+'.json',def),write=(name,value)=>store.write(prefix+name+'.json',value);
-  const defaults={chat_integration_enabled:true,proactive_enabled:false,allow_simulation:true,
+  let remote;
+  async function establish(){
+    const saved=await read('network',{});
+    const hostname=c.hostname||saved.hostname;
+    const fixed=hostname&&/^ai-doll-[a-f0-9]{12}\.local$/.test(hostname)?'http://'+hostname+'/mcp':null;
+    const candidates=[...new Set([saved.url,c.mcp_url,fixed].filter(Boolean))];
+    let failure;
+    for(const url of candidates){
+      // Recovered candidates stay inside the private LAN/name namespace.
+      localHost(url.replace(/^http:\/\//,'').replace(/\/mcp$/,''));
+      try{
+        if(fixed){
+          const r=await Tools.Net.http({url:url.replace(/\/mcp$/,'/api/identity'),method:'GET',
+            follow_redirects:false,connect_timeout:1800,read_timeout:1800});
+          if(r.statusCode!==200)throw Error('尚未读取到设备身份。');
+          identity(JSON.parse(r.content),c.device_id);
+        }
+        const candidate=await mcp.connect(url,c.token);
+        const status=identity(await candidate('doll_get_status'),c.device_id);
+        const learned=typeof status.hostname==='string'&&/^ai-doll-[a-f0-9]{12}\.local$/.test(status.hostname)?status.hostname:null;
+        await write('network',{url,hostname:learned||(fixed?hostname:null),ip:status.ip||null,checked_at:now()});
+        remote=candidate;return;
+      }catch(e){
+        if(String(e.message).includes('直传服务器')||(String(e.message).includes('身份')&&(!fixed||url===fixed)))throw e;
+        failure=e;
+      }
+    }
+    throw Error('暂未找到已绑定设备。请确认设备与手机同一 Wi-Fi；固定名称无法解析时在设备与连接页更新家庭 IP。'+(failure?' '+failure.message:''));
+  }
+  const native=async(name,args={})=>{
+    if(!remote)await establish();
+    try{return await remote(name,args);}catch(e){
+      // A failed write is never retried. Read recovery retains chat/history IDs.
+      if(!['doll_get_status','get_channel_config','read_channel_values','get_touch_events'].includes(name))throw e;
+      remote=null;await establish();return await remote(name,args);
+    }
+  };
+  const defaults={chat_integration_enabled:true,proactive_enabled:false,allow_simulation:false,persona_source:'chat',doll_persona:'',
     tone:'温柔自然',max_characters:160,merge_ms:300,cooldown_ms:1500,muted:false};
   const prefs=async()=>({...defaults,...await read('preferences',{})});
   async function archive(){return await read('events',{schema:1,next_id:1,events:[],seen:[],receipts:[],last_sync:null});}
@@ -55,8 +89,9 @@ async function connect(c) {
   async function status(){return identity(await native('doll_get_status'),c.device_id);}
   async function overview(){
     const s=await status(),channels=await native('get_channel_config'),values=await native('read_channel_values'),a=await archive();
-    return {online:true,device_id:s.device_id,firmware:s.firmware,sensor_mode:s.sensor_mode,
-      physical_outputs_enabled:s.physical_outputs_enabled,channels:channels.channels,values,
+    return {online:true,device_id:s.device_id,device_ip:s.ip||null,device_hostname:s.hostname||c.hostname||null,firmware:s.firmware,sensor_mode:s.sensor_mode,
+      port_state_model:channels.port_state_model,physical_inputs_enabled:s.physical_inputs_enabled,
+      physical_outputs_enabled:s.physical_outputs_enabled,channels:channels.channels,values:values.values||[],
       last_sync:a.last_sync,transport:'phone_device_wifi',history_source:'android_local',
       preferences:await prefs(),host_event_support:'operit_user_reported',
       background_guaranteed:false,recording_scope:'only_while_interaction_runs'};
@@ -73,6 +108,13 @@ async function connect(c) {
         throw Error('设备已重启，本次互动结束；重新开始后只读取新触摸。');
       }
       if(!Array.isArray(batch.events)||!Number.isInteger(batch.next_cursor)||!Number.isFinite(batch.uptime_ms))throw Error('设备事件格式无效。');
+      if(!batch.events.length){
+        if(a.boot!==s.boot||a.cursor!==batch.next_cursor||now()-(a.last_sync||0)>=5){
+          a.boot=s.boot;a.cursor=batch.next_cursor;a.last_sync=now();await write('events',a);
+        }
+        if(now()>=end)return;
+        await Tools.System.sleep(700);continue;
+      }
       a=await archive();const day=new Date().toISOString().slice(0,10).replace(/-/g,'');
       const history=await read('history_'+day,{schema:1,events:[]});
       let added=0;
@@ -99,14 +141,23 @@ async function connect(c) {
   }
   async function context(args){
     const p=await prefs(),a=await archive(),after=args.after||0,limit=Math.max(1,Math.min(200,args.limit||50));
-    const base={chat_id:args.chat_id,preferences:p,persona:'',feedback:{tone:p.tone,max_characters:p.max_characters,language:'zh-CN'},
-      events:[],updates:[],receipt_id:null,next_cursor:after,last_sync:a.last_sync,history_source:'android_local'};
+    if(args.session_id){const s=await session();if(!s||s.id!==args.session_id||s.chat_id!==args.chat_id)throw Error('互动上下文不属于当前有效会话。');}
+    const config=await native('get_channel_config');
+    const sourceAllowed=e=>{
+      if(config.port_state_model!=='per_port_v1')return true;
+      const c=config.channels.find(c=>c.channel===e.channel);
+      return c&&c.mode!=='off'&&((c.mode==='simulation')===(e.source==='simulation'));
+    };
+    const base={chat_id:args.chat_id,context_protocol:'leased-batch-v1',preferences:p,persona:p.doll_persona||'',persona_priority:p.persona_source==='doll'?'saved_doll':'current_chat',feedback:{tone:p.tone,max_characters:p.max_characters,language:'zh-CN'},
+      events:[],updates:[],receipt_id:null,next_cursor:after,last_sync:a.last_sync,history_source:'android_local',channels:config.channels,
+      proactive_delivery_allowed:!!(p.proactive_enabled&&p.chat_integration_enabled&&!p.muted)};
+    base.response_policy={merge_ms:p.merge_ms,cooldown_ms:p.cooldown_ms};
     if(!p.chat_integration_enabled||p.muted)return base;
-    const selected=a.events.filter(e=>e.id>after&&e.phase==='start'&&e.sensor_type==='pressure'&&e.direction==='input'&&
+    const selected=a.events.filter(e=>e.id>after&&(args.through==null||e.id<=args.through)&&(!args.session_id||e.session_id===args.session_id)&&e.phase==='start'&&e.sensor_type==='pressure'&&e.direction==='input'&&
       e.quality==='ok'&&['sensor','simulation'].includes(e.source)&&(e.source!=='simulation'||p.allow_simulation)&&
-      e.delivery_quality==='live'&&e.touch_id&&e.at<=now()+2&&now()-e.at<=30&&
+      e.delivery_quality==='live'&&sourceAllowed(e)&&e.touch_id&&e.at<=now()+2&&now()-e.at<=30&&
       !a.seen.some(x=>x.chat_id===args.chat_id&&x.boot===e.boot&&(x.touch_id===e.touch_id||
-        (e.at>=x.at&&e.at-x.at<=Math.max(p.cooldown_ms,p.merge_ms)/1000)))).slice(0,limit)
+        (!args.session_id&&e.at>=x.at&&e.at-x.at<=Math.max(p.cooldown_ms,p.merge_ms)/1000)))).slice(0,limit)
       .map(e=>({...e,body_preferences:{feedback_level:'normal',aliases:[],interaction_hint:''}}));
     if(!selected.length)return base;
     const ids=selected.map(e=>e.event_id).join('|');
@@ -120,15 +171,48 @@ async function connect(c) {
       adapter:'operit_phone',server_required:false,physical_outputs_changed:false};
     if(name==='get_device_overview')return await overview();
     if(name==='get_channel_config')return await native(name);
+    if(name==='get_persona')return {persona:(await prefs()).doll_persona||''};
+    if(name==='get_settings_entry'){
+      const s=await status(),network=await read('network',{});
+      return {section:args.section||'body',browser_opened:false,
+        entries:[{url:s.ip&&s.ip!=='0.0.0.0'?'http://'+s.ip+'/':network.url?.replace(/\/mcp$/,'/'),scope:'device_lan',access:'手机需与娃娃在同一家庭网络。'}]};
+    }
+    if(name==='update_body_part'){
+      const changes=args.changes||{};
+      if(!Number.isInteger(args.channel)||Object.keys(changes).some(k=>!['name','mode'].includes(k))||!Object.keys(changes).length)
+        throw Error('手机端口设置支持部位名称与关闭／模拟／已接入。');
+      const before=await native('get_channel_config');
+      if(before.port_state_model!=='per_port_v1')throw Error('需要新版固件的端口三态接口；请先打开设备设置核对，未改动旧配置。');
+      if(changes.mode!==undefined&&!['off','simulation','connected'].includes(changes.mode))throw Error('端口状态无效。');
+      const after=await native('set_channel_state',{channel:args.channel,...changes});
+      const port=after.channels?.find(p=>p.channel===args.channel);
+      if(!port||Object.keys(changes).some(k=>port[k]!==changes[k]))throw Error('设置未确认，请重新读取端口核对；不会自动重试。');
+      return {updated:true,channel:args.channel,name_sync:changes.name!==undefined?'confirmed':'unchanged',port_sync:changes.mode!==undefined?'confirmed':'unchanged'};
+    }
     if(name==='query_device_history'){
-      const a=await archive(),events=a.events.slice(-Math.max(1,Math.min(200,args.limit||20)));
-      return {events,history_source:'android_local',scope:'recent_index',last_sync:a.last_sync,
+      const a=await archive(),after=args.after||0,limit=args.limit||50;
+      if(!Number.isInteger(after)||after<0||!Number.isInteger(limit)||limit<1||limit>200)throw Error('历史游标或页大小无效。');
+      let events=a.events;
+      if(args.date){
+        if(!/^\d{4}-\d{2}-\d{2}$/.test(args.date))throw Error('日期格式为YYYY-MM-DD。');
+        const start=new Date(args.date+'T00:00:00'),end=new Date(start);end.setDate(end.getDate()+1);
+        if(!Number.isFinite(start.getTime()))throw Error('日期无效。');
+        const days=[...new Set([start.toISOString(),new Date(end.getTime()-1).toISOString()].map(d=>d.slice(0,10).replace(/-/g,'')))];
+        events=[];for(const day of days)events.push(...(await read('history_'+day,{events:[]})).events);
+        events=events.filter(e=>e.at>=start.getTime()/1000&&e.at<end.getTime()/1000);
+      }
+      const page=events.filter(e=>e.id>after).sort((a,b)=>a.id-b.id),selected=page.slice(0,limit);
+      return {events:selected,has_more:page.length>limit,next_cursor:selected[selected.length-1]?.id??after,
+        history_source:'android_local',scope:args.date?'daily_archive':'recent_index',last_sync:a.last_sync,
         durable_history:'daily_json_in_plugin_directory',recording_scope:'only_while_interaction_runs'};
     }
     if(name==='get_chat_context')return await context(args);
     if(name==='update_companion_preferences'){
-      const changes=args.changes||{},keys=['chat_integration_enabled','proactive_enabled','allow_simulation','muted'];
-      if(Object.keys(changes).some(k=>!keys.includes(k)||typeof changes[k]!=='boolean'))throw Error('手机模式仅支持聊天融入、主动回应、模拟与静音开关。');
+      const changes=args.changes||{},keys=['chat_integration_enabled','proactive_enabled','allow_simulation','muted','persona_source','doll_persona'];
+      if(Object.keys(changes).some(k=>!keys.includes(k)||(!['persona_source','doll_persona'].includes(k)&&typeof changes[k]!=='boolean')))
+        throw Error('不支持的陪伴设置。');
+      if(changes.persona_source!==undefined&&!['chat','doll'].includes(changes.persona_source))throw Error('请选择当前聊天或娃娃人设。');
+      if(changes.doll_persona!==undefined&&(typeof changes.doll_persona!=='string'||changes.doll_persona.length>4000))throw Error('娃娃人设最多4000字。');
       const p={...await prefs(),...changes};await write('preferences',p);return {updated:true,preferences:p};
     }
     if(name==='start_interaction'){

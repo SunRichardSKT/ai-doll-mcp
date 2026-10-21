@@ -124,11 +124,11 @@ static void initOutputPins(){
 }
 static void applyInputEnabled(bool enabled){
  stopDigitalInputs();
- for(int i=0;i<MAX_CHANNELS;i++){if(touches[i].active)touchInject(i,0);sensorDebounce[i]=0;}
+ for(int i=0;i<MAX_CHANNELS;i++){if(touches[i].active&&!touches[i].simulated)touchInject(i,0,false);sensorDebounce[i]=0;}
  sensorEnabled=enabled;
  if(enabled){pinMode(3,OUTPUT);pinMode(4,OUTPUT);pinMode(5,OUTPUT);analogReadResolution(12);analogSetPinAttenuation(0,ADC_11db);analogSetPinAttenuation(1,ADC_11db);}
  else{pinMode(3,INPUT);pinMode(4,INPUT);pinMode(5,INPUT);calibration.engaged=false;calibration.capturing=false;}
- if(enabled)for(const auto &c:channels)if(c.configured&&c.enabled&&c.driver==ChannelDriver::DS18B20){digitalWire.begin(1);digitalReady=true;break;}
+ if(enabled)for(const auto &c:channels)if(physicalChannel(c)&&c.driver==ChannelDriver::DS18B20){digitalWire.begin(1);digitalReady=true;break;}
 }
 static bool persistChannels(const ChannelConfig *next,String &error,bool restore=resumeInputs){
  JsonDocument d;encodeChannels(d.to<JsonObject>(),next);
@@ -139,7 +139,10 @@ static bool persistChannels(const ChannelConfig *next,String &error,bool restore
 }
 static __attribute__((noinline)) bool saveChannels(JsonVariantConst a,String &error){
  ChannelConfig next[MAX_CHANNELS];if(!parseChannels(a,next,error))return false;
- if(!persistChannels(next,error,false))return false;
+ bool explicitModes=true,resume=false;
+ for(JsonObjectConst p:a["channels"].as<JsonArrayConst>())if(p["mode"].isNull())explicitModes=false;
+ if(explicitModes)for(const auto &c:next)if(physicalChannel(c))resume=true;
+ if(!persistChannels(next,error,resume))return false;
  // Close events with their old names/types before applying new configuration.
  for(int i=0;i<MAX_CHANNELS;i++)if(touches[i].active)touchInject(i,0);
  disarmOutputs();stopDigitalInputs();sensorEnabled=false;resumeInputs=false;calibration.reset();pressChannel=-1;pressValue=0;
@@ -147,7 +150,34 @@ static __attribute__((noinline)) bool saveChannels(JsonVariantConst a,String &er
   if(channels[i].configured&&channels[i].driver==ChannelDriver::GPIO_PWM){ledcDetachPin(channels[i].gpio);pinMode(channels[i].gpio,INPUT);}
   channels[i]=next[i];readings[i]=ChannelReading();sensorRaw[i]=0;sensorDebounce[i]=0;
  }
- pinMode(3,INPUT);pinMode(4,INPUT);pinMode(5,INPUT);initOutputPins();return true;
+ pinMode(3,INPUT);pinMode(4,INPUT);pinMode(5,INPUT);initOutputPins();resumeInputs=resume;if(resume)applyInputEnabled(true);return true;
+}
+static __attribute__((noinline)) bool setChannelState(JsonVariantConst a,String &error){
+ if(!a["channel"].is<int>()){error="channel integer required";return false;}
+ int ch=a["channel"];if(ch<0||ch>=MAX_CHANNELS||!channels[ch].configured||channels[ch].kind==DeviceKind::VIBRATION){error="Choose a configured input channel";return false;}
+ if(calibration.engaged){error="Finish or cancel calibration before changing ports";return false;}
+ ChannelConfig next[MAX_CHANNELS];for(int i=0;i<MAX_CHANNELS;i++)next[i]=channels[i];
+ if(!a["name"].isNull()){
+  if(!a["name"].is<String>()||a["name"].as<String>().isEmpty()||a["name"].as<String>().length()>96){error="name must contain 1..96 UTF-8 bytes";return false;}
+  next[ch].name=a["name"].as<String>();
+ }
+ if(!a["mode"].isNull()){
+  String mode=a["mode"].as<String>();if(mode!="off"&&mode!="simulation"&&mode!="connected"){error="mode must be off, simulation or connected";return false;}
+  if(mode=="connected"&&next[ch].driver==ChannelDriver::SIMULATION){error="Physical binding required; configure the driver first";return false;}
+  next[ch].enabled=mode!="off";next[ch].simulate=mode=="simulation";
+ }
+ if(a["name"].isNull()&&a["mode"].isNull()){error="Provide name or mode";return false;}
+ bool modeRequested=!a["mode"].isNull();
+ bool changed=strcmp(channelMode(channels[ch]),channelMode(next[ch]))!=0;
+ bool resume=resumeInputs;if(modeRequested){resume=false;for(const auto &c:next)if(physicalChannel(c))resume=true;}
+ if(!persistChannels(next,error,resume))return false;
+ // End only this port's old event before changing its label/source. Other
+ // channels, calibration thresholds and GPIO bindings remain intact.
+ if(changed&&touches[ch].active)touchInject(ch,0);
+ channels[ch]=next[ch];if(changed){readings[ch]=ChannelReading();sensorDebounce[ch]=0;}resumeInputs=resume;
+ if(modeRequested&&sensorEnabled!=resume)applyInputEnabled(resume);
+ else if(changed&&channels[ch].driver==ChannelDriver::DS18B20){stopDigitalInputs();if(resume)for(const auto &c:channels)if(physicalChannel(c)&&c.driver==ChannelDriver::DS18B20){digitalWire.begin(1);digitalReady=true;break;}}
+ return true;
 }
 static void touchInit(){
  touchBoot=randomHex();JsonDocument names;deserializeJson(names,prefs.getString("bodymap","[]"));
@@ -192,7 +222,7 @@ static void readChannels(JsonObject out){
  out["physical_inputs_enabled"]=sensorEnabled;out["physical_outputs_enabled"]=outputEnabled;
  JsonArray a=out["values"].to<JsonArray>();uint64_t now=touchNow();
  for(int ch=0;ch<MAX_CHANNELS;ch++)if(channels[ch].configured){
-  auto &c=channels[ch];auto &s=readings[ch];JsonObject p=a.add<JsonObject>();p["channel"]=ch;p["name"]=c.name;p["type"]=kindName(c.kind);p["direction"]=c.kind==DeviceKind::VIBRATION?"output":"input";p["driver"]=driverName(c.driver);p["unit"]=unitName(c.kind);p["source"]=s.source;p["uptime_ms"]=s.at;
+  auto &c=channels[ch];auto &s=readings[ch];JsonObject p=a.add<JsonObject>();p["channel"]=ch;p["name"]=c.name;p["type"]=kindName(c.kind);p["direction"]=c.kind==DeviceKind::VIBRATION?"output":"input";p["driver"]=driverName(c.driver);p["mode"]=channelMode(c);p["unit"]=unitName(c.kind);p["source"]=s.source;p["uptime_ms"]=s.at;
   String quality=!c.enabled?"disabled":!s.sampled?"not_sampled":(s.source=="sensor"&&!sensorEnabled)?"inputs_disabled":!s.valid?s.fault:((s.source=="sensor"&&now-s.at>max(5000,c.sampleMs*3))?"stale":"ok");p["quality"]=quality;
   if(quality=="ok")p["value"]=s.value;else p["value"]=nullptr;
   p["raw"]=s.raw;if(s.mv>=0)p["adc_mv"]=s.mv;else p["adc_mv"]=nullptr;if(c.kind==DeviceKind::VIBRATION){p["active"]=outputs[ch].active;p["feedback"]="commanded_state_only";}
@@ -217,7 +247,7 @@ static bool simulateInput(JsonVariantConst a,String &error){
  if(!a["channel"].is<int>()||!a["value"].is<float>()){error="channel and numeric value required";return false;}
  int ch=a["channel"];float value=a["value"];
  if(!validChannel(ch)||channels[ch].kind==DeviceKind::VIBRATION){error="Choose an enabled input channel";return false;}
- if(sensorEnabled&&channels[ch].driver!=ChannelDriver::SIMULATION){error="Disable physical sampling before injecting this channel";return false;}
+ if(!channels[ch].simulate&&channels[ch].driver!=ChannelDriver::SIMULATION){error="Set this port to simulation before injecting; other physical ports may keep sampling";return false;}
  if(!isfinite(value)){error="Finite value required";return false;}
  if(!a["unit"].isNull()&&!a["unit"].is<String>()){error="unit must be a string";return false;}
  String unit=a["unit"].is<String>()?a["unit"].as<String>():String(unitName(channels[ch].kind));
@@ -238,7 +268,7 @@ static bool armOutputs(JsonVariantConst a,String &error){
  if(calibration.engaged){error="Finish or cancel calibration before enabling physical outputs";return false;}
  if(!a["external_driver_confirmed"].is<bool>()||!a["external_driver_confirmed"].as<bool>()){error="Confirm an external motor driver before enabling physical outputs";return false;}
  if(outputEnabled)return true;
- for(int ch=0;ch<MAX_CHANNELS;ch++)if(channels[ch].configured&&channels[ch].enabled&&channels[ch].driver==ChannelDriver::GPIO_PWM){
+ for(int ch=0;ch<MAX_CHANNELS;ch++)if(channels[ch].configured&&channels[ch].enabled&&!channels[ch].simulate&&channels[ch].driver==ChannelDriver::GPIO_PWM){
   int pwm=outputs[ch].pwm;if(!ledcSetup(pwm,200,8)){error="PWM setup failed";disarmOutputs();return false;}ledcAttachPin(channels[ch].gpio,pwm);ledcWrite(pwm,0);
  }
  outputEnabled=true;return true;
@@ -247,7 +277,7 @@ static bool vibrate(JsonVariantConst a,String &error){
  if(!a["channel"].is<int>()||!a["intensity"].is<int>()||!a["duration_ms"].is<int>()){error="channel/intensity/duration_ms integers required";return false;}
  int ch=a["channel"],intensity=a["intensity"],duration=a["duration_ms"];
  if(!validChannel(ch)||channels[ch].kind!=DeviceKind::VIBRATION||intensity<0||intensity>100||duration<1||duration>5000){error="Enabled vibration channel; intensity 0..100, duration 1..5000 ms";return false;}
- bool physical=channels[ch].driver==ChannelDriver::GPIO_PWM;
+ bool physical=channels[ch].driver==ChannelDriver::GPIO_PWM&&!channels[ch].simulate;
  if(physical&&intensity&&calibration.engaged){error="Physical vibration is disabled during calibration";return false;}
  if(physical&&!outputEnabled&&intensity){error="Physical outputs are disabled; confirm external driver and enable first";return false;}
  stopOutput(ch);auto &s=outputs[ch];s.physical=physical;
@@ -299,7 +329,7 @@ static __attribute__((noinline)) void calibrationStatus(JsonObject out){
 static __attribute__((noinline)) bool captureCalibration(JsonVariantConst a,String &error){
  if(!a["channel"].is<int>()||!a["stage"].is<int>()||(!a["duration_ms"].isNull()&&!a["duration_ms"].is<int>())){error="channel/stage and optional duration_ms integers required";return false;}
  int ch=a["channel"],stage=a["stage"],duration=a["duration_ms"]|3000;
- if(!validChannel(ch)||channels[ch].kind!=DeviceKind::PRESSURE||channels[ch].driver==ChannelDriver::SIMULATION||!sensorEnabled){error="Calibration requires enabled physical pressure sampling";return false;}
+ if(!validChannel(ch)||channels[ch].kind!=DeviceKind::PRESSURE||!physicalChannel(channels[ch])||!sensorEnabled){error="Calibration requires connected physical pressure sampling";return false;}
  if(stage<0||stage>2||duration<500||duration>10000){error="stage 0..2; duration_ms 500..10000";return false;}
  if(calibration.capturing){error="Wait for current capture or cancel calibration";return false;}
  if(stage==0){calibration.reset();calibration.channel=ch;calibration.engaged=true;
@@ -331,7 +361,7 @@ static void touchTick(){
  static uint64_t sampled=0;if(!sensorEnabled||now-sampled<20)return;sampled=now;
  for(int ch=0;ch<MAX_CHANNELS;ch++){
   auto &c=channels[ch];auto &v=readings[ch];
-  if(!c.configured||!c.enabled||c.kind==DeviceKind::VIBRATION||c.driver==ChannelDriver::SIMULATION)continue;
+  if(!physicalChannel(c))continue;
   if(c.driver==ChannelDriver::DS18B20){
    DigitalTemperature sample;
    bool wasPending=digitalCycles[ch].pending;

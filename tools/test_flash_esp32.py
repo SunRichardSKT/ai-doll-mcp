@@ -1,8 +1,10 @@
 """Protect flashing boundaries, file integrity and deterministic port selection."""
 import json
+import os
 from pathlib import Path
 import shutil
 import tempfile
+import threading
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -50,6 +52,34 @@ class FlashTests(unittest.TestCase):
             for job in jobs:
                 self.assertTrue(job.logfile.exists())
                 self.assertEqual(json.loads(job.reportfile.read_text())['target_device_id'],'AI-Doll-'+job.suffix)
+
+    @unittest.skipUnless(os.name == 'nt', 'Windows file-sharing semantics')
+    def test_result_save_recovers_from_a_real_windows_open_reader(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            job=flasher.FlashJob(temporary)
+            with job.reportfile.open('rb') as reader:
+                # Reproduce the reported failure with an actual Windows handle.
+                blocked=job.folder/'probe.tmp';blocked.write_text('{}',encoding='utf-8')
+                with self.assertRaises(PermissionError):blocked.replace(job.reportfile)
+                release=threading.Timer(.06,reader.close);release.start()
+                try:job.update(phase='connect')
+                finally:release.join()
+            self.assertEqual(json.loads(job.reportfile.read_text(encoding='utf-8'))['phase'],'connect')
+            self.assertFalse((job.folder/'result.tmp').exists())
+
+    @unittest.skipUnless(os.name == 'nt', 'Windows access denied semantics')
+    def test_permanent_result_denial_stays_visible_and_preserves_the_old_file(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            job=flasher.FlashJob(temporary);before=job.reportfile.read_bytes()
+            with job.reportfile.open('rb'),patch.object(flasher.time,'sleep'):
+                with self.assertRaises(PermissionError):job.update(phase='write')
+            self.assertEqual(job.reportfile.read_bytes(),before)
+
+    def test_snapshot_cannot_mutate_the_job(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            job=flasher.FlashJob(temporary);job.update(details={'port':'COM4'})
+            view=job.snapshot();view['details']['port']='another'
+            self.assertEqual(job.snapshot()['details']['port'],'COM4')
 
     def test_names_use_utf8_bytes_and_preserve_spaces_inside(self):
         self.assertIsNone(flasher.validate_name(None))

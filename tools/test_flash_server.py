@@ -70,5 +70,23 @@ class FlashPageTests(unittest.TestCase):
             self.assertEqual(self.request({'port':'COM4','factory':False})[0],409)
             hold.set();self.assertTrue(done.wait(2));self.assertEqual(run.call_count,1)
 
+    def test_status_polling_does_not_open_or_block_the_result_file(self):
+        job=flash_esp32.FlashJob();job.update(status='success',phase='done',identity_verified=True)
+        self.page.job=job
+        original=Path.read_text
+        def without_result_file(path,*args,**kwargs):
+            if path==job.reportfile:raise PermissionError('Do not open the writer target')
+            return original(path,*args,**kwargs)
+        with patch.object(Path,'read_text',without_result_file),patch('serial.tools.list_ports.comports',return_value=[]):
+            state=self.page.state()
+        self.assertEqual(state['report']['status'],'success')
+        self.assertTrue(state['report']['identity_verified'])
+
+    def test_result_directory_error_is_reported_as_json(self):
+        with patch.object(ui,'FlashJob',side_effect=PermissionError('directory is not writable')):
+            code,result=self.request({'factory':False})
+        self.assertEqual(code,500)
+        self.assertIn('保存烧录记录',result['error'])
+
 
 if __name__=='__main__':unittest.main()

@@ -7,7 +7,7 @@ static constexpr int MAX_CHANNELS=16;
 enum class DeviceKind { PRESSURE, TEMPERATURE, VIBRATION };
 enum class ChannelDriver { MUX_ADC, GPIO_ADC, SIMULATION, GPIO_PWM, DS18B20 };
 struct ChannelConfig {
- bool configured=false,enabled=true;
+ bool configured=false,enabled=true,simulate=false;
  String name;
  DeviceKind kind=DeviceKind::PRESSURE;
  ChannelDriver driver=ChannelDriver::MUX_ADC;
@@ -33,12 +33,18 @@ static const char* driverName(ChannelDriver d){switch(d){case ChannelDriver::MUX
 static String digitalRomName(const uint8_t* rom){char text[17];for(int i=0;i<8;i++)snprintf(text+i*2,3,"%02x",rom[i]);return String(text);}
 static const char* unitName(DeviceKind k){return k==DeviceKind::PRESSURE?"adc_raw":k==DeviceKind::TEMPERATURE?"degC":"percent";}
 static bool validChannel(int ch){return ch>=0&&ch<MAX_CHANNELS&&channels[ch].configured&&channels[ch].enabled;}
+static const char* channelMode(const ChannelConfig &c){return !c.enabled?"off":(c.simulate||c.driver==ChannelDriver::SIMULATION)?"simulation":"connected";}
+static bool physicalChannel(const ChannelConfig &c){return c.configured&&c.enabled&&!c.simulate&&c.driver!=ChannelDriver::SIMULATION&&c.kind!=DeviceKind::VIBRATION;}
+static const char* inputModeSummary(){
+ bool physical=false,simulation=false;for(const auto &c:channels)if(c.configured&&c.enabled&&c.kind!=DeviceKind::VIBRATION){if(physicalChannel(c))physical=true;else simulation=true;}
+ return physical?(sensorEnabled?(simulation?"mixed":"sensor"):"paused"):(simulation?"simulation":"off");
+}
 static void encodeChannels(JsonObject out,const ChannelConfig *list=channels){
- out["schema_version"]=1;out["max_channels"]=MAX_CHANNELS;
+ out["schema_version"]=1;out["max_channels"]=MAX_CHANNELS;out["port_state_model"]="per_port_v1";
  JsonArray arr=out["channels"].to<JsonArray>();
  for(int i=0;i<MAX_CHANNELS;i++){
   const auto &c=list[i];if(!c.configured)continue;JsonObject p=arr.add<JsonObject>();
-  p["channel"]=i;p["name"]=c.name;p["type"]=kindName(c.kind);p["enabled"]=c.enabled;
+  p["channel"]=i;p["name"]=c.name;p["type"]=kindName(c.kind);p["enabled"]=c.enabled;p["mode"]=channelMode(c);
   p["direction"]=c.kind==DeviceKind::VIBRATION?"output":"input";p["driver"]=driverName(c.driver);
   if(c.driver==ChannelDriver::MUX_ADC)p["mux_port"]=c.mux;
   if(c.driver==ChannelDriver::GPIO_ADC||c.driver==ChannelDriver::GPIO_PWM||c.driver==ChannelDriver::DS18B20)p["gpio"]=c.gpio;
@@ -85,6 +91,13 @@ static bool parseChannels(JsonVariantConst a,ChannelConfig *next,String &error){
   else if(driver=="gpio_pwm"&&c.kind==DeviceKind::VIBRATION)c.driver=ChannelDriver::GPIO_PWM;
   else if(driver=="ds18b20"&&c.kind==DeviceKind::TEMPERATURE)c.driver=ChannelDriver::DS18B20;
   else{error="Driver is unsupported or incompatible with direction/type";return false;}
+  if(!p["mode"].isNull()){
+   String mode=p["mode"].as<String>();
+   if(mode!="off"&&mode!="simulation"&&mode!="connected"){error="mode must be off, simulation or connected";return false;}
+   if(!p["enabled"].isNull()&&p["enabled"].as<bool>()!=(mode!="off")){error="enabled conflicts with mode";return false;}
+   if(mode=="connected"&&c.driver==ChannelDriver::SIMULATION){error="Choose a physical driver before marking connected";return false;}
+   c.enabled=mode!="off";c.simulate=mode=="simulation";
+  }
   if(!p["direction"].isNull()&&p["direction"].as<String>()!=(c.kind==DeviceKind::VIBRATION?"output":"input")){error="direction conflicts with type";return false;}
   if(c.driver==ChannelDriver::MUX_ADC){
    if(!p["mux_port"].is<int>()){error="mux_port 0..7 required";return false;}c.mux=p["mux_port"];
@@ -122,7 +135,7 @@ static bool parseChannels(JsonVariantConst a,ChannelConfig *next,String &error){
    if(c.driver==ChannelDriver::DS18B20&&c.sampleMs<1000){error="Digital temperature sample_ms must be >=1000";return false;}
   }
   // Reject silently misspelled fields rather than saving an ineffective binding.
-  for(JsonPairConst prop:p){String key=prop.key().c_str();if(key!="channel"&&key!="name"&&key!="type"&&key!="driver"&&key!="direction"&&key!="enabled"&&key!="mux_port"&&key!="gpio"&&key!="rom"&&key!="options"){error="Unknown channel field: "+key;return false;}}
+  for(JsonPairConst prop:p){String key=prop.key().c_str();if(key!="channel"&&key!="name"&&key!="type"&&key!="driver"&&key!="direction"&&key!="enabled"&&key!="mode"&&key!="mux_port"&&key!="gpio"&&key!="rom"&&key!="options"){error="Unknown channel field: "+key;return false;}}
   if((!p["gpio"].isNull()&&c.driver!=ChannelDriver::GPIO_ADC&&c.driver!=ChannelDriver::GPIO_PWM&&c.driver!=ChannelDriver::DS18B20)||(!p["mux_port"].isNull()&&c.driver!=ChannelDriver::MUX_ADC)||(!p["rom"].isNull()&&c.driver!=ChannelDriver::DS18B20)){error="Remove binding fields unused by the selected driver";return false;}
   next[id]=c;
  }
@@ -130,6 +143,7 @@ static bool parseChannels(JsonVariantConst a,ChannelConfig *next,String &error){
 }
 static void channelCapabilities(JsonObject out){
  out["schema_version"]=1;out["max_channels"]=MAX_CHANNELS;out["mux_ports"]=8;out["adc_gpio"]=0;
+ out["port_state_model"]="per_port_v1";out["presence_source"]="saved_installation_config";out["electrical_presence_detection"]=false;
  out["physical_inputs_enabled"]=sensorEnabled; // defined by touch_events before this function is included
  out["physical_outputs_enabled"]=outputEnabled;
  JsonArray types=out["types"].to<JsonArray>();

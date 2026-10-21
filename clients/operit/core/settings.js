@@ -37,14 +37,15 @@ async function config() {
     return saved;
   }
   const value={schema:1,installation:id(),connection:null,chat:null,binding:null,
-    workflows:{},duration_sec:60,background_verified:false};
+    workflows:{},duration_sec:60,response_wait_sec:1,continuous:false,continuous_enabled:false,background_verified:false};
   await write('settings.json',value);
   return value;
 }
 function parameters(cfg) {
   if (!cfg.connection || !cfg.chat || !cfg.binding) throw Error('请先导入电脑连接，并绑定已有聊天。');
   return {mcp_url:cfg.connection.mcp_url,connection:cfg.connection,chat_id:cfg.chat.id,
-    state_path:path('delivery_'+cfg.binding+'.json'),workflow_confirmed:true,duration_sec:cfg.duration_sec};
+    state_path:path('delivery_'+cfg.binding+'.json'),workflow_confirmed:true,duration_sec:cfg.duration_sec,
+    response_wait_sec:cfg.response_wait_sec??1};
 }
 function validateConnection(value) {
   if (!value || value.schema!==1 || value.kind!=='ai-doll-operit-connection' ||
@@ -79,7 +80,7 @@ function replaceComputerIP(connection, host) {
 }
 async function noRunningJob() {
   const job=await read('job.json');
-  if (job && ['scheduled','running','stopping'].includes(job.phase))
+  if (job && ['scheduled','running','handoff','stopping'].includes(job.phase))
     throw Error('请先停止当前后台任务，再更改连接、绑定或开始新任务。');
 }
 exports.read=read; exports.write=write; exports.config=config; exports.path=path;

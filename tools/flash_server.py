@@ -38,10 +38,7 @@ class Flasher:
             running = self.running
         report, log = None, ''
         if job:
-            try:
-                report = json.loads(job.reportfile.read_text(encoding='utf-8'))
-            except (OSError, ValueError):
-                report = {'status':'running','phase':'prepare'}
+            report = job.snapshot()
             log = job.logfile.read_text(encoding='utf-8', errors='replace')[-16000:]
         return dict(app='ai-doll-flasher', ports=[dict(port=p.device, description=p.description) for p in ports],
                     selected_port=selected, firmware=firmware, image_error=image_error,
@@ -124,6 +121,8 @@ def make_handler(flasher):
                 self.send(400,{'error':str(error)})
             except RuntimeError as error:
                 self.send(409,{'error':str(error)})
+            except OSError as error:
+                self.send(500,{'error':'无法保存烧录记录，请检查项目目录是否可写：'+str(error)})
     return Handler
 
 

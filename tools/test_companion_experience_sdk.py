@@ -35,6 +35,13 @@ async def exercise(client):
     assert bad.isError
     await call('acknowledge_chat_context',{'chat_id':'sdk-chat','receipt_id':ctx['receipt_id']})
     assert not (await call('get_chat_context',{'chat_id':'sdk-chat'}))['events']
+    await call('update_companion_preferences',{'changes':{'persona_source':'doll','doll_persona':'SDK保存的角色'}})
+    assert (await call('get_chat_context',{'chat_id':'sdk-chat'}))['persona_priority']=='saved_doll'
+    if 'set_channel_state' in tools:
+        assert len(tools)==52
+        assert tools['set_channel_state'].annotations.readOnlyHint is False
+        result=await call('set_channel_state',{'channel':0,'mode':'off'})
+        assert result['channels'][0]['mode']=='off'
 
 
 class LocalSDKTests(ChatGatewayTests):
@@ -64,6 +71,9 @@ class DirectExperienceSDKTests(DirectMCPTests):
 if __name__=='__main__':
     if '--stdio-fixture' in sys.argv:
         fixture=ExperienceTests();fixture.setUp();fixture.event(1)
+        fixture.port_states=True
+        for ch in fixture.channels:ch['mode']='connected'
+        fixture.save_config()
         import companion_mcp
         companion_mcp.call=fixture.c.call
         try:companion_mcp.mcp.run()

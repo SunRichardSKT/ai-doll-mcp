@@ -83,7 +83,7 @@ async function schedule(cfg,kind,job) {
   const flow=await ensure(cfg,kind);
   // trigger() waits for the whole task. Schedule one bounded native WorkManager
   // job instead, so the UI control returns without recursively waiting on chat.
-  const at=localTime(Date.now()+10000);
+  const at=localTime(Date.now()+(job.delay_ms||10000));
   await Tools.Workflow.update(flow.id,{nodes:nodes(kind,job.id,at),connections,enabled:true});
   const confirmed=verify(cfg,kind,await Tools.Workflow.get(flow.id));
   if (confirmed.enabled!==true || !confirmed.nodes.some(n=>n.type==='trigger'&&n.triggerType==='schedule'&&
@@ -91,6 +91,15 @@ async function schedule(cfg,kind,job) {
       !confirmed.nodes.some(n=>n.type==='execute'&&staticValue(n.actionConfig?.job_id)===job.id))
     throw Error('后台任务安排未确认。');
   return {workflow_id:flow.id,scheduled_at:at,state:'scheduled',listening:false};
+}
+async function watchdog(cfg) {
+  const flow=await ensure(cfg,'watchdog');
+  const list=nodes('watchdog','watchdog:'+cfg.binding);
+  list[0].triggerType='schedule';
+  list[0].triggerConfig={schedule_type:'interval',interval_ms:'900000',repeat:'true',enabled:'true'};
+  await Tools.Workflow.update(flow.id,{nodes:list,connections,enabled:true});
+  const saved=verify(cfg,'watchdog',await Tools.Workflow.get(flow.id));
+  if(saved.enabled!==true||saved.nodes[0].triggerConfig?.repeat!=='true')throw Error('常开恢复任务未确认。');
 }
 async function disable(cfg) {
   for (const kind of Object.keys(cfg.workflows)) {
@@ -100,3 +109,4 @@ async function disable(cfg) {
   }
 }
 exports.ensure=ensure; exports.schedule=schedule; exports.disable=disable;
+exports.watchdog=watchdog;

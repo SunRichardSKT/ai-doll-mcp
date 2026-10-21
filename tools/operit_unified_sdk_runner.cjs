@@ -24,7 +24,7 @@ const url=process.argv[2];
     assert.equal(JSON.stringify(f.cfg().workflows),workflowIds);
     assert.equal(f.messages.length,0,'DHCP repair only probes MCP; it does not send to chat');
   }
-  const settings=f.cfg();settings.duration_sec=3;
+  const settings=f.cfg();settings.duration_sec=5;
   f.disk.set('/managed/settings.json',JSON.stringify(settings));
   // First prove only host return semantics using the visible diagnostic path.
   await f.invoke('schedule',{kind:'probe'});await f.invoke('run_task',{job_id:f.job().id});await f.invoke('confirm_probe');

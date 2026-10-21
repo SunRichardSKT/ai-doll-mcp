@@ -162,20 +162,24 @@ def create_mcp(app, profile='interaction', port=8782):
         """Read actual device availability, enabled channels and companion capability."""
         return await call('get_device_overview')
 
-    async def get_chat_context(chat_id: str, after: StrictInt = 0, limit: StrictInt = 50) -> dict:
+    async def get_chat_context(chat_id: str, after: StrictInt = 0, limit: StrictInt = 50,
+                               session_id: str | None = None, through: StrictInt | None = None) -> dict:
         """Blend recent unhandled touch into the current reply. Read does not consume; acknowledge after handling."""
-        return await call('get_chat_context', dict(chat_id=chat_id,after=after,limit=limit))
+        args=dict(chat_id=chat_id,after=after,limit=limit)
+        if session_id is not None:args['session_id']=session_id
+        if through is not None:args['through']=through
+        return await call('get_chat_context',args)
 
     async def acknowledge_chat_context(chat_id: str, receipt_id: str) -> dict:
         """Confirm handling after reply; chat-isolated, not display verification."""
         return await call('acknowledge_chat_context', dict(chat_id=chat_id,receipt_id=receipt_id))
 
     async def update_body_part(channel: StrictInt, changes: dict) -> dict:
-        """Patch name/aliases/feedback_level/interaction_hint; preserve sensor calibration and input state."""
+        """Patch name/mode(off/simulation/connected)/aliases/feedback_level/interaction_hint; preserve wiring, calibration and other ports. Mode requires per_port_v1 firmware."""
         return await call('update_body_part',dict(channel=channel,changes=changes))
 
     async def update_companion_preferences(changes: dict) -> dict:
-        """Patch integration/proactive flags and feedback/policy, preserving unspecified preferences."""
+        """Patch integration/proactive flags, persona_source(chat/doll), doll_persona and feedback/policy, preserving unspecified preferences."""
         return await call('update_companion_preferences',{'changes':changes})
 
     functions = locals()

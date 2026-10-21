@@ -423,7 +423,7 @@ class Companion:
             return dict(cached['data'], configuration_source='computer_sqlite', configuration_saved_at=cached['saved_at'],
                         **self.archive_metadata())
         if name in ('doll_get_status', 'doll_set_led', 'doll_simulate_press', 'get_body_map', 'set_body_map', 'get_touch_events', 'get_sensor_config', 'set_sensor_config',
-                    'get_channel_capabilities', 'get_channel_config', 'set_channel_config', 'read_channel_values', 'scan_input_devices',
+                    'get_channel_capabilities', 'get_channel_config', 'set_channel_config', 'set_channel_state', 'read_channel_values', 'scan_input_devices',
                     'simulate_channel_input', 'set_input_enabled', 'set_output_enabled', 'set_vibration',
                     'get_operating_mode', 'set_operating_mode', 'capture_pressure_calibration',
                     'get_pressure_calibration', 'apply_pressure_calibration', 'cancel_pressure_calibration',
@@ -540,7 +540,8 @@ class Companion:
                 payload=json.loads(row['payload']);payload.setdefault('sensor_type','pressure');payload.setdefault('direction','input')
                 payload.setdefault('unit','adc_raw');payload.setdefault('quality','ok')
                 payload.setdefault('time_quality','legacy_estimate')
-                entries.append(dict(payload,id=row['id'],device=row['device'],at=row['at'],session_id=row['session_id']))
+                entries.append(dict(payload,id=row['id'],device=row['device'],device_id=row['device'],boot=row['boot'],
+                                    event_id=f"{row['device']}:{row['boot']}:{row['seq']}",at=row['at'],session_id=row['session_id']))
             notices=[dict(r) for r in self.db.execute('SELECT * FROM notices ORDER BY id DESC LIMIT 5')]
         return {'events':entries,'next_cursor':entries[-1]['id'] if entries else after,'has_more':len(rows)>limit,
                 'timezone':'Asia/Shanghai','persona':self.setting('persona'),'notices':notices,

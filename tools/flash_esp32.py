@@ -4,14 +4,17 @@ Normal flashing writes only the four manifest images. NVS and the event store
 are not erased. Several candidates require an explicit --port selection.
 """
 import argparse
+import copy
 import datetime as dt
 import hashlib
 import importlib.util
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
 import sys
+import threading
 import time
 import uuid
 
@@ -120,6 +123,7 @@ class FlashJob:
         self.logfile = self.folder/'flash.log'
         self.logfile.touch()
         self.reportfile = self.folder/'result.json'
+        self.lock = threading.Lock()
         self.report = dict(flash_id=self.id, device_suffix=self.suffix,
                            target_device_id='AI-Doll-'+self.suffix,
                            status='running', phase='prepare', write_hash_verified=False,
@@ -127,10 +131,24 @@ class FlashJob:
         self.update()
 
     def update(self, **fields):
-        self.report.update(fields)
-        temporary = self.folder/'result.tmp'
-        temporary.write_text(json.dumps(self.report, ensure_ascii=False, indent=2), encoding='utf-8')
-        temporary.replace(self.reportfile)
+        with self.lock:
+            self.report.update(fields)
+            temporary = self.folder/'result.tmp'
+            temporary.write_text(json.dumps(self.report, ensure_ascii=False, indent=2), encoding='utf-8')
+            # Windows cannot replace a file while a reader denies delete sharing.
+            # Retry only that short-lived conflict; never delete or truncate the old result.
+            for attempt in range(6):
+                try:
+                    temporary.replace(self.reportfile)
+                    break
+                except OSError as error:
+                    if os.name != 'nt' or getattr(error, 'winerror', None) not in (5, 32, 33) or attempt == 5:
+                        raise
+                    time.sleep(min(.025 * 2**attempt, .2))
+
+    def snapshot(self):
+        with self.lock:
+            return copy.deepcopy(self.report)
 
     def message(self, text):
         print(text, flush=True)

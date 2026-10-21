@@ -3,8 +3,12 @@ static void addChannelTools(JsonArray tools){
  auto add=[&](const char* name,const char* description){JsonObject t=tools.add<JsonObject>();t["name"]=name;t["description"]=description;JsonObject s=t["inputSchema"].to<JsonObject>();s["type"]="object";s["properties"].to<JsonObject>();s["additionalProperties"]=false;return s;};
  add("get_channel_capabilities","Discover installed input/output types, drivers, free GPIOs and physical limits before configuring.");
  add("get_channel_config","Read persistent logical channel types, body labels, drivers, bindings and calibration. IDs independent of MUX ports.");
+ JsonObject port=add("set_channel_state","Persist one input port as off, simulation or connected; optional body name. Preserve other ports, calibration and wiring. Connected is installed configuration, not electrical detection.");
+ port["properties"]["channel"]["type"]="integer";port["properties"]["channel"]["minimum"]=0;port["properties"]["channel"]["maximum"]=15;
+ port["properties"]["mode"]["type"]="string";JsonArray portModes=port["properties"]["mode"]["enum"].to<JsonArray>();for(auto value:{"off","simulation","connected"})portModes.add(value);
+ port["properties"]["name"]["type"]="string";port["required"].to<JsonArray>().add("channel");
  add("read_channel_values","Read typed values with units, source, quality and age. Output readings report commanded state, not motor feedback.");
- JsonObject enable=add("set_input_enabled","Temporarily enable/disable physical input without changing thresholds or saved startup mode. Daily startup mode is configured separately after hardware confirmation.");enable["properties"]["enabled"]["type"]="boolean";enable["required"].to<JsonArray>().add("enabled");
+ JsonObject enable=add("set_input_enabled","Legacy temporary physical-input override. Prefer set_channel_state for persistent per-port modes; preserves thresholds.");enable["properties"]["enabled"]["type"]="boolean";enable["required"].to<JsonArray>().add("enabled");
  add("get_operating_mode","Read saved manual/daily startup mode and current input/output state. Outputs never resume after reboot.");
  JsonObject mode=add("set_operating_mode","Save daily input startup only after user confirms assembled sensors; manual disables input. Both stop outputs. Changing channel configuration returns to manual.");
  mode["properties"]["mode"]["type"]="string";JsonArray modes=mode["properties"]["mode"]["enum"].to<JsonArray>();modes.add("manual");modes.add("daily");mode["properties"]["hardware_confirmed"]["type"]="boolean";mode["required"].to<JsonArray>().add("mode");
@@ -16,12 +20,13 @@ static void addChannelTools(JsonArray tools){
  add("get_pressure_calibration","Read capture progress/statistics and recommended hysteresis thresholds. Missing sensors, insufficient separation or ADC saturation prevent saving.");
  add("apply_pressure_calibration","Explicitly persist recommended thresholds for the calibrated pressure channel only; other configuration and output state are preserved.");
  add("cancel_pressure_calibration","Cancel capture without changing saved thresholds; resume ordinary event generation.");
- JsonObject s=add("set_channel_config","Atomically replace all 1..16 channels. Preserves historical labels/types; disables physical input and output after saving. pressure/temperature inputs; vibration output.");
+ JsonObject s=add("set_channel_config","Replace all 1..16 channels, preserving historical labels/types. Explicit modes resume connected inputs; legacy configs without modes pause inputs. Both disable physical outputs. Prefer set_channel_state for one port.");
  s["properties"]["schema_version"]["type"]="integer";s["properties"]["schema_version"]["const"]=1;
  JsonObject arr=s["properties"]["channels"].to<JsonObject>();arr["type"]="array";arr["minItems"]=1;arr["maxItems"]=16;
  JsonObject item=arr["items"].to<JsonObject>();item["type"]="object";item["additionalProperties"]=false;JsonObject p=item["properties"].to<JsonObject>();
  p["channel"]["type"]="integer";p["channel"]["minimum"]=0;p["channel"]["maximum"]=15;p["name"]["type"]="string";p["name"]["minLength"]=1;
  p["type"]["type"]="string";
+ p["mode"]["type"]="string";JsonArray states=p["mode"]["enum"].to<JsonArray>();for(auto value:{"off","simulation","connected"})states.add(value);
  JsonArray types=p["type"]["enum"].to<JsonArray>();types.add("pressure");types.add("temperature");types.add("vibration");
  p["driver"]["type"]="string";JsonArray drivers=p["driver"]["enum"].to<JsonArray>();for(auto v:{"simulation","mux_adc","gpio_adc","gpio_pwm"})drivers.add(v);
  p["enabled"]["type"]="boolean";p["direction"]["type"]="string";JsonArray directions=p["direction"]["enum"].to<JsonArray>();directions.add("input");directions.add("output");

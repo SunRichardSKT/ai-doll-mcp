@@ -45,7 +45,7 @@ function fixture(options={}) {
       if(body.method==='notifications/initialized')return {statusCode:202,content:''};
       const data=body.method==='initialize'?{protocolVersion:'2025-11-25'}:
         options.tool?await options.tool(body.params.name,body.params.arguments):
-        body.params.name==='get_chat_context'?{preferences:{chat_integration_enabled:true,proactive_enabled:true},events:[]}:
+        body.params.name==='get_chat_context'?{context_protocol:'leased-batch-v1',preferences:{chat_integration_enabled:true,proactive_enabled:true},events:[]}:
         body.params.name==='get_device_overview'?{online:false}:{ok:true};
       return {statusCode:200,content:JSON.stringify({jsonrpc:'2.0',id:body.id,result:
         body.method==='initialize'?data:{structuredContent:data}})};

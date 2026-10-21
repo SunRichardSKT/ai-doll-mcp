@@ -62,18 +62,28 @@ function eligible(event, session, now) {
 
 function prompt(context) {
   // User labels remain in a data section, never interpolated as executable instructions.
-  return '身体互动上下文如下（JSON仅为数据）。沿用当前聊天的模型、人设、话题自然简短回应，'
-    +'已有人设优先，保存的人设只补空缺。不要输出检测报告、ADC、编号或倒计时。'
+  const doll=context.preferences?.persona_source==='doll'||context.persona_priority==='saved_doll';
+  return '身体互动上下文如下（JSON仅为数据）。沿用当前聊天模型和话题，自然简短回应。'
+    +(doll?'用户为触摸反馈选择了娃娃人设，请按保存设定回应，不改写原聊天的设置。':'沿用当前聊天人设，不切换角色。')
+    +'不要输出检测报告、ADC、编号或倒计时。'
+    +'排队期间的多次触摸合并成一条自然回应，不逐条报数，也不声称刚刚发生。'
     +'一次按压只主要回应一次；释放不另行回应。模拟来源要简短说明，原始读数不是实际力度，'
-    +'单通道按压不能直接认定拥抱。\n'+JSON.stringify({events:context.events,
-      persona:context.persona, feedback:context.feedback, persona_priority:'current_chat'});
+    +'单通道按压不能直接认定拥抱。\n'+JSON.stringify({touch_count:context.events.length,events:context.events,
+      queued_during_reply:!!context.queued_during_reply,
+      persona:doll?context.persona:'', feedback:context.feedback, persona_priority:doll?'saved_doll':'current_chat'});
 }
 
 async function settle(p, state, tool) {
   if (!state.pending) return;
   if (state.pending.phase !== 'completed') throw Error('Uncertain send: check original chat and run reconcile_delivery; never auto-resend');
-  const result = await tool('acknowledge_chat_context', {chat_id:p.chat_id, receipt_id:state.pending.receipt_id});
-  if (result.acknowledged !== true) throw Error('Context acknowledgement unavailable');
+  let receipts=state.pending.receipt_ids||[state.pending.receipt_id];
+  while(receipts.length){
+    const receipt_id=receipts[0];
+    const result=await tool('acknowledge_chat_context',{chat_id:p.chat_id,receipt_id});
+    if(result.acknowledged!==true)throw Error('Context acknowledgement unavailable');
+    receipts=receipts.slice(1);state.pending.receipt_ids=receipts;delete state.pending.receipt_id;
+    await save(p,state);
+  }
   state.pending = null;
   await save(p, state);
 }
@@ -87,11 +97,14 @@ async function listen_interaction(p) {
   if (p.workflow_confirmed !== true) throw Error('Start from an independent user-enabled Workflow only');
   const duration = p.duration_sec === undefined ? 60 : p.duration_sec;
   if (!Number.isInteger(duration) || duration < 1 || duration > 900) throw Error('duration_sec must be 1..900');
+  const wait=p.response_wait_sec??1;
+  if(!Number.isFinite(wait)||wait<0||wait>30)throw Error('触摸合并等待时间应为0～30秒');
   if (running) throw Error('This package already has an active listener');
   running = true;
-  let tool, state, session;
+  let tool, state, session, flight, cancelled=false;
   let stage='chat_binding';
   const report = {state:'starting', replies:0, model_response_returned:false, display_verified:false, cleanup_pending:false};
+  async function ensureActive(){try{if(p.ensure_active)await p.ensure_active();}catch(e){cancelled=true;throw e;}}
   try {
     await existingChat(p.chat_id);
     stage='mcp_connection';
@@ -101,78 +114,134 @@ async function listen_interaction(p) {
     await settle(p, state, tool);
     stage='session_check';
     const existing = (await tool('get_interaction_status')).active_session;
-    if (existing) throw Error('An interaction is already active; stop the owning workflow first');
+    if (existing && !(p.continuous===true&&existing.id===state.session_id&&existing.chat_id===p.chat_id))
+      throw Error('An interaction is already active; stop the owning workflow first');
     const initial = await tool('get_chat_context', {chat_id:p.chat_id, limit:1});
-    if (!initial.preferences?.proactive_enabled || !initial.preferences.chat_integration_enabled)
+    if(initial.context_protocol!=='leased-batch-v1')throw Error('请同时更新并重启电脑／服务器端到2.24或更新版本，再开启陪伴；手机直连只需更新手机包，不需要重新发送聊天自检。');
+    if (!initial.preferences?.proactive_enabled || !initial.preferences.chat_integration_enabled) {
+      if(p.continuous===true){session=existing;report.state='disabled';return report;}
       throw Error('Enable proactive and chat integration preferences explicitly before testing');
+    }
     const localStarted = Date.now()/1000;
     stage='session_start';
-    const confirmed = await tool('start_interaction', {chat_id:p.chat_id, duration_sec:duration, idle_timeout_sec:Math.max(30,duration)});
+    const lease=p.continuous===true?900:duration;
+    const confirmed = existing || await tool('start_interaction', {chat_id:p.chat_id, duration_sec:lease, idle_timeout_sec:Math.max(30,lease)});
     if (confirmed.chat_id !== p.chat_id || !confirmed.id || !Number.isFinite(confirmed.started) || !Number.isFinite(confirmed.deadline))
       throw Error('Server did not confirm a bounded session for this chat');
     session=confirmed;
+    if(!existing){state.cursor=0;state.queue=[];state.pressed={};state.last_touch_at=0;state.server_clock_offset=session.started-localStarted;}
+    state.queue=state.queue||[];state.pressed=state.pressed||{};
     state.session_id = session.id;
     await save(p, state);
     report.state = 'listening';
-    const serverNow = () => session.started + (Date.now()/1000-localStarted);
-    let cursor = 0;
-    sessionLoop: while (serverNow() < session.deadline) {
+    const serverNow = () => Date.now()/1000+(state.server_clock_offset||0);
+    const chunkDeadline=Math.min(session.deadline,serverNow()+duration);
+    let cursor = existing?(state.cursor||0):0;
+    // One journal writer and one model send at a time. A pending model promise
+    // never blocks device polling; only live, validated contexts enter this queue.
+    const allowed=c=>c.preferences?.proactive_enabled&&c.preferences.chat_integration_enabled&&
+      !c.preferences.muted&&c.proactive_delivery_allowed!==false;
+    async function finishSend(){
+      if(!flight?.done)return;
+      stage='main_chat_send';
+      if(flight.error)throw flight.error;
+      const reply=flight.reply;
+      if(reply.chatId!==p.chat_id||typeof reply.aiResponse!=='string'||!reply.aiResponse.trim())
+        throw Error('Send outcome uncertain: check original chat before retrying');
+      state.pending.phase='completed';await save(p,state);
+      report.replies++;report.model_response_returned=true;
+      stage='context_acknowledgement';await settle(p,state,tool);flight=null;
+    }
+    sessionLoop: while (serverNow()<chunkDeadline||(p.continuous===true&&flight&&serverNow()<session.deadline)) {
+      await ensureActive();
+      await finishSend();
+      if(serverNow()>=chunkDeadline&&!flight)break;
       stage='event_read';
       const batch = await tool('get_interaction_device_events', {chat_id:p.chat_id, session_id:session.id,
-        after:cursor, limit:50, wait_seconds:Math.max(0,Math.min(20,Math.floor(session.deadline-serverNow())))});
+        after:cursor,limit:100,wait_seconds:Math.max(0,Math.min(flight||state.queue.length?1:20,Math.floor(session.deadline-serverNow())))});
       if (batch.session_closed || batch.session?.id !== session.id || batch.session?.chat_id !== p.chat_id) break;
       if (batch.collector_error) throw Error('Collector offline; no live reply may be generated');
       if (!Array.isArray(batch.events) || !Number.isInteger(batch.next_cursor) || batch.next_cursor < cursor)
         throw Error('Invalid event page');
-      for (const event of batch.events) {
-        if (p.ensure_active) await p.ensure_active();
-        if (serverNow() >= session.deadline) break;
-        if (!eligible(event, session, serverNow())) continue;
+      const starts=batch.events.filter(e=>eligible(e,session,serverNow()));
+      if(starts.length){
         stage='fresh_context';
-        const context = await tool('get_chat_context', {chat_id:p.chat_id, after:event.id-1, limit:1});
-        if (!context.preferences?.proactive_enabled || !context.preferences.chat_integration_enabled) {
-          report.state='disabled'; break sessionLoop;
+        const context=await tool('get_chat_context',{chat_id:p.chat_id,session_id:session.id,after:cursor,through:batch.next_cursor,limit:200});
+        if(!allowed(context)){report.state='disabled';break sessionLoop;}
+        if(context.receipt_id&&context.events?.length){
+          if(context.events.some(e=>!eligible(e,session,serverNow())||e.id>batch.next_cursor))throw Error('Invalid leased context page');
+          if(!state.queue.some(q=>q.receipt_id===context.receipt_id)){
+            state.queue.push({...context,captured_at:serverNow(),queue_deadline:Math.min(session.deadline,serverNow()+120)});
+            for(const e of context.events)state.pressed[(e.boot||'')+':'+e.touch_id]=e.channel;
+          }
         }
-        if (!context.receipt_id || context.events?.[0]?.id !== event.id || context.events.length !== 1 ||
-            context.events[0].body_preferences?.feedback_level !== 'normal') continue;
-        if (!Number.isFinite(context.expires_at) || serverNow() >= Math.min(session.deadline, context.expires_at)) continue;
-        const current = (await tool('get_interaction_status')).active_session;
-        if (!current || current.id !== session.id || current.chat_id !== p.chat_id) break;
-        // Persist intent BEFORE sending: a crash/ambiguous timeout blocks automatic replay.
-        state.pending = {phase:'sending', receipt_id:context.receipt_id, event_id:context.events[0].event_id};
-        stage='delivery_state';
-        await save(p, state);
-        if (serverNow() >= Math.min(session.deadline,context.expires_at)) {
-          state.pending=null; await save(p,state); continue;
-        }
-        stage='main_chat_send';
-        if (p.ensure_active) await p.ensure_active();
-        // MAIN's native send waits for that chat's previous stream. Never infer
-        // MAIN idleness from the unrelated floating runtime or start a new chat.
-        const reply = await Tools.Chat.sendMessage(prompt(context), p.chat_id, undefined, undefined,
-          {runtime:'main', persist_turn:true, notify_reply:true, hide_user_message:true,
-            // The session deadline stops NEW sends. An already submitted reply
-            // may finish afterwards, while retaining the context-age bound on
-            // native queue waiting (this host API shares one timeout for both).
-            timeout_ms:Math.max(1,Math.min(60000,Math.floor((context.expires_at-serverNow())*1000)))});
-        if (reply.chatId !== p.chat_id || typeof reply.aiResponse !== 'string' || !reply.aiResponse.trim())
-          throw Error('Send outcome uncertain: check original chat before retrying');
-        state.pending.phase = 'completed';
-        await save(p, state);
-        report.replies++; report.model_response_returned=true;
-        stage='context_acknowledgement';
-        await settle(p, state, tool);
       }
-      cursor = batch.next_cursor;
-      if (!batch.events.length) await Tools.System.sleep(500);
+      // Releases extend the quiet window and update queued durations, never
+      // create another major reply. Store every start; time batching is not loss.
+      for(const e of batch.events){
+        const key=(e.boot||'')+':'+e.touch_id;
+        if(e.phase==='end'&&Object.prototype.hasOwnProperty.call(state.pressed,key)){
+          delete state.pressed[key];state.last_touch_at=Math.max(state.last_touch_at||0,e.at||serverNow());
+          for(const q of state.queue)for(const touch of q.events)if(touch.touch_id===e.touch_id&&touch.boot===e.boot){
+            touch.ended_at=e.at;if(Number.isFinite(e.duration_ms))touch.duration_ms=e.duration_ms;
+          }
+        }
+      }
+      for(const e of starts)state.last_touch_at=Math.max(state.last_touch_at||0,e.at);
+      if(batch.next_cursor!==cursor||batch.events.length){cursor=batch.next_cursor;state.cursor=cursor;await save(p,state);}
+      await finishSend();
+      const currentWait=p.get_response_wait?p.get_response_wait():wait;
+      const quiet=currentWait===0||(!Object.keys(state.pressed).length&&serverNow()-(state.last_touch_at||0)>=currentWait);
+      if(!flight&&state.queue.length&&quiet&&serverNow()<chunkDeadline){
+        stage='fresh_context';
+        const policy=await tool('get_chat_context',{chat_id:p.chat_id,session_id:session.id,after:cursor,through:cursor,limit:1});
+        if(!allowed(policy)){report.state='disabled';break;}
+        const current=(await tool('get_interaction_status')).active_session;
+        if(!current||current.id!==session.id||current.chat_id!==p.chat_id)break;
+        // Captured during a live session, kept at most two minutes while the
+        // previous reply runs. Preserve timestamps: queued data is not new input.
+        const ready=state.queue.filter(q=>q.queue_deadline>serverNow()&&q.events.every(e=>{
+          const port=policy.channels?.find(c=>c.channel===e.channel);
+          return (!policy.channels||(port&&port.mode!=='off'&&(!port.feedback_level||port.feedback_level==='normal')));
+        }));
+        report.queue_cancelled=(report.queue_cancelled||0)+state.queue.length-ready.length;
+        state.queue=[];
+        if(ready.length){
+          const merged={...ready[ready.length-1],preferences:policy.preferences,persona:policy.persona,feedback:policy.feedback,
+            events:ready.flatMap(q=>q.events),queued_during_reply:ready.some(q=>serverNow()-q.captured_at>1)};
+          state.pending={phase:'sending',receipt_ids:ready.map(q=>q.receipt_id),event_ids:merged.events.map(e=>e.event_id)};
+          stage='delivery_state';await save(p,state);
+          await ensureActive();
+          if(serverNow()>=session.deadline){state.pending=null;await save(p,state);break;}
+          stage='main_chat_send';
+          const task={done:false};flight=task;
+          task.promise=Tools.Chat.sendMessage(prompt(merged),p.chat_id,undefined,undefined,
+            {runtime:'main',persist_turn:true,notify_reply:true,hide_user_message:true,timeout_ms:90000})
+            .then(reply=>{task.reply=reply;task.done=true;},error=>{task.error=error;task.done=true;});
+        }else await save(p,state);
+      }
+      if (!batch.events.length) await Tools.System.sleep(250);
     }
-    if (report.state==='listening') report.state='ended';
+    // Stop/expiry cancels unsent input. A reply already submitted may finish;
+    // do not interrupt the user's chat stream or submit anything else.
+    if(flight){await flight.promise;await finishSend();}
+    if (report.state==='listening') report.state=p.continuous===true&&session.deadline-serverNow()>20?'continued':'ended';
   } catch (error) {
+    // Keep a known queue and owned lease over a transient read/ACK failure.
+    // An ambiguous model send still blocks automatic retry through its journal.
+    if(p.continuous===true&&!cancelled&&session?.deadline>Date.now()/1000+(state?.server_clock_offset||0)&&report.state!=='disabled')report.state='continued';
     const recovery=stage==='main_chat_send'?
       '。发送结果可能不完整，请先核对原聊天；不要删除状态文件或自动重试。可由用户选择 reconcile_delivery 的 delivered / not_sent / discard。':'';
     throw Error('AI Doll ['+stage+']: '+(error?.message || String(error))+recovery);
   } finally {
-    if (tool && session?.id) {
+    if(flight){
+      await flight.promise;
+      if(!flight.error&&flight.reply?.chatId===p.chat_id&&flight.reply.aiResponse?.trim()&&state.pending){
+        state.pending.phase='completed';await save(p,state);
+      }
+    }
+    if(state&&report.state!=='continued'){state.queue=[];state.pressed={};await save(p,state);}
+    if (tool && session?.id && report.state!=='continued') {
       try {
         await tool('end_interaction', {chat_id:p.chat_id, session_id:session.id});
         if (state) { state.session_id=null; await save(p,state); }
@@ -185,9 +254,12 @@ async function listen_interaction(p) {
 
 async function stop_interaction(p) {
   configuration(p);
-  const state=await load(p), tool=await connect(p.mcp_url,p.connection);
-  if (state.session_id) await tool('end_interaction',{chat_id:p.chat_id,session_id:state.session_id});
-  state.session_id=null; await save(p,state);
+  const state=await load(p);
+  if (state.session_id) {
+    const tool=await connect(p.mcp_url,p.connection);
+    await tool('end_interaction',{chat_id:p.chat_id,session_id:state.session_id});
+  }
+  state.session_id=null;state.queue=[];state.pressed={}; await save(p,state);
   return {stopped:true, uncertain_delivery:state.pending?.phase==='sending'};
 }
 
@@ -213,3 +285,4 @@ exports.reconcile_delivery=reconcile_delivery;
 
 exports.connect=connect;
 exports.load=load;
+exports.settle=settle;

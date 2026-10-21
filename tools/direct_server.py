@@ -26,7 +26,7 @@ from private_storage import write_json
 DEVICE_READS = {'get_channel_config': 'channels', 'get_channel_capabilities': 'capabilities',
                 'read_channel_values': 'values', 'get_operating_mode': 'operating_mode',
                 'get_pressure_calibration': 'calibration', 'get_sensor_config': 'sensors'}
-DEVICE_COMMANDS = {'set_channel_config', 'set_body_map', 'simulate_channel_input',
+DEVICE_COMMANDS = {'set_channel_config', 'set_channel_state', 'set_body_map', 'simulate_channel_input',
                    'doll_simulate_press', 'set_input_enabled', 'set_output_enabled',
                    'set_vibration', 'set_operating_mode', 'doll_set_led',
                    'capture_pressure_calibration', 'get_pressure_calibration',

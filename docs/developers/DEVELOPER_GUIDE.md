@@ -67,10 +67,10 @@ Node / Playwright 页面测试需要开发者另装对应环境，运行 `tools/
 
 ```powershell
 .\python\python.exe tools/package_companion.py
-.\python\python.exe tools/audit_delivery.py delivery/AI_Doll_Code_v2.21.0.zip
-.\python\python.exe tools/audit_delivery.py delivery/AI_Doll_Server_v2.21.0.tar.gz
-.\python\python.exe tools/check_documentation.py --archive delivery/AI_Doll_Code_v2.21.0.zip
-.\python\python.exe tools/check_documentation.py --archive delivery/AI_Doll_Server_v2.21.0.tar.gz
+.\python\python.exe tools/audit_delivery.py delivery/AI_Doll_Code_v2.24.0.zip
+.\python\python.exe tools/audit_delivery.py delivery/AI_Doll_Server_v2.24.0.tar.gz
+.\python\python.exe tools/check_documentation.py --archive delivery/AI_Doll_Code_v2.24.0.zip
+.\python\python.exe tools/check_documentation.py --archive delivery/AI_Doll_Server_v2.24.0.tar.gz
 ```
 
 ZIP / TAR 内 `MANIFEST.json` 是逐文件 SHA-256，ToolPkg 使用 `CHECKSUMS.json`。`DELIVERY_MANIFEST.json` 和 `SHA256SUMS.txt` 记录 Windows、Linux、PCB 与独立手机工具包的哈希。Windows Python 从官方 CPython 和固定 wheel 构建，入口 `tools/build_portable_python.py`；不能打包本机 `.venv`。

@@ -19,7 +19,7 @@ static int pressChannel=-1, pressValue=0, lastWifi=-1;
 static constexpr int LED_PIN=8; // Common SuperMini blue LED, active low.
 static bool scanBusy=false;
 static uint32_t scanStartedAt=0;
-static const char* VERSION="doll-lab-2.10.0";
+static const char* VERSION="doll-lab-2.12.0";
 static const char* PROTOCOL="2025-11-25";
 
 static String encode(const JsonDocument &d){String s;serializeJson(d,s);return s;}
@@ -49,12 +49,13 @@ static void status(JsonObject o){
  o["configuration_url"]="http://192.168.4.1/";o["configuration_hotspot"]=deviceName;o["device_name"]=deviceName;
  o["wifi_connected"]=WiFi.status()==WL_CONNECTED;o["wifi_status"]=(int)WiFi.status();o["ssid"]=ssid;
  o["ip"]=WiFi.localIP().toString();o["ap_ip"]=WiFi.softAPIP().toString();o["ap_ssid"]=deviceName;
+ o["hostname"]=deviceHostname()+".local";o["mdns_active"]=mdnsActive;
  o["mcp_enabled"]=mcpEnabled;o["mcp_path"]="/mcp";o["protocol_version"]=PROTOCOL;
  o["discovery_protocol"]=DISCOVERY_PROTOCOL;o["discovery_port"]=DISCOVERY_PORT;o["discovery_active"]=discoveryActive;
  eventStorageStatus(o["event_storage"].to<JsonObject>());
  remoteStatus(o["remote_server"].to<JsonObject>());
  otaStatus(o["ota"].to<JsonObject>());
- o["led_on"]=led;o["led_gpio_level"]=digitalRead(LED_PIN);o["sensor_mode"]=sensorEnabled?"sensor":"simulation";o["sensor_count"]=channelCount();o["max_channels"]=MAX_CHANNELS;o["physical_outputs_enabled"]=outputEnabled;
+ o["led_on"]=led;o["led_gpio_level"]=digitalRead(LED_PIN);o["sensor_mode"]=inputModeSummary();o["physical_inputs_enabled"]=sensorEnabled;o["port_state_model"]="per_port_v1";o["sensor_count"]=channelCount();o["max_channels"]=MAX_CHANNELS;o["physical_outputs_enabled"]=outputEnabled;
  o["pressed_channel"]=pressChannel;o["pressure"]=pressValue;
  o["reaction"]=pressValue>0?"模拟按压已记录，动作含义由 AI 判断。":"安静等待触摸";
 }
@@ -153,6 +154,7 @@ static JsonDocument rpc(const JsonDocument &in){
   if(name=="get_channel_capabilities"){channelCapabilities(data.to<JsonObject>());}
   else if(name=="scan_input_devices"){String error;if(!scanInputDevices(a,data.to<JsonObject>(),error)){rpcError(out,-32602,error.c_str());return out;}}
   else if(name=="get_channel_config"){encodeChannels(data.to<JsonObject>());}
+  else if(name=="set_channel_state"){String error;if(!setChannelState(a,error)){rpcError(out,-32602,error.c_str());return out;}encodeChannels(data.to<JsonObject>());}
   else if(name=="set_channel_config"){String error;if(!saveChannels(a,error)){rpcError(out,-32602,error.c_str());return out;}encodeChannels(data.to<JsonObject>());}
   else if(name=="read_channel_values"){readChannels(data.to<JsonObject>());}
   else if(name=="set_input_enabled"){String error;if(!setInputEnabled(a,error)){rpcError(out,-32602,error.c_str());return out;}readChannels(data.to<JsonObject>());}
@@ -193,7 +195,7 @@ static JsonDocument rpc(const JsonDocument &in){
 static bool admin(){if(!adminAuthEnabled||configurationRecoveryAllowed(configAP,networkMode==NetworkMode::NORMAL,web.client().localIP()==WiFi.softAPIP()))return true;if(web.authenticate(adminUser.c_str(),apPass.c_str()))return true;web.requestAuthentication();return false;}
 static bool originOK(){String o=web.header("Origin");return o.isEmpty()||o=="http://"+WiFi.softAPIP().toString()||(WiFi.status()==WL_CONNECTED&&o=="http://"+WiFi.localIP().toString());}
 static void sendJson(int code,const JsonDocument &d){web.sendHeader("Cache-Control","no-store");web.send(code,"application/json; charset=utf-8",encode(d));}
-#include "device_page.h"
+#include "device_page_asset.h"
 #include "channel_editor_asset.h"
 #include "ota_manager_asset.h"
 
@@ -260,7 +262,7 @@ void setup(){
  adminAuthEnabled=prefs.getBool("admin_auth",false);adminPasswordSet=prefs.getBool("admin_set",false);adminUser=prefs.getString("admin_user","admin");
  eventStorageInit();networkInit();remoteInit();
  const char* headers[]={"Authorization","Origin","X-Setup-Token","MCP-Protocol-Version"};web.collectHeaders(headers,4);
- web.on("/",HTTP_GET,[]{if(admin())web.send_P(200,"text/html; charset=utf-8",PAGE);});
+ web.on("/",HTTP_GET,[]{if(admin()){web.sendHeader("Content-Encoding","gzip");web.send_P(200,"text/html; charset=utf-8",(const char*)DEVICE_PAGE_GZIP,sizeof(DEVICE_PAGE_GZIP));}});
  web.on("/channel-editor.js",HTTP_GET,[]{if(admin()){web.sendHeader("Content-Encoding","gzip");web.send_P(200,"application/javascript; charset=utf-8",(const char*)CHANNEL_EDITOR_GZIP,sizeof(CHANNEL_EDITOR_GZIP));}});
  web.on("/ota-manager.js",HTTP_GET,[]{if(admin()){web.sendHeader("Content-Encoding","gzip");web.send_P(200,"application/javascript; charset=utf-8",(const char*)OTA_MANAGER_GZIP,sizeof(OTA_MANAGER_GZIP));}});
  web.on("/api/setup",HTTP_GET,[]{if(!admin())return;JsonDocument d;d["token"]=token;d["enabled"]=mcpEnabled;d["auth_enabled"]=adminAuthEnabled;d["admin_user"]=adminUser;d["password_set"]=adminPasswordSet;d["network_mode"]=networkModeName();sendJson(200,d);});
@@ -291,6 +293,8 @@ void setup(){
   bool ok=remoteSave(in.as<JsonVariantConst>(),error);out["ok"]=ok;if(!ok)out["error"]=error;remoteConfigView(out["configuration"].to<JsonObject>());sendJson(ok?200:400,out);
  });
  web.on("/api/tool",HTTP_POST,[]{if(!admin())return;if(!originOK()||web.header("X-Setup-Token")!=token){web.send(403,"text/plain","Forbidden");return;}JsonDocument in;if(web.arg("plain").length()>16384||deserializeJson(in,web.arg("plain"))){web.send(400,"text/plain","Invalid JSON");return;}sendJson(200,rpc(in));});
+ // Public identity only; no MCP credentials, Wi-Fi secrets or user history.
+ web.on("/api/identity",HTTP_GET,[]{JsonDocument d;d["device_id"]=apName;d["hostname"]=deviceHostname()+".local";d["ip"]=WiFi.localIP().toString();sendJson(200,d);});
  web.on("/api/status",HTTP_GET,[]{if(!admin())return;JsonDocument d;status(d.to<JsonObject>());sendJson(200,d);});
  web.on("/api/ota",HTTP_POST,otaRequest);
  web.on("/api/scan",HTTP_POST,[]{if(!admin())return;if(!originOK()||web.header("X-Setup-Token")!=token){web.send(403,"text/plain","Forbidden");return;}JsonDocument in,out;if(web.arg("plain").length()>128||deserializeJson(in,web.arg("plain"))){web.send(400,"text/plain","Invalid JSON");return;}scanWifi(out.to<JsonObject>(),in["start"]|false);sendJson(200,out);});

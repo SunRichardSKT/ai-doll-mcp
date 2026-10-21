@@ -4,6 +4,7 @@ const {fixture}=require('./operit_test_host.cjs');
 function phone(options={}){
   const f=fixture(),nativeCalls=[];
   const token='test_device_token_1234567890';let boot='fixture-boot',device='AI-Doll-phone-fixture',events=[],seq=0;
+  const channels=[{channel:0,name:'头',type:'pressure',enabled:true,driver:'mux_adc',mode:'connected',calibration:{keep:42}}];
   const uptime=()=>100000+(f.shared.Date.now()-1700000000000);
   function emit(phase='start',change={}){
     events.push({seq:++seq,uptime_ms:uptime(),phase,touch_id:'touch-1',channel:0,body_part:'头',
@@ -11,6 +12,10 @@ function phone(options={}){
   }
   f.tools.Net.http=async p=>{
     if(options.offline)throw Error('device unavailable');
+    const endpoint=p.url.split('/')[2];
+    if(options.hostname&&p.url.endsWith('/api/identity'))return {statusCode:200,content:JSON.stringify({
+      device_id:options.address&&endpoint==='192.168.1.50'?'another-LAN-device':device,hostname:options.hostname,ip:options.address||'192.168.1.50'})};
+    if(options.address&&endpoint==='192.168.1.50')throw Error('old DHCP address must not receive credentials');
     if(p.method==='GET')return {statusCode:options.authRequired?401:200,content:JSON.stringify({enabled:true,token})};
     assert.equal(p.headers.Authorization,'Bearer '+token);
     const body=JSON.parse(p.body);
@@ -20,9 +25,11 @@ function phone(options={}){
     else {
       const name=body.params.name,a=body.params.arguments;nativeCalls.push(name);
       if(name==='doll_get_status')result={device_id:device,firmware:'fixture-2.9',boot_id:boot,event_cursor:seq,uptime_ms:uptime(),
-        sensor_mode:'sensor',wifi_connected:true,physical_outputs_enabled:false,remote_server:{enabled:!!options.serverEnabled}};
-      else if(name==='get_channel_config')result={channels:[{channel:0,name:'头',type:'pressure',enabled:true,calibration:{keep:42}}]};
-      else if(name==='read_channel_values')result={values:[{channel:0,value:0,quality:'ok'}]};
+        sensor_mode:'sensor',wifi_connected:true,ip:options.address||'192.168.1.50',hostname:options.hostname,
+        physical_outputs_enabled:false,remote_server:{enabled:!!options.serverEnabled}};
+      else if(name==='get_channel_config')result={channels,...(options.portStates?{port_state_model:'per_port_v1'}:{})};
+      else if(name==='set_channel_state'&&options.portStates){Object.assign(channels[a.channel],a);channels[a.channel].enabled=channels[a.channel].mode!=='off';result={channels,port_state_model:'per_port_v1'};}
+      else if(name==='read_channel_values')result={values:[{channel:0,name:channels[0].name,value:0,quality:'ok',source:'sensor',active:options.testTouch?++options.testReads>1:false}]};
       else if(name==='get_touch_events'){
         if(options.emitOnce){options.emitOnce=false;emit();emit('end');}
         result={device_id:device,boot_id:boot,uptime_ms:uptime(),next_cursor:seq,boot_changed:a.boot_id!==boot,
@@ -39,7 +46,8 @@ function phone(options={}){
 (async()=>{
   const p=phone();await p.prepare();
   const cfg=p.f.cfg();assert.equal(cfg.connection.mode,'phone');
-  assert.equal((await p.f.invoke('check_connection')).overview.transport,'phone_device_wifi');
+  const overview=(await p.f.invoke('check_connection')).overview;
+  assert.equal(overview.transport,'phone_device_wifi');assert.equal(overview.device_ip,'192.168.1.50');assert.ok(Array.isArray(overview.values));
   assert.ok(!JSON.stringify(await p.f.invoke('status')).includes(cfg.connection.token),'status never returns device credentials');
   await p.f.invoke('set_experience',{enabled:true,duration_sec:900});
   assert.equal(p.f.cfg().duration_sec,900);
@@ -105,5 +113,58 @@ function phone(options={}){
   const local=p.f.load(path.resolve(__dirname,'../clients/operit/core/device.js'));
   for(const host of ['127.0.0.1','example.com','192.168.1.1:80','192.168.1.1/anything','999.1.1.1','8.8.8.8'])
     assert.throws(()=>local.localHost(host));
+  const modern=phone({portStates:true});await modern.prepare();
+  const panel=await modern.f.invoke('get_panel');assert.equal(panel.port_writes,true);assert.equal(panel.channels[0].mode,'connected');
+  await modern.f.invoke('update_port',{channel:0,mode:'simulation',name:'头顶'});
+  let changed=await modern.f.invoke('get_panel');assert.equal(changed.channels[0].mode,'simulation');assert.equal(changed.channels[0].calibration.keep,42);
+  await modern.f.invoke('update_port',{channel:0,mode:'connected'});
+  modern.options.testTouch=true;modern.options.testReads=0;
+  assert.equal((await modern.f.invoke('test_sensor')).detected,true,'actual phone overview feeds the read-only real-input test');
+  assert.equal(modern.f.messages.length,0,'real-input test sends no chat message');
+  const named=phone({hostname:'ai-doll-112233445566.local'});await named.prepare();await named.f.invoke('get_panel');
+  const namedBinding=named.f.cfg().binding,namedKey=named.f.cfg().connection.storage_key;
+  named.options.address='192.168.1.61';
+  const recovered=await named.f.invoke('get_panel');
+  assert.equal(recovered.overview.device_ip,'192.168.1.61','fixed hostname recovers an occupied old DHCP address');
+  assert.equal(recovered.overview.device_hostname,'ai-doll-112233445566.local');
+  assert.equal(named.f.cfg().binding,namedBinding);assert.equal(named.f.cfg().connection.storage_key,namedKey);
+  assert.ok(recovered.settings_entries.some(e=>e.url==='http://192.168.1.61/'),'settings link follows the live IP');
+  named.replaceDevice();await assert.rejects(named.f.invoke('get_panel'),/身份/,'a different device at the hostname is rejected');
+  const upgraded=phone();await upgraded.prepare();
+  const upgradeBinding=upgraded.f.cfg().binding;
+  upgraded.options.hostname='ai-doll-aabbccddeeff.local';await upgraded.f.invoke('get_panel');
+  upgraded.options.address='192.168.1.62';
+  assert.equal((await upgraded.f.invoke('get_panel')).overview.device_ip,'192.168.1.62','old pairing learns the hostname after firmware upgrade');
+  assert.equal(upgraded.f.cfg().binding,upgradeBinding,'firmware hostname support does not require a new chat binding');
+  assert.equal((await upgraded.f.invoke('status')).connection.device_host,'ai-doll-aabbccddeeff.local');
+  const archived=phone();await archived.prepare();
+  const stamp=archived.f.shared.Date.now()/1000;
+  const iso=new archived.f.shared.Date().toISOString().slice(0,10).replace(/-/g,'');
+  const today=new archived.f.shared.Date();const date=[today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-');
+  const oldEvents=Array.from({length:155},(_,i)=>({id:i+1,at:stamp+i/100,source:'sensor',phase:i%2?'end':'start',channel:0,body_part:'头顶'}));
+  archived.f.disk.set('/managed/device_'+archived.f.cfg().connection.storage_key+'_history_'+iso+'.json',JSON.stringify({events:oldEvents}));
+  archived.options.offline=true;const count=archived.nativeCalls.length;
+  const page=await archived.f.invoke('view_history',{date,limit:50});assert.equal(page.events.length,50);assert.equal(page.has_more,true);
+  const next=await archived.f.invoke('view_history',{date,after:page.next_cursor,limit:50});assert.equal(next.events[0].id,51);
+  assert.equal(archived.nativeCalls.length,count,'archived history does not require the device to be online');
+  const leased=phone({portStates:true});await leased.prepare();await leased.f.invoke('set_experience',{enabled:true});
+  const lt=await leased.connect(),ls=await lt('start_interaction',{chat_id:'chat-1',duration_sec:60});
+  leased.emit('start',{touch_id:'first'});leased.emit('end',{touch_id:'first'});
+  await lt('get_interaction_device_events',{chat_id:'chat-1',session_id:ls.id});
+  const initial=await lt('get_chat_context',{chat_id:'chat-1',session_id:ls.id,after:0,through:2});
+  await lt('acknowledge_chat_context',{chat_id:'chat-1',receipt_id:initial.receipt_id});
+  for(let i=0;i<5;i++){leased.f.advance(200);leased.emit('start',{touch_id:'queued-'+i});leased.emit('end',{touch_id:'queued-'+i});}
+  await lt('get_interaction_device_events',{chat_id:'chat-1',session_id:ls.id,after:2});
+  assert.equal((await lt('get_chat_context',{chat_id:'chat-1',after:2})).events.length,0,'ordinary chat keeps its cooldown');
+  const allFive=await lt('get_chat_context',{chat_id:'chat-1',session_id:ls.id,after:2,through:12});
+  assert.equal(allFive.events.length,5,'leased phone listener preserves five rapid presses');
+  assert.equal((await lt('query_device_history')).events.length,12,'all presses and releases remain in history');
+  const health=phone();await health.prepare();
+  assert.equal((await health.f.invoke('status')).connection_state,'checking');
+  assert.equal((await health.f.invoke('status',{refresh:true})).connection_state,'online');
+  const reads=health.nativeCalls.length;await health.f.invoke('status');assert.equal(health.nativeCalls.length,reads);
+  const binding=health.f.cfg().binding;health.options.offline=true;
+  const failedCheck=await health.f.invoke('status',{refresh:true});assert.equal(failedCheck.connection_state,'unreachable');
+  assert.equal(health.f.cfg().binding,binding);assert.equal(health.f.messages.length,0,'refresh never resets chat or sends a diagnostic');
   console.log('PASS phone-only modules: pairing, auth, identity, history, receipts, isolation, freshness, release suppression, reboot, gap, bounded interaction and original MAIN chat. ESP32/Android are doubles.');
 })().catch(e=>{console.error(e);process.exitCode=1;});

@@ -114,6 +114,17 @@ class DirectTests(unittest.TestCase):
         self.receive(packet(1));other=self.app.pair('other')
         self.assertFalse(self.app.resolve(other['id']).c.device_history()['events'])
 
+    def test_port_state_command_roundtrip_preserves_payload(self):
+        self.receive()
+        args={'channel':0,'mode':'connected','name':'头顶'}
+        job=self.device.queue('set_channel_state',args)
+        command=self.receive()['commands'][0]
+        self.assertEqual(command['arguments'],args)
+        returned={'port_state_model':'per_port_v1','channels':[dict(channel=0,mode='connected',name='头顶')]}
+        incoming=packet();incoming['command_results']=[dict(id=job['id'],rpc={'result':{'content':[{'type':'text','text':json.dumps(returned)}]}})]
+        self.receive(incoming)
+        self.assertEqual(self.device.command(job['id'])['state'],'completed')
+
     def test_snapshot_read_does_not_wait_for_remote_command(self):
         self.receive();answers=[]
         thread=threading.Thread(target=lambda:answers.append(self.device.c.device('doll_set_led',{'on':True})))

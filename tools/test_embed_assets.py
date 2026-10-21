@@ -18,12 +18,15 @@ class EmbeddedAssetTests(unittest.TestCase):
             (root/'firmware/src').mkdir(parents=True)
             for name in ('channel_editor','ota_manager'):
                 (root/'tools'/f'{name}.js').write_bytes((ROOT/'tools'/f'{name}.js').read_bytes())
+            (root/'firmware/src/device_page.h').write_bytes((ROOT/'firmware/src/device_page.h').read_bytes())
             build_assets(root)
-            for name in ('channel_editor','ota_manager'):
+            for name in ('channel_editor','ota_manager','device_page'):
                 header=root/'firmware/src'/f'{name}_asset.h'
                 first=header.read_bytes()
                 compressed=bytes(int(value,16) for value in re.findall(rb'0x([0-9a-f]{2})',first))
-                self.assertEqual(gzip.decompress(compressed),(root/'tools'/f'{name}.js').read_bytes())
+                source=((root/'firmware/src/device_page.h').read_bytes().split(b'R"HTML(',1)[1].split(b')HTML"',1)[0]
+                        if name=='device_page' else (root/'tools'/f'{name}.js').read_bytes())
+                self.assertEqual(gzip.decompress(compressed),source)
                 self.assertEqual(compressed[4:8],b'\x00'*4)  # No build-time timestamp.
                 self.assertIn(b'unsigned char',first)
                 build_assets(root)

@@ -1,4 +1,24 @@
 #pragma once
+#include <ESPmDNS.h>
+
+// Hardware-derived name stays the same across DHCP leases and display-name edits.
+static String deviceHostname(){
+ char suffix[13];uint64_t mac=ESP.getEfuseMac();
+ snprintf(suffix,sizeof(suffix),"%04x%08lx",(unsigned int)(mac>>32),(unsigned long)(mac&0xffffffff));
+ return String("ai-doll-")+suffix;
+}
+static bool mdnsActive=false;
+static IPAddress mdnsAddress;
+static uint32_t mdnsAttemptAt=0;
+static void deviceNameTick(){
+ bool online=WiFi.status()==WL_CONNECTED;
+ IPAddress address=WiFi.localIP();
+ if(mdnsActive&&(!online||address!=mdnsAddress)){MDNS.end();mdnsActive=false;}
+ if(!online||mdnsActive||millis()-mdnsAttemptAt<5000)return;
+ mdnsAttemptAt=millis();mdnsActive=MDNS.begin(deviceHostname().c_str());
+ if(mdnsActive){mdnsAddress=address;MDNS.addService("http","tcp",80);
+  MDNS.addServiceTxt("http","tcp","device_id",apName);}
+}
 
 enum class NetworkMode { SETUP, CONNECTING, NORMAL, RECOVERY };
 static NetworkMode networkMode=NetworkMode::CONNECTING;
@@ -42,6 +62,7 @@ static void beginNetworkConnect(){
  allowConnect=true;networkAttemptAt=millis();lastAttempt=millis();
  networkMode=NetworkMode::CONNECTING;WiFi.disconnect(false,false);
  WiFi.mode(configAP?WIFI_AP_STA:WIFI_STA);
+ WiFi.setHostname(deviceHostname().c_str());
  WiFi.begin(ssid.c_str(),password.c_str());
 }
 static void networkInit(){
@@ -87,4 +108,5 @@ static void networkTick(){
   bool on=networkMode==NetworkMode::NORMAL ? true : (now/(configAP?150:700))%2==0;
   setLed(on);
  }
+ deviceNameTick();
 }

@@ -32,9 +32,13 @@ def get_device_overview() -> dict:
 
 
 @mcp.tool(annotations=ToolAnnotations(readOnlyHint=True, destructiveHint=False))
-def get_chat_context(chat_id: str, after: StrictInt = 0, limit: StrictInt = 50) -> dict:
+def get_chat_context(chat_id: str, after: StrictInt = 0, limit: StrictInt = 50,
+                     session_id: str | None = None, through: StrictInt | None = None) -> dict:
     """Before a normal reply, fetch recent unhandled touch and body/style context. Keep CURRENT persona. Read does not consume; acknowledge after handling. Use stable chat_id."""
-    return call('get_chat_context', dict(chat_id=chat_id, after=after, limit=limit))
+    args=dict(chat_id=chat_id,after=after,limit=limit)
+    if session_id is not None:args['session_id']=session_id
+    if through is not None:args['through']=through
+    return call('get_chat_context',args)
 
 
 @mcp.tool(annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False))
@@ -45,13 +49,13 @@ def acknowledge_chat_context(chat_id: str, receipt_id: str) -> dict:
 
 @mcp.tool(annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False))
 def update_body_part(channel: StrictInt, changes: dict) -> dict:
-    """Patch name, aliases, feedback_level(off/light/normal), interaction_hint on user intent. Names sync to device; metadata stays local. Preserves thresholds/calibration/input mode. Resolve ambiguous names first."""
+    """Patch name, mode(off/simulation/connected), aliases, feedback_level or interaction_hint on user intent. Mode needs per_port_v1 firmware; preserves wiring/calibration/other ports. Metadata stays local. Resolve ambiguous names first."""
     return call('update_body_part', dict(channel=channel, changes=changes))
 
 
 @mcp.tool(annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False))
 def update_companion_preferences(changes: dict) -> dict:
-    """Patch chat_integration_enabled/proactive_enabled and feedback/policy on user intent. Proactive requires host subscription; disabling cancels pending work. Preserve unspecified settings."""
+    """Patch integration/proactive flags, persona_source(chat/doll), doll_persona, feedback/policy on user intent. Proactive needs a chat-bound host worker/subscription. Preserve unspecified settings."""
     return call('update_companion_preferences', {'changes': changes})
 
 
@@ -108,10 +112,17 @@ def get_sensor_config() -> dict:
     return call('get_sensor_config', {})
 
 
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False))
+def set_channel_state(channel: StrictInt, mode: Literal['off','simulation','connected'] | None = None, name: str | None = None) -> dict:
+    """Patch one installed input port, preserving wiring and calibration. Connected is saved installation intent, not electrical detection."""
+    return call('set_channel_state', dict(channel=channel, **({'mode': mode} if mode is not None else {}),
+                                           **({'name': name} if name is not None else {})))
+
+
 @mcp.tool()
 def set_sensor_config(enabled: bool, press_threshold: int = 1200, release_threshold: int = 800) -> dict:
     """Enable 74HC4051 sampling only when user confirms hardware is connected. ADC GPIO0, select 3/4/5.
-    Requires 0 <= release < press <= 4095. Reboot defaults to simulation. Never enable on a bare board.
+    Requires 0 <= release < press <= 4095. Legacy global override; prefer per-port set_channel_state. Never enable on a bare board.
     """
     return call('set_sensor_config', dict(enabled=enabled, press_threshold=press_threshold, release_threshold=release_threshold))
 
@@ -214,7 +225,8 @@ class ChannelConfig(BaseModel):
     # Firmware capability discovery is authoritative; new firmware drivers need no adapter enum edit.
     type: str = Field(min_length=1, max_length=48)
     driver: str = Field(min_length=1, max_length=48)
-    enabled: bool = True
+    enabled: bool | None = None
+    mode: Literal['off','simulation','connected'] | None = None
     direction: Literal['input', 'output'] | None = None
     mux_port: int | None = Field(default=None, ge=0, le=7, strict=True)
     gpio: int | None = Field(default=None, ge=0, le=21, strict=True)
@@ -230,7 +242,7 @@ def set_channel_config(channels: list[ChannelConfig], schema_version: int = 1) -
     Temperature preset NTC10k B3950, options r0_ohm/beta_kelvin/pull_down_ohm/series_ohm/supply_mv/offset_c/sample_ms/report_ms.
     DS18B20 digital temperature uses driver=ds18b20, GPIO1 plus a CRC-valid scanned ROM, external 3.3V power. Multiple unique ROMs share GPIO1; ADC1 cannot. Options model=ds18b20, offset_c/sample_ms/report_ms.
     Existing V2 MUX branch has 4.7k series and 10k pull-down. pressure options press_threshold/release_threshold.
-    Save disables all physical sampling/output and stops active commands; returns startup policy to manual. Unknown types/drivers are rejected.
+    All explicit per-port modes resume declared connected inputs; legacy configs without modes pause inputs. Both stop physical outputs. Unknown types/drivers are rejected.
     """
     return call('set_channel_config', {'schema_version': schema_version,
                  'channels': [c.model_dump(exclude_none=True) for c in channels]})

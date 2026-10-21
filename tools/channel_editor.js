@@ -2,10 +2,13 @@
 let channelDraft=[],channelCapabilities={};
 const channelTypeLabels={pressure:'压力输入',temperature:'温度输入',vibration:'震动输出'};
 const channelDriverLabels={simulation:'仅模拟',mux_adc:'4051 模拟输入',gpio_adc:'独立 ADC',gpio_pwm:'独立 GPIO PWM',ds18b20:'DS18B20 数字温度'};
+const portModeLabels={off:'关闭',simulation:'模拟',connected:'已接入'};
+function portMode(c){return c.mode||(!c.enabled?'off':c.driver==='simulation'?'simulation':'connected');}
 function readChannelDraft(){
  return channelDraft.map(c=>{
   const type=$('type'+c.channel).value,driver=$('driver'+c.channel).value;
-  const result={channel:c.channel,name:$('part'+c.channel).value,type,driver,enabled:$('channelEnabled'+c.channel).checked,
+  const mode=$('portMode'+c.channel)?.value||portMode(c);
+  const result={channel:c.channel,name:$('part'+c.channel).value,type,driver,enabled:mode!=='off',mode,
    options:JSON.parse($('options'+c.channel).value||'{}')};
   if(driver==='mux_adc')result.mux_port=Number($('binding'+c.channel).value);
   if(driver==='gpio_adc'||driver==='gpio_pwm'||driver==='ds18b20')result.gpio=Number($('binding'+c.channel).value);
@@ -37,30 +40,40 @@ function renderChannelEditor(){
   const box=document.createElement('div');box.className='channel-card';
   const title=document.createElement('strong');title.textContent='CH'+c.channel;box.append(title);
   const name=document.createElement('input');name.id='part'+c.channel;name.name='channel_name';name.value=c.name;name.maxLength=96;name.setAttribute('aria-label','CH'+c.channel+' 部位或用途');box.append(name);
+  const state=document.createElement('select');state.id='portMode'+c.channel;state.setAttribute('aria-label','CH'+c.channel+' 端口状态');
+  for(const [value,label] of Object.entries(portModeLabels))state.add(new Option(label,value));state.value=portMode(c);box.append(state);
+  const save=document.createElement('button');save.textContent='保存此端口';save.type='button';save.id='savePort'+c.channel;
+  save.disabled=channelCapabilities.port_state_model!=='per_port_v1'||c.type==='vibration';
+  save.onclick=async()=>{save.disabled=true;try{
+   const result=await tool('set_channel_state',{channel:c.channel,mode:state.value,name:name.value});
+   channelDraft=result.channels;renderChannelEditor();if($('saved'))$('saved').textContent='端口状态已保存；阈值、校准和其他端口保持原样，重启后保留。';
+  }catch(e){$('error').textContent=e.message;save.disabled=false;}};box.append(save);
+  const hardware=document.createElement('details'),hardwareTitle=document.createElement('summary');hardwareTitle.textContent='硬件高级设置';hardware.append(hardwareTitle);box.append(hardware);
   const type=document.createElement('select');type.id='type'+c.channel;type.setAttribute('aria-label','CH'+c.channel+' 类型');
-  for(const t of channelCapabilities.types)type.add(new Option(channelTypeLabels[t.type]||t.type,t.type));type.value=c.type;box.append(type);
+  for(const t of channelCapabilities.types)type.add(new Option(channelTypeLabels[t.type]||t.type,t.type));type.value=c.type;hardware.append(type);
   const driver=document.createElement('select');driver.id='driver'+c.channel;driver.setAttribute('aria-label','CH'+c.channel+' 接口');
-  for(const d of channelCapabilities.types.find(t=>t.type===c.type).drivers)driver.add(new Option(channelDriverLabels[d]||d,d));driver.value=c.driver;box.append(driver);
+  for(const d of channelCapabilities.types.find(t=>t.type===c.type).drivers)driver.add(new Option(channelDriverLabels[d]||d,d));driver.value=c.driver;hardware.append(driver);
   const bindingLabel=document.createElement('label'),binding=document.createElement('input');binding.id='binding'+c.channel;binding.type='number';binding.step=1;binding.value=c.mux_port??c.gpio??0;
-  const caption=document.createElement('span');bindingLabel.append(caption,binding);box.append(bindingLabel);
+  const caption=document.createElement('span');bindingLabel.append(caption,binding);hardware.append(bindingLabel);
   const romBox=document.createElement('div'),romLabel=document.createElement('label'),rom=document.createElement('input');
   rom.id='rom'+c.channel;rom.value=c.rom||'';rom.maxLength=16;rom.style.fontFamily='monospace';rom.setAttribute('aria-label','CH'+c.channel+' 探头地址');romLabel.append(document.createTextNode('探头地址（16 位十六进制）'),rom);romBox.append(romLabel);
-  const scan=document.createElement('button'),found=document.createElement('select'),scanNote=document.createElement('small');scan.type='button';scan.textContent='扫描数字温度探头';found.setAttribute('aria-label','CH'+c.channel+' 扫描到的探头');found.add(new Option('扫描后选择地址',''));romBox.append(scan,found,scanNote);box.append(romBox);
+  const scan=document.createElement('button'),found=document.createElement('select'),scanNote=document.createElement('small');scan.type='button';scan.textContent='扫描数字温度探头';found.setAttribute('aria-label','CH'+c.channel+' 扫描到的探头');found.add(new Option('扫描后选择地址',''));romBox.append(scan,found,scanNote);hardware.append(romBox);
   found.onchange=()=>{if(found.value)rom.value=found.value};
   scan.onclick=async()=>{scan.disabled=true;try{const result=await tool('scan_input_devices',{driver:'ds18b20',gpio:Number(binding.value)});found.replaceChildren(new Option('选择探头地址',''));for(const probe of result.devices)found.add(new Option(probe.rom,probe.rom));scanNote.textContent=result.devices.length?'找到 '+result.devices.length+' 个探头；选择地址并保存。':'未发现探头，请检查外部 3.3V 供电、上拉和接线。';if(result.truncated)scanNote.textContent+=' 扫描达到上限。'}catch(e){scanNote.textContent=e.message}finally{scan.disabled=false}};
   const updateBinding=()=>{caption.textContent=driver.value==='mux_adc'?'4051 端口（0～7）':'GPIO 编号';bindingLabel.hidden=driver.value==='simulation';romBox.hidden=driver.value!=='ds18b20';};updateBinding();
-  const enabledLabel=document.createElement('label'),enabled=document.createElement('input');enabled.type='checkbox';enabled.id='channelEnabled'+c.channel;enabled.checked=c.enabled;enabledLabel.append(enabled,document.createTextNode(' 启用此通道'));box.append(enabledLabel);
-  const advanced=document.createElement('details'),summary=document.createElement('summary'),options=document.createElement('textarea');summary.textContent='阈值 / 温度参数';options.id='options'+c.channel;options.value=JSON.stringify(c.options||{},null,2);options.rows=5;advanced.append(summary,options);box.append(advanced);
+  const enabled=document.createElement('input');enabled.type='checkbox';enabled.id='channelEnabled'+c.channel;enabled.checked=c.enabled;enabled.hidden=true;hardware.append(enabled);
+  const advanced=document.createElement('details'),summary=document.createElement('summary'),options=document.createElement('textarea');summary.textContent='阈值 / 温度参数';options.id='options'+c.channel;options.value=JSON.stringify(c.options||{},null,2);options.rows=5;advanced.append(summary,options);hardware.append(advanced);
   const remove=document.createElement('button');remove.type='button';remove.textContent='移除此通道';remove.disabled=channelDraft.length<=1;
-  remove.onclick=()=>{try{channelDraft=readChannelDraft().filter(x=>x.channel!==c.channel);renderChannelEditor()}catch(e){$('error').textContent=e.message}};box.append(remove);
+  remove.onclick=()=>{try{channelDraft=readChannelDraft().filter(x=>x.channel!==c.channel);renderChannelEditor()}catch(e){$('error').textContent=e.message}};hardware.append(remove);
   driver.onchange=()=>{try{
+   if(driver.value==='simulation')state.value='simulation';
    if(driver.value==='gpio_adc'||driver.value==='ds18b20')binding.value=1;if(driver.value==='gpio_pwm')binding.value=10;
    const current=JSON.parse(options.value||'{}');
    if(driver.value==='ds18b20'){options.value=JSON.stringify({model:'ds18b20',offset_c:current.offset_c??0,sample_ms:Math.max(1000,current.sample_ms??1000),report_ms:Math.max(1000,current.report_ms??30000)},null,2)}
    else if(current.model==='ds18b20')options.value=JSON.stringify({offset_c:current.offset_c??0,sample_ms:current.sample_ms??1000,report_ms:current.report_ms??30000},null,2);
    updateBinding();
   }catch(e){$('error').textContent=e.message}};
-  type.onchange=()=>{try{channelDraft=readChannelDraft();const next=channelDraft.find(x=>x.channel===c.channel);next.driver='simulation';next.options={};delete next.mux_port;delete next.gpio;renderChannelEditor()}catch(e){$('error').textContent=e.message}};
+  type.onchange=()=>{try{channelDraft=readChannelDraft();const next=channelDraft.find(x=>x.channel===c.channel);next.driver='simulation';next.mode='simulation';next.enabled=true;next.options={};delete next.mux_port;delete next.gpio;renderChannelEditor()}catch(e){$('error').textContent=e.message}};
   $('parts').append(box);
  }
  fillChannelSelects();
@@ -84,8 +97,8 @@ async function loadChannels(){
 }
 async function saveChannelEditor(){
  const saved=await tool('set_channel_config',{schema_version:1,channels:readChannelDraft()});channelDraft=saved.channels;renderChannelEditor();
- if($('partResult'))$('partResult').textContent='已保存；真实输入和输出已关闭，请按接线情况重新启用。';
- if($('saved'))$('saved').textContent='已保存；真实输入和输出已关闭。';
+ if($('partResult'))$('partResult').textContent='硬件配置已保存；按各端口状态采样，物理输出保持关闭。';
+ if($('saved'))$('saved').textContent='硬件配置已保存；按各端口状态采样，物理输出保持关闭。';
 }
 async function simulateSelected(){
  const c=channelDraft.find(c=>c.channel===Number($('channel').value));if(!c)throw Error('请先配置一个输入通道');
@@ -99,7 +112,7 @@ async function updateChannelReadings(){
  const d=await tool('read_channel_values');
  if($('values'))$('values').textContent=d.values.map(v=>'CH'+v.channel+' '+v.name+' · '+(channelTypeLabels[v.type]||v.type)+' · '+(v.value==null?'暂无有效值':v.value+' '+v.unit)+' · '+v.source+' / '+v.quality).join('\n');
  const selected=channelDraft.find(c=>c.channel===Number($('channel').value));
- $('press').disabled=!selected||(d.physical_inputs_enabled&&selected.driver!=='simulation');
+ $('press').disabled=!selected||portMode(selected)!=='simulation';
  $('release').disabled=!selected||selected.type!=='pressure'||$('press').disabled;
  renderDiagnostics(d);
  if($('calibrationReadings')&&latestCalibration?.capturing){const value=d.values.find(v=>v.channel===Number($('calibrationChannel').value));$('calibrationReadings').textContent=value?'本阶段实时读数：'+(value.value??'无有效值')+' '+value.unit+' · '+value.source+' / '+value.quality:'';}
@@ -141,7 +154,7 @@ function drawDiagnostic(){
 }
 function fillCalibrationChannels(){
  const select=$('calibrationChannel'),old=select.value;select.replaceChildren();
- for(const c of channelDraft.filter(c=>c.enabled&&c.type==='pressure'&&c.driver!=='simulation'))select.add(new Option('CH'+c.channel+' · '+c.name,c.channel));
+ for(const c of channelDraft.filter(c=>c.type==='pressure'&&portMode(c)==='connected'))select.add(new Option('CH'+c.channel+' · '+c.name,c.channel));
  if(Array.from(select.options).some(o=>o.value===old))select.value=old;
 }
 const calibrationReasons={capture_all_stages:'请依次采集三个阶段',too_few_samples:'样本不足，请重新采集',light_press_not_separated:'轻按和静置未能区分，请重新采集',baseline_unstable:'静置阶段不稳定，请不要碰传感器',strong_press_below_light:'用力按的数据低于轻按，请重新采集',adc_saturated:'ADC 饱和，请检查接线',ok:'数据有效，可保存阈值'};
@@ -154,7 +167,7 @@ function showCalibration(c){
  $('applyCalibration').disabled=sensorActions.has('applyCalibration')||!c.ready;
 }
 async function refreshSensorExperience(){
- const mode=await tool('get_operating_mode');$('operatingStatus').textContent=(mode.mode==='daily'?'已保存日常模式：重启恢复真实输入。':'手动模式：重启关闭真实输入。')+(mode.physical_inputs_enabled?' 当前正在真实采样。':' 当前真实输入关闭。')+' 震动输出不会自动恢复。';
+ $('operatingStatus').textContent=channelCapabilities.port_state_model==='per_port_v1'?'端口选择“已接入”即真实采样，选择“关闭”即停用；“模拟”只接收测试输入。重启自动恢复。':'旧版固件尚未支持端口三态；已有采样状态保持，升级后可按端口设置。';
  showCalibration(await tool('get_pressure_calibration'));
 }
 function developerVisible(){const options=$('developerOptions');return !!options?.open&&options.getClientRects().length>0&&!document.hidden;}
@@ -181,16 +194,14 @@ function installDeveloperOptions(){
 async function installSensorExperience(){
  if(sensorExperienceReady){fillCalibrationChannels();return;}
  const section=document.createElement('section');section.id='sensorExperience';
- section.innerHTML='<h2>日常使用与压力校准</h2><p id="operatingStatus"></p><div id="realInputControls"></div><label><input id="dailyConfirmed" type="checkbox">我已安装主板和传感器，允许重启恢复真实输入</label><button id="dailyMode">保存日常模式</button><button id="manualMode">恢复手动模式</button><p>校准前启用真实输入，安装到玩偶内后逐路校准；校准期间本通道暂停触摸事件。保持对应姿势点击按钮，每阶段采集约 3 秒。无效数据不会保存；60 秒无操作自动退出。</p><select id="calibrationChannel" aria-label="校准压力通道"></select><button id="calibrateIdle">1. 静置采集</button><button id="calibrateLight">2. 轻按采集</button><button id="calibrateStrong">3. 用力按采集</button><pre id="calibrationStatus"></pre><p id="calibrationReadings"></p><button id="applyCalibration" disabled>保存推荐阈值</button><button id="cancelCalibration">取消校准</button><details open><summary>实时通道诊断</summary><select id="diagnosticChannel" aria-label="诊断通道"></select><p id="diagnosticSummary"></p><canvas id="diagnosticCanvas" width="720" height="190" style="width:100%;height:190px" aria-label="通道数值曲线"></canvas><p id="diagnosticConnection">绿色是真实采样，棕色是模拟；曲线为等间距采样点，不是牛顿或时间标定曲线。</p></details>';
+ section.innerHTML='<h2>压力校准</h2><p id="operatingStatus"></p><div id="realInputControls" hidden></div><p>先将此端口设为“已接入”，再逐路校准。校准期间本通道暂停触摸事件，每阶段约3秒；无效数据不会保存。</p><select id="calibrationChannel" aria-label="校准压力通道"></select><button id="calibrateIdle">1. 静置采集</button><button id="calibrateLight">2. 轻按采集</button><button id="calibrateStrong">3. 用力按采集</button><pre id="calibrationStatus"></pre><p id="calibrationReadings"></p><button id="applyCalibration" disabled>保存推荐阈值</button><button id="cancelCalibration">取消校准</button><details open><summary>实时通道诊断</summary><select id="diagnosticChannel" aria-label="诊断通道"></select><p id="diagnosticSummary"></p><canvas id="diagnosticCanvas" width="720" height="190" style="width:100%;height:190px" aria-label="通道数值曲线"></canvas><p id="diagnosticConnection">绿色为真实输入，棕色为模拟；原始读数不是牛顿。</p></details>';
  $('parts').closest('section').after(section);fillCalibrationChannels();
  $('realInputControls').append($('physical').closest('label'),$('sensors'));
  const action=(id,fn)=>{$(id).onclick=async()=>{if(sensorActions.has(id))return;sensorActions.add(id);try{$(id).disabled=true;$('error').textContent='';await fn();await refreshSensorExperience()}catch(e){$('error').textContent=e.message}finally{sensorActions.delete(id);if(latestCalibration)showCalibration(latestCalibration);if(!id.startsWith('calibrate')&&id!=='applyCalibration')$(id).disabled=false}}};
- action('dailyMode',async()=>{if(!$('dailyConfirmed').checked)throw Error('请先确认传感器已经安装');await tool('set_operating_mode',{mode:'daily',hardware_confirmed:true});$('physical').checked=true;$('outputEnabled').checked=false});
- action('manualMode',async()=>{await tool('set_operating_mode',{mode:'manual'});$('physical').checked=false;$('dailyConfirmed').checked=false;$('outputEnabled').checked=false});
  for(const [stage,id] of ['calibrateIdle','calibrateLight','calibrateStrong'].entries())action(id,()=>tool('capture_pressure_calibration',{channel:Number($('calibrationChannel').value),stage,duration_ms:3000}));
  action('applyCalibration',async()=>{await tool('apply_pressure_calibration');channelDraft=(await tool('get_channel_config')).channels;renderChannelEditor()});
  action('cancelCalibration',()=>tool('cancel_pressure_calibration'));
  $('diagnosticChannel').onchange=drawDiagnostic;installDeveloperOptions();
- try{await refreshSensorExperience();sensorExperienceReady=true;}catch(e){$('operatingStatus').textContent='当前固件尚未提供校准与日常模式，请升级到 v2.3。';return;}
+ try{await refreshSensorExperience();sensorExperienceReady=true;}catch(e){$('operatingStatus').textContent='当前设备暂不可用于校准，请检查连接与端口状态。';return;}
  setInterval(async()=>{if(diagnosticPolling||document.hidden||!$('sensorExperience').getClientRects().length)return;diagnosticPolling=true;try{if(latestCalibration?.capturing)await updateChannelReadings();await refreshSensorExperience();$('diagnosticConnection').textContent='诊断连接正常 · 绿色：真实采样；棕色：模拟。';}catch(e){$('diagnosticConnection').textContent='诊断连接中断，曲线保留之前的读数。';}finally{diagnosticPolling=false}},750);
 }

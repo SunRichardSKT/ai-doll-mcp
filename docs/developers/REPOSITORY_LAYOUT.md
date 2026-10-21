@@ -26,7 +26,7 @@
 
 原安装/启停 Secure 的四个重复 CMD 包装入口移除，统一从根目录 AI_Doll.cmd 的管理页面操作；对应维护脚本和明确有用途的远程兼容入口保留。
 
-`channel_editor_asset.h` 和 `ota_manager_asset.h` 是由网页源文件生成的编译产物，构建前由 `embed_channel_editor.py` 生成，不再重复提交或放入源码交付包。四个预编译镜像保留，因为新手不需要编译。
+`channel_editor_asset.h`、`ota_manager_asset.h` 和 `device_page_asset.h` 是由网页源文件生成的编译产物，构建前由 `embed_channel_editor.py` 生成，不再重复提交或放入源码交付包。四个预编译镜像保留，因为新手不需要编译。
 
 完整 Windows ZIP、Linux TAR 与 PCB ZIP 统一存入 **GitHub Releases**。源码仓库移除重复的大型交付包，delivery 只保留下载入口和哈希清单；旧版本可在历史 Release 或 Git 历史追溯，不通过强推改写历史。
 

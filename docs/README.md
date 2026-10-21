@@ -20,7 +20,7 @@
 | [配网、无线配对与断线恢复](daily/WIFI_CONNECTION.md) | 修改网络、找回 IP、切换 USB、启动项 |
 | [运行环境与账号密码](daily/RUNTIME_AND_LOGIN.md) | 是否装 Python、网页密码、各类令牌 |
 | [通道与接线](daily/SENSOR_CHANNELS.md) | 接压力、温度或电机前看这里 |
-| [压力校准与日常模式](daily/CALIBRATION_AND_DAILY_MODE.md) | 静置、轻按、较强按和重启策略 |
+| [压力校准与端口状态](daily/CALIBRATION_AND_DAILY_MODE.md) | 静置、轻按、较强按；关闭／模拟／已接入 |
 | [DS18B20 温度](daily/DIGITAL_TEMPERATURE.md) | 数字温度探头接线与扫描 |
 | [互动历史](daily/HISTORY_MANAGEMENT.md) | 查询、统计、导出、删除和保留期限 |
 | [人设与反馈](daily/INTERACTION_OBSERVATIONS.md) | 语气、安静时段与动作摘要 |
@@ -43,7 +43,7 @@
 
 [开发与打包](developers/DEVELOPER_GUIDE.md) · [项目文件与清理规则](developers/REPOSITORY_LAYOUT.md) · [MCP 工具目录](developers/MCP_TOOLS.md) · [直传接口](developers/DIRECT_SERVER.md) · [接入原聊天](developers/EXISTING_CHAT.md) · [事件桥](developers/PROACTIVE_INTERACTION.md) · [后续计划](developers/DEVELOPMENT_PLAN.md)
 
-[连接稳定性与日常使用优化计划书](developers/STABILITY_AND_DAILY_USE_PLAN.md)整理 Operit 地址修改、烧录命名、重启恢复、实体默认与开发者调试，以及本轮代码精简；当前状态为待实施。
+[连接稳定性与日常使用优化计划书](developers/STABILITY_AND_DAILY_USE_PLAN.md)整理 Operit 地址修改、烧录命名、重启恢复、实体默认与开发者调试；实施与验证范围见 [2.21 记录](reports/RELEASE_2_21.md)。
 
 [统一代码、安装与日常使用规划](developers/UNIFIED_DELIVERY_PLAN.md)说明分阶段合并入口、配置和手机工具包；[2.19 实施记录](reports/RELEASE_2_19.md)区分已实现与待手机验收。
 
@@ -52,6 +52,8 @@
 [AI 安装、调用、硬件与验证指南](ai/AI_GUIDE.md)。提供给帮你操作设备的 AI；普通用户无需照着调用工具。
 
 ## 06 验证记录
+
+最新预发布见 [2.24：Operit稳定性](reports/RELEASE_2_24.md)，下载与升级见 [Operit 指南](integrations/OPERIT_SETUP.md)。
 
 先看 [当前验证范围](reports/VALIDATION.md)和 [2.20 交付记录](reports/RELEASE_2_20.md)。[2.17 记录](reports/RELEASE_2_17.md)及其他历史报告保留当时版本，不代表新版本或你的新安装已经通过。
 
@@ -65,4 +67,4 @@
 
 [2.19.1 Operit 1.12.2 导入兼容性](reports/RELEASE_2_19_1.md)记录旧工具包解析失败的原因与修正。
 
-本轮交付：[2.21 连接稳定性与日常使用改进](reports/RELEASE_2_21.md)。
+稳定版：[2.21 连接稳定性与日常使用改进](reports/RELEASE_2_21.md)。2.24 同时整合 [2.22 Operit 陪伴与端口三态](reports/RELEASE_2_22.md)及 [2.23 连接与界面改进](reports/RELEASE_2_23.md)；历史报告保留各自当时的验证范围。
