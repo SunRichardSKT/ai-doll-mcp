@@ -36,46 +36,67 @@
 
 设备根网页与 MCP 地址是不同用途。Linux 小型包共用接收数据库并提供 19 工具，地址绑定单个配对设备。接口分别见 [工具目录](MCP_TOOLS.md)、[事件桥](PROACTIVE_INTERACTION.md)、[直传服务](DIRECT_SERVER.md)。
 
-## 编译固件
+## 从源码首次准备开发环境
 
-为 PlatformIO 建立独立 Python 3.12 开发环境。日常随包 Python 不等于编译工具已安装。项目根目录执行：
+源码仓库不含 `python/python.exe`。在 Windows 安装开发用 Python 3.12 和 Node.js 18+ 后，从项目根目录建立环境；不要先运行随包解释器或复制别人的 `.venv`：
 
 ```powershell
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements-companion.txt
-.\.venv\Scripts\python.exe -m pip install platformio
+py -3.12 -X utf8 -m venv .venv
+.\.venv\Scripts\python.exe -X utf8 -m pip install -r requirements-companion.txt -r requirements-flash.txt
+node --version
+```
+
+后续源码命令使用这个 `.venv`；MCP 测试使用声明并安装的 SDK，不把 `.tools/` 中的旧轮子加入导入路径。中文路径下显式使用 `-X utf8`。只有制作完整 Windows 交付包时才需要另外构建随包 Python。
+
+已经下载完整 Windows 包、只验证包内运行结果时，可以把下方测试命令中的 `.\.venv\Scripts\python.exe` 换成 `.\python\python.exe`，仍保留 `-X utf8`。包内解释器用于运行软件，不包含开发工具或 pip。
+
+## 编译固件
+
+复用上面的 Python 3.12 开发环境，为 PlatformIO 安装编译工具。日常随包 Python 不等于编译工具已安装：
+
+```powershell
+.\.venv\Scripts\python.exe -X utf8 -m pip install platformio
 .\tools\build_lab.ps1
 ```
 
 唯一目标 `supermini-lab`。确认用户需要烧录、实际串口和占用情况后，才用 `build_lab.ps1 -Upload -Port 实际串口`。不自动全片擦除。镜像地址见 [预编译说明](../../firmware/prebuilt/README.md)。
 
-构建后运行 `python tools/export_firmware.py`，导出本次三个编译镜像并为完整四文件更新清单。网页嵌入头文件在构建前生成，不提交。正式 USB 烧录使用 `Flash_ESP32.cmd` 或 `tools/flash_esp32.py`，才能生成新的内部设备编号、可选显示名及完整日志；PlatformIO 的直接 Upload 仅供开发调试，保留既有设备编号。
+构建后运行 `.\.venv\Scripts\python.exe -X utf8 tools/export_firmware.py`，导出本次三个编译镜像并为完整四文件更新清单。网页嵌入头文件在构建前生成，不提交。正式 USB 烧录使用 `Flash_ESP32.cmd` 或 `tools/flash_esp32.py`，才能生成新的内部设备编号、可选显示名及完整日志；PlatformIO 的直接 Upload 仅供开发调试，保留既有设备编号。
 
 ## 验证原则与入口
 
 本地算法 / 协议测试、真实开发板、目标聊天和真实模型分开记录。用模拟事件验证软件，不称为实体传感器验收。按改动选相关套件，不在用户互动期间执行会重启或覆盖缓存的测试。
 
 ```powershell
-.\python\python.exe -m unittest discover -s tools -p test_chat_gateway.py
-.\python\python.exe -m unittest discover -s tools -p test_remote_server_install.py
-.\python\python.exe -m unittest discover -s tools -p test_history_management.py
+.\.venv\Scripts\python.exe -X utf8 -m unittest discover -s tools -p test_chat_gateway.py
+.\.venv\Scripts\python.exe -X utf8 -m unittest discover -s tools -p test_remote_server_install.py
+.\.venv\Scripts\python.exe -X utf8 -m unittest discover -s tools -p test_history_management.py
 ```
 
 Node / Playwright 页面测试需要开发者另装对应环境，运行 `tools/test_*.cjs`；不属于新手安装步骤。`test_private_mcp_device.py`、`test_offline_device.py` 等实机入口会产生模拟记录，后者会重启并验证容量覆盖，先读文件说明、停采集并确认没有活跃会话。
 
 ## 制作交付包
 
+从干净源码制作完整包时，先完成上面的开发环境准备，再依次执行：
+
 ```powershell
-.\python\python.exe tools/package_companion.py
-.\python\python.exe tools/audit_delivery.py delivery/AI_Doll_Code_v2.24.0.zip
-.\python\python.exe tools/audit_delivery.py delivery/AI_Doll_Server_v2.24.0.tar.gz
-.\python\python.exe tools/check_documentation.py --archive delivery/AI_Doll_Code_v2.24.0.zip
-.\python\python.exe tools/check_documentation.py --archive delivery/AI_Doll_Server_v2.24.0.tar.gz
+.\.venv\Scripts\python.exe -X utf8 tools/build_portable_python.py
+.\.venv\Scripts\python.exe -X utf8 hardware/enclosure/package_enclosures.py
+.\.venv\Scripts\python.exe -X utf8 tools/package_companion.py
+.\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Code_v2.24.1.zip
+.\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Server_v2.24.1.tar.gz
+.\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --repository .
+.\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --archive delivery/AI_Doll_Code_v2.24.1.zip
+.\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --archive delivery/AI_Doll_Server_v2.24.1.tar.gz
 ```
 
-ZIP / TAR 内 `MANIFEST.json` 是逐文件 SHA-256，ToolPkg 使用 `CHECKSUMS.json`。`DELIVERY_MANIFEST.json` 和 `SHA256SUMS.txt` 记录 Windows、Linux、PCB 与独立手机工具包的哈希。Windows Python 从官方 CPython 和固定 wheel 构建，入口 `tools/build_portable_python.py`；不能打包本机 `.venv`。
+`build_portable_python.py` 从官方 CPython 和固定 wheel 构建 Windows x64 运行环境，需要联网。已有完整运行环境时先验证并复用，不要再次覆盖运行中的 `python/`；确需重建时，在停止本项目服务后，将整个已有 `python/` 移到项目内明确的备份位置，再恢复源码的 README、许可和版本元数据后构建。不要打包开发用 `.venv`。
 
-完整包发布到 GitHub Releases；源码中的 delivery 只保存下载入口与校验清单。Linux 安装器从相同版本的 Release 下载包和校验文件。目录与冗余清理规则见 [项目结构](REPOSITORY_LAYOUT.md)。
+`hardware/enclosure/package_enclosures.py` 使用仓库已有的导出模型和校验文件，一次生成全部外壳与独立堆叠版两份 ZIP，不需要 CAD 依赖。只有修改或重新生成几何时，才按 [外壳说明](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/README.md#生成与检查)建立独立 CAD 环境。完整打包器会验证这两份机械制品并生成手机 ToolPkg；Node.js 必须可用。
+
+上述命令不重新编译固件；默认使用仓库中已配套校验的四个预编译镜像。只有修改了固件源码时，才先完成“编译固件”与导出清单，再打包。ZIP / TAR 内 `MANIFEST.json` 是逐文件 SHA-256，ToolPkg 使用 `CHECKSUMS.json`。`DELIVERY_MANIFEST.json` 和 `SHA256SUMS.txt` 记录 Windows、Linux、PCB 与独立手机工具包的哈希。
+
+完整包发布到 GitHub Releases；源码中的 delivery 只保存当前下载入口与校验清单。Linux 安装器从相同版本的 Release 下载包和校验文件。历史版的校验应使用该版 Release 附带的 `SHA256SUMS.txt` / `DELIVERY_MANIFEST.json`，不能使用滚动更新的 main 清单。目录与冗余清理规则见 [项目结构](REPOSITORY_LAYOUT.md)。
 
 首页与使用指南维护在源文件中，打包复用相同文档；不得将配对、个人历史、隧道令牌或日志加入允许清单。发布前验证所有 Markdown 链接、实际下载校验、固件 / PCB 非文档文件未意外改变。
 
@@ -87,6 +108,6 @@ ZIP / TAR 内 `MANIFEST.json` 是逐文件 SHA-256，ToolPkg 使用 `CHECKSUMS.j
 
 ## Operit 统一入口
 
-手机主源码在 `clients/operit/`，运行 `python tools/package_operit.py` 生成单个 `.toolpkg`。完整包构建会自动包含它。旧 `templates/operit/` 为冻结的独立脚本兼容参考，不再开发新的增量安装入口。当前 Android 调度、文件选择器和真实后台回复边界见 [统一使用指南](../integrations/OPERIT_SETUP.md)。
+手机主源码在 `clients/operit/`，运行 `.\.venv\Scripts\python.exe -X utf8 tools/package_operit.py` 生成单个 `.toolpkg`。完整包构建会自动包含它。旧 `templates/operit/` 为冻结的独立脚本兼容参考，不再开发新的增量安装入口。当前 Android 调度、文件选择器和真实后台回复边界见 [统一使用指南](../integrations/OPERIT_SETUP.md)。
 
 源码构建 Docker 前同样需要先生成该 ToolPkg，要求开发环境具有 Node.js 18+；使用 Release 的 Linux 包部署时已包含工具包，用户不需要安装 Node 或另装手机服务。

@@ -2,6 +2,8 @@
 
 零基础从“入门”开始，只读当前需要的页面。技术接口放在开发者区，给 AI 的操作规则单独存放。
 
+本目录对应 **2.24.1 预发布／固件2.12.1**。[本次下载](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.24.1) · [修订与验收边界](reports/RELEASE_2_24_1.md)。继续使用2.21稳定版请打开[2.21校正版安装入口](start/STABLE_2_21.md)，配套使用同版包和校验文件。
+
 ## 01 入门：先把设备用起来
 
 | 顺序 | 教程 | 完成后应该看到 |
@@ -53,7 +55,7 @@
 
 ## 06 验证记录
 
-最新预发布见 [2.24：Operit稳定性](reports/RELEASE_2_24.md)，下载与升级见 [Operit 指南](integrations/OPERIT_SETUP.md)。
+最新修订见 [2.24.1：文档与安装整改](reports/RELEASE_2_24_1.md)，此前队列功能见 [2.24：Operit稳定性](reports/RELEASE_2_24.md)。下载与升级见 [Operit 指南](integrations/OPERIT_SETUP.md)。
 
 先看 [当前验证范围](reports/VALIDATION.md)和 [2.20 交付记录](reports/RELEASE_2_20.md)。[2.17 记录](reports/RELEASE_2_17.md)及其他历史报告保留当时版本，不代表新版本或你的新安装已经通过。
 

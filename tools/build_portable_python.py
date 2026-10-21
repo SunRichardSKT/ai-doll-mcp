@@ -15,7 +15,24 @@ URL = f'https://www.python.org/ftp/python/{VERSION}/python-{VERSION}-embed-amd64
 OFFICIAL_SHA256 = 'a93abe456ab01bd96d7a085b3cdb6566b3063f4241360d114142fbdb07f0a310'
 
 
+def check_runtime_destination(dest):
+    metadata = {'README.md', 'RUNTIME.json', 'LICENSE.txt', 'SHA256SUMS.txt'}
+    if dest.exists() and any(p.name not in metadata or not p.is_file() for p in dest.iterdir()):
+        raise ValueError('Runtime already exists; move it aside before rebuilding')
+
+
+def write_runtime_checksums(dest):
+    files = sorted(p for p in dest.rglob('*') if p.is_file()
+                   and p != dest / 'SHA256SUMS.txt' and '__pycache__' not in p.parts
+                   and p.suffix != '.pyc')
+    (dest / 'SHA256SUMS.txt').write_text(''.join(
+        hashlib.sha256(p.read_bytes()).hexdigest() + '  ' + p.relative_to(dest).as_posix() + '\n'
+        for p in files), encoding='utf-8')
+
+
 def main():
+    dest = ROOT / 'python'
+    check_runtime_destination(dest)
     cache = ROOT / 'build/portable-python'
     cache.mkdir(parents=True, exist_ok=True)
     archive = cache / Path(URL).name
@@ -25,9 +42,6 @@ def main():
     raw = archive.read_bytes()
     if hashlib.sha256(raw).hexdigest() != OFFICIAL_SHA256:
         raise ValueError('Official CPython archive checksum mismatch')
-    dest = ROOT / 'python'
-    if dest.exists() and any(p.name not in {'README.md','RUNTIME.json','LICENSE.txt'} for p in dest.iterdir()):
-        raise ValueError('Runtime already exists; move it aside before rebuilding')
     dest.mkdir(exist_ok=True)
     with zipfile.ZipFile(archive) as package:
         for name in package.namelist():
@@ -74,6 +88,7 @@ def main():
     shims = dest / 'Lib/site-packages/bin'
     if shims.exists() and shims.resolve().is_relative_to(dest.resolve()):
         shutil.rmtree(shims)
+    write_runtime_checksums(dest)
     print(json.dumps(metadata, indent=2))
 
 

@@ -10,7 +10,7 @@ static void addChannelTools(JsonArray tools){
  add("read_channel_values","Read typed values with units, source, quality and age. Output readings report commanded state, not motor feedback.");
  JsonObject enable=add("set_input_enabled","Legacy temporary physical-input override. Prefer set_channel_state for persistent per-port modes; preserves thresholds.");enable["properties"]["enabled"]["type"]="boolean";enable["required"].to<JsonArray>().add("enabled");
  add("get_operating_mode","Read saved manual/daily startup mode and current input/output state. Outputs never resume after reboot.");
- JsonObject mode=add("set_operating_mode","Save daily input startup only after user confirms assembled sensors; manual disables input. Both stop outputs. Changing channel configuration returns to manual.");
+ JsonObject mode=add("set_operating_mode","Legacy saved input startup policy: daily requires assembled sensors; manual pauses inputs. Both stop outputs. Configs with explicit port modes resume connected inputs; configs without modes pause inputs. Prefer set_channel_state.");
  mode["properties"]["mode"]["type"]="string";JsonArray modes=mode["properties"]["mode"]["enum"].to<JsonArray>();modes.add("manual");modes.add("daily");mode["properties"]["hardware_confirmed"]["type"]="boolean";mode["required"].to<JsonArray>().add("mode");
  JsonObject cal=add("capture_pressure_calibration","Capture real pressure only: stage 0 idle, 1 light, 2 strong. Suppress selected channel touch events during calibration; capture nonblocking, expires after 60s inactivity. No automatic save.");
  cal["properties"]["channel"]["type"]="integer";cal["properties"]["channel"]["minimum"]=0;cal["properties"]["channel"]["maximum"]=15;

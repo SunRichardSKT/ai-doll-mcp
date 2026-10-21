@@ -2,7 +2,7 @@
 {
   "name":"ai_doll_companion",
   "enabledByDefault":true,
-  "version":"2.24.0",
+  "version":"2.24.1",
   "description":"AI Doll 统一入口。配置与启动请使用工具箱的 AI Doll 面板；不从目标聊天递归等待或发送。",
   "category":"NETWORK",
   "tools":[

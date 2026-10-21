@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import shlex
 import subprocess
 import socket
 import sys
@@ -26,7 +27,8 @@ DOMAIN='doll.test-domain.net'
 class RemoteInstallTests(unittest.TestCase):
     def posix(self,path):
         if os.name!='nt':return str(path)
-        return subprocess.check_output([str(BASH),'-c','cygpath -u "$1"','convert',str(path)],text=True).strip()
+        return subprocess.check_output([str(BASH),'-c','cygpath -u "$1"','convert',str(path)],
+                                       text=True,encoding='utf-8').strip()
 
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory(prefix='AI Doll remote ')
@@ -36,7 +38,7 @@ class RemoteInstallTests(unittest.TestCase):
         self.log=self.root/'docker.txt'
         self.env=dict(os.environ,PATH=self.posix(self.bin)+':/usr/bin:/bin',MSYS2_ARG_CONV_EXCL='*',
             FIXTURE_PATH=self.posix(self.bin)+':/usr/bin:/bin',
-            FIXTURE_PACKAGE=self.posix(ROOT/'delivery/AI_Doll_Server_v2.24.0.tar.gz'),
+            FIXTURE_PACKAGE=self.posix(ROOT/'delivery/AI_Doll_Server_v2.24.1.tar.gz'),
             FIXTURE_LOG=self.posix(self.log),FIXTURE_TOKEN=TOKEN,FIXTURE_DOMAIN=DOMAIN,
             FIXTURE_ID=hashlib.sha256(('installation:'+TOKEN).encode()).hexdigest())
         self.stub('uname','printf "Linux\\n"')
@@ -50,6 +52,22 @@ if [[ "$1" == ps ]]; then
     if [[ "$*" == *--format* ]]; then printf 'doll\nhttps\n'; else printf 'fixture-container\n'; fi
   fi
   exit 0
+fi
+if [[ " $* " == *' up '* && " $* " == *' --build '* ]]; then
+  # Check the actual installed Dockerfile's COPY inputs before pretending that
+  # the build succeeded. This fixture supports this project's plain COPY form.
+  args=("$@"); project_dir=''
+  for ((i=0;i<${#args[@]};i++)); do
+    [[ "${args[i]}" != --project-directory ]] || project_dir=${args[i+1]}
+  done
+  while read -r instruction rest; do
+    [[ "$instruction" == COPY ]] || continue
+    read -ra fields <<< "$rest"
+    for ((i=0;i<${#fields[@]}-1;i++)); do
+      [[ "${fields[i]}" == --* ]] && continue
+      [[ -e "$project_dir/../../${fields[i]}" ]] || { printf 'Missing Docker COPY source: %s\n' "${fields[i]}" >&2; exit 31; }
+    done
+  done < "$project_dir/Dockerfile"
 fi
 if [[ "$*" == *'exec -T doll'* ]]; then printf '%s\n' "$FIXTURE_TOKEN"; fi
 exit 0
@@ -100,6 +118,81 @@ fi
         self.assertEqual(sentinel.read_text(),'preserve')
         self.assertNotIn('down -v',self.log.read_text())
         self.assertTrue((self.command_dir/'ai-doll-server').is_file())
+
+    def assert_installed_build_sources(self):
+        """Every COPY input must be present and byte-identical to the real TAR."""
+        dockerfile=(self.target/'deploy/direct-server/Dockerfile').read_text(encoding='utf-8')
+        sources=[]
+        for line in dockerfile.splitlines():
+            fields=shlex.split(line)
+            if fields and fields[0]=='COPY':
+                sources.extend(value for value in fields[1:-1] if not value.startswith('--'))
+        self.assertIn('src',sources)
+        self.assertIn('delivery/AI_Doll_Operit.toolpkg',sources)
+        with tarfile.open(ROOT/'delivery/AI_Doll_Server_v2.24.1.tar.gz','r:gz') as archive:
+            for source in sources:
+                self.assertTrue((self.target/source).exists(),source)
+                members=[member for member in archive.getmembers() if member.isfile() and
+                         (member.name==source or member.name.startswith(source.rstrip('/')+'/'))]
+                self.assertTrue(members,source)
+                for member in members:
+                    self.assertEqual((self.target/member.name).read_bytes(),archive.extractfile(member).read(),member.name)
+
+    def test_installed_build_sources_refresh_on_upgrade(self):
+        first=self.run_install();self.assertEqual(first.returncode,0,first.stderr)
+        self.assert_installed_build_sources()
+        core=self.target/'src/ai_doll/core/version.py'
+        phone=self.target/'delivery/AI_Doll_Operit.toolpkg'
+        core.write_bytes(b'outdated core')
+        phone.write_bytes(b'outdated phone package')
+        personal=self.target/'personal-data';personal.mkdir()
+        history=personal/'history.sqlite3';history.write_bytes(b'personal history sentinel')
+        env_file=self.target/'deploy/direct-server/.env'
+        env_file.write_text('DOLL_DOMAIN='+DOMAIN+'\nDOLL_MCP_PROFILE=history\n',encoding='utf-8',newline='\n')
+        private=(self.target/'connection-private.txt').read_bytes()
+        upgraded=self.run_install(domain=False)
+        self.assertEqual(upgraded.returncode,0,upgraded.stderr)
+        self.assert_installed_build_sources()
+        self.assertEqual(history.read_bytes(),b'personal history sentinel')
+        self.assertEqual((self.target/'connection-private.txt').read_bytes(),private)
+        self.assertEqual(env_file.read_text(encoding='utf-8'),'DOLL_DOMAIN='+DOMAIN+'\nDOLL_MCP_PROFILE=history\n')
+
+    def test_incomplete_source_does_not_replace_installed_core_or_phone(self):
+        first=self.run_install();self.assertEqual(first.returncode,0,first.stderr)
+        core=(self.target/'src/ai_doll/core/version.py').read_bytes()
+        phone=(self.target/'delivery/AI_Doll_Operit.toolpkg').read_bytes()
+        record=(self.target/'deployment-private.conf').read_bytes()
+        source=self.root/'incomplete-source';source.mkdir()
+        with tarfile.open(ROOT/'delivery/AI_Doll_Server_v2.24.1.tar.gz','r:gz') as archive:
+            archive.extractall(source,filter='data')
+        (source/'delivery/AI_Doll_Operit.toolpkg').unlink()
+        self.script=source/'Install_Server.sh'
+        incomplete=self.run_install(domain=False)
+        self.assertNotEqual(incomplete.returncode,0)
+        self.assertIn('代码包不完整',incomplete.stderr)
+        self.assertIn('delivery/AI_Doll_Operit.toolpkg',incomplete.stderr)
+        self.assertEqual((self.target/'src/ai_doll/core/version.py').read_bytes(),core)
+        self.assertEqual((self.target/'delivery/AI_Doll_Operit.toolpkg').read_bytes(),phone)
+        self.assertEqual((self.target/'deployment-private.conf').read_bytes(),record)
+
+    def test_installed_entry_downloads_the_release_before_reinstalling(self):
+        first=self.run_install();self.assertEqual(first.returncode,0,first.stderr)
+        (self.target/'src/ai_doll/core/version.py').write_bytes(b'outdated core')
+        (self.target/'delivery/AI_Doll_Operit.toolpkg').write_bytes(b'outdated phone package')
+        self.script=self.target/'Install_Server.sh'
+        result=self.run_install(domain=False)
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assert_installed_build_sources()
+
+    def test_build_fixture_rejects_missing_copy_source(self):
+        first=self.run_install();self.assertEqual(first.returncode,0,first.stderr)
+        (self.target/'delivery/AI_Doll_Operit.toolpkg').unlink()
+        result=subprocess.run([str(BASH),'-c',
+            'export PATH="$FIXTURE_PATH"; docker compose --project-directory "$1" up -d --build',
+            'build-input-check',self.posix(self.target/'deploy/direct-server')],
+            env=self.env,capture_output=True,text=True,encoding='utf-8',timeout=10)
+        self.assertEqual(result.returncode,31,result.stderr)
+        self.assertIn('Missing Docker COPY source: delivery/AI_Doll_Operit.toolpkg',result.stderr)
 
     def test_invalid_domain_and_unknown_directory_have_no_docker_actions(self):
         for domain in ('http://doll.test-domain.net','doll.test-domain.net:8443','https://doll.test-domain.net/mcp',
@@ -159,7 +252,7 @@ fi
 
     def test_minimal_payload_serves_authenticated_management(self):
         payload=self.root/'payload';payload.mkdir()
-        with tarfile.open(ROOT/'delivery/AI_Doll_Server_v2.24.0.tar.gz','r:gz') as archive:
+        with tarfile.open(ROOT/'delivery/AI_Doll_Server_v2.24.1.tar.gz','r:gz') as archive:
             archive.extractall(payload,filter='data')
         with socket.socket() as probe:
             probe.bind(('127.0.0.1',0));port=probe.getsockname()[1]

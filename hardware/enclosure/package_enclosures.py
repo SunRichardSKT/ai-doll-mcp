@@ -27,7 +27,29 @@ STACKED_OUTPUT = ('base.stl', 'base.step', 'tray.stl', 'tray.step', 'lid.stl', '
                   'assembled.png', 'side.png', 'tray.png', 'stack.svg', 'stack.png', 'preview_check.json')
 
 
-def build(target):
+def write_archive(target, files, **metadata):
+    files = dict(files)
+    files['MANIFEST.json'] = json.dumps(dict(metadata,
+        files={name:hashlib.sha256(raw).hexdigest() for name,raw in files.items()}),
+        ensure_ascii=False,indent=2).encode('utf-8')
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with zipfile.ZipFile(target,'w',zipfile.ZIP_DEFLATED) as archive:
+        for name,raw in sorted(files.items()):
+            info=zipfile.ZipInfo(name,date_time=(2026,10,20,0,0,0))
+            info.compress_type=zipfile.ZIP_DEFLATED
+            archive.writestr(info,raw)
+    with zipfile.ZipFile(target) as archive:
+        assert archive.testzip() is None
+        manifest=json.loads(archive.read('MANIFEST.json'))
+        assert set(archive.namelist()) == set(manifest['files'])|{'MANIFEST.json'}
+        for name,digest in manifest['files'].items():
+            assert hashlib.sha256(archive.read(name)).hexdigest()==digest
+    digest=hashlib.sha256(target.read_bytes()).hexdigest()
+    target.with_suffix(target.suffix+'.sha256').write_text(digest+'  '+target.name+'\n',encoding='ascii')
+    print(json.dumps(dict(file=str(target),files=len(files),sha256=digest),ensure_ascii=False,indent=2))
+
+
+def build(target, stacked_target=None):
     names = list(COMMON)
     for model in MODELS:
         names.extend(model+'/'+name for name in SOURCE)
@@ -53,27 +75,16 @@ def build(target):
     for line in files[STACKED+'/SHA256SUMS.txt'].decode('utf-8').splitlines():
         digest,relative=line.split(None,1)
         assert hashlib.sha256(files[STACKED+'/'+relative.strip()]).hexdigest()==digest, relative
-    files['MANIFEST.json'] = json.dumps(dict(version='103450-20261020',
-        physical_fit_tested=False, files={name:hashlib.sha256(raw).hexdigest() for name,raw in files.items()}),
-        ensure_ascii=False,indent=2).encode('utf-8')
-    target.parent.mkdir(parents=True, exist_ok=True)
-    with zipfile.ZipFile(target,'w',zipfile.ZIP_DEFLATED) as archive:
-        for name,raw in sorted(files.items()):
-            info=zipfile.ZipInfo(name,date_time=(2026,10,20,0,0,0))
-            info.compress_type=zipfile.ZIP_DEFLATED
-            archive.writestr(info,raw)
-    with zipfile.ZipFile(target) as archive:
-        assert archive.testzip() is None
-        manifest=json.loads(archive.read('MANIFEST.json'))
-        assert set(archive.namelist()) == set(manifest['files'])|{'MANIFEST.json'}
-        for name,digest in manifest['files'].items():
-            assert hashlib.sha256(archive.read(name)).hexdigest()==digest
-    digest=hashlib.sha256(target.read_bytes()).hexdigest()
-    target.with_suffix(target.suffix+'.sha256').write_text(digest+'  '+target.name+'\n',encoding='ascii')
-    print(json.dumps(dict(file=str(target),files=len(files),sha256=digest),ensure_ascii=False,indent=2))
+    write_archive(target, files, version='103450-20261020', physical_fit_tested=False)
+    if stacked_target is not None:
+        prefix=STACKED+'/'
+        standalone={name[len(prefix):]:raw for name,raw in files.items() if name.startswith(prefix)}
+        write_archive(stacked_target, standalone, revision=stacked_report['revision'], physicalFitTested=False)
 
 
 if __name__ == '__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output',type=Path,default=ROOT/'delivery/AI_Doll_Enclosures_103450_20261020.zip')
-    build(parser.parse_args().output)
+    parser.add_argument('--stacked-output',type=Path,default=ROOT/'delivery/AI_Doll_Enclosure_Stacked_103450_20261020.zip')
+    args=parser.parse_args()
+    build(args.output, args.stacked_output)

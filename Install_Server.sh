@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Remote Linux deployment. Run a saved script, never pipe a download to a shell.
 set -Eeuo pipefail
-APP_VERSION=2.24.0
+APP_VERSION=2.24.1
 PACKAGE="AI_Doll_Server_v${APP_VERSION}.tar.gz"
 DOWNLOAD_BASE="https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v${APP_VERSION}"
 INSTALL_DIR=/opt/ai-doll-mcp
@@ -257,21 +257,40 @@ main() {
     flock -n 9 || die '同一目录的安装正在进行，请稍后重试。'
     SOURCE_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
     printf '[2/4] 准备服务代码与配置…\n'
-    if [[ ! -f "$SOURCE_DIR/deploy/direct-server/compose.yml" ]]; then download_source; fi
-    [[ -f "$SOURCE_DIR/tools/direct_server.py" && -f "$SOURCE_DIR/requirements-server.txt" ]] || die '代码包不完整。'
+    # An installed entry is not a fresh release payload: fetch this entry's
+    # version again so upgrades cannot silently retain the old core or ToolPkg.
+    if [[ "$SOURCE_DIR" == "$INSTALL_DIR" || ! -f "$SOURCE_DIR/deploy/direct-server/compose.yml" ]]; then download_source; fi
+    local source_file
+    for source_file in Install_Server.sh requirements-server.txt tools/direct_server.py \
+        src/ai_doll/core/version.py src/ai_doll/core/companion_experience.py delivery/AI_Doll_Operit.toolpkg \
+        deploy/direct-server/compose.yml deploy/direct-server/Caddyfile \
+        deploy/direct-server/Dockerfile deploy/direct-server/Dockerfile.dockerignore; do
+        [[ -f "$SOURCE_DIR/$source_file" ]] || die "代码包不完整，缺少 $source_file。"
+    done
     umask 077
     # Persist ownership before copying, so an interrupted first install can retry.
     printf 'domain=%s\nproject=%s\nversion=%s\n' "$DOMAIN" "$PROJECT" "$APP_VERSION" > "$INSTALL_DIR/deployment-private.conf"
     if [[ "$SOURCE_DIR" != "$INSTALL_DIR" ]]; then
         umask 022
-        mkdir -p "$INSTALL_DIR/tools" "$INSTALL_DIR/deploy/direct-server"
+        mkdir -p "$INSTALL_DIR/tools" "$INSTALL_DIR/src" "$INSTALL_DIR/delivery" "$INSTALL_DIR/deploy/direct-server"
         cp -- "$SOURCE_DIR"/tools/*.{py,js,html} "$INSTALL_DIR/tools/"
+        cp -R -- "$SOURCE_DIR/src/." "$INSTALL_DIR/src/"
+        cp -- "$SOURCE_DIR/delivery/AI_Doll_Operit.toolpkg" "$INSTALL_DIR/delivery/"
         cp -- "$SOURCE_DIR/requirements-server.txt" "$SOURCE_DIR/Install_Server.sh" "$INSTALL_DIR/"
         cp -- "$SOURCE_DIR/deploy/direct-server/compose.yml" "$SOURCE_DIR/deploy/direct-server/Caddyfile" \
             "$SOURCE_DIR/deploy/direct-server/Dockerfile" "$SOURCE_DIR/deploy/direct-server/Dockerfile.dockerignore" "$INSTALL_DIR/deploy/direct-server/"
     fi
     umask 077
-    printf 'DOLL_DOMAIN=%s\n' "$DOMAIN" > "$INSTALL_DIR/deploy/direct-server/.env"
+    local env_file="$INSTALL_DIR/deploy/direct-server/.env"
+    if [[ -f "$env_file" ]]; then
+        if grep -q '^DOLL_DOMAIN=' "$env_file"; then
+            sed -i "s/^DOLL_DOMAIN=.*/DOLL_DOMAIN=$DOMAIN/" "$env_file"
+        else
+            printf '\nDOLL_DOMAIN=%s\n' "$DOMAIN" >> "$env_file"
+        fi
+    else
+        printf 'DOLL_DOMAIN=%s\n' "$DOMAIN" > "$env_file"
+    fi
     printf 'domain=%s\nproject=%s\nversion=%s\n' "$DOMAIN" "$PROJECT" "$APP_VERSION" > "$INSTALL_DIR/deployment-private.conf"
     mkdir -p "$BIN_DIR"
     {

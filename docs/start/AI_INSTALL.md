@@ -5,11 +5,13 @@
 
 这条路线适合 Windows 用户。完成后仍在原 AI 聊天中提问，电脑负责保存娃娃的记录。远程服务器用户直接读 [远程部署](../integrations/REMOTE_SERVER_SETUP.md)。
 
+本页按 [2.24.1 预发布版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.24.1)说明。仍选择 2.21 稳定版时，使用[稳定版校正版入口](STABLE_2_21.md)和同一 Release 的校验文件；Operit 新功能需要手机和电脑一起升级。
+
 ## 准备好这三样
 
 - 一台 Windows 64 位电脑，能联网。
 - 已烧录并供电的娃娃；空白开发板先按 [一键烧录](QUICK_FLASH.md)。
-- [Windows 完整软件包](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/delivery/README.md)，完整解压。GitHub 的“Download ZIP”是源码，普通用户应下载完整交付包。
+- [AI_Doll_Code_v2.24.1.zip](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.24.1/AI_Doll_Code_v2.24.1.zip)，完整解压，保留 `python/`、`src/`、`tools/`、`clients/`、`delivery/`。GitHub 的“Download ZIP”是源码，普通用户应下载完整交付包。
 
 ## 第一步：打开管理中心
 
@@ -47,6 +49,6 @@ MCP 就是 AI 读取娃娃的工具接口。配置保存在 `build/device-lab/mc
 
 给娃娃供电，双击 **AI_Doll.cmd**，在原聊天里问“查询今天的互动”。关闭管理页面后，后台采集仍继续；要停止，到“维护与诊断”选择停止服务。
 
-实体传感器接好后才启用真实输入，并做 [压力校准](../daily/CALIBRATION_AND_DAILY_MODE.md)。没接传感器也可以使用模拟测试。
+只有实体传感器接好后才把对应端口设为“已接入”，再做 [压力校准](../daily/CALIBRATION_AND_DAILY_MODE.md)。全新固件默认 CH0 已接入；未安装时先关闭。没接传感器也可按 [独立模拟分支](../integrations/CHAT_MCP.md#可选没有传感器时做模拟测试)测试。
 
 日常操作和页面位置见 [日常指南](../daily/USER_GUIDE.md)。给 AI 代办时，交给它独立的 [AI 执行指南](../ai/AI_GUIDE.md)。

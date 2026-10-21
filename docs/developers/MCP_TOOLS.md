@@ -9,8 +9,8 @@
 
 | 连接 | 数量 | 数据与用途 |
 | --- | --- | --- |
-| 电脑 STDIO：`tools/companion_mcp.py` | 52 | 2.22候选；设备管理、端口状态、电脑历史、人设、会话与维护 |
-| 设备 `/mcp` | 27 | 2.11固件；设备操作、端口状态、缓存确认和校时；没有电脑长期历史 |
+| 电脑 STDIO：`tools/companion_mcp.py` | 52 | 2.24.1预发布；设备管理、端口状态、电脑历史、人设、会话与维护 |
+| 设备 `/mcp` | 27 | 2.12.1固件；设备操作、端口状态、缓存确认和校时；没有电脑长期历史 |
 | HTTP `status` | 2 | `get_installation_status`、`doll_get_status` |
 | HTTP `history` | 9 | status，加能力、配置、人设、偏好、历史、摘要、统计 |
 | HTTP `interaction` | 19 | history，加会话和六个自然陪伴工具 |
@@ -19,7 +19,7 @@ history 的七个附加工具为 `get_channel_capabilities`、`get_channel_confi
 
 本机 HTTP 网关默认 `127.0.0.1:8771/mcp`；私密远程网关和 Secure 使用专用入口。GET返回405时不等于服务离线，客户端使用POST。interaction允许部位、单端口状态和陪伴偏好的局部写入，不开放模拟注入、完整硬件配置、删除或执行器控制。status/history仍只读。
 
-2.22候选新增设备／STDIO工具`set_channel_state(channel, mode?, name?)`。mode为`off/simulation/connected`，必须先实际发现固件的`port_state_model=per_port_v1`。远程保持19个工具，经`update_body_part(channel, changes={mode:...})`使用同一局部操作，不对离线设备排队。改名不改变校准、采样和其他端口。连接状态来自保存的安装确认，不是自动插拔检测。`update_companion_preferences`另支持`persona_source=chat/doll`及`doll_persona`，只控制身体互动反馈，不改宿主聊天配置。
+设备／STDIO提供`set_channel_state(channel, mode?, name?)`。mode为`off/simulation/connected`，必须先实际发现固件的`port_state_model=per_port_v1`。远程保持19个工具，经`update_body_part(channel, changes={mode:...})`使用同一局部操作，不对离线设备排队。改名不改变校准、采样和其他端口。连接状态来自保存的安装确认，不是自动插拔检测。`update_companion_preferences`另支持`persona_source=chat/doll`及`doll_persona`，只控制身体互动反馈，不改宿主聊天配置。
 
 ## 自然陪伴（新增 6 个工具）
 

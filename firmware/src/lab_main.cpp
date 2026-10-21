@@ -19,7 +19,7 @@ static int pressChannel=-1, pressValue=0, lastWifi=-1;
 static constexpr int LED_PIN=8; // Common SuperMini blue LED, active low.
 static bool scanBusy=false;
 static uint32_t scanStartedAt=0;
-static const char* VERSION="doll-lab-2.12.0";
+static const char* VERSION="doll-lab-2.12.1";
 static const char* PROTOCOL="2025-11-25";
 
 static String encode(const JsonDocument &d){String s;serializeJson(d,s);return s;}
@@ -113,7 +113,7 @@ static JsonDocument rpc(const JsonDocument &in){
   JsonArray tools=out["result"]["tools"].to<JsonArray>();
   auto add=[&](const char* name,const char* desc){JsonObject t=tools.add<JsonObject>();t["name"]=name;t["description"]=desc;t["inputSchema"]["type"]="object";t["inputSchema"]["properties"].to<JsonObject>();t["inputSchema"]["additionalProperties"]=false;return t;};
   add("get_sensor_config","Read physical 74HC4051 acquisition mode, raw readings and thresholds.");
-  JsonObject st=add("set_sensor_config","Explicitly enable physical 4051 sampling only with assembled hardware. Reboot returns to simulation. GPIO ADC=0, S0/S1/S2=3/4/5.");
+  JsonObject st=add("set_sensor_config","Legacy temporary physical-input override for assembled hardware. Prefer set_channel_state for persistent port modes; reboot follows saved input policy. GPIO ADC=0, S0/S1/S2=3/4/5.");
   st["inputSchema"]["properties"]["enabled"]["type"]="boolean";
   st["inputSchema"]["properties"]["press_threshold"]["type"]="integer";
   st["inputSchema"]["properties"]["release_threshold"]["type"]="integer";

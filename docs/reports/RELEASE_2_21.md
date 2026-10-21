@@ -46,7 +46,7 @@
 - 烧录入口`Flash_ESP32.cmd`提供随机或自定义名称；只有希望升级设备时才实际烧录，旧固件可继续使用。
 - 已开启的Windows登录入口，在首次打开新管理中心时升级为完整恢复；未开启的仍关闭。
 
-全部制品从[本版Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.21.0)下载，下载哈希见[交付目录](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/delivery/README.md)。外壳独立下载，避免只为打印模型下载Windows运行环境。
+全部制品从[本版Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.21.0)下载，下载哈希使用固定的[2.21 SHA256SUMS](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.21.0/SHA256SUMS.txt)和[2.21交付清单](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.21.0/DELIVERY_MANIFEST.json)。主分支交付目录随新版更新，不能用于校验本版同名手机包。外壳独立下载，避免只为打印模型下载Windows运行环境。
 
 外壳检查包括STEP/STL有效性与单实体、水密、装配静态碰撞、电池完整净空、接头与走线保留体。堆叠版另核对23处5mm参考针脚下方绝缘层，以及电池、载架从上方进出的离散路径。卡扣弹性、开关可达性、电池封边与线弯、射频及温升均待实物验收；电池仓不会替代J9所需的5V电源管理。
 

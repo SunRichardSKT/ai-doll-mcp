@@ -15,7 +15,7 @@
     document.getElementById('companionTone').value=context.feedback.tone;
     document.getElementById('companionAddress').value=context.feedback.preferred_address;
     document.getElementById('saveCompanionExperience').onclick=async()=>{
-      try{await tool('update_companion_preferences',{changes:{chat_integration_enabled:document.getElementById('chatIntegration').checked,proactive_enabled:document.getElementById('proactiveFeedback').checked,feedback:{tone:document.getElementById('companionTone').value,preferred_address:document.getElementById('companionAddress').value}}});note.textContent='已保存；当前聊天的人设优先。主动订阅需要在聊天宿主中开启。'}catch(error){note.textContent=error.message}
+      try{await tool('update_companion_preferences',{changes:{chat_integration_enabled:document.getElementById('chatIntegration').checked,proactive_enabled:document.getElementById('proactiveFeedback').checked,feedback:{tone:document.getElementById('companionTone').value,preferred_address:document.getElementById('companionAddress').value}}});note.textContent='已保存；触摸反馈遵循已选人设来源，不修改原聊天设置。主动订阅需要在聊天宿主中开启。'}catch(error){note.textContent=error.message}
     };
     for(const channel of context.channels){
       const card=document.createElement('div');card.append(text('strong','CH'+channel.channel));

@@ -5,6 +5,8 @@
 
 适用于你自己的 Linux 服务器。首次选择方式可先看 [连接方式](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/start/MCP_TRANSPORT_DECISION.md)。电脑端的 Windows 启动程序和内置 Python 不需要上传到服务器。
 
+本页按 [2.24.1 预发布版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.24.1)编写，安装入口、Linux 包与 Operit 手机包使用同一发布版。2.21 旧一键安装器存在复制清单缺项，新部署应使用本页修复版；已有稳定部署的保留与升级边界见[稳定版校正版入口](../start/STABLE_2_21.md)。
+
 整个流程是：**准备服务器和域名 → 运行安装入口 → 打开管理页面 → 手机连接娃娃 → 将 MCP 地址接入原聊天**。小型包同时包含接收服务和 MCP，原前端与 MCP 可以部署在同一台服务器。
 
 这条路线需要已有的 Linux 服务器和域名。没有服务器也能先用 Windows 本机方式测试，不需要为了试按压就购买服务器。
@@ -24,7 +26,7 @@ Operit 用户部署后可直接在服务器管理页下载手机工具包与设�
 登录服务器，在 SSH 终端复制这两行：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/SunRichardSKT/ai-doll-mcp/main/Install_Server.sh -o Install_Server.sh
+curl -fsSL https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.24.1/Install_Server.sh -o Install_Server.sh
 sudo bash Install_Server.sh
 ```
 
@@ -32,7 +34,7 @@ sudo bash Install_Server.sh
 
 接下来等待四步完成：环境检查、下载并校验代码、启动服务、验证 HTTPS。无需自行安装 Python、编辑 Docker 配置或申请证书。只有证书和本安装的管理接口都验证通过，才会显示部署成功。
 
-如果服务器没有 `curl`，可在电脑下载 [Install_Server.sh](https://raw.githubusercontent.com/SunRichardSKT/ai-doll-mcp/main/Install_Server.sh)，上传后运行第二行；安装入口会准备缺少的下载工具。
+如果服务器没有 `curl`，可在其他设备下载[本版 Install_Server.sh](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.24.1/Install_Server.sh)，上传后运行第二行；安装入口会准备缺少的下载工具。
 
 ## 3. 打开管理页面
 
@@ -57,19 +59,19 @@ sudo ai-doll-server link
 3. 在 **直连服务器** 设置中粘贴配置，填入并保存。
 4. 回到服务器管理页刷新，等待设备实际上传后显示 **在线**。
 
-服务器无法直接访问家中开发板的内网 IP，因此首次通过手机保存配置。之后 ESP32 主动上传，电脑无需常开，开发板可以独立供电。未接传感器时保持模拟模式，物理输出关闭。
+服务器无法直接访问家中开发板的内网 IP，因此首次通过手机保存配置。之后 ESP32 主动上传，电脑无需常开，开发板可以独立供电。只有实际装好的端口才设为“已接入”；未安装的关闭，模拟测试另选一个端口，物理输出保持关闭。
 
 ## 5. 检查安装是否成功
 
 - 管理页可以打开。
 - 娃娃显示在线。
-- 模拟一次按压后，日志出现新记录，并标记为模拟来源。
+- 按压实际安装的传感器后，历史出现对应开始／释放记录并标明真实来源。没有传感器时按[模拟测试分支](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/integrations/CHAT_MCP.md#可选没有传感器时做模拟测试)操作，模拟记录不能作为实体硬件验收。
 
 ## 6. 将 MCP 接入原聊天
 
 在管理页的已配对设备下点击 **复制 MCP 地址**。在原聊天客户端添加 Streamable HTTP MCP，填入完整地址，选择无需身份验证。自建聊天后端可以在同一台服务器使用它，不需要另外启动电脑采集器。
 
-MCP 和接收服务共用数据库，默认提供 19 个状态、历史与互动工具。实际调用 `get_installation_status` 和 `doll_get_status`，取得两个新的 `verification.call_id`；再查询模拟记录并开始 60 秒互动。设备离线时仍能查询已存历史，返回最后同步时间和离线信息。
+MCP 和接收服务共用数据库，默认提供 19 个状态、历史与互动工具。实际调用 `get_installation_status` 和 `doll_get_status`，取得两个新的 `verification.call_id`；再查询刚才的记录并开始 60 秒互动，保留真实／模拟来源。设备离线时仍能查询已存历史，返回最后同步时间和离线信息。
 
 管理页地址不能替代 MCP 地址。已有网站或需要后端本机连接时，见 [同机部署与反向代理](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/developers/DIRECT_SERVER.md#同一台服务器部署原聊天与-mcp)。按压后主动向原聊天发送回复还需原应用监听事件并调用模型；普通 Chat 空闲主动唤醒不作为本轮承诺。
 
@@ -82,7 +84,7 @@ MCP 和接收服务共用数据库，默认提供 19 个状态、历史与互动
 | 重启服务 | `sudo ai-doll-server restart` |
 | 停止 / 启动 | `sudo ai-doll-server stop` / `sudo ai-doll-server start` |
 | 查看错误日志 | `sudo ai-doll-server logs` |
-| 更新代码 | 重新下载安装入口，再运行 `sudo bash Install_Server.sh` |
+| 更新代码 | 从目标 Release 下载同版安装入口，再运行 `sudo bash Install_Server.sh` |
 
 默认目录为 `/opt/ai-doll-mcp`。更新会复用域名、管理连接、设备绑定和历史。应用及证书使用持久数据卷；新安装的 Docker 启用开机启动，容器随引擎恢复。已有 Docker 需确认其开机启动设置。不要用 `docker compose down -v` 更新，因为它会删除数据卷。
 
@@ -110,12 +112,12 @@ sudo bash Install_Server.sh --domain doll.your-domain.com
 sudo bash Install_Server.sh --domain doll.your-domain.com --dry-run
 ```
 
-也可从 [交付目录](https://github.com/SunRichardSKT/ai-doll-mcp/tree/main/delivery)下载 `AI_Doll_Server_v2.20.0.tar.gz` 与对应 `.sha256`，上传到服务器同一目录：
+也可从 [2.24.1 Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.24.1)下载 `AI_Doll_Server_v2.24.1.tar.gz` 与对应 `.sha256`，上传到服务器同一目录。校验值使用该 Release 的文件，不能拿其他版本或滚动主分支清单代替：
 
 ```bash
-sha256sum -c AI_Doll_Server_v2.20.0.tar.gz.sha256
+sha256sum -c AI_Doll_Server_v2.24.1.tar.gz.sha256
 mkdir ai-doll-server
-tar -xzf AI_Doll_Server_v2.20.0.tar.gz -C ai-doll-server
+tar -xzf AI_Doll_Server_v2.24.1.tar.gz -C ai-doll-server
 sudo bash ai-doll-server/Install_Server.sh
 ```
 

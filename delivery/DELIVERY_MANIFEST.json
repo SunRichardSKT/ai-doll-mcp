@@ -1,42 +1,42 @@
 {
   "packages": [
     {
-      "file": "AI_Doll_Code_v2.24.0.zip",
-      "files": 2861,
-      "bytes": 32430268,
-      "sha256": "84c6b53762f817161b1c65d0df184433462e0c6e471ffa23fe44af123cad981f"
+      "file": "AI_Doll_Code_v2.24.1.zip",
+      "files": 2864,
+      "bytes": 32446638,
+      "sha256": "3ff7fd17cb2d1b3e6c3133433f8f1b37ba196a09417ee5c2cbb8d49a1c05d12e"
     },
     {
       "file": "AI_Doll_PCB_V2_20261016.zip",
       "files": 66,
-      "bytes": 11636591,
-      "sha256": "6caab6d8383e509d00a936b42d96450608bbef4fdf42fff115bd6c49fa9bdec7"
+      "bytes": 11636988,
+      "sha256": "eaca9c0ea31840a33b1d0637fd15ee6bd3260a1611119d23256e51f799e530d7"
     },
     {
-      "file": "AI_Doll_Server_v2.24.0.tar.gz",
-      "files": 43,
-      "bytes": 136909,
-      "sha256": "1559fb3eb2e0d55db825de224107639f5a27189ae6b75825530799806e4c7bbc",
-      "checksum_file": "AI_Doll_Server_v2.24.0.tar.gz.sha256"
+      "file": "AI_Doll_Server_v2.24.1.tar.gz",
+      "files": 45,
+      "bytes": 141832,
+      "sha256": "50b625fa0ff45591d87c5c00e3c3cd2f95ee2f438e8f631af7a3fcfd43a3c647",
+      "checksum_file": "AI_Doll_Server_v2.24.1.tar.gz.sha256"
     },
     {
       "file": "AI_Doll_Operit.toolpkg",
-      "version": "2.24.0",
+      "version": "2.24.1",
       "files": 12,
-      "sha256": "86bf2f25326d788566885ef59e15bac4f8e89e8c932637e5470d6f1fe7a76437",
-      "bytes": 42013
+      "sha256": "131a1f22cf0e91223154554d19cb4721013523f8952cb926f063d91d29c5c975",
+      "bytes": 41973
     },
     {
       "file": "AI_Doll_Enclosures_103450_20261020.zip",
       "files": 78,
-      "bytes": 4658542,
-      "sha256": "4c4c532c9a396e1cdd9ee13b562a3fc474521aef0c20f007dbf52d5a71d2c3c3"
+      "bytes": 4658968,
+      "sha256": "1904338094c2246c1dcabaf534a88af1550b948ba622a022567c94b655861005"
     },
     {
       "file": "AI_Doll_Enclosure_Stacked_103450_20261020.zip",
       "files": 28,
-      "bytes": 1345326,
-      "sha256": "1d409f3f4867e30bc7b7142c188ba197fcc5c828c271942e188b5669df8336a5"
+      "bytes": 1377534,
+      "sha256": "76b6ff720db7e472b97f6fc3c72ca80886a9c0a32159ae77b64811ef216a8da5"
     }
   ]
 }
