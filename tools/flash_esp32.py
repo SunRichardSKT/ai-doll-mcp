@@ -282,8 +282,9 @@ def _flash(args, job):
                    configuration_url=state.get('configuration_url'),
                    configuration_hotspot=state.get('configuration_hotspot'),
                    factory_profile=state.get('factory_profile'), device_name=state.get('device_name',state['device_id']))
-        if state.get('configuration_url') != 'http://192.168.4.1/' or not state.get('config_ap_open'):
-            raise RuntimeError('启动成功，但固定配置热点未通过回读检查。')
+        timed_station = state.get('setup_window_supported') is True and bool(state.get('ssid'))
+        if state.get('configuration_url') != 'http://192.168.4.1/' or (not state.get('config_ap_open') and not timed_station):
+            raise RuntimeError('启动成功，但配置入口状态未通过回读检查。')
         if args.factory and (state.get('wifi_connected') or state.get('sensor_mode') != 'sensor'
                              or state.get('physical_outputs_enabled')
                              or state.get('factory_profile') != 'physical-ch0-v1'):
@@ -291,7 +292,7 @@ def _flash(args, job):
         job.update(pairing_refreshed=refresh_pairing(previous,state))
         job.update(status='success', phase='done', finished_at=dt.datetime.now(dt.timezone.utc).isoformat())
         job.message('烧录成功：'+state['device_id'])
-        job.message('连接热点 '+state['configuration_hotspot']+'，浏览器打开 http://192.168.4.1/')
+        job.message(('连接临时热点 ' if state.get('config_ap_open') else '已保留家庭配网。需要设置时，运行中长按 BOOT 约3秒再连接热点 ')+state['configuration_hotspot']+'，浏览器打开 http://192.168.4.1/')
         return job.report
     except Exception as error:
         job.message('失败：'+str(error))

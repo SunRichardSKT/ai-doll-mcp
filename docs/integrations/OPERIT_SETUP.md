@@ -1,6 +1,6 @@
 # Operit：一次配置，在原聊天中互动
 
-本文对应 **2.25.0 本地候选／固件 2.13.0**，配套文件位于本机 `delivery/`，尚未上传 GitHub Release。[改进与验收边界](../reports/RELEASE_2_25.md)。电脑／服务器与手机包使用同批次候选；手机完整归档与 ACK 另需固件租约支持。保留插件数据并替换同名包即可，不卸载插件或清空数据。
+本文对应 **2.25.0 本地候选／固件 2.13.1**，配套文件位于本机 `delivery/`，尚未上传 GitHub Release。[改进与验收边界](../reports/RELEASE_2_25.md)。电脑／服务器与手机包使用同批次候选；手机完整归档与 ACK 另需固件租约支持。保留插件数据并替换同名包即可，不卸载插件或清空数据。
 
 已公开的最新预发布仍为[2.24.1](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.24.1)；使用旧包请阅读其[固定版本教程](https://github.com/SunRichardSKT/ai-doll-mcp/blob/v2.24.1/docs/integrations/OPERIT_SETUP.md)，其中没有本版“添加娃娃”和独立同步入口。仍使用 2.21 稳定版时，按[稳定版校正版入口](../start/STABLE_2_21.md)操作。
 
@@ -140,3 +140,9 @@ Operit 本身需已能在这个聊天里正常回复，继续使用你的原模�
 本机检查、实际 APK、真实传感器和目标聊天回复分别记录，见 [2.19 交付记录](../reports/RELEASE_2_19.md)。陪伴、事件策略、压力摘要和历史核心已迁到 `src/ai_doll/core/`，旧 `tools` 导入保留兼容；硬件与管理适配器的进一步整理不影响现有 MCP 名称及 Linux 服务。
 
 本版软件结果与目标环境待验收项目见 [2.25 候选记录](../reports/RELEASE_2_25.md)。拍照／相册、本地 WebView 解码往返、热点路由、真实 CH0 连续排队及至少 30 分钟锁屏需分别取得实际证据。技术依据：[ToolPkg 格式](https://github.com/AAswordman/Operit/blob/main/docs/TOOLPKG_FORMAT_GUIDE.md)、[Compose DSL 类型](https://github.com/AAswordman/Operit/blob/main/examples/types/compose-dsl.d.ts)、[工作流调度实现](https://github.com/AAswordman/Operit/blob/main/app/src/main/java/com/ai/assistance/operit/core/workflow/WorkflowScheduler.kt)。
+
+## 临时配网热点（固件2.13.1）
+
+新设备首次开机提供最长10分钟热点；已有家庭Wi-Fi的重启不开热点，断网只重连。需要配对、换网或找回地址时，运行中长按BOOT约3秒再松开，不按RST。若设置过独立热点密码，在手机系统Wi-Fi中填写；它不同于网页账号密码。
+
+先在“添加娃娃”读取热点草稿，再配置家庭Wi-Fi。新配网成功后热点约90秒关闭，请及时切回家庭网络完成核对。已保存草稿可按固定`.local`名称核对；手机不支持名称解析时，长按BOOT再次开窗并读取最新家庭IP。不丢弃草稿，不清空历史或聊天绑定。正常联网后从已配对客户端打开设备设置；服务器连接继续使用服务器设置入口，不能远程访问家庭192.168.4.1。

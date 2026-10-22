@@ -23,7 +23,7 @@ async function pair(host,token,prior) {
   if(!token) {
     const result=await Tools.Net.http({url:origin+'/api/setup',method:'GET',follow_redirects:false,ignore_ssl:false,
       connect_timeout:10000,read_timeout:10000});
-    if(result.statusCode!==200)throw Error('无法读取设备连接信息。请确认手机与设备同一 Wi-Fi；如开启了设备登录保护，请在设备设置页取得 MCP 令牌并填入高级选项。');
+    if(result.statusCode!==200)throw Error('家庭网络不公开配对令牌。请长按BOOT约3秒，连接临时热点使用添加娃娃向导；已有连接也可导入连接文件。');
     const setup=JSON.parse(result.content);
     if(setup.enabled!==true)throw Error('请先在设备设置页开启 MCP。');
     token=setup.token;
@@ -272,7 +272,7 @@ async function connect(c) {
     if(name==='get_settings_entry'){
       const s=await status(),network=await read('network',{});
       return {section:args.section||'body',browser_opened:false,
-        entries:[{url:s.ip&&s.ip!=='0.0.0.0'?'http://'+s.ip+'/':network.url?.replace(/\/mcp$/,'/'),scope:'device_lan',access:'手机需与娃娃在同一家庭网络。'}]};
+        entries:[{url:(s.ip&&s.ip!=='0.0.0.0'?'http://'+s.ip+'/':network.url?.replace(/\/mcp$/,'/'))+'#setup_token='+encodeURIComponent(c.token),scope:'device_lan',access:'手机需与娃娃在同一家庭网络。'}]};
     }
     if(name==='update_body_part'){
       const changes=args.changes||{};

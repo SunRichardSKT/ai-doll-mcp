@@ -1,5 +1,6 @@
 #pragma once
 #include <ESPmDNS.h>
+#include "network_policy.h"
 
 // Hardware-derived name stays the same across DHCP leases and display-name edits.
 static String deviceHostname(){
@@ -23,6 +24,9 @@ static void deviceNameTick(){
 enum class NetworkMode { SETUP, CONNECTING, NORMAL, RECOVERY };
 static NetworkMode networkMode=NetworkMode::CONNECTING;
 static bool configAP=false, allowConnect=true;
+static SetupWindow setupWindow;
+static String setupAPPassword;
+static uint32_t closeSetupAt=0;
 static String apStartError;
 static uint32_t apLastAttempt=0,apStartAttempts=0;
 static volatile int lastRadioEvent=-1,lastDisconnectReason=0;
@@ -44,18 +48,26 @@ static constexpr int SETUP_BUTTON_PIN=9; // SuperMini BOOT, active low. Do not h
 static const char* networkModeName(){
  switch(networkMode){case NetworkMode::SETUP:return "SETUP_MODE";case NetworkMode::NORMAL:return "NORMAL";case NetworkMode::RECOVERY:return "RECOVERY";default:return "CONNECTING";}
 }
-static void openConfigAP(NetworkMode mode){
- networkMode=mode;allowConnect=false;connectPending=false;
+static void closeConfigAP(){
+ setupWindow.close();closeSetupAt=0;dns.stop();WiFi.softAPdisconnect(true);configAP=false;
+ WiFi.mode(WIFI_STA);allowConnect=!ssid.isEmpty();
+ if(!allowConnect)networkMode=NetworkMode::SETUP;
+}
+static void startConfigAP(){
  apLastAttempt=millis();apStartAttempts++;dns.stop();configAP=false;
- WiFi.disconnect(false,false);
- // A fresh, AP-only setup does not need an unconfigured station interface.
- // Scanning/provisioning can enable STA later without dropping this AP.
- bool radio=WiFi.mode(WIFI_AP);
+ bool online=WiFi.status()==WL_CONNECTED;
+ bool radio=WiFi.mode((online||!ssid.isEmpty())?WIFI_AP_STA:WIFI_AP);
  bool address=radio&&WiFi.softAPConfig(IPAddress(192,168,4,1),IPAddress(192,168,4,1),IPAddress(255,255,255,0));
- bool opened=address&&WiFi.softAP(deviceName.c_str(),nullptr,setupAPChannel,0,4);
+ bool opened=address&&WiFi.softAP(deviceName.c_str(),setupAPPassword.isEmpty()?nullptr:setupAPPassword.c_str(),setupAPChannel,0,4);
  configAP=opened&&WiFi.softAPSSID()==deviceName&&WiFi.softAPIP()==IPAddress(192,168,4,1);
  apStartError=configAP?"":!radio?"wifi_mode_failed":!address?"ap_ip_failed":!opened?"softap_start_failed":"ap_configuration_mismatch";
  if(configAP)dns.start(53,"*",WiFi.softAPIP());
+}
+static void openConfigAP(NetworkMode mode){
+ setupWindow.open(millis());closeSetupAt=0;startConfigAP();
+ bool online=WiFi.status()==WL_CONNECTED;setupWindow.joined=online;
+ networkMode=online?NetworkMode::NORMAL:mode;allowConnect=!ssid.isEmpty();
+ if(allowConnect&&!online){connectPending=true;connectAt=millis()+500;}
  ledOverrideUntil=0;
 }
 static void beginNetworkConnect(){
@@ -69,7 +81,8 @@ static void networkInit(){
  pinMode(SETUP_BUTTON_PIN,INPUT_PULLUP);
  WiFi.onEvent(radioEvent);WiFi.setSleep(false);
  WiFi.persistent(false);WiFi.mode(WIFI_STA);WiFi.setAutoReconnect(false);
- openConfigAP(NetworkMode::SETUP);
+ setupAPPassword=prefs.getString("setup_psk","");
+ if(ssid.isEmpty())openConfigAP(NetworkMode::SETUP);
  if(!ssid.isEmpty()){networkMode=NetworkMode::CONNECTING;allowConnect=true;connectPending=true;connectAt=millis()+500;networkAttemptAt=millis();}
 }
 static bool radioTest(JsonVariantConst args,JsonObject result,String &error){
@@ -86,7 +99,8 @@ static bool radioTest(JsonVariantConst args,JsonObject result,String &error){
 }
 static void networkTick(){
  uint32_t now=millis();
- if(!configAP&&(networkMode==NetworkMode::SETUP||networkMode==NetworkMode::RECOVERY)&&!connectPending&&now-apLastAttempt>=5000)openConfigAP(networkMode);
+ if((setupWindow.active&&!setupWindow.remaining(now))||(closeSetupAt&&(int32_t)(now-closeSetupAt)>=0))closeConfigAP();
+ if(setupWindow.active&&!configAP&&now-apLastAttempt>=5000)startConfigAP();
  bool held=digitalRead(SETUP_BUTTON_PIN)==LOW;
  if(held&&!buttonDown){buttonDown=true;buttonDownAt=now;buttonHandled=false;}
  if(!held){buttonDown=false;buttonHandled=false;}
@@ -94,13 +108,12 @@ static void networkTick(){
  if(connectPending&&(int32_t)(now-connectAt)>=0){connectPending=false;beginNetworkConnect();}
  if(allowConnect&&WiFi.status()==WL_CONNECTED){
   networkMode=NetworkMode::NORMAL;
-  // Keep the same setup hotspot and fixed 192.168.4.1 page after provisioning.
-  // DNS remains active for clients connected directly to the device hotspot.
+  setupWindow.connected(now);
  }else if(networkMode==NetworkMode::NORMAL){
   networkMode=NetworkMode::CONNECTING;networkAttemptAt=now;lastAttempt=now;WiFi.reconnect();
- }else if(networkMode==NetworkMode::CONNECTING&&allowConnect&&!connectPending){
-  if(now-networkAttemptAt>=60000)openConfigAP(NetworkMode::RECOVERY);
-  else if(!scanBusy&&now-lastAttempt>=10000){WiFi.disconnect(false,false);WiFi.begin(ssid.c_str(),password.c_str());lastAttempt=now;}
+ }else if((networkMode==NetworkMode::CONNECTING||networkMode==NetworkMode::RECOVERY)&&allowConnect&&!connectPending){
+  if(now-networkAttemptAt>=60000)networkMode=NetworkMode::RECOVERY;
+  if(!scanBusy&&now-lastAttempt>=10000){WiFi.disconnect(false,false);WiFi.begin(ssid.c_str(),password.c_str());lastAttempt=now;}
  }
  // Explicit LED MCP test temporarily overrides indication for three seconds.
  if(ledOverrideUntil==0 || (int32_t)(now-ledOverrideUntil)>=0){

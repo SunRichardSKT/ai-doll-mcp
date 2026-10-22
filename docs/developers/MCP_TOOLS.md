@@ -5,7 +5,7 @@
 
 先按 [连接方式](../start/MCP_TRANSPORT_DECISION.md)安装。工具不会自行启动 AI 对话；实际可用范围以当前客户端发现的 schema 为准。
 
-本页跟随本地 **2.25.0 候选版／固件 2.13.0**，候选文件由本机 `delivery/` 提供，尚不表示已发布到 GitHub。2.24.1／2.12.1 等旧安装以实际工具发现为准。
+本页跟随本地 **2.25.0 候选版／固件 2.13.1**，候选文件由本机 `delivery/` 提供，尚不表示已发布到 GitHub。2.24.1／2.12.1 等旧安装以实际工具发现为准。
 
 ## 不同连接有多少工具
 
@@ -142,3 +142,13 @@ history 的七个附加工具为 `get_channel_capabilities`、`get_channel_confi
 ## 可选提示模板
 
 STDIO 的 `doll_chat_companion` 是提示模板，不计入工具数；不会调用设备或开启会话。客户端没有提示菜单时使用 [聊天测试请求](../integrations/CHAT_MCP.md)。AI 执行规则见 [AI 指南](../ai/AI_GUIDE.md)。
+
+## 2.13.1临时热点与管理访问
+
+配对窗口最长600秒；新配置的STA首次连通后最多再保留90秒，重复连接不延长窗口。已有STA连接时手动打开保留完整窗口及STA链路；无网只退避重连，不自行开AP。BOOT、USB `setup_mode` 或已授权LAN管理可开启；热点客户端不能通过HTTP续窗。关闭AP不清除Wi-Fi、身份、通道、校准或归档租约。
+
+设备状态增加`setup_window_supported`、`setup_remaining_sec`、`setup_password_required`（已保存的下次热点密码状态）。`POST /api/hotspot`仅为设置页管理接口，要求现有管理鉴权、同源检查和`X-Setup-Token`，action为open、close或password；password为空或8～63字节，下次开热点生效。USB维护示例：`{"cmd":"setup_mode","password":"","enabled":true}`重设热点为无密码并开启临时窗口；`enabled:false`仅关闭。没有增加模型可用工具。
+
+`/api/identity`公开最少身份信息；`/api/setup`及状态、配置API要求物理热点窗口、已配对令牌，或已开启的网页登录认证。静态页面不含凭据，允许加载；新浏览器裸LAN地址不会导出令牌。已配对客户端给设置链接附加`#setup_token=...`，网页读入sessionStorage后清除片段，不放入查询参数或日志。若开启网页登录仍须登录；物理热点窗口提供登录恢复，独立热点密码仍生效。
+
+服务器直传与OTA沿用原鉴权和LAN限制。网页开关热点不应中断在线STA或上传，实际无线、手机切网和OTA仍需目标设备验收。旧固件保持原行为，需要升级镜像才获得限时策略。

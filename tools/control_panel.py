@@ -417,6 +417,18 @@ def make_handler(panel):
                 return self.send(200, raw, 'text/html; charset=utf-8' if path == '/' else 'application/javascript; charset=utf-8')
             if not self.authorized():
                 return self.send(403, {'error': 'Forbidden'})
+            if path == '/api/device-settings':
+                try:
+                    import ipaddress
+                    from urllib.parse import quote
+                    status=request_collector('/status')
+                    address=ipaddress.ip_address(status.get('ip',''))
+                    if not status.get('wifi_connected') or not address.is_private or address.is_unspecified or address.is_loopback:
+                        raise ValueError('请先连接设备家庭网络，或长按BOOT连接临时热点。')
+                    setup=request_collector('/setup')
+                    return self.send(200, {'url':'http://'+str(address)+'/#setup_token='+quote(setup['mcp_token'],safe='')})
+                except (OSError,ValueError,KeyError):
+                    return self.send(400, {'error':'尚未取得已配对设备设置入口。请先启动采集并检查设备。'})
             if path == '/api/state':
                 return self.send(200, panel.state())
             if path == '/api/client-config':

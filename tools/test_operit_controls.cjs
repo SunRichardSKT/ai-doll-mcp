@@ -8,15 +8,16 @@ const {fixture}=require('./operit_test_host.cjs');
   if(name==='get_device_overview')return {online:true,device_id:'fixture',device_ip:'192.168.1.50',port_state_model:'per_port_v1',channels:ports,values:[],preferences:prefs};
   if(name==='get_channel_config')return {channels:ports,port_state_model:'per_port_v1'};
   if(name==='get_persona')return {persona:'旧保存的人设'};
-  if(name==='get_settings_entry')return {entries:[{url:'http://127.0.0.1:8768/companion',scope:'computer'}]};
+  if(name==='get_settings_entry')return {entries:[{url:'http://127.0.0.1:8768/companion',scope:'computer'},
+    {url:'http://192.168.1.50/#setup_token=fixture-paired-credential',scope:'device_lan'}]};
   if(name==='update_body_part'){writes++;Object.assign(ports.find(c=>c.channel===a.channel),a.changes);return {updated:true};}
   if(name==='update_companion_preferences'){prefs={...prefs,...a.changes};return {preferences:prefs};}
   return {ok:true};
  }});
  await f.prepare();const before=JSON.stringify(ports[1]);
  const p=await f.invoke('get_panel');assert.equal(p.channels.length,2);assert.equal(p.channels[1].mode,'off');
- assert.equal(f.calls.filter(c=>c.method==='tools/call').length,2,'setup and panel each read one tool; channels, persona and settings are reused');
- assert.equal(p.settings_entries.length,1);assert.equal(p.settings_entries[0].url,'http://192.168.1.50/');
+ assert.equal(f.calls.filter(c=>c.method==='tools/call').length,3,'channels and persona are reused; server settings links come from its authenticated settings tool');
+ assert.equal(p.settings_entries.length,1);assert.equal(p.settings_entries[0].url,'http://192.168.1.50/#setup_token=fixture-paired-credential');
  assert.equal(p.electrical_presence_detection,false,'installation state is not electrical detection');assert.equal(writes,0);
  await f.invoke('update_port',{channel:0,name:'头顶',mode:'simulation'});
  assert.equal(ports[0].mode,'simulation');assert.equal(ports[0].name,'头顶');assert.equal(ports[0].options.press_threshold,699);

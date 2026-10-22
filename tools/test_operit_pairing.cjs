@@ -38,6 +38,9 @@ function phoneFixture({home='192.168.1.25',wrongIP=false}={}){
  assert.equal(locked.disk.has('/managed/pairing_draft.json'),false);
  const unconfigured=phoneFixture({home:'0.0.0.0'}),pending=await unconfigured.pairing.readHotspot();
  assert.equal(pending.connected_to_home,false);await assert.rejects(unconfigured.pairing.finish({candidate_id:pending.candidate_id}),/家庭 Wi-Fi/);
+ const restored=phoneFixture();restored.disk.set('/managed/pairing_draft.json',unconfigured.disk.get('/managed/pairing_draft.json'));
+ const restoredHTTP=restored.tools.Net.http;restored.tools.Net.http=async p=>{if(p.url.startsWith('http://192.168.4.1'))throw Error('hotspot closed');return restoredHTTP(p);};
+ assert.equal((await restored.pairing.finish({candidate_id:pending.candidate_id},prior)).storage_key,'existing_history','fixed hostname finishes the draft after the hotspot closes');
  const occupied=phoneFixture({wrongIP:true});
  const recovered=await occupied.pairing.finish(connection,prior);assert.equal(recovered.device_id,connection.device_id);
  assert.equal(occupied.requests.some(p=>p.method==='POST'&&p.url==='http://192.168.1.25/mcp'),false,'wrong old IP receives no paired credential');

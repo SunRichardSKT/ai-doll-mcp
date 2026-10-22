@@ -5,7 +5,7 @@
 
 这条路线适合 Windows 用户。完成后仍在原 AI 聊天中提问，电脑负责保存娃娃的记录。远程服务器用户直接读 [远程部署](../integrations/REMOTE_SERVER_SETUP.md)。
 
-本页按 **2.25.0 本地候选**说明；使用本机 `delivery/` 的配套文件，本版尚未上传 GitHub Release。电脑／服务器与 Operit 手机包一起升级；新固件 2.13.0 的归档租约需另行核对实际开发板能力。
+本页按 **2.25.0 本地候选**说明；使用本机 `delivery/` 的配套文件，本版尚未上传 GitHub Release。电脑／服务器与 Operit 手机包一起升级；新固件 2.13.1 的归档租约需另行核对实际开发板能力。
 
 公开已发布的最新预发布仍为[2.24.1](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.24.1)，其操作说明在[固定版本教程](https://github.com/SunRichardSKT/ai-doll-mcp/blob/v2.24.1/docs/start/AI_INSTALL.md)。仍选择 2.21 稳定版时，使用[稳定版校正版入口](STABLE_2_21.md)和同一 Release 的校验文件。
 

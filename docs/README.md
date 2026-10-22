@@ -2,7 +2,7 @@
 
 零基础从“入门”开始，只读当前需要的页面。技术接口放在开发者区，给 AI 的操作规则单独存放。
 
-本目录对应 **2.25.0 本地候选／固件 2.13.0**，先使用本机 `delivery/` 中同批次文件；尚未上传 GitHub Release，不提供虚构的 2.25 下载链接。[候选改进与验收边界](reports/RELEASE_2_25.md)。
+本目录对应 **2.25.0 本地候选／固件 2.13.1**，先使用本机 `delivery/` 中同批次文件；尚未上传 GitHub Release，不提供虚构的 2.25 下载链接。[候选改进与验收边界](reports/RELEASE_2_25.md)。
 
 已公开的最新预发布仍为[2.24.1](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.24.1)，旧包操作请看其[固定 tag 文档](https://github.com/SunRichardSKT/ai-doll-mcp/tree/v2.24.1/docs)。继续使用 2.21 稳定版请打开[2.21校正版安装入口](start/STABLE_2_21.md)，配套使用同版包和校验文件。
 

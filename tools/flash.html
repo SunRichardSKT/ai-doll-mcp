@@ -25,7 +25,7 @@ label{display:block;font-size:14px;color:var(--muted);margin:14px 0 6px}select,b
 <button id="start" disabled type="button">一键烧录</button><p id="error" class="error" role="alert"></p>
 <ol class="steps" aria-label="烧录进度"><li data-step="0">01 连接检查</li><li data-step="1">02 写入程序</li><li data-step="2">03 启动与编号</li><li data-step="3">04 完成</li></ol>
 </section>
-<section class="panel" id="resultPanel" hidden aria-live="polite"><div class="status" id="status"><strong id="resultTitle"></strong><p id="resultMessage"></p></div><div id="successDetails" hidden><div class="result-row">设备名称与配网热点<code id="deviceName"></code></div><div class="result-row">手机连接这个名称的 Wi-Fi 热点，然后打开<br><a href="http://192.168.4.1/" target="_blank" rel="noopener">http://192.168.4.1/</a></div><p class="muted">家庭 Wi-Fi 配好后，这个配置入口仍然保留。本次内部配对编号已更新，原 AI 客户端可能需要重新配对。</p></div><p id="folderHint"></p><code id="folder"></code><details><summary>查看本次烧录日志</summary><pre id="log"></pre></details></section>
+<section class="panel" id="resultPanel" hidden aria-live="polite"><div class="status" id="status"><strong id="resultTitle"></strong><p id="resultMessage"></p></div><div id="successDetails" hidden><div class="result-row">设备名称与配网热点<code id="deviceName"></code></div><div class="result-row">新板连接这个名称的临时热点；已配过网时，运行中长按 BOOT 约3秒再连接。然后打开<br><a href="http://192.168.4.1/" target="_blank" rel="noopener">http://192.168.4.1/</a></div><p class="muted">首次热点最长10分钟，新配网成功后约90秒关闭；正常联网重启不开热点。本次内部配对编号已更新，原 AI 客户端可能需要重新配对。</p></div><p id="folderHint"></p><code id="folder"></code><details><summary>查看本次烧录日志</summary><pre id="log"></pre></details></section>
 <footer>烧录期间保持 USB 连接。如提示未启动，松开 BOOT，仅点按一次 RST。<br>新板默认 CH0 真实采样和日常模式，电机输出关闭；升级保留已有设置。</footer>
 </main>
 <script>

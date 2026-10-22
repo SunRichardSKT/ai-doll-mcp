@@ -5,7 +5,7 @@
 
 普通使用者不需要编译，按 [首次安装](../start/AI_INSTALL.md)使用完整包。本页面向维护代码、定制接口和制作交付包的开发者。
 
-当前开发目标为 **2.25.0本地候选／固件2.13.0**。`delivery/` 中生成的候选文件不表示已公开发布；正式发布之前从该本地完整包验证，不尝试下载尚不存在的GitHub版本。
+当前开发目标为 **2.25.0本地候选／固件2.13.1**。`delivery/` 中生成的候选文件不表示已公开发布；正式发布之前从该本地完整包验证，不尝试下载尚不存在的GitHub版本。
 
 ## 项目结构
 
@@ -119,3 +119,13 @@ Node / Playwright 页面测试需要开发者另装对应环境，运行 `tools/
 二维码解码使用本地jsQR（Apache-2.0），生成使用Nayuki（MIT）；固定来源、提交及SHA-256记录在 `clients/operit/vendor/SOURCES.json`，许可证随工具包和需要相应资源的服务包交付。Nayuki的随包JS已由固定TypeScript版本编译，普通源码打包不需重新下载依赖或运行TypeScript编译器。改动供应商文件时先核对来源、许可和哈希，再更新资源与检查；不引入CDN。手机扫码流程使用相机／图片选择器与本地WebView，异步图片解码完成后再读取结果，不能假设 `evaluateJavascript` 等待网页Promise。
 
 源码构建 Docker 前同样需要先生成该 ToolPkg，要求开发环境具有 Node.js 18+；使用 Release 的 Linux 包部署时已包含工具包，用户不需要安装 Node 或另装手机服务。
+
+## 2.13.1临时热点与管理访问
+
+配对窗口最长600秒；新配置的STA首次连通后最多再保留90秒，重复连接不延长窗口。已有STA连接时手动打开保留完整窗口及STA链路；无网只退避重连，不自行开AP。BOOT、USB `setup_mode` 或已授权LAN管理可开启；热点客户端不能通过HTTP续窗。关闭AP不清除Wi-Fi、身份、通道、校准或归档租约。
+
+设备状态增加`setup_window_supported`、`setup_remaining_sec`、`setup_password_required`（已保存的下次热点密码状态）。`POST /api/hotspot`仅为设置页管理接口，要求现有管理鉴权、同源检查和`X-Setup-Token`，action为open、close或password；password为空或8～63字节，下次开热点生效。USB维护示例：`{"cmd":"setup_mode","password":"","enabled":true}`重设热点为无密码并开启临时窗口；`enabled:false`仅关闭。没有增加模型可用工具。
+
+`/api/identity`公开最少身份信息；`/api/setup`及状态、配置API要求物理热点窗口、已配对令牌，或已开启的网页登录认证。静态页面不含凭据，允许加载；新浏览器裸LAN地址不会导出令牌。已配对客户端给设置链接附加`#setup_token=...`，网页读入sessionStorage后清除片段，不放入查询参数或日志。若开启网页登录仍须登录；物理热点窗口提供登录恢复，独立热点密码仍生效。
+
+服务器直传与OTA沿用原鉴权和LAN限制。网页开关热点不应中断在线STA或上传，实际无线、手机切网和OTA仍需目标设备验收。旧固件保持原行为，需要升级镜像才获得限时策略。

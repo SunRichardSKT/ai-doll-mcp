@@ -11,12 +11,13 @@ async function panel() {
   const overview=await call('get_device_overview');
   let config,entry,persona;
   config=overview.port_state_model||(!overview.online&&Array.isArray(overview.channels))?{channels:overview.channels||[],port_state_model:overview.port_state_model}:await call('get_channel_config');
-  entry=overview.device_ip?{entries:[]}:await call('get_settings_entry',{section:'hardware'});
+  const phone=cfg.connection.kind==='ai-doll-device-connection';
+  entry=overview.device_ip&&phone?{entries:[]}:await call('get_settings_entry',{section:'hardware'});
   persona=overview.preferences?.doll_persona!==undefined?{persona:overview.preferences.doll_persona}:await call('get_persona');
   const entries=(entry.entries||[]).filter(e=>e.url&&!/^https?:\/\/(127\.0\.0\.1|localhost)(:|\/)/.test(e.url));
   const ip=overview.device_ip;
-  if(ip&&/^(\d{1,3}\.){3}\d{1,3}$/.test(ip)&&!entries.some(e=>e.url==='http://'+ip+'/'))
-    entries.unshift({url:'http://'+ip+'/',scope:'device_lan',access:'手机与设备在同一家庭网络时可打开。'});
+  if(phone&&ip&&/^(\d{1,3}\.){3}\d{1,3}$/.test(ip)&&!entries.some(e=>e.scope==='device_lan'))
+    entries.unshift({url:'http://'+ip+'/#setup_token='+encodeURIComponent(cfg.connection.token),scope:'device_lan',access:'手机与设备在同一家庭网络时可打开；开启网页登录保护时需登录。'});
   const result={overview,channels:(config.channels||[]).map(c=>({...c,mode:mode(c)})),
     port_writes:config.port_state_model==='per_port_v1',presence_source:'saved_installation_config',
     electrical_presence_detection:false,preferences:overview.preferences||{},persona:overview.preferences?.doll_persona||persona.persona||'',

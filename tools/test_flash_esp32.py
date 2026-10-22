@@ -187,6 +187,12 @@ class FlashTests(unittest.TestCase):
         calls=[c.args[0] for c in tool.call_args_list]
         self.assertIn('erase_flash',calls[1]);self.assertIn('write_flash',calls[2])
 
+    def test_timed_hotspot_upgrade_preserves_wifi_without_requiring_an_open_ap(self):
+        result,_,_=self.run_flash(state_changes={'config_ap_open':False,'setup_window_supported':True,'ssid':'fixture-home'})
+        self.assertEqual(result['status'],'success')
+        result,_,_=self.run_flash(state_changes={'config_ap_open':False,'setup_window_supported':True,'ssid':''})
+        self.assertEqual(result['status'],'failed','a blank installation must still confirm its setup window')
+
     def test_factory_defaults_require_real_input_and_disarmed_outputs(self):
         for changes in ({'sensor_mode':'simulation'}, {'physical_outputs_enabled':True},
                         {'factory_profile':'safe-manual-v1'}):

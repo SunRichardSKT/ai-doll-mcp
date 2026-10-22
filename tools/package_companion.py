@@ -12,7 +12,7 @@ from urllib.parse import urlsplit
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 TOOLS = (
-    'pairing_connection.js', 'test_pairing_exports.py', 'test_pairing_portal.cjs',
+    'pairing_connection.js', 'test_pairing_exports.py', 'test_pairing_portal.cjs', 'test_hotspot_policy.py', 'test_hotspot_ui.cjs',
     'test_operit_pairing.cjs', 'test_operit_pairing_ui.cjs', 'test_operit_qr.cjs',
     'test_operit_archive.cjs', 'test_operit_sync.cjs', 'test_operit_sync_lifecycle.cjs', 'test_archive_lease.py',
     'operit_metadata.py', 'test_operit_metadata.py',
@@ -280,7 +280,7 @@ def main():
         checksums[name] = hashlib.sha256((delivery/name).read_bytes()).hexdigest()
     checksums['Install_Server.sh'] = hashlib.sha256((ROOT/'Install_Server.sh').read_bytes()).hexdigest()
     (delivery/'SHA256SUMS.txt').write_text(''.join(digest+'  '+name+'\n' for name,digest in sorted(checksums.items())), encoding='ascii')
-    readme = '# 下载与交付文件\n\n**2.25.0 本地候选 / 固件2.13.0**，构建更新于2026-10-23。文件在本目录，尚未上传GitHub Release；下表列出本地文件名，不提供尚不存在的2.25下载链接。已发布预发布版为[2.24.1](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.24.1)，稳定版仍为[2.21.0](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.21.0)。\n\n本候选增加单手机热点配对、临时二维码、身份恢复、独立同步和归档租约。电脑／服务器与手机包同版更新；完整手机ACK还需配套固件。目标手机、实板与锁屏仍待分别验收。普通Windows用户使用完整包，无需安装Python或Arduino。\n\n'
+    readme = '# 下载与交付文件\n\n**2.25.0 本地候选 / 固件2.13.1**，构建更新于2026-10-23。文件在本目录，尚未上传GitHub Release；下表列出本地文件名，不提供尚不存在的2.25下载链接。已发布预发布版为[2.24.1](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.24.1)，稳定版仍为[2.21.0](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.21.0)。\n\n本候选增加单手机热点配对、临时二维码、身份恢复、独立同步和归档租约。电脑／服务器与手机包同版更新；完整手机ACK还需配套固件。目标手机、实板与锁屏仍待分别验收。普通Windows用户使用完整包，无需安装Python或Arduino。\n\n'
     readme += '## 应该下载哪个\n\n| 包 | 适合谁 | 解压后做什么 |\n| --- | --- | --- |\n'
     purposes = {
         'AI_Doll_Code_v2.25.0.zip': ('Windows 用户 / 软件开发者', '普通 Chat 双击 AI_Doll.cmd；自建应用本机接收双击 AI_Doll_Server.cmd'),
@@ -301,7 +301,7 @@ def main():
     for item in outputs:
         readme += f"- `{item['file']}`：`{item['sha256']}`\n"
     readme += '\n## 交付范围\n\n公共包只包含代码、文档、固件、PCB 和公共模板，不包含个人配对、Wi-Fi、令牌或互动数据库。更新保留自己的 build 数据，远程部署保留数据卷。\n\n'
-    readme += '新板烧录：双击 Flash_ESP32.cmd，点击一键烧录。日常管理：双击 AI_Doll.cmd。手机连接娃娃热点后，固定设置页为 http://192.168.4.1/，配家庭 Wi-Fi 后仍保留。\n\n'
+    readme += '新板烧录：双击 Flash_ESP32.cmd，点击一键烧录。日常管理：双击 AI_Doll.cmd。手机连接娃娃热点后，固定设置页为 http://192.168.4.1/，首次热点最长10分钟，新配网成功后约90秒关闭；正常重启不开热点，运行中长按BOOT约3秒重新开启。\n\n'
     readme += '每次 USB 烧录产生新内部配对编号；可选择自定义显示名和热点名并保留独立日志；标准烧录保留设置，恢复出厂才清空设备。CH0 实体按压/释放及电脑归档已实测；其他硬件、普通 Chat 空闲唤醒和真实公网部署仍按 [验证汇总](../docs/reports/VALIDATION.md)列出的范围。\n'
     (delivery/'README.md').write_text(readme, encoding='utf-8')
     for item in outputs:

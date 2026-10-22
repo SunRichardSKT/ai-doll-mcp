@@ -221,15 +221,15 @@ async function Screen(ctx) {
   button('我已看到自检输入和回复',async()=>{await call('confirm_probe');await refresh(false,false);setMessage('已记录诊断确认；陪伴无需此步骤。');})
  ])];
  else if(page==='pairing')content=[card('添加娃娃／找回家庭地址',[
-  note('1. 到手机 Wi-Fi 设置连接娃娃热点。\n2. 读取设备，配置家庭 Wi-Fi。\n3. 把手机切回家庭网络，完成配对。'),
+  note('1. 长按 BOOT 约3秒，到手机 Wi-Fi 设置连接临时热点。\n2. 读取设备，配置家庭 Wi-Fi。\n3. 把手机切回家庭网络，完成配对。'),
   button('读取热点设备',readHotspot),
   button('打开热点设置，配置家庭 Wi-Fi',async()=>{setWebReturn('pairing');setWebUrl('http://192.168.4.1/');setPage('web');}),
   ...(pairingDraft?[
-   text('待配对：'+pairingDraft.label),text('家庭 IP：'+(pairingDraft.home_ip||'尚未连接家庭网络')),
+   text('待配对：'+pairingDraft.label),text('家庭 IP：'+(pairingDraft.home_ip||'尚未连接家庭网络')),note('热点最长10分钟，新配网成功后约90秒关闭。可先读取草稿，再配网；切回家庭网络后按固定名称核对。'),
    ...(pairingDraft.hostname?[note('固定名称：'+pairingDraft.hostname)]:[]),
-   button('配网后重新读取家庭地址',readHotspot),button('已切回家庭 Wi-Fi，完成配对',finishPairing,!!pairingDraft.connected_to_home)
+   button('配网后重新读取家庭地址',readHotspot),button('已切回家庭 Wi-Fi，完成配对',finishPairing,!!(pairingDraft.connected_to_home||pairingDraft.hostname))
   ]:[]),
-  note('192.168.4.1 仅在连接设备热点时有效。正常重启或家庭地址变化不会要求重新选择聊天。'),
+  note('192.168.4.1 仅在临时热点开启且手机已连接时有效。正常重启不开放热点；地址变化不要求重新选聊天。'),
   button('改用连接文件',pickConnection),button('读取二维码',()=>go('qr')),button('连接码或高级地址',()=>go('connection'))
  ])];
  else if(page==='connection')content=[card('设备与连接',[

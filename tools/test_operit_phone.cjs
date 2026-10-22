@@ -82,7 +82,7 @@ function phone(options={}){
   await assert.rejects(p.f.invoke('check_connection'),/身份/);
   assert.equal(p.f.disk.get('/managed/settings.json'),original);
   const bad=phone({serverEnabled:true});await assert.rejects(bad.prepare(),/直传服务器/);
-  const auth=phone({authRequired:true});await assert.rejects(auth.prepare(),/登录保护/);
+  const auth=phone({authRequired:true});await assert.rejects(auth.prepare(),/临时热点/);
   assert.equal((await auth.f.invoke('setup_device',{host:'192.168.1.50',token:'test_device_token_1234567890'})).saved,true);
   const old=phone({gap:true});await old.prepare();await old.f.invoke('set_experience',{enabled:true});const ot=await old.connect();
   const os=await ot('start_interaction',{chat_id:'chat-1',duration_sec:60});old.emit();
@@ -129,7 +129,7 @@ function phone(options={}){
   assert.equal(recovered.overview.device_ip,'192.168.1.61','fixed hostname recovers an occupied old DHCP address');
   assert.equal(recovered.overview.device_hostname,'ai-doll-112233445566.local');
   assert.equal(named.f.cfg().binding,namedBinding);assert.equal(named.f.cfg().connection.storage_key,namedKey);
-  assert.ok(recovered.settings_entries.some(e=>e.url==='http://192.168.1.61/'),'settings link follows the live IP');
+   assert.ok(recovered.settings_entries.some(e=>e.url.startsWith('http://192.168.1.61/#setup_token=')),'settings link follows the live IP and carries the paired credential in its fragment');
   named.replaceDevice();await assert.rejects(named.f.invoke('get_panel'),/身份/,'a different device at the hostname is rejected');
   const unnamed=phone();await unnamed.prepare();
   const oldConfig=unnamed.f.disk.get('/managed/settings.json');unnamed.options.address='192.168.1.70';

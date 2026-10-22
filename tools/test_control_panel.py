@@ -114,6 +114,25 @@ class ControlPanelTests(unittest.TestCase):
             self.assertNotIn(value, raw)
         self.assertTrue(self.panel.state()['secure_config']['key_saved'])
 
+    def test_device_settings_entry_requires_csrf_and_reads_credentials_only_on_demand(self):
+        server=ui.ExclusiveLoopbackServer(('127.0.0.1',0),ui.make_handler(self.panel))
+        thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
+        url=f'http://127.0.0.1:{server.server_port}/api/device-settings'
+        try:
+            with patch.object(ui,'request_collector') as collect:
+                with self.assertRaises(urllib.error.HTTPError) as denied:ui.OPENER.open(url,timeout=2)
+                self.assertEqual(denied.exception.code,403);collect.assert_not_called()
+                collect.side_effect=[{'wifi_connected':True,'ip':'192.168.1.23'},{'mcp_token':'fixture-paired-token'}]
+                req=urllib.request.Request(url,headers={'X-CSRF-Token':self.panel.csrf})
+                with ui.OPENER.open(req,timeout=2) as response:entry=json.load(response)
+                self.assertEqual(entry['url'],'http://192.168.1.23/#setup_token=fixture-paired-token')
+                collect.side_effect=OSError('collector offline')
+                self.assertNotIn('fixture-paired-token',json.dumps(self.panel.state()))
+                collect.side_effect=[{'wifi_connected':False,'ip':'0.0.0.0'}]
+                with self.assertRaises(urllib.error.HTTPError) as offline:ui.OPENER.open(req,timeout=2)
+                self.assertEqual(offline.exception.code,400)
+        finally:server.shutdown();server.server_close();thread.join(2)
+
     def test_credentials_go_on_stdin_not_command_line(self):
         completed = subprocess.CompletedProcess([], 0, '{"paired":true}\n', '')
         with patch.object(ui.subprocess, 'run', return_value=completed) as run:

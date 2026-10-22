@@ -19,7 +19,7 @@ static int pressChannel=-1, pressValue=0, lastWifi=-1;
 static constexpr int LED_PIN=8; // Common SuperMini blue LED, active low.
 static bool scanBusy=false;
 static uint32_t scanStartedAt=0;
-static const char* VERSION="doll-lab-2.13.0";
+static const char* VERSION="doll-lab-2.13.1";
 static const char* PROTOCOL="2025-11-25";
 
 static String encode(const JsonDocument &d){String s;serializeJson(d,s);return s;}
@@ -37,7 +37,7 @@ static void sendJson(int code,const JsonDocument &d);
 #include "ota_update.h"
 static void remoteStatus(JsonObject out);
 static void status(JsonObject o){
- o["network_mode"]=networkModeName();o["config_ap_open"]=configAP;o["setup_button_gpio"]=SETUP_BUTTON_PIN;
+ o["network_mode"]=networkModeName();o["config_ap_open"]=configAP;o["setup_window_supported"]=true;o["setup_remaining_sec"]=(setupWindow.remaining(millis())+999)/1000;o["setup_password_required"]=!setupAPPassword.isEmpty();o["setup_button_gpio"]=SETUP_BUTTON_PIN;
  o["wifi_radio_mode"]=(int)WiFi.getMode();o["ap_actual_ssid"]=WiFi.softAPSSID();o["ap_mac"]=WiFi.softAPmacAddress();
  o["ap_start_error"]=apStartError;o["ap_start_attempts"]=apStartAttempts;
  o["wifi_last_event"]=(int)lastRadioEvent;o["wifi_disconnect_reason"]=(int)lastDisconnectReason;
@@ -94,6 +94,7 @@ static bool provision(JsonVariantConst p,String &error){
  if(!p["ssid"].is<String>() || !p["password"].is<String>()){error="ssid/password must be strings";return false;}
  String s=p["ssid"].as<String>(),w=p["password"].as<String>();
  if(s.length()<1||s.length()>32||w.length()>63||(w.length()>0&&w.length()<8)){error="SSID 1..32 bytes; password empty or 8..63 bytes";return false;}
+ if(setupWindow.active)setupWindow.joined=false;
  ssid=s;password=w;prefs.putString("ssid",ssid);prefs.putString("pass",password);
  connectPending=true;connectAt=millis()+500;return true;
 }
@@ -211,8 +212,17 @@ static JsonDocument rpc(const JsonDocument &in){
  return out;
 }
 #include "remote_uplink.h"
-static bool admin(){if(!adminAuthEnabled||configurationRecoveryAllowed(configAP,networkMode==NetworkMode::NORMAL,web.client().localIP()==WiFi.softAPIP()))return true;if(web.authenticate(adminUser.c_str(),apPass.c_str()))return true;web.requestAuthentication();return false;}
-static bool originOK(){String o=web.header("Origin");return o.isEmpty()||o=="http://"+WiFi.softAPIP().toString()||(WiFi.status()==WL_CONNECTED&&o=="http://"+WiFi.localIP().toString());}
+static bool admin(){
+ bool local=web.client().localIP()==WiFi.softAPIP();
+ bool window=configAP&&setupWindow.remaining(millis())>0;
+ bool paired=web.header("X-Setup-Token")==token||web.header("Authorization")=="Bearer "+token;
+ bool logged=adminAuthEnabled&&web.authenticate(adminUser.c_str(),apPass.c_str());
+ if(configurationAccessAllowed(window,local,paired,adminAuthEnabled,logged))return true;
+ if(adminAuthEnabled)web.requestAuthentication();
+ else web.send(401,"application/json; charset=utf-8","{\"error\":\"请从已配对客户端打开设备设置，或长按 BOOT 连接临时热点。\"}");
+ return false;
+}
+static bool originOK(){String o=web.header("Origin");return o.isEmpty()||o=="http://"+WiFi.softAPIP().toString()||o=="http://"+deviceHostname()+".local"||(WiFi.status()==WL_CONNECTED&&o=="http://"+WiFi.localIP().toString());}
 static void sendJson(int code,const JsonDocument &d){web.sendHeader("Cache-Control","no-store");web.send(code,"application/json; charset=utf-8",encode(d));}
 #include "device_page_asset.h"
 #include "channel_editor_asset.h"
@@ -229,7 +239,14 @@ static void serialCommand(const String &line){
  else if(cmd=="events")touchRead(out.to<JsonObject>(),in["after"]|0U,in["boot_id"]|"",true,in["archive_lease_id"]|"");
  else if(cmd=="ack_events"){String error;out["ok"]=acknowledgeStoredEvents(in.as<JsonVariantConst>(),error);if(error.length())out["error"]=error;}
  else if(cmd=="sync_time"){String error;out["ok"]=syncDeviceClock(in.as<JsonVariantConst>(),error);if(error.length())out["error"]=error;}
- else if(cmd=="setup_mode"){openConfigAP(NetworkMode::SETUP);out["ok"]=true;}
+ else if(cmd=="setup_mode"){
+  if(!in["password"].isNull()){
+   if(!in["password"].is<String>()||(in["password"].as<String>().length()>0&&(in["password"].as<String>().length()<8||in["password"].as<String>().length()>63))){out["error"]="Hotspot password: empty or 8..63 bytes";if(in["serial_request_id"].is<String>())out["serial_request_id"]=in["serial_request_id"];serialJson(out);return;}
+   setupAPPassword=in["password"].as<String>();prefs.putString("setup_psk",setupAPPassword);
+  }
+  if(in["enabled"].is<bool>()&&!in["enabled"].as<bool>())closeConfigAP();else openConfigAP(NetworkMode::SETUP);
+  out["ok"]=true;out["setup_remaining_sec"]=(setupWindow.remaining(millis())+999)/1000;
+ }
  else if(cmd=="radio_test"){String error;if(!radioTest(in.as<JsonVariantConst>(),out.to<JsonObject>(),error))out["error"]=error;}
  else if(cmd=="scan")scanWifi(out.to<JsonObject>(),in["start"]|false);
  else if(cmd=="setup"){out["ap_ssid"]=deviceName;out["device_name"]=deviceName;out["ap_password"]=apPass;out["admin_user"]=adminUser;out["auth_enabled"]=adminAuthEnabled;out["mcp_token"]=token;}
@@ -282,11 +299,26 @@ void setup(){
  adminAuthEnabled=prefs.getBool("admin_auth",false);adminPasswordSet=prefs.getBool("admin_set",false);adminUser=prefs.getString("admin_user","admin");
  eventStorageInit();networkInit();remoteInit();
  const char* headers[]={"Authorization","Origin","X-Setup-Token","MCP-Protocol-Version"};web.collectHeaders(headers,4);
- web.on("/",HTTP_GET,[]{if(admin()){web.sendHeader("Content-Encoding","gzip");web.send_P(200,"text/html; charset=utf-8",(const char*)DEVICE_PAGE_GZIP,sizeof(DEVICE_PAGE_GZIP));}});
- web.on("/channel-editor.js",HTTP_GET,[]{if(admin()){web.sendHeader("Content-Encoding","gzip");web.send_P(200,"application/javascript; charset=utf-8",(const char*)CHANNEL_EDITOR_GZIP,sizeof(CHANNEL_EDITOR_GZIP));}});
- web.on("/ota-manager.js",HTTP_GET,[]{if(admin()){web.sendHeader("Content-Encoding","gzip");web.send_P(200,"application/javascript; charset=utf-8",(const char*)OTA_MANAGER_GZIP,sizeof(OTA_MANAGER_GZIP));}});
- web.on("/pairing.js",HTTP_GET,[]{if(admin()){web.sendHeader("Content-Encoding","gzip");web.send_P(200,"application/javascript; charset=utf-8",(const char*)PAIRING_GZIP,sizeof(PAIRING_GZIP));}});
+ web.on("/",HTTP_GET,[]{{web.sendHeader("Content-Encoding","gzip");web.send_P(200,"text/html; charset=utf-8",(const char*)DEVICE_PAGE_GZIP,sizeof(DEVICE_PAGE_GZIP));}});
+ web.on("/channel-editor.js",HTTP_GET,[]{{web.sendHeader("Content-Encoding","gzip");web.send_P(200,"application/javascript; charset=utf-8",(const char*)CHANNEL_EDITOR_GZIP,sizeof(CHANNEL_EDITOR_GZIP));}});
+ web.on("/ota-manager.js",HTTP_GET,[]{{web.sendHeader("Content-Encoding","gzip");web.send_P(200,"application/javascript; charset=utf-8",(const char*)OTA_MANAGER_GZIP,sizeof(OTA_MANAGER_GZIP));}});
+ web.on("/pairing.js",HTTP_GET,[]{{web.sendHeader("Content-Encoding","gzip");web.send_P(200,"application/javascript; charset=utf-8",(const char*)PAIRING_GZIP,sizeof(PAIRING_GZIP));}});
  web.on("/api/setup",HTTP_GET,[]{if(!admin())return;JsonDocument d;d["token"]=token;d["enabled"]=mcpEnabled;d["auth_enabled"]=adminAuthEnabled;d["admin_user"]=adminUser;d["password_set"]=adminPasswordSet;d["network_mode"]=networkModeName();sendJson(200,d);});
+ web.on("/api/hotspot",HTTP_POST,[]{
+  if(!admin())return;
+  if(!originOK()||web.header("X-Setup-Token")!=token){web.send(403,"text/plain","Forbidden");return;}
+  if(otaActive||otaCommitted){web.send(409,"text/plain","Upgrade in progress");return;}
+  JsonDocument in,out;if(web.arg("plain").length()>256||deserializeJson(in,web.arg("plain"))){web.send(400,"text/plain","Invalid JSON");return;}
+  String action=in["action"]|"";
+  if(action=="open"){if(web.client().localIP()==WiFi.softAPIP()){web.send(403,"text/plain","Use BOOT to reopen the pairing window");return;}openConfigAP(NetworkMode::SETUP);}
+  else if(action=="close"){closeSetupAt=millis()+300;}
+  else if(action=="password"&&in["password"].is<String>()){
+   String value=in["password"].as<String>();
+   if(!value.isEmpty()&&(value.length()<8||value.length()>63)){web.send(400,"text/plain","Password: empty or 8..63 bytes");return;}
+   setupAPPassword=value;prefs.putString("setup_psk",value);
+  }else{web.send(400,"text/plain","Invalid hotspot action");return;}
+  out["ok"]=true;out["setup_remaining_sec"]=(setupWindow.remaining(millis())+999)/1000;sendJson(200,out);
+ });
  web.on("/api/security",HTTP_POST,[]{
   if(!admin())return;
   if(!originOK()||web.header("X-Setup-Token")!=token){web.send(403,"text/plain","Forbidden");return;}

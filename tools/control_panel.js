@@ -14,6 +14,12 @@
     if (!response.ok) throw Error(result.error || '请求未完成，请重试。');
     return result;
   }
+  for(const id of ['openDevice','upgradeLink'])el(id).onclick=async event=>{
+    if(!state?.collector?.running||state.collector.collector_error)return;
+    event.preventDefault();const target=window.open('about:blank','_blank');
+    try{const entry=await api('/api/device-settings');if(target){target.opener=null;target.location.href=entry.url;}else notice('请允许弹出设备设置窗口。',true);}
+    catch(error){if(target)target.close();notice(error.message,true);}
+  };
   function toast(message) {
     el('toast').textContent = message;
     el('toast').hidden = false;
