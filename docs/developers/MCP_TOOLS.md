@@ -5,13 +5,13 @@
 
 先按 [连接方式](../start/MCP_TRANSPORT_DECISION.md)安装。工具不会自行启动 AI 对话；实际可用范围以当前客户端发现的 schema 为准。
 
-本页跟随本地 **2.25.0 候选版／固件 2.13.1**，候选文件由本机 `delivery/` 提供，尚不表示已发布到 GitHub。2.24.1／2.12.1 等旧安装以实际工具发现为准。
+本页跟随 **2.25.0预发布／固件2.13.1**，配套文件见[本版Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.0)。旧安装以实际工具发现为准；预发布不表示所有目标宿主已实测。
 
 ## 不同连接有多少工具
 
 | 连接 | 数量 | 数据与用途 |
 | --- | --- | --- |
-| 电脑 STDIO：`tools/companion_mcp.py` | 52 | 2.25.0候选；设备管理、端口状态、电脑历史、人设、会话与维护 |
+| 电脑 STDIO：`tools/companion_mcp.py` | 52 | 2.25.0预发布；设备管理、端口状态、电脑历史、人设、会话与维护 |
 | 设备 `/mcp` | 30 | 2.13.0固件；设备操作、端口状态、归档租约、缓存确认和校时；没有电脑长期历史 |
 | HTTP `status` | 2 | `get_installation_status`、`doll_get_status` |
 | HTTP `history` | 9 | status，加能力、配置、人设、偏好、历史、摘要、统计 |

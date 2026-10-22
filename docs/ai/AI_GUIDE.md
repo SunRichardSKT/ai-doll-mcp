@@ -27,13 +27,13 @@ Linux 小型服务包已整合 Streamable HTTP MCP，直接读取接收服务数
 - 只有聊天工具：使用当前会话实际开放的 MCP 工具，不能声称自己安装了本机程序。
 - 没有相应工具：明确说明缺少什么，给出用户下一步，不把读文档当作调用。
 
-以客户端实际发现的 schema 为准，不根据本文件猜测参数。2.25.0候选版 STDIO 为52个工具；HTTP的 `status` / `history` / `interaction` 为2 / 9 / 19个。2.13.1固件 `/mcp` 为30个设备工具，没有电脑长期历史。旧发布版本可能少一个端口状态工具。完整名称见 [目录](../developers/MCP_TOOLS.md)。
+以客户端实际发现的 schema 为准，不根据本文件猜测参数。2.25.0预发布版 STDIO 为52个工具；HTTP的 `status` / `history` / `interaction` 为2 / 9 / 19个。2.13.1固件 `/mcp` 为30个设备工具，没有电脑长期历史。旧发布版本可能少一个端口状态工具。完整名称见 [目录](../developers/MCP_TOOLS.md)。
 
-当前工作区候选为Bridge 2.25.0、手机工具包2.25.0、固件2.13.1；已发布预发布为2.24.1，稳定版仍为2.21.0。实际下载包、镜像清单和开发板版本仍需核对，不能由源码版本推断设备已升级。旧验收报告只能证明其记录的环境。
+当前最新预发布为Bridge／Operit 2.25.0、固件2.13.1，稳定版仍为2.21.0。实际下载包、镜像清单和开发板版本必须核对，发布不表示设备已升级或真实手机验收通过。旧报告只证明其记录的环境。
 
-本页候选流程使用本机 `delivery/AI_Doll_Code_v2.25.0.zip`、`AI_Doll_Server_v2.25.0.tar.gz` 与同批次 `AI_Doll_Operit.toolpkg`。2.25候选尚未上传GitHub Release，不构造或声称已有可下载的2.25链接。需要公开已发布版本时使用[2.24.1发布页](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.24.1)及其固定tag说明，不把候选的扫码或租约步骤当作旧包已有功能。候选范围见[2.25记录](../reports/RELEASE_2_25.md)。
+本页流程使用[2.25.0 Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.0)的`AI_Doll_Code_v2.25.0.zip`、`AI_Doll_Server_v2.25.0.tar.gz`与同批次`AI_Doll_Operit.toolpkg`，校验使用该Release的固定`SHA256SUMS.txt`，不使用滚动main清单校验旧下载。上一版2.24.1保留回退，按其固定tag说明操作。新增配对、租约及限时热点的证据边界见[2.25记录](../reports/RELEASE_2_25.md)。
 
-电脑／服务器与手机包使用同一候选批次。候选Linux升级从新解压包目录运行安装器，保留原项目、目录与数据卷；尚未发布时不调用已安装入口联网下载2.25。固件新协议需真实能力检查，不能仅凭手机版本断言设备支持。
+电脑／服务器与手机包使用同一发布批次。Linux升级从新解压包目录运行安装器，保留原项目、目录与数据卷；使用已安装入口时先核对其目标版本，避免旧脚本下载旧包。固件新协议需真实能力检查，不能仅凭手机版本断言设备支持。
 
 用户明确保留2.21稳定版时，先读[稳定版校正版入口](../start/STABLE_2_21.md)。Windows从[该版Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.21.0)下载 `AI_Doll_Code_v2.21.0.zip`，手机包也取该Release的同名ToolPkg，校验使用该Release的固定 `SHA256SUMS.txt`。旧版随附指南中的2.20包名和main交付目录下载链接存在历史遗留，不能据此改装2.20或下载最新手机包。2.21不含后续常开、端口三态与完整批次功能；需要这些能力时整体升级到当前版，不把新步骤套到旧界面。
 
@@ -56,7 +56,7 @@ Linux 小型服务包已整合 Streamable HTTP MCP，直接读取接收服务数
 
 先确认实际 SSH 服务器、域名解析和 TCP 80 / 443。尚无服务器时完成代码包与本机测试，不能宣称云端部署完成。
 
-本地2.25候选从完整Linux包的解压目录运行包内 `sudo bash Install_Server.sh`，按提示填域名；只下载根安装脚本会走尚未发布的版本下载。默认 `/opt/ai-doll-mcp`，依赖和 HTTPS 自动准备。公开已发布版本仍可使用对应固定版本的根脚本。已有网站或陌生目录不能直接覆盖，使用 [高级部署](../developers/DIRECT_SERVER.md)。
+从完整Linux包解压目录运行包内`sudo bash Install_Server.sh`，或使用同版Release的安装脚本，按提示填域名。默认`/opt/ai-doll-mcp`，依赖和HTTPS自动准备。已有网站或陌生目录不能直接覆盖，使用[高级部署](../developers/DIRECT_SERVER.md)。
 
 检查证书和本安装身份验证通过，再交付管理链接；生成设备配置后，由手机写入 ESP32。只有收到实际上传才报告设备在线。验证 `status`、新真实触摸、重启后绑定和历史保留；用户明确要求开发者模拟时才用模拟记录，单独标记来源。
 

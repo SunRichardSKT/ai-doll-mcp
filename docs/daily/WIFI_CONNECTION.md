@@ -83,7 +83,7 @@
 断网缓存看 [离线记录](OFFLINE_RECORDS.md)，密码看 [登录说明](RUNTIME_AND_LOGIN.md)，仍有问题看 [故障排查](../TROUBLESHOOTING.md)。
 
 
-## Operit 2.25候选：单手机配对与恢复
+## Operit 2.25预发布：单手机配对与恢复
 
 在“添加娃娃”向导连接设备热点，读取配对草稿；打开固定页配置家庭Wi-Fi，等待取得实际家庭IP，再切回家庭网络核对并保存。不必在设备上贴二维码，也不必手填聊天ID；设备页可临时生成二维码、下载JSON或复制连接码。[完整步骤](../integrations/OPERIT_NO_PC.md#只有安卓手机没有电脑和服务器)。
 

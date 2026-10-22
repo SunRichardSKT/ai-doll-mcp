@@ -2,9 +2,9 @@
 
 零基础从“入门”开始，只读当前需要的页面。技术接口放在开发者区，给 AI 的操作规则单独存放。
 
-本目录对应 **2.25.0 本地候选／固件 2.13.1**，先使用本机 `delivery/` 中同批次文件；尚未上传 GitHub Release，不提供虚构的 2.25 下载链接。[候选改进与验收边界](reports/RELEASE_2_25.md)。
+本目录对应 **2.25.0预发布／固件2.13.1**，从[本版Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.0)下载同批次文件；[改进与验收边界](reports/RELEASE_2_25.md)区分已通过的软件检查和待目标设备验收。
 
-已公开的最新预发布仍为[2.24.1](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.24.1)，旧包操作请看其[固定 tag 文档](https://github.com/SunRichardSKT/ai-doll-mcp/tree/v2.24.1/docs)。继续使用 2.21 稳定版请打开[2.21校正版安装入口](start/STABLE_2_21.md)，配套使用同版包和校验文件。
+上一修订版[2.24.1](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.24.1)保留回退，旧包按其[固定tag文档](https://github.com/SunRichardSKT/ai-doll-mcp/tree/v2.24.1/docs)操作；2.21稳定版使用[校正版入口](start/STABLE_2_21.md)。不要混配版本。
 
 ## 01 入门：先把设备用起来
 
@@ -49,7 +49,7 @@
 
 [连接稳定性与日常使用优化计划书](developers/STABILITY_AND_DAILY_USE_PLAN.md)整理 Operit 地址修改、烧录命名、重启恢复、实体默认与开发者调试；实施与验证范围见 [2.21 记录](reports/RELEASE_2_21.md)。
 
-[免电脑配对与恢复实施计划](developers/PHONE_PAIRING_AND_RECOVERY_PLAN.md)已进入本地候选整合阶段，区分代码实现与目标 APK、新固件、锁屏验收。
+[免电脑配对与恢复实施计划](developers/PHONE_PAIRING_AND_RECOVERY_PLAN.md)已进入预发布阶段，区分代码实现与目标 APK、新固件、锁屏验收。
 
 [统一代码、安装与日常使用规划](developers/UNIFIED_DELIVERY_PLAN.md)说明分阶段合并入口、配置和手机工具包；[2.19 实施记录](reports/RELEASE_2_19.md)区分已实现与待手机验收。
 
@@ -59,7 +59,7 @@
 
 ## 06 验证记录
 
-最新候选见 [2.25：免电脑配对、恢复与手机补传](reports/RELEASE_2_25.md)。已发布修订见 [2.24.1：文档与安装整改](reports/RELEASE_2_24_1.md)，此前队列功能见 [2.24：Operit稳定性](reports/RELEASE_2_24.md)。本地候选与已发布包的升级区别见 [Operit 指南](integrations/OPERIT_SETUP.md)。
+最新预发布见 [2.25：免电脑配对、恢复与手机补传](reports/RELEASE_2_25.md)。已发布修订见 [2.24.1：文档与安装整改](reports/RELEASE_2_24_1.md)，此前队列功能见 [2.24：Operit稳定性](reports/RELEASE_2_24.md)。新旧版本的升级区别见 [Operit 指南](integrations/OPERIT_SETUP.md)。
 
 先看 [当前验证范围](reports/VALIDATION.md)和 [2.20 交付记录](reports/RELEASE_2_20.md)。[2.17 记录](reports/RELEASE_2_17.md)及其他历史报告保留当时版本，不代表新版本或你的新安装已经通过。
 

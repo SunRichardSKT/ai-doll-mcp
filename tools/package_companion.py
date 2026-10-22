@@ -180,12 +180,12 @@ def server_package(delivery):
     contents['docs/README.md'] = ('# Linux 服务包教程\n\n'
         '[远程安装与维护](integrations/REMOTE_SERVER_SETUP.md) · [Operit 无电脑使用](integrations/OPERIT_NO_PC.md) · [自然陪伴](daily/NATURAL_COMPANION.md) · '
         '[已有安装验证记录](reports/SIMPLE_SETUP_ACCEPTANCE.md)\n\n'
-        '[2.25候选与待验收](reports/RELEASE_2_25.md) · [给AI的执行指南](ai/AI_GUIDE.md)\n\n'
+        '[2.25改进与待验收](reports/RELEASE_2_25.md) · [给AI的执行指南](ai/AI_GUIDE.md)\n\n'
         '历史记录：[2.24.1](reports/RELEASE_2_24_1.md) · [2.24](reports/RELEASE_2_24.md) · [2.23](reports/RELEASE_2_23.md)。\n\n'
         '本小型包只包含服务器所需文件。设备设置、Windows 和 AI 教程见 '
         '[项目完整目录](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/README.md)。\n').encode()
     contents['README.md'] = ('# AI Doll Linux 服务包\n\n'
-        '本地2.25.0候选，尚未上传Release；从本包目录运行安装入口，保留原部署数据。\n\n'
+        '2.25.0预发布，配套文件见 https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.0 ；从本包目录运行安装入口，保留原部署数据。\n\n'
         '准备 Ubuntu / Debian 服务器，将域名解析到它，并放行 TCP 80 / 443。\n\n'
         '上传并解压此包，在解压目录运行：\n\n'
         '```bash\nsudo bash Install_Server.sh\n```\n\n'
@@ -280,7 +280,7 @@ def main():
         checksums[name] = hashlib.sha256((delivery/name).read_bytes()).hexdigest()
     checksums['Install_Server.sh'] = hashlib.sha256((ROOT/'Install_Server.sh').read_bytes()).hexdigest()
     (delivery/'SHA256SUMS.txt').write_text(''.join(digest+'  '+name+'\n' for name,digest in sorted(checksums.items())), encoding='ascii')
-    readme = '# 下载与交付文件\n\n**2.25.0 本地候选 / 固件2.13.1**，构建更新于2026-10-23。文件在本目录，尚未上传GitHub Release；下表列出本地文件名，不提供尚不存在的2.25下载链接。已发布预发布版为[2.24.1](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.24.1)，稳定版仍为[2.21.0](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.21.0)。\n\n本候选增加单手机热点配对、临时二维码、身份恢复、独立同步和归档租约。电脑／服务器与手机包同版更新；完整手机ACK还需配套固件。目标手机、实板与锁屏仍待分别验收。普通Windows用户使用完整包，无需安装Python或Arduino。\n\n'
+    readme = '# 下载与交付文件\n\n**2.25.0预发布 / 固件2.13.1**，更新于2026-10-23。[下载本版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.0)。稳定版仍为[2.21.0](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.21.0)，上一修订版2.24.1保留回退；不同版本使用各自Release的固定校验文件。\n\n本版增加单手机热点配对、临时二维码、身份恢复、独立同步和归档租约。电脑／服务器与手机包同版更新；完整手机ACK还需配套固件。目标手机、实板与锁屏仍待分别验收。普通Windows用户使用完整包，无需安装Python或Arduino。\n\n'
     readme += '## 应该下载哪个\n\n| 包 | 适合谁 | 解压后做什么 |\n| --- | --- | --- |\n'
     purposes = {
         'AI_Doll_Code_v2.25.0.zip': ('Windows 用户 / 软件开发者', '普通 Chat 双击 AI_Doll.cmd；自建应用本机接收双击 AI_Doll_Server.cmd'),
@@ -292,12 +292,12 @@ def main():
     }
     for item in outputs:
         who, action = purposes[item['file']]
-        readme += f"| `{item['file']}` · {item['bytes']/1048576:.2f} MiB | {who} | {action} |\n"
+        readme += f"| [{item['file']}](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.25.0/{item['file']}) · {item['bytes']/1048576:.2f} MiB | {who} | {action} |\n"
     readme += '\nOperit 无需为了取得手机工具包下载 Windows 包。服务器管理页可导出连接文件、连接码与临时二维码；仅手机模式默认从设备热点读取，不要求实体标签。原电脑入口继续兼容，完整包内含相同工具包。[统一安装](../docs/integrations/OPERIT_SETUP.md) · [免电脑指南](../docs/integrations/OPERIT_NO_PC.md)。\n'
     readme += '\nWindows 包内置 Python，无需另装。Linux 小型包不含 Windows Python，由容器准备运行环境。20261016 PCB 包已优化丝印并修正背面文字，电路与原下单文件保持；当前仍有 1 项网表不匹配，重新下单前须核对。[丝印与 3D 核对](../hardware/rev-v2/丝印镜像修正说明_20261016.md)。\n\n'
     readme += '[Windows 首次安装](../docs/start/AI_INSTALL.md) · [远程部署](../docs/integrations/REMOTE_SERVER_SETUP.md) · [给 AI 的执行指南](../docs/ai/AI_GUIDE.md) · [全部文档](../docs/README.md)\n\n'
-    readme += '## 如何校验候选包\n\n本目录仅记录2.25.0；稳定版与旧版必须使用其Release内的固定清单，不使用这里校验同名旧手机包。[2.21校正版入口](../docs/start/STABLE_2_21.md)。\n\n[DELIVERY_MANIFEST.json](DELIVERY_MANIFEST.json) 与 [SHA256SUMS.txt](SHA256SUMS.txt) 记录哈希；ZIP / TAR 内的 MANIFEST.json 记录逐文件校验，ToolPkg 使用 CHECKSUMS.json。Linux 包另有同目录 `.sha256`。\n\n'
-    readme += 'Linux安装入口位于候选TAR内及源码根目录 `Install_Server.sh`。本候选尚未上传，使用新解压包安装，不调用旧安装入口联网下载2.25。大型文件不加入源码仓库，正式发布时再上传Releases。\n\n'
+    readme += '## 如何校验发布包\n\n本目录仅记录2.25.0；稳定版与旧版必须使用其Release内的固定清单，不使用这里校验同名旧手机包。[2.21校正版入口](../docs/start/STABLE_2_21.md)。\n\n[DELIVERY_MANIFEST.json](DELIVERY_MANIFEST.json) 与 [SHA256SUMS.txt](SHA256SUMS.txt) 记录哈希；ZIP / TAR 内的 MANIFEST.json 记录逐文件校验，ToolPkg 使用 CHECKSUMS.json。Linux 包另有同目录 `.sha256`。\n\n'
+    readme += 'Linux安装入口位于本版TAR内和Release附件 `Install_Server.sh`；使用同版安装器，保留原目录、项目名与数据卷。大型文件仅放在Releases，源码目录保留下载链接与校验元数据。\n\n'
     for item in outputs:
         readme += f"- `{item['file']}`：`{item['sha256']}`\n"
     readme += '\n## 交付范围\n\n公共包只包含代码、文档、固件、PCB 和公共模板，不包含个人配对、Wi-Fi、令牌或互动数据库。更新保留自己的 build 数据，远程部署保留数据卷。\n\n'

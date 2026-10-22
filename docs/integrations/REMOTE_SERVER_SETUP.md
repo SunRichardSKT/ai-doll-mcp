@@ -5,9 +5,9 @@
 
 适用于你自己的 Linux 服务器。首次选择方式可先看 [连接方式](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/start/MCP_TRANSPORT_DECISION.md)。电脑端的 Windows 启动程序和内置 Python 不需要上传到服务器。
 
-本页按 **2.25.0 本地候选**编写，安装入口、Linux 包与 Operit 手机包使用同批次候选，尚未上传 GitHub Release。新部署和升级都从新的完整候选包解压目录运行安装器；不要单独上传脚本，也不要调用已安装入口联网获取尚未发布的 2.25。
+本页按 **2.25.0预发布**编写，安装入口、Linux包与Operit手机包从[同一Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.0)下载。新部署和升级均推荐从完整包解压目录运行安装器；同版独立脚本也可下载配套服务包。
 
-公开最新预发布仍为[2.24.1](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.24.1)，使用已发布包时阅读其[固定版本教程](https://github.com/SunRichardSKT/ai-doll-mcp/blob/v2.24.1/docs/integrations/REMOTE_SERVER_SETUP.md)。2.21 旧一键安装器有复制清单缺项，保留与升级边界见[稳定版校正版入口](../start/STABLE_2_21.md)。
+上一修订版[2.24.1](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.24.1)按其固定版本教程操作。2.21旧安装器有复制清单缺项，保留与升级边界见[稳定版入口](../start/STABLE_2_21.md)。
 
 整个流程是：**准备服务器和域名 → 运行安装入口 → 打开管理页面 → 手机连接娃娃 → 将 MCP 地址接入原聊天**。小型包同时包含接收服务和 MCP，原前端与 MCP 可以部署在同一台服务器。
 
@@ -23,7 +23,7 @@ Operit 用户部署后可直接在服务器管理页下载手机工具包与设�
 
 首次安装推荐使用没有其他网站的服务器。已有网站占用 80 / 443 时，按 [已有反向代理的部署说明](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/developers/DIRECT_SERVER.md)接入，安装入口不会停止其他网站。
 
-## 2. 上传并运行本地候选包
+## 2. 上传并运行发布包
 
 将本机 `delivery/AI_Doll_Server_v2.25.0.tar.gz` 与同目录的 `.sha256` 文件上传到服务器同一目录。在 SSH 终端校验、解压，然后运行**包内**入口：
 
@@ -39,7 +39,7 @@ sudo bash Install_Server.sh
 
 接下来等待环境检查、包内文件检查与安装、启动服务和 HTTPS 验证。无需自行安装 Python、编辑 Docker 配置或申请证书。只有证书和本安装的管理接口都验证通过，才会显示部署成功。
 
-完整解压时保留 `src/`、`tools/`、`clients/`、`delivery/` 和 `deploy/`。孤立的安装脚本或已安装目录的入口会尝试从相应 Release 下载，候选尚未发布时不能使用这条路径。没有本地候选的用户可先使用已发布的 2.24.1 及其固定教程。
+完整解压时保留 `src/`、`tools/`、`clients/`、`delivery/` 和 `deploy/`。也可单独运行本版Release的`Install_Server.sh`，它会下载并校验配套Linux包。旧安装目录的入口先核对目标版本，不把旧脚本下载的旧包当作2.25。
 
 ## 3. 打开管理页面
 

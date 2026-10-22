@@ -1,6 +1,6 @@
 # Operit：服务器或仅安卓手机使用
 
-本文对应本地 **2.25.0候选／固件2.13.1**。候选包位于本机 `delivery/`，尚未发布GitHub Release；已发布版2.24.1操作见其固定tag，不能只下载旧手机包就宣称已升级。[候选范围](../reports/RELEASE_2_25.md)。
+本文对应 **2.25.0预发布／固件2.13.1**。从[本版Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.0)下载同批次文件；旧版按其固定tag操作，不把新手机包单独接到旧服务端。[验收范围](../reports/RELEASE_2_25.md)。
 
 | 用法 | 需要运行 | 历史位置 | 手机网络 |
 | --- | --- | --- | --- |
