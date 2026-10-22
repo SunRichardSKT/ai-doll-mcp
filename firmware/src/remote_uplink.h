@@ -11,12 +11,14 @@ extern "C" esp_err_t esp_crt_bundle_attach(void *conf);
 static bool remoteEnabled=false,remoteLocalHTTP=false,remotePending=false,remoteWorkerReady=false;
 static String remoteURL,remoteToken,remoteCA,remoteError,remoteResult;
 static String remoteLastCommand;
+static String remoteArchiveLease;
+static uint64_t remoteLeaseRenewAt=0;
 static uint32_t remoteGeneration=0,remoteNextAt=0,remoteLastOK=0,remoteAfter=0;
 static uint32_t remoteFailures=0,remoteObservedSeq=0;
 static int remoteHTTPCode=0;
 static QueueHandle_t remoteJobs=nullptr,remoteResponses=nullptr;
 struct RemoteJob {
- String url,token,ca,body,response,error,boot,epoch;
+ String url,token,ca,body,response,error,boot,epoch,archiveLeaseId;
  uint32_t generation=0;uint64_t cursor=0;int code=0,tlsCode=0,tlsFlags=0;
 };
 
@@ -65,10 +67,13 @@ static bool remoteSave(JsonVariantConst value,String &error){
  if(enabled&&(secret.length()!=64)){error="请填写服务器生成的 64 位设备连接令牌";return false;}
  for(size_t i=0;i<secret.length();i++)if(!isxdigit((unsigned char)secret[i])){error="令牌无效";return false;}
  if(ca.length()>6000||(!ca.isEmpty()&&(!ca.startsWith("-----BEGIN CERTIFICATE-----")||ca.indexOf("-----END CERTIFICATE-----")<0))){error="根证书必须为 PEM 格式（最多 6000 字节）";return false;}
+ if(enabled&&archiveLease.active(touchNow())&&strcmp(archiveLease.owner,"device-uplink")){error="归档端正在使用，请先停止当前手机或电脑同步";return false;}
  JsonDocument saved;saved["enabled"]=enabled;saved["server_url"]=url;saved["device_token"]=secret;saved["local_http"]=local;saved["root_ca"]=ca;
  String wire=encode(saved);if(prefs.putString("uplink",wire)!=wire.length()){error="配置保存失败";return false;}
  bool changed=url!=remoteURL||secret!=remoteToken;
  remoteEnabled=enabled;remoteLocalHTTP=local;remoteURL=url;remoteToken=secret;remoteCA=ca;
+ archiveServerReserved=enabled;
+ if(!enabled&&!remoteArchiveLease.isEmpty()){archiveLease.release(remoteArchiveLease.c_str(),touchNow());remoteArchiveLease="";remoteLeaseRenewAt=0;}
  remoteGeneration++;remoteNextAt=0;remoteLastOK=0;remoteFailures=0;remoteError="";
  if(changed){remoteAfter=0;remoteResult="";remoteLastCommand="";}
  return true;
@@ -117,6 +122,7 @@ static void remoteInit(){
  remoteJobs=xQueueCreate(1,sizeof(RemoteJob*));remoteResponses=xQueueCreate(1,sizeof(RemoteJob*));
  remoteWorkerReady=remoteJobs&&remoteResponses&&xTaskCreate(remoteWorker,"doll-uplink",10240,nullptr,1,nullptr)==pdPASS;
  if(!remoteWorkerReady){remoteError="worker_unavailable";remoteEnabled=false;}
+ archiveServerReserved=remoteEnabled;
  configTime(0,0,"pool.ntp.org","time.cloudflare.com");
 }
 static void remoteSnapshotTool(JsonObject snapshot,const char *field,const char *name){
@@ -141,7 +147,7 @@ static void remoteAccept(RemoteJob *job){
   remoteNextAt=millis()+min<uint32_t>(60000,1000UL<<(min<uint32_t>(remoteFailures,6)-1));return;
  }
  String error;
- if(job->cursor){JsonDocument ack;ack["boot_id"]=job->boot;ack["storage_epoch"]=job->epoch;ack["storage_cursor"]=job->cursor;
+ if(job->cursor){JsonDocument ack;ack["boot_id"]=job->boot;ack["storage_epoch"]=job->epoch;ack["storage_cursor"]=job->cursor;ack["archive_lease_id"]=job->archiveLeaseId;
   if(!acknowledgeStoredEvents(ack.as<JsonVariantConst>(),error)){remoteError="local_ack_failed";remoteNextAt=millis()+1000;return;}
  }
  JsonDocument clock;clock["boot_id"]=touchBoot;clock["unix_time_ms"]=response["unix_time_ms"];
@@ -164,13 +170,20 @@ static void remoteTick(){
  if(remoteResponses&&xQueueReceive(remoteResponses,&finished,0)==pdTRUE){
   remotePending=false;if(finished->generation==remoteGeneration&&remoteEnabled)remoteAccept(finished);delete finished;
  }
+ // Keep ownership while HTTP is in flight, disconnected, or OTA pauses uploads.
+ // All lease and flash operations stay on this loop task.
+ if(remoteEnabled&&(touchNow()>=remoteLeaseRenewAt||!archiveLease.matches(remoteArchiveLease.c_str(),touchNow()))){
+  JsonDocument args,lease;String error;args["collector_id"]="device-uplink";args["collector_kind"]="server";
+  if(!acquireArchiveLease(args.as<JsonVariantConst>(),lease.to<JsonObject>(),error,true)){remoteError="archive_occupied";return;}
+  remoteArchiveLease=lease["lease_id"].as<String>();remoteLeaseRenewAt=touchNow()+30000;
+ }
  if(!remoteEnabled||remotePending||!remoteJobs||!uplinkNetworkAllowed(WiFi.status()==WL_CONNECTED,networkMode==NetworkMode::NORMAL)||otaActive||otaCommitted)return;
  if(remoteFailures==0&&touchSeq!=remoteObservedSeq)remoteNextAt=0;
  if((int32_t)(millis()-remoteNextAt)<0)return;
  timeval now;gettimeofday(&now,nullptr);
  if(remoteURL.startsWith("https://")&&now.tv_sec<1704067200){remoteError="waiting_for_network_time";remoteNextAt=millis()+2000;return;}
  if(ESP.getFreeHeap()<45000){remoteError="waiting_for_free_heap";remoteNextAt=millis()+2000;return;}
- JsonDocument data;data["protocol"]=1;touchRead(data["batch"].to<JsonObject>(),remoteAfter,touchBoot,true);
+ JsonDocument data;data["protocol"]=1;touchRead(data["batch"].to<JsonObject>(),remoteAfter,touchBoot,true,remoteArchiveLease);
  JsonObject snapshot=data["snapshot"].to<JsonObject>();status(snapshot["status"].to<JsonObject>());
  remoteSnapshotTool(snapshot,"channels","get_channel_config");remoteSnapshotTool(snapshot,"capabilities","get_channel_capabilities");
  remoteSnapshotTool(snapshot,"values","read_channel_values");remoteSnapshotTool(snapshot,"operating_mode","get_operating_mode");
@@ -179,6 +192,7 @@ static void remoteTick(){
  RemoteJob *job=new RemoteJob();job->body=encode(data);
  job->url=remoteURL+"/api/device/exchange";job->token=remoteToken;job->ca=remoteCA;job->generation=remoteGeneration;
  job->boot=touchBoot;job->epoch=eventStorageEpoch;job->cursor=data["batch"]["storage_cursor"]|0ULL;
+ job->archiveLeaseId=remoteArchiveLease;
  if(job->body.length()>65536){remoteError="snapshot_too_large";delete job;remoteNextAt=millis()+5000;return;}
  if(xQueueSend(remoteJobs,&job,0)==pdTRUE){remotePending=true;remoteObservedSeq=touchSeq;}else delete job;
 }

@@ -389,11 +389,11 @@ static void touchTick(){
   if(!transition){sensorDebounce[ch]=0;continue;}if(++sensorDebounce[ch]>=3){sensorDebounce[ch]=0;touchInject(ch,s.active?0:raw,false);}
  }
 }
-static void touchRead(JsonObject out,uint32_t after,const String &boot,bool includePersistent=false){
+static void touchRead(JsonObject out,uint32_t after,const String &boot,bool includePersistent=false,const String &archiveLeaseId=""){
  uint32_t oldest=touchSeq>=TOUCH_CAP?touchSeq-TOUCH_CAP+1:1;bool reset=boot.length()&&boot!=touchBoot;if(reset)after=0;
  out["schema_version"]=3;out["boot_id"]=touchBoot;out["device_id"]=apName;out["uptime_ms"]=touchNow();out["boot_changed"]=reset;out["latest_seq"]=touchSeq;out["oldest_seq"]=oldest;
  out["gap"]=after<oldest-1;out["next_cursor"]=after;JsonArray events=out["events"].to<JsonArray>();
- if(includePersistent)readEventBacklog(out);else eventStorageStatus(out["event_storage"].to<JsonObject>());
+ if(includePersistent)readEventBacklog(out,archiveLeaseId);else eventStorageStatus(out["event_storage"].to<JsonObject>());
  size_t persistentCount=out["persistent_events"].size();
  for(uint32_t seq=max(after+1,oldest);seq<=touchSeq&&events.size()+persistentCount<24;seq++){
   TouchRecord &r=touchQueue[(seq-1)%TOUCH_CAP];encodeTouchRecord(events.add<JsonObject>(),r,touchBoot);out["next_cursor"]=seq;

@@ -15,7 +15,7 @@
 
 ## 2. 先用模拟演示
 
-双击根目录 `Start_Operit_Demo.cmd`（仅旧原型包），从列表选择手机可访问的电脑地址。窗口会打印类似下面的完整 MCP 地址：
+旧原型的根目录启动器已移除，日常请使用 `AI_Doll.cmd` 管理中心与统一 Operit 工具包。仅回放本页原型时，在项目目录运行 `powershell -NoProfile -ExecutionPolicy Bypass -File tools/start_operit_prototype.ps1 -Demo`，从列表选择手机可访问的电脑地址。窗口会打印类似下面的完整 MCP 地址：
 
 ```text
 http://电脑局域网IP:8775/本机生成的随机串/mcp
@@ -83,7 +83,7 @@ Operit 的 `hide_user_message` 隐藏触摸输入正文，但宿主可能显示�
 }
 ```
 
-双击 `Start_Operit_Prototype.cmd`（仅旧原型包），复制真实模式的新 MCP 地址。它与演示地址属于不同安装，请改用另一份状态文件，再启动相同工作流。运行后按压实际连接的 J1；只有 CH0 接入时只验收 CH0。
+仅回放旧原型时，运行 `powershell -NoProfile -ExecutionPolicy Bypass -File tools/start_operit_prototype.ps1`，复制真实模式的新 MCP 地址。它与演示地址属于不同安装，请改用另一份状态文件，再启动相同工作流。运行后按压实际连接的 J1；只有 CH0 接入时只验收 CH0。当前日常操作使用统一工具包，不需要这些手动参数。
 
 轻回应部位保留给正常聊天融入，关闭部位不主动回应。温度和震动不会触发本轮压力原型；震动不作为用户触摸。
 

@@ -22,6 +22,7 @@ function fixture(options={}) {
     return result;
   }
   const tools={Files:{exists:async p=>({exists:disk.has(p)||dirs.has(p),isDirectory:dirs.has(p)}),
+    list:async p=>({entries:[...disk.keys()].filter(k=>k.startsWith(p+'/')).map(k=>({name:k.slice(p.length+1),isDirectory:false}))}),
     mkdir:async p=>{dirs.add(p);return {successful:true};},
     read:async p=>{if(!disk.has(p.path))throw Error('missing file');return {content:disk.get(p.path)};},
     write:async(p,text)=>{if(options.writeFailure)return {successful:false};disk.set(p,text);return {successful:true};}},
@@ -62,13 +63,13 @@ function fixture(options={}) {
       require:p=>load(path.resolve(path.dirname(file),p))},{filename:file});
     return exported;
   }
-  const app=load(path.join(root,'packages/companion.js'));
+  let app=load(path.join(root,'packages/companion.js'));
   const invoke=async(name,args={})=>{result=undefined;await app[name](args);return result;};
   const cfg=()=>JSON.parse(disk.get('/managed/settings.json'));
   const job=()=>JSON.parse(disk.get('/managed/job.json'));
   const connection={schema:1,kind:'ai-doll-operit-connection',mcp_url:'http://192.168.1.20:8775/'+ 'a'.repeat(64)+'/mcp',mode:'simulation',label:'演示'};
   const prepare=async()=>{await invoke('setup',{connection_json:JSON.stringify(connection)});await invoke('bind_chat',{chat_id:'chat-1'});};
   return {load,invoke,disk,dirs,flows,messages,calls,cfg,job,tools,options,connection,prepare,
-    advance:ms=>{clock+=ms;},shared};
+    advance:ms=>{clock+=ms;},shared,resetModules:()=>{cache.clear();app=load(path.join(root,'packages/companion.js'));}};
 }
 exports.fixture=fixture;

@@ -5,12 +5,14 @@
 
 先按 [连接方式](../start/MCP_TRANSPORT_DECISION.md)安装。工具不会自行启动 AI 对话；实际可用范围以当前客户端发现的 schema 为准。
 
+本页跟随本地 **2.25.0 候选版／固件 2.13.0**，候选文件由本机 `delivery/` 提供，尚不表示已发布到 GitHub。2.24.1／2.12.1 等旧安装以实际工具发现为准。
+
 ## 不同连接有多少工具
 
 | 连接 | 数量 | 数据与用途 |
 | --- | --- | --- |
-| 电脑 STDIO：`tools/companion_mcp.py` | 52 | 2.24.1预发布；设备管理、端口状态、电脑历史、人设、会话与维护 |
-| 设备 `/mcp` | 27 | 2.12.1固件；设备操作、端口状态、缓存确认和校时；没有电脑长期历史 |
+| 电脑 STDIO：`tools/companion_mcp.py` | 52 | 2.25.0候选；设备管理、端口状态、电脑历史、人设、会话与维护 |
+| 设备 `/mcp` | 30 | 2.13.0固件；设备操作、端口状态、归档租约、缓存确认和校时；没有电脑长期历史 |
 | HTTP `status` | 2 | `get_installation_status`、`doll_get_status` |
 | HTTP `history` | 9 | status，加能力、配置、人设、偏好、历史、摘要、统计 |
 | HTTP `interaction` | 19 | history，加会话和六个自然陪伴工具 |
@@ -20,6 +22,24 @@ history 的七个附加工具为 `get_channel_capabilities`、`get_channel_confi
 本机 HTTP 网关默认 `127.0.0.1:8771/mcp`；私密远程网关和 Secure 使用专用入口。GET返回405时不等于服务离线，客户端使用POST。interaction允许部位、单端口状态和陪伴偏好的局部写入，不开放模拟注入、完整硬件配置、删除或执行器控制。status/history仍只读。
 
 设备／STDIO提供`set_channel_state(channel, mode?, name?)`。mode为`off/simulation/connected`，必须先实际发现固件的`port_state_model=per_port_v1`。远程保持19个工具，经`update_body_part(channel, changes={mode:...})`使用同一局部操作，不对离线设备排队。改名不改变校准、采样和其他端口。连接状态来自保存的安装确认，不是自动插拔检测。`update_companion_preferences`另支持`persona_source=chat/doll`及`doll_persona`，只控制身体互动反馈，不改宿主聊天配置。
+
+## 设备内部归档接口（2.13.0）
+
+设备状态及 `event_storage` 返回 `archive_lease_supported:true`。以下三个工具用于采集器协调，未加入电脑 STDIO 或远程 HTTP 的工具允许列表；HTTP `status/history` 继续只读，`interaction` 继续保持原19个工具。
+
+| 工具／调用 | 输入与结果 |
+| --- | --- |
+| `acquire_archive_lease` | `collector_id` 为1～96字符的稳定安装标识，允许字母、数字及 `_ - : .`；`collector_kind` 为 `phone/computer/server`。返回 `lease_id`、当前 `boot_id`、`expires_in_sec`。 |
+| `renew_archive_lease` | 输入 `lease_id`，仅延长匹配的当前租约，返回相同字段。 |
+| `release_archive_lease` | 输入 `lease_id`，释放匹配租约；已过期时可重复释放，不会清除另一持有者的租约。 |
+| `get_touch_events` | 原参数保持，新增可选 `archive_lease_id`。持有者读取 `include_persistent:true` 才推进该租约的已交付游标；不带租约仍可复制读取，不获得确认权限。 |
+| `acknowledge_events` | 输入当前响应外层的 `boot_id`、`storage_epoch`、`storage_cursor` 和 `archive_lease_id`；只确认该持有者已读且已可靠归档的游标。 |
+
+租约固定90秒，采集器每30秒续租；重启清空。相同 `collector_id/collector_kind` 重新申请可恢复仍有效的租约，不更换 `lease_id` 或丢掉已交付游标；其他归档端得到占用错误。状态只给持有者类型和剩余时间，不返回租约凭据。三个租约工具明确标注 `readOnlyHint:false`，设备 OTA 期间仍允许申请、续租和释放。
+
+电脑将稳定的 `archive_collector_id` 保存于现有 SQLite 设置中，归档提交后才 ACK，正常采集线程停止时释放；强制结束进程或断网后由设备期限回收。设备直传占用内部 `server` 租约，启用期间外部不能申请；切换归档通路先正常停止旧端。写入或 ACK 不做无条件自动重试，读取页、当前启动和租约状态需要重新核对。
+
+旧客户端在2.13.0上仍可查询，但不带有效租约的 ACK 会失败，不能靠手工确认或清缓存跳过。新手机和新电脑采集器遇到旧固件时默认复制归档、不自动 ACK；电脑状态返回 `archive_mode:legacy_copy_only`。旧Flash接口不能在不ACK的情况下翻过最前24条，完整补传与清理需升级固件；电脑另读RAM页以免积压遮住实时输入。以上均不能证明用户已经升级固件，见 [固件清单](../../firmware/prebuilt/FLASH_MANIFEST.json)。
 
 ## 自然陪伴（新增 6 个工具）
 

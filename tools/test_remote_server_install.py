@@ -38,7 +38,7 @@ class RemoteInstallTests(unittest.TestCase):
         self.log=self.root/'docker.txt'
         self.env=dict(os.environ,PATH=self.posix(self.bin)+':/usr/bin:/bin',MSYS2_ARG_CONV_EXCL='*',
             FIXTURE_PATH=self.posix(self.bin)+':/usr/bin:/bin',
-            FIXTURE_PACKAGE=self.posix(ROOT/'delivery/AI_Doll_Server_v2.24.1.tar.gz'),
+            FIXTURE_PACKAGE=self.posix(ROOT/'delivery/AI_Doll_Server_v2.25.0.tar.gz'),
             FIXTURE_LOG=self.posix(self.log),FIXTURE_TOKEN=TOKEN,FIXTURE_DOMAIN=DOMAIN,
             FIXTURE_ID=hashlib.sha256(('installation:'+TOKEN).encode()).hexdigest())
         self.stub('uname','printf "Linux\\n"')
@@ -129,7 +129,7 @@ fi
                 sources.extend(value for value in fields[1:-1] if not value.startswith('--'))
         self.assertIn('src',sources)
         self.assertIn('delivery/AI_Doll_Operit.toolpkg',sources)
-        with tarfile.open(ROOT/'delivery/AI_Doll_Server_v2.24.1.tar.gz','r:gz') as archive:
+        with tarfile.open(ROOT/'delivery/AI_Doll_Server_v2.25.0.tar.gz','r:gz') as archive:
             for source in sources:
                 self.assertTrue((self.target/source).exists(),source)
                 members=[member for member in archive.getmembers() if member.isfile() and
@@ -163,7 +163,7 @@ fi
         phone=(self.target/'delivery/AI_Doll_Operit.toolpkg').read_bytes()
         record=(self.target/'deployment-private.conf').read_bytes()
         source=self.root/'incomplete-source';source.mkdir()
-        with tarfile.open(ROOT/'delivery/AI_Doll_Server_v2.24.1.tar.gz','r:gz') as archive:
+        with tarfile.open(ROOT/'delivery/AI_Doll_Server_v2.25.0.tar.gz','r:gz') as archive:
             archive.extractall(source,filter='data')
         (source/'delivery/AI_Doll_Operit.toolpkg').unlink()
         self.script=source/'Install_Server.sh'
@@ -252,7 +252,7 @@ fi
 
     def test_minimal_payload_serves_authenticated_management(self):
         payload=self.root/'payload';payload.mkdir()
-        with tarfile.open(ROOT/'delivery/AI_Doll_Server_v2.24.1.tar.gz','r:gz') as archive:
+        with tarfile.open(ROOT/'delivery/AI_Doll_Server_v2.25.0.tar.gz','r:gz') as archive:
             archive.extractall(payload,filter='data')
         with socket.socket() as probe:
             probe.bind(('127.0.0.1',0));port=probe.getsockname()[1]
@@ -277,6 +277,11 @@ fi
             with opener.open(request,timeout=2) as response:status=json.load(response)
             self.assertFalse(status['local_setup'])
             self.assertEqual(status['server_url'],'https://'+DOMAIN)
+            with opener.open(f'http://127.0.0.1:{port}/pairing.js',timeout=2) as response:
+                script=response.read()
+            self.assertIn(b'QrCode',script)
+            self.assertIn(b'AIDollPairing',script)
+            self.assertNotIn(b'cdn.jsdelivr',script)
         finally:
             if child.poll() is None:child.terminate()
             child.wait(timeout=5)

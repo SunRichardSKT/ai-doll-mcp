@@ -42,7 +42,11 @@ class OperitServerTests(unittest.IsolatedAsyncioTestCase):
                     self.assertIn('attachment',result.headers['content-disposition'])
                     self.assertEqual(result.headers['cache-control'],'no-store')
                     connection=result.json();self.assertEqual(connection['mode'],'server')
-                    self.assertEqual(set(connection),{'schema','kind','mode','label','mcp_url'})
+                    self.assertEqual(set(connection),{'schema','kind','mode','label','mcp_url',
+                        'server_instance_id','pairing_id','expected_device_id'})
+                    self.assertEqual(connection['server_instance_id'], app.server_instance_id)
+                    self.assertEqual(connection['pairing_id'], pairing['id'])
+                    self.assertEqual(connection['expected_device_id'], packet()['batch']['device_id'])
                     download=await client.get(base+'/api/operit/toolpkg')
                     self.assertEqual(download.content,(Path(__file__).resolve().parents[1]/'delivery/AI_Doll_Operit.toolpkg').read_bytes())
                     async with streamable_http_client(connection['mcp_url']) as (reader,writer,_):

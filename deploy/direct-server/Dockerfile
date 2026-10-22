@@ -5,6 +5,7 @@ COPY requirements-server.txt /app/
 RUN pip install --no-cache-dir -r requirements-server.txt && useradd --uid 10001 --create-home doll && mkdir /data && chown doll:doll /data
 COPY --chown=doll:doll tools /app/tools
 COPY --chown=doll:doll src /app/src
+COPY --chown=doll:doll clients/operit/vendor /app/clients/operit/vendor
 COPY --chown=doll:doll delivery/AI_Doll_Operit.toolpkg /app/delivery/AI_Doll_Operit.toolpkg
 USER doll
 EXPOSE 8781

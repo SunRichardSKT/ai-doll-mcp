@@ -14,6 +14,10 @@ async function Screen(ctx) {
  const [waitText,setWaitText]=ctx.useState('responseWait','1');
  const [historyDate,setHistoryDate]=ctx.useState('historyDate',''),[history,setHistory]=ctx.useState('history',{events:[]});
  const [diagnostic,setDiagnostic]=ctx.useState('diagnostic',''),[webUrl,setWebUrl]=ctx.useState('webUrl','');
+ const [pairingDraft,setPairingDraft]=ctx.useState('pairingDraft',null),[connectionCode,setConnectionCode]=ctx.useState('connectionCode','');
+ const [webReturn,setWebReturn]=ctx.useState('webReturn','device'),[qrReady,setQrReady]=ctx.useState('qrReady',false);
+ const qrRun=ctx.useRef('qrRun',0);
+ const qrController=page==='qr'&&typeof ctx.createWebViewController==='function'?ctx.createWebViewController('ai-doll-pairing-qr'):null;
  async function call(name,params={}) {
   let r=await ctx.callTool('ai_doll_companion:'+name,params);
   if(r?.success===false)throw Error(r.error||r.message||'操作未完成');
@@ -44,6 +48,8 @@ async function Screen(ctx) {
  }
  if(!loaded){try{await refresh(false,false);}catch(e){setMessage(String(e.message||e));}setLoaded(true);}
  async function go(value){
+  if(page==='qr'&&value!=='qr'){qrRun.current++;await require('../core/qr.js').cancel(qrController);setQrReady(false);}
+  if(value==='qr')setQrReady(false);
   setPage(value);
   if(['body','persona','device'].includes(value))await refresh();
   else if(['home','settings'].includes(value))await refresh(false,true);
@@ -72,6 +78,29 @@ async function Screen(ctx) {
   if(r?.cancelled)return;if(!r?.files?.[0]?.path)throw Error('文件选择器未提供可读文件。');
   const saved=await call('setup',{connection_file:r.files[0].path});await refresh();setMessage('连接已保存：'+saved.label+'。请选择原聊天。');
  }
+ async function readHotspot(){
+  const candidate=await call('read_hotspot_pairing');setPairingDraft(candidate);setPage('pairing');
+  setMessage(candidate.connected_to_home?'已读取 '+candidate.label+'。请把手机切回家庭 Wi-Fi，然后完成配对。':'已读取 '+candidate.label+'。请先配置家庭 Wi-Fi，再重新读取。');
+ }
+ async function finishPairing(){
+  const saved=await call('finish_pairing',{candidate_id:pairingDraft.candidate_id});
+  setPairingDraft(null);await refresh(false);setPage('home');setMessage('已连接 '+saved.label+'，历史与已有聊天绑定保留。尚未绑定时请选择原聊天。');
+ }
+ async function importCode(code=connectionCode){
+  const saved=await call('import_connection_code',{connection_code:code});setConnectionCode('');await refresh(false);setPage('home');
+  setMessage('连接已保存：'+saved.label+'。选择原聊天即可陪伴，不需要发送测试消息。');
+ }
+ async function scanImage(picker){
+  const run=++qrRun.current;
+  const selected=await ctx.openFilePicker({picker,allowMultiple:false});if(selected?.cancelled)return;
+  if(run!==qrRun.current)return;
+  const file=selected?.files?.[0];if(!file?.path)throw Error('未取得二维码图片，请重新选择。');
+  const code=await require('../core/qr.js').decode(qrController,file.path,{cancelled:()=>run!==qrRun.current});
+  if(run!==qrRun.current)return;
+  await importCode(code);
+ }
+ async function setRecordSync(enabled){const result=await call('set_record_sync',{enabled});await refresh(false);setMessage(result.message|| (enabled?'已开启自动同步记录。':'已停止自动同步记录。'));}
+ async function syncNow(){const result=await call('sync_now');await refresh(false);setMessage(result.message||'本次记录同步已完成。');}
  async function check(){
   const r=await call('check_connection');await refresh(false,false);
   setMessage('连接、原聊天、存储和工作流检查通过。设备'+(r.overview.online?'在线。':'当前离线，需检查供电与网络。')+
@@ -83,13 +112,23 @@ async function Screen(ctx) {
  }
  async function touchTest(){setMessage('请现在按压已接入的传感器，正在等待真实输入……');const r=await call('test_sensor');setMessage(r.message);await refresh();}
  if(page==='web')return UI.Column({fillMaxSize:true,spacing:8},[
-  button('返回 AI Doll 设置',()=>go('device')),button('停止后台任务',stopTasks),note('设备局域网页需要手机与设备网络互通。'),
+  button(webReturn==='pairing'?'返回配对向导':'返回 AI Doll 设置',()=>go(webReturn)),button('停止后台任务',stopTasks),note('设备局域网页需要手机与设备网络互通。'),
   UI.WebView({url:webUrl,javaScriptEnabled:true,allowFileAccess:false,allowContentAccess:false,fillMaxWidth:true,weight:1})]);
+ if(page==='qr')return UI.Column({fillMaxSize:true,padding:16,spacing:10,background:colors.background},[
+  title('读取连接二维码'),note('可拍摄设置页显示的二维码，也可选择本手机保存的二维码图片。'),
+  UI.Button({text:'取消并返回连接',enabled:true,fillMaxWidth:true,onClick:async()=>{qrRun.current++;await require('../core/qr.js').cancel(qrController);setQrReady(false);setPage('connection');setBusy(false);}}),
+  ...(qrController?[
+   UI.WebView({key:'ai-doll-qr-reader',controller:qrController,html:require('../core/qr.js').html(),baseUrl:'https://aidoll.invalid/',
+    javaScriptEnabled:true,allowFileAccess:false,allowContentAccess:false,onPageFinished:()=>setQrReady(true),fillMaxWidth:true,weight:1}),
+   button('拍照读取二维码',()=>scanImage('camera'),qrReady),button('从相册选择二维码',()=>scanImage('image'),qrReady)
+  ]:[note('当前 Operit 没有提供本地二维码页面控制器。请改用热点读取、连接文件。')]),
+  text(message)
+ ]);
  let content=[];
  if(page==='home')content=[
   card('连接与聊天',[
    text(state.configured?'✓ 已保存连接':'请先连接设备或导入电脑／服务器连接'),
-   ...(!state.configured?[button('设置设备连接',()=>go('connection'))]:[]),
+   ...(!state.configured?[button('添加娃娃',()=>{setMode('phone');return go('pairing');}),button('设置设备连接',()=>go('connection'))]:[]),
    text(state.chat?'回复到：'+state.chat.title:'尚未选择原聊天'),
    ...(!state.chat?[button('选择原聊天',()=>go('chat'))]:[]),
    note('保存连接并绑定聊天后即可开启。进入面板自动检查连接，不会向聊天发送测试消息。'),
@@ -106,6 +145,16 @@ async function Screen(ctx) {
    ...(state.uncertain_delivery?[note('上次发送结果待核对，已暂停继续发送。'),button('核对原聊天的发送结果',()=>go('recovery'))]:[]),
    button('刷新状态',()=>refresh())
   ]),
+  ...(state.connection?.mode==='phone'?[card('历史同步',[
+   row([text('自动同步记录',{weight:1,fontSize:17}),UI.Switch({checked:!!state.auto_sync_enabled&&!state.sync_paused,enabled:!busy,onCheckedChange:v=>action(()=>setRecordSync(v))})]),
+   text(state.sync_paused?'同步已暂停':state.auto_sync_enabled?'自动同步已开启':'自动同步已关闭'),
+   note('待补传 '+(state.sync_state?.pending_records??'待检查')+' 条 · '+(state.sync_state?.last_sync?'上次同步 '+new Date(state.sync_state.last_sync*1000).toLocaleString():'尚未同步')),
+   ...(state.sync_state?.lease_owner?[note('主归档端：'+({phone:'本手机',computer:'电脑采集',server:'直传服务器'}[state.sync_state.lease_owner]||'其他采集端'))]:[]),
+   ...(state.sync_state?.compatibility_copy_only?[note('旧固件兼容：仅复制记录，不清空设备缓存。完整补传需要配套固件的归档租约。')]:[]),
+   ...(state.sync_state?.last_error?[note('同步提示：'+state.sync_state.last_error)]:[]),
+   ...((state.sync_state?.lost_records||state.sync_state?.corrupt_records||state.sync_state?.write_failures_since_boot)?[note('设备缓存覆盖 '+(state.sync_state.lost_records||0)+' · 损坏 '+(state.sync_state.corrupt_records||0)+' · 写失败 '+(state.sync_state.write_failures_since_boot||0))]:[]),
+   button('立即同步记录',syncNow),note('关闭触摸主动回复仍可同步。手机暂停 Operit 时同步也会暂停，恢复后只补设备尚保留的记录。')
+  ])]:[]),
   card('常用操作',[button('试摸一下',touchTest),
    button('身体与传感器 · '+ports.filter(c=>c.mode==='connected').length+' 路已接入',()=>go('body')),
    button('查看互动记录',()=>loadHistory())])
@@ -130,6 +179,7 @@ async function Screen(ctx) {
   card('互动记录',[
    UI.TextField({label:'日期（可选，YYYY-MM-DD）',value:historyDate,singleLine:true,onValueChange:setHistoryDate}),
    button('按日期查询',()=>loadHistory(false)),button('查看近期记录',async()=>{setHistoryDate('');await loadHistory(false,'');}),
+   ...(state.connection?.mode==='phone'?[button('查看时间未确认的记录',()=>loadHistory(false,'unknown'))]:[]),
    note(history.loading?'正在读取记录……':history.error?'读取失败：'+history.error:history.events.length?'已显示'+history.events.length+'条记录。':'没有找到记录；可换日期查询。'),
    ...(history.scope==='recent_index'?[note('当前为手机近期索引。按日期查询可读取已经归档的记录，设备离线也可查看。')]:[])
   ]),
@@ -141,7 +191,7 @@ async function Screen(ctx) {
   ...(history.has_more?[button('加载下一页',()=>loadHistory(true))]:[])
  ];
  else if(page==='body')content=[
-  card('身体与传感器',[note('“已接入”是内核保存的安装状态，不是凭读数判断。修改保留校准与其他端口。'),
+  card('身体与传感器',[note('“已接入”是内核保存的安装状态。修改保留校准与其他端口。'),
    ...(!panel.port_writes?[note('当前固件不支持直接修改端口三态。可先打开设备设置，或升级固件后在此操作。')]:[]),
    button('刷新端口与读数',()=>refresh()),button('打开设备设置',()=>go('device'))]),
   ...ports.filter(c=>c.direction!=='output'&&c.type!=='vibration').map(c=>{
@@ -170,15 +220,32 @@ async function Screen(ctx) {
   button('原聊天发送自检',async()=>{const r=await call('schedule',{kind:'probe'});setMessage(r.message);}),
   button('我已看到自检输入和回复',async()=>{await call('confirm_probe');await refresh(false,false);setMessage('已记录诊断确认；陪伴无需此步骤。');})
  ])];
+ else if(page==='pairing')content=[card('添加娃娃／找回家庭地址',[
+  note('1. 到手机 Wi-Fi 设置连接娃娃热点。\n2. 读取设备，配置家庭 Wi-Fi。\n3. 把手机切回家庭网络，完成配对。'),
+  button('读取热点设备',readHotspot),
+  button('打开热点设置，配置家庭 Wi-Fi',async()=>{setWebReturn('pairing');setWebUrl('http://192.168.4.1/');setPage('web');}),
+  ...(pairingDraft?[
+   text('待配对：'+pairingDraft.label),text('家庭 IP：'+(pairingDraft.home_ip||'尚未连接家庭网络')),
+   ...(pairingDraft.hostname?[note('固定名称：'+pairingDraft.hostname)]:[]),
+   button('配网后重新读取家庭地址',readHotspot),button('已切回家庭 Wi-Fi，完成配对',finishPairing,!!pairingDraft.connected_to_home)
+  ]:[]),
+  note('192.168.4.1 仅在连接设备热点时有效。正常重启或家庭地址变化不会要求重新选择聊天。'),
+  button('改用连接文件',pickConnection),button('读取二维码',()=>go('qr')),button('连接码或高级地址',()=>go('connection'))
+ ])];
  else if(page==='connection')content=[card('设备与连接',[
+  button('添加娃娃／从热点找回地址',()=>{setMode('phone');return go('pairing');}),
   button('使用服务器／电脑',async()=>setMode('import')),button('仅用安卓手机',async()=>setMode('phone')),
   ...(mode==='phone'?[
+   button('使用热点配对向导（免填 IP）',()=>go('pairing')),
    UI.TextField({label:'设备家庭 IP',value:host,placeholder:'IP 或设备设置页的固定 .local 名称',singleLine:true,onValueChange:setHost}),
    note('新版固件保存固定的 .local 连接名；家庭 IP 变化后优先按这个名称重连。手机无法解析时仍可填写当前 IP。'),
    button('连接家庭设备',async()=>{const r=await call('setup_device',{host,token:token||undefined});setToken('');await refresh();setMessage('已连接 '+r.label);}),
    button('高级：设备开启了登录保护',async()=>setAdvanced(!advanced)),
    ...(advanced?[UI.TextField({label:'设备页中的MCP令牌',value:token,isPassword:true,singleLine:true,onValueChange:setToken})]:[])
   ]:[button('导入服务器／电脑连接',pickConnection)]),
+  button('导入连接文件',pickConnection),button('拍照／相册读取连接二维码',()=>go('qr')),
+  UI.TextField({label:'粘贴连接码或连接 JSON',value:connectionCode,minLines:2,maxLines:4,onValueChange:setConnectionCode}),
+  button('核对并导入连接码',()=>importCode(),!!connectionCode.trim()),
   ...(state.connection?.computer_host&&mode!=='phone'?[
    UI.TextField({label:'电脑 IP（电脑重启后可修改）',value:computerHost,singleLine:true,onValueChange:setComputerHost}),
    button('检查并保存电脑 IP',async()=>{const r=await call('update_computer_address',{host:computerHost});await refresh();setMessage(r.message);})
@@ -190,15 +257,16 @@ async function Screen(ctx) {
   text('设备家庭IP：'+(panel.overview?.device_ip||'暂无已确认地址')),
   ...(panel.overview?.device_hostname?[text('固定连接名：'+panel.overview.device_hostname)]:[]),
   text('已接入 '+ports.filter(c=>c.mode==='connected').length+' 路 · 模拟 '+ports.filter(c=>c.mode==='simulation').length+' 路'),
-  ...(panel.settings_entries||[]).map(e=>button('打开'+(e.scope==='device_lan'?'设备设置页':'服务设置页'),async()=>{setWebUrl(e.url);setPage('web');})),
+   ...(panel.settings_entries||[]).map(e=>button('打开'+(e.scope==='device_lan'?'设备设置页':'服务设置页'),async()=>{setWebReturn('device');setWebUrl(e.url);setPage('web');})),
   ...(panel.settings_entries||[]).map(e=>note(e.access||'')),
-  button('设备热点设置（需先连接热点）',async()=>{setWebUrl('http://192.168.4.1/');setPage('web');}),button('刷新状态',()=>refresh())
+  button('设备热点设置（需先连接热点）',async()=>{setWebReturn('device');setWebUrl('http://192.168.4.1/');setPage('web');}),
+  button('从设备热点重新获取家庭地址',()=>go('pairing')),button('刷新状态',()=>refresh())
  ])];
  else if(page==='tests')content=[card('测试与帮助',[
   button('试摸一下',touchTest),button('一键检查',check),
   button('原聊天发送自检',async()=>{const r=await call('schedule',{kind:'probe'});setMessage(r.message);}),
   button('我已看到自检输入和回复',async()=>{await call('confirm_probe');await refresh(false);setMessage('确认已保存。');}),
-  button('核对上次发送结果',()=>go('recovery')),note('发送自检为可选诊断，不需要测试或手动确认即可开启陪伴。真实输入测试不发送聊天，模拟在开发者选项。')
+  button('核对上次发送结果',()=>go('recovery')),note('发送自检为可选诊断。真实输入测试不发送聊天，模拟在开发者选项。')
  ])];
  else if(page==='recovery')content=[card('核对原聊天',[
   note('请先查看原聊天。结果不明时不自动重发。'),
@@ -220,7 +288,7 @@ async function Screen(ctx) {
   button('停止后台任务',stopTasks),
   ...(!['home','settings'].includes(page)?[button('返回设置',()=>go('settings'))]:[]),
   ...(message?[text(message)]:[]),...content,
-  note('常开依赖Operit后台运行。手机暂停时如实显示暂停，不把开关已开当作持续收到事件。')
+  note('常开依赖Operit后台运行。')
  ]);
 }
 exports.default=Screen;

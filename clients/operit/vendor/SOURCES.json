@@ -1,0 +1,37 @@
+[
+  {
+    "file": "jsQR.js",
+    "source": "https://github.com/cozmo/jsQR/blob/8e6a036beafa7053dd44b1b76ac578d22b1b3311/dist/jsQR.js",
+    "commit": "8e6a036beafa7053dd44b1b76ac578d22b1b3311",
+    "sha256": "3325b0888fa4745c4e6940897d8c4f426fbaae76901fcbfe1871a04e90a51655"
+  },
+  {
+    "file": "jsQR.LICENSE",
+    "source": "https://github.com/cozmo/jsQR/blob/8e6a036beafa7053dd44b1b76ac578d22b1b3311/LICENSE",
+    "commit": "8e6a036beafa7053dd44b1b76ac578d22b1b3311",
+    "sha256": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08"
+  },
+  {
+    "file": "qrcodegen.ts",
+    "source": "https://github.com/nayuki/QR-Code-generator/blob/3c6d0b3cefb4e049dc337e82237c9644399716a8/typescript-javascript/qrcodegen.ts",
+    "commit": "3c6d0b3cefb4e049dc337e82237c9644399716a8",
+    "sha256": "1dc03fb5a10e0e2318ea162755bbdb9977ca6ce52cff959e9c9b6deafdccda9c"
+  },
+  {
+    "file": "qrcodegen.js",
+    "source": "https://github.com/nayuki/QR-Code-generator/blob/3c6d0b3cefb4e049dc337e82237c9644399716a8/typescript-javascript/qrcodegen.ts",
+    "commit": "3c6d0b3cefb4e049dc337e82237c9644399716a8",
+    "sha256": "79f419f267ce5a80d97f8099e0a789a4ecc4697b5348d86371a1f3b2a75d6e03",
+    "derived_from": "qrcodegen.ts",
+    "compiler": "typescript@5.8.3",
+    "compiler_source": "https://registry.npmjs.org/typescript/-/typescript-5.8.3.tgz",
+    "command": "tsc qrcodegen.ts --target es2017 --outFile qrcodegen.js --removeComments false"
+  },
+  {
+    "file": "qrcodegen.LICENSE",
+    "source": "https://github.com/nayuki/QR-Code-generator/blob/3c6d0b3cefb4e049dc337e82237c9644399716a8/typescript-javascript/qrcodegen.ts",
+    "commit": "3c6d0b3cefb4e049dc337e82237c9644399716a8",
+    "sha256": "013bb580e895ea9ac7c2e56665b3fda772d45cadc36ede41daa369b13b0aa533",
+    "derived_from": "qrcodegen.ts"
+  }
+]

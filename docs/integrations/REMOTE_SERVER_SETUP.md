@@ -5,7 +5,9 @@
 
 适用于你自己的 Linux 服务器。首次选择方式可先看 [连接方式](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/start/MCP_TRANSPORT_DECISION.md)。电脑端的 Windows 启动程序和内置 Python 不需要上传到服务器。
 
-本页按 [2.24.1 预发布版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.24.1)编写，安装入口、Linux 包与 Operit 手机包使用同一发布版。2.21 旧一键安装器存在复制清单缺项，新部署应使用本页修复版；已有稳定部署的保留与升级边界见[稳定版校正版入口](../start/STABLE_2_21.md)。
+本页按 **2.25.0 本地候选**编写，安装入口、Linux 包与 Operit 手机包使用同批次候选，尚未上传 GitHub Release。新部署和升级都从新的完整候选包解压目录运行安装器；不要单独上传脚本，也不要调用已安装入口联网获取尚未发布的 2.25。
+
+公开最新预发布仍为[2.24.1](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.24.1)，使用已发布包时阅读其[固定版本教程](https://github.com/SunRichardSKT/ai-doll-mcp/blob/v2.24.1/docs/integrations/REMOTE_SERVER_SETUP.md)。2.21 旧一键安装器有复制清单缺项，保留与升级边界见[稳定版校正版入口](../start/STABLE_2_21.md)。
 
 整个流程是：**准备服务器和域名 → 运行安装入口 → 打开管理页面 → 手机连接娃娃 → 将 MCP 地址接入原聊天**。小型包同时包含接收服务和 MCP，原前端与 MCP 可以部署在同一台服务器。
 
@@ -21,20 +23,23 @@ Operit 用户部署后可直接在服务器管理页下载手机工具包与设�
 
 首次安装推荐使用没有其他网站的服务器。已有网站占用 80 / 443 时，按 [已有反向代理的部署说明](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/developers/DIRECT_SERVER.md)接入，安装入口不会停止其他网站。
 
-## 2. 在服务器运行安装入口
+## 2. 上传并运行本地候选包
 
-登录服务器，在 SSH 终端复制这两行：
+将本机 `delivery/AI_Doll_Server_v2.25.0.tar.gz` 与同目录的 `.sha256` 文件上传到服务器同一目录。在 SSH 终端校验、解压，然后运行**包内**入口：
 
 ```bash
-curl -fsSL https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.24.1/Install_Server.sh -o Install_Server.sh
+sha256sum -c AI_Doll_Server_v2.25.0.tar.gz.sha256
+mkdir ai-doll-server-2.25.0
+tar -xzf AI_Doll_Server_v2.25.0.tar.gz -C ai-doll-server-2.25.0
+cd ai-doll-server-2.25.0
 sudo bash Install_Server.sh
 ```
 
 按提示填写域名。也可以直接粘贴 `https://你的域名/`，默认 HTTPS 端口为 443。填错后会提示重新填写。
 
-接下来等待四步完成：环境检查、下载并校验代码、启动服务、验证 HTTPS。无需自行安装 Python、编辑 Docker 配置或申请证书。只有证书和本安装的管理接口都验证通过，才会显示部署成功。
+接下来等待环境检查、包内文件检查与安装、启动服务和 HTTPS 验证。无需自行安装 Python、编辑 Docker 配置或申请证书。只有证书和本安装的管理接口都验证通过，才会显示部署成功。
 
-如果服务器没有 `curl`，可在其他设备下载[本版 Install_Server.sh](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.24.1/Install_Server.sh)，上传后运行第二行；安装入口会准备缺少的下载工具。
+完整解压时保留 `src/`、`tools/`、`clients/`、`delivery/` 和 `deploy/`。孤立的安装脚本或已安装目录的入口会尝试从相应 Release 下载，候选尚未发布时不能使用这条路径。没有本地候选的用户可先使用已发布的 2.24.1 及其固定教程。
 
 ## 3. 打开管理页面
 
@@ -61,6 +66,10 @@ sudo ai-doll-server link
 
 服务器无法直接访问家中开发板的内网 IP，因此首次通过手机保存配置。之后 ESP32 主动上传，电脑无需常开，开发板可以独立供电。只有实际装好的端口才设为“已接入”；未安装的关闭，模拟测试另选一个端口，物理输出保持关闭。
 
+Operit 连接则从服务器管理页的对应设备取得：下载连接文件、复制连接码或显示临时二维码。手机导入后核对持久服务器实例标识、配对标识和已知设备身份；这些标识保存在服务器数据中，不随服务进程重启改变。二维码不需要贴在设备上，同一手机优先文件或连接码。设备家庭 IP 改变不需要修改手机的服务器连接。
+
+设备开启直传后由服务器路径归档；不要同时将手机直连当作主归档端。新固件的有限租约协调确认缓存，手机连接服务器查询其数据库；这与仅手机模式的“自动同步记录”开关不同。配套协议与兼容范围见 [离线记录](../daily/OFFLINE_RECORDS.md)。
+
 ## 5. 检查安装是否成功
 
 - 管理页可以打开。
@@ -84,9 +93,9 @@ MCP 和接收服务共用数据库，默认提供 19 个状态、历史与互动
 | 重启服务 | `sudo ai-doll-server restart` |
 | 停止 / 启动 | `sudo ai-doll-server stop` / `sudo ai-doll-server start` |
 | 查看错误日志 | `sudo ai-doll-server logs` |
-| 更新代码 | 从目标 Release 下载同版安装入口，再运行 `sudo bash Install_Server.sh` |
+| 更新到本地 2.25 候选 | 从新候选包解压目录运行 `sudo bash Install_Server.sh`，复用原目录和项目；不是运行已安装的更新入口 |
 
-默认目录为 `/opt/ai-doll-mcp`。更新会复用域名、管理连接、设备绑定和历史。应用及证书使用持久数据卷；新安装的 Docker 启用开机启动，容器随引擎恢复。已有 Docker 需确认其开机启动设置。不要用 `docker compose down -v` 更新，因为它会删除数据卷。
+默认目录为 `/opt/ai-doll-mcp`。更新会复用域名、管理连接、设备绑定、持久实例标识和历史。已有自定义目录／项目时必须传入原来的 `--install-dir` 与 `--project`，不另建空数据卷。应用及证书使用持久数据卷；新安装的 Docker 启用开机启动，容器随引擎恢复。已有 Docker 需确认其开机启动设置。不要用 `docker compose down -v` 更新，因为它会删除数据卷。
 
 ## 安装卡住时
 
@@ -112,17 +121,14 @@ sudo bash Install_Server.sh --domain doll.your-domain.com
 sudo bash Install_Server.sh --domain doll.your-domain.com --dry-run
 ```
 
-也可从 [2.24.1 Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.24.1)下载 `AI_Doll_Server_v2.24.1.tar.gz` 与对应 `.sha256`，上传到服务器同一目录。校验值使用该 Release 的文件，不能拿其他版本或滚动主分支清单代替：
+已有手工 Compose 部署可在**新候选包解压目录**中指定原目录／项目；先核对其确为本项目：
 
 ```bash
-sha256sum -c AI_Doll_Server_v2.24.1.tar.gz.sha256
-mkdir ai-doll-server
-tar -xzf AI_Doll_Server_v2.24.1.tar.gz -C ai-doll-server
-sudo bash ai-doll-server/Install_Server.sh
+sudo bash Install_Server.sh --install-dir /原安装绝对目录 --project 原项目名
 ```
 
-小型包仅包含 Linux 服务代码、配置和指南，运行依赖由容器准备，不需要 Windows 完整包或 PCB 文件。
+小型包包含 Linux 服务代码、共享核心、手机工具包、二维码资源及必要指南，运行依赖由容器准备，不需要 Windows 完整包或 PCB 文件。候选使用同批次本地校验文件；已发布版本使用其固定 Release 校验，不混用版本或滚动主分支清单。
 
-已有手工 Compose 部署可使用 `--install-dir 原绝对目录 --project 原项目名`，经核对后复用原数据卷。其他 Linux 发行版需要先准备 Docker Engine 与 Compose，再运行安装入口。
+其他 Linux 发行版需要先准备 Docker Engine 与 Compose，再运行安装入口。
 
-安装使用 [Docker 官方 Ubuntu](https://docs.docker.com/engine/install/ubuntu/) / [Debian](https://docs.docker.com/engine/install/debian/)软件源和 [Caddy 自动 HTTPS](https://caddyserver.com/docs/automatic-https)。已完成本机隔离 Linux 环境的安装与设备上传验证；实际公网服务器、DNS 和公网证书需在你的服务器上验证。见 [验收范围](../reports/SIMPLE_SETUP_ACCEPTANCE.md)。
+安装使用 [Docker 官方 Ubuntu](https://docs.docker.com/engine/install/ubuntu/) / [Debian](https://docs.docker.com/engine/install/debian/)软件源和 [Caddy 自动 HTTPS](https://caddyserver.com/docs/automatic-https)。历史版本的隔离 Linux 安装与设备上传证据见 [旧验收范围](../reports/SIMPLE_SETUP_ACCEPTANCE.md)；本版软件与打包检查见 [2.25 候选报告](../reports/RELEASE_2_25.md)。这些结果不能替代当前公网服务器、DNS、证书或目标手机验收。

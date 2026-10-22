@@ -124,6 +124,9 @@ class OfflineArchiveTests(unittest.TestCase):
         def exchange(command):
             nonlocal first
             calls.append(command['cmd'])
+            if command['cmd']=='status':return {'archive_lease_supported':True,'boot_id':'new'}
+            if command['cmd']=='rpc':return {'jsonrpc':'2.0','id':1,'result':{'isError':False,
+                'content':[{'type':'text','text':json.dumps({'lease_id':'ab'*16,'boot_id':'new','expires_in_sec':90})}]}}
             if command['cmd']=='events':return incoming
             if command['cmd']=='ack_events':
                 # Independent database connection proves the transaction is committed.

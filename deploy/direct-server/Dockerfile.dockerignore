@@ -4,6 +4,10 @@
 !tools/**
 !src/
 !src/**
+!clients/
+!clients/operit/
+!clients/operit/vendor/
+!clients/operit/vendor/**
 !delivery/
 !delivery/AI_Doll_Operit.toolpkg
 tools/__pycache__/

@@ -78,6 +78,14 @@ class Companion:
         self.stop = threading.Event()
         self.sync_lock = threading.Lock()
         self.last_clock_sync = 0
+        self.archive_collector_id = self.setting('archive_collector_id')
+        if not self.archive_collector_id:
+            self.archive_collector_id = 'computer_'+uuid.uuid4().hex
+            self.set_setting('archive_collector_id', self.archive_collector_id)
+        self.archive_lease_id = None
+        self.archive_lease_boot = None
+        self.archive_lease_renew_at = 0
+        self.archive_mode = 'not_checked'
         self.bridge = EventBridge(self)
         from history_management import HistoryManager
         self.history_manager=HistoryManager(self)
@@ -128,6 +136,7 @@ class Companion:
 
     def archive_metadata(self):
         return dict(history_source='computer_sqlite', last_sync=self.last_sync, collector_error=self.error,
+                    archive_mode=self.archive_mode,
                     device_id=self.setting('collector_last_device') or None,
                     sync_age_sec=max(0, utcnow()-self.last_sync) if self.last_sync is not None else None)
 
@@ -274,7 +283,9 @@ class Companion:
                 status = self.exchange({'cmd': 'status'})
             self.last_device_status = (utcnow(), status)
             if status.get('remote_server', {}).get('enabled'):
+                self.release_archive()
                 raise ConnectionError('Device direct upload is enabled; disable it before using the computer collector')
+            lease = self.ensure_archive_lease(status)
             # Persist each page before advancing the cursor, so reconnects cannot duplicate history.
             with self.lock:
                 row = self.db.execute('SELECT * FROM boots WHERE boot=? ORDER BY offset DESC LIMIT 1',
@@ -283,17 +294,19 @@ class Companion:
             boot, after = (row['boot'], row['cursor']) if row else ('', 0)
             for _ in range(8):
                 with self.device_connection():
-                    batch = self.exchange({'cmd': 'events', 'boot_id': boot, 'after': after})
+                    batch = self.exchange(dict(cmd='events', boot_id=boot, after=after,
+                                               **({'archive_lease_id': lease} if lease else {})))
                 if 'events' not in batch:
                     raise ValueError('Expected an event page; received fields: '+','.join(sorted(batch)))
                 received=utcnow()
                 self.ingest(batch,received)
                 storage=batch.get('event_storage',{})
-                if storage.get('available') and batch.get('storage_cursor'):
+                if storage.get('available') and batch.get('storage_cursor') and lease:
                     # Commit has completed above. A lost ACK only causes deduplicated replay.
                     with self.device_connection():
                         ack=self.exchange(dict(cmd='ack_events',boot_id=batch['boot_id'],
-                            storage_epoch=storage['storage_epoch'],storage_cursor=batch['storage_cursor']))
+                            storage_epoch=storage['storage_epoch'],storage_cursor=batch['storage_cursor'],
+                            **({'archive_lease_id': lease} if lease else {})))
                     if ack.get('error'):raise ValueError('Persistent event acknowledgement failed')
                 if storage and (not storage.get('clock_synced') or time.monotonic()-self.last_clock_sync>60):
                     clock=storage.get('device_time_ms',0)
@@ -303,10 +316,63 @@ class Companion:
                         if timed.get('error'):raise ValueError('Device clock synchronization failed')
                     self.last_clock_sync=time.monotonic()
                 boot, after = batch['boot_id'], batch['next_cursor']
+                if storage.get('available') and batch.get('persistent_events') and not lease:
+                    # Legacy Flash has no independent page-offset argument. With
+                    # no ACK it keeps returning its first page, so read RAM
+                    # separately rather than letting that page starve live input.
+                    live = self.device('get_touch_events', {'boot_id': boot, 'after': after,
+                                                          'include_persistent': False})
+                    if 'events' not in live:
+                        raise ValueError('Expected a legacy real-time event page')
+                    self.ingest(live, utcnow())
+                    break
                 if after >= batch['latest_seq'] and not batch.get('storage_has_more'):
                     break
 
+    def ensure_archive_lease(self, status):
+        """Old firmware is copy-only; new devices require ownership before ACK."""
+        if not (status.get('archive_lease_supported') or
+                status.get('event_storage', {}).get('archive_lease_supported')):
+            self.archive_lease_id = self.archive_lease_boot = None
+            self.archive_mode = 'legacy_copy_only'
+            return None
+        self.archive_mode = 'lease'
+        boot = status.get('boot_id')
+        if not isinstance(boot, str) or not boot:
+            raise ValueError('Archive lease requires current device boot identity')
+        if self.archive_lease_id and self.archive_lease_boot == boot and time.monotonic() < self.archive_lease_renew_at:
+            return self.archive_lease_id
+        existing = self.archive_lease_id if self.archive_lease_boot == boot else None
+        # Clear before a request that may fail: an expired/revoked lease cannot be
+        # attached to another event read or ACK after a failed renewal.
+        self.archive_lease_id = None
+        lease = self.device('renew_archive_lease', {'lease_id': existing}) if existing else self.device(
+            'acquire_archive_lease', {'collector_id': self.archive_collector_id, 'collector_kind': 'computer'})
+        if (lease.get('boot_id') != boot or not isinstance(lease.get('lease_id'), str) or
+                not re.fullmatch('[0-9a-f]{32}', lease['lease_id'])):
+            raise ValueError('Device did not confirm archive ownership')
+        self.archive_lease_id, self.archive_lease_boot = lease['lease_id'], boot
+        self.archive_lease_renew_at = time.monotonic()+30
+        return self.archive_lease_id
+
+    def release_archive(self):
+        lease, self.archive_lease_id = self.archive_lease_id, None
+        self.archive_lease_boot, self.archive_lease_renew_at = None, 0
+        if lease:
+            try:
+                self.device('release_archive_lease', {'lease_id': lease})
+            except (ValueError, OSError, KeyError, TimeoutError):
+                # Best effort on shutdown; the device also expires this volatile
+                # lease after 90 seconds, without changing any archived records.
+                pass
+
     def collect(self):
+        try:
+            self._collect()
+        finally:
+            self.release_archive()
+
+    def _collect(self):
         while not self.stop.is_set():
             try:
                 self.sync()

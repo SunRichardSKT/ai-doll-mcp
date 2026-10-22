@@ -163,7 +163,7 @@ class CompanionExperience:
             entries = [dict(url='http://127.0.0.1:8768/companion#'+section, scope='computer',
                             access='只能在运行软件的电脑打开；手机上的127.0.0.1不是这台电脑。')]
         return dict(section=section, entries=entries, browser_opened=False,
-                    hotspot=dict(url='http://192.168.4.1/', access='先连接当前设备热点，再打开；不是家庭局域网地址。'))
+                    hotspot=dict(url='http://192.168.4.1/', access='先连接当前设备热点，再打开；'))
 
     def overview(self):
         provider = getattr(self.c, 'experience_status_provider', None)

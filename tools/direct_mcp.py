@@ -76,7 +76,9 @@ def create_mcp(app, profile='interaction', port=8782):
                     result = c.call(mapped, dict(arguments))
                 result = dict(result)
                 if name == 'get_installation_status':
-                    result.update(c.archive_metadata(), mcp_profile=profile, exposed_tool_count=len(names))
+                    result.update(c.archive_metadata(), mcp_profile=profile, exposed_tool_count=len(names),
+                                  server_instance_id=app.server_instance_id, pairing_id=device.id,
+                                  expected_device_id=device.snapshot().get('status', {}).get('device_id'))
                 if name in ('get_channel_config', 'get_channel_capabilities'):
                     result['configuration_source'] = 'server_sqlite'
                 result['verification'] = dict(run_id=run_id, call_id=uuid.uuid4().hex,

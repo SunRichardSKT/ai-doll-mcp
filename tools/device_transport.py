@@ -222,10 +222,16 @@ class WifiLink:
             if cmd == 'status':
                 return self._tool('doll_get_status', {})
             if cmd == 'events':
-                return self._tool('get_touch_events', {'boot_id': command.get('boot_id', ''),
-                                                       'after': command.get('after', 0), 'include_persistent':True})
+                arguments = {'boot_id': command.get('boot_id', ''),
+                             'after': command.get('after', 0), 'include_persistent':True}
+                if command.get('archive_lease_id'):
+                    arguments['archive_lease_id'] = command['archive_lease_id']
+                return self._tool('get_touch_events', arguments)
             if cmd == 'ack_events':
-                return self._tool('acknowledge_events', {k:command.get(k) for k in ('boot_id','storage_epoch','storage_cursor')})
+                arguments = {k:command.get(k) for k in ('boot_id','storage_epoch','storage_cursor')}
+                if command.get('archive_lease_id'):
+                    arguments['archive_lease_id'] = command['archive_lease_id']
+                return self._tool('acknowledge_events', arguments)
             if cmd == 'sync_time':
                 return self._tool('set_device_time', {k:command.get(k) for k in ('boot_id','unix_time_ms')})
             if cmd == 'rpc':

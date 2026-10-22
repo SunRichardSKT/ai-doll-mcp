@@ -64,7 +64,7 @@ class PushCompanion(Companion):
         self.exchange({'cmd': 'status'})
 
     def archive_metadata(self):
-        result = dict(super().archive_metadata(), history_source='server_sqlite', transport='device_push')
+        result = dict(super().archive_metadata(), history_source='server_sqlite', transport='device_push', archive_mode='device_push')
         if self.last_sync is None:
             result['collector_error'] = 'waiting_for_device'
         elif time.time()-self.last_sync >= 15:
@@ -218,7 +218,12 @@ class DirectServer:
         if 'mcp_token' not in config:
             config['mcp_token'] = secrets.token_hex(32)
             write_json(config_file, config)
+        if 'server_instance_id' not in config:
+            config['server_instance_id'] = secrets.token_hex(16)
+            write_json(config_file, config)
         self.admin_token = config['admin_token']
+        # Stable across service restarts and public URL changes; never a run_id.
+        self.server_instance_id = config['server_instance_id']
         self.mcp_token = config['mcp_token']
         self.mcp_info = {'enabled': False}
         self.lock = threading.RLock()
@@ -292,8 +297,11 @@ class DirectServer:
             raise ValueError('请先配置手机能访问的服务器 HTTPS 地址，再导出 Operit 连接')
         with self.lock:
             label = self.db.execute('SELECT label FROM devices WHERE id=?', (ident,)).fetchone()['label']
+            hardware_id = self.db.execute('SELECT hardware_id FROM devices WHERE id=?', (ident,)).fetchone()['hardware_id']
         return dict(schema=1, kind='ai-doll-operit-connection', mode='server',
-                    label=label, mcp_url=self.mcp_connection(ident))
+                    label=label, mcp_url=self.mcp_connection(ident),
+                    server_instance_id=self.server_instance_id, pairing_id=ident,
+                    expected_device_id=hardware_id or None)
 
     def close(self):
         self.stop.set()
@@ -410,6 +418,13 @@ def handler_for(app):
 
         def do_GET(self):
             parsed = urlsplit(self.path)
+            if parsed.path == '/pairing.js':
+                folder = Path(__file__).resolve().parents[1]
+                generator = folder/'clients/operit/vendor/qrcodegen.js'
+                raw = generator.read_bytes() + b'\n' + Path(__file__).with_name('pairing_connection.js').read_bytes()
+                self.begin_response(200, 'application/javascript; charset=utf-8', len(raw))
+                self.end_headers(); self.wfile.write(raw)
+                return
             if parsed.path == '/healthz':
                 ready = not app.mcp_info['enabled'] or app.mcp_thread.is_alive()
                 return self.send(200 if ready else 503, {'ready': ready, 'mode': 'device_push', 'mcp_enabled': app.mcp_info['enabled']})

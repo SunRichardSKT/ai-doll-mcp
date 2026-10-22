@@ -28,21 +28,31 @@ async function write(name, value) {
   const result=await Tools.Files.write(path(name),JSON.stringify(value),false,'android');
   if (result.successful !== true) throw Error('设置未保存，请检查文件权限；不会继续发送。');
 }
+async function checkedWrite(name,value){
+  await write(name,value);
+  if(JSON.stringify(await read(name))!==JSON.stringify(value))throw Error('归档写入校验失败，设备副本尚未确认。');
+}
+async function listNames(prefix=''){
+  const listing=await Tools.Files.list(folder(),'android');
+  if(!Array.isArray(listing.entries))throw Error('无法读取归档目录，设备副本尚未确认。');
+  return listing.entries.filter(e=>!e.isDirectory&&typeof e.name==='string'&&e.name.startsWith(prefix)&&/^[a-zA-Z0-9_-]+\.json$/.test(e.name)).map(e=>e.name);
+}
 function id() { return Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,12); }
 async function config() {
   const saved=await read('settings.json');
   if (saved) {
     if (saved.schema!==1 || typeof saved.installation!=='string' || !saved.workflows)
       throw Error('配置版本无法识别，原文件保留。请导出诊断后更新工具包。');
-    return saved;
+    return {...saved,auto_sync_enabled:saved.auto_sync_enabled??false,sync_paused:saved.sync_paused??false};
   }
   const value={schema:1,installation:id(),connection:null,chat:null,binding:null,
-    workflows:{},duration_sec:60,response_wait_sec:1,continuous:false,continuous_enabled:false,background_verified:false};
+    workflows:{},duration_sec:60,response_wait_sec:1,continuous:false,continuous_enabled:false,background_verified:false,
+    auto_sync_enabled:false,sync_paused:false};
   await write('settings.json',value);
   return value;
 }
 function parameters(cfg) {
-  if (!cfg.connection || !cfg.chat || !cfg.binding) throw Error('请先导入电脑连接，并绑定已有聊天。');
+  if (!cfg.connection || !cfg.chat || !cfg.binding) throw Error('请先连接娃娃，并选择已有聊天。');
   return {mcp_url:cfg.connection.mcp_url,connection:cfg.connection,chat_id:cfg.chat.id,
     state_path:path('delivery_'+cfg.binding+'.json'),workflow_confirmed:true,duration_sec:cfg.duration_sec,
     response_wait_sec:cfg.response_wait_sec??1};
@@ -53,7 +63,15 @@ function validateConnection(value) {
     throw Error('请选择管理中心导出的 AI Doll 连接 JSON，不是工作流或诊断文件。');
   // Do not import paths, chat IDs, model credentials, workflow instructions or outputs.
   return {schema:1,kind:value.kind,mcp_url:value.mcp_url,
-    mode:['simulation','server'].includes(value.mode)?value.mode:'device',label:String(value.label||'AI Doll').slice(0,80)};
+    mode:['simulation','server'].includes(value.mode)?value.mode:'device',label:String(value.label||'AI Doll').slice(0,80),
+    ...Object.fromEntries(['server_instance_id','pairing_id','expected_device_id'].filter(k=>typeof value[k]==='string').map(k=>[k,value[k]]))};
+}
+function sameConnection(a,b){
+  if(!a||!b||a.kind!==b.kind)return false;
+  if(a.kind==='ai-doll-device-connection')return a.device_id===b.device_id;
+  if(a.mode==='server'&&b.mode==='server'&&a.server_instance_id&&a.pairing_id)
+    return a.server_instance_id===b.server_instance_id&&a.pairing_id===b.pairing_id;
+  return a.mcp_url===b.mcp_url||sameComputer(a.mcp_url,b);
 }
 function computerEndpoint(url) {
   return typeof url==='string'?url.match(/^(https?:\/\/)([^/:]+)(:\d+)?(\/[0-9a-f]{64}\/mcp)$/):null;
@@ -88,3 +106,4 @@ exports.id=id; exports.parameters=parameters; exports.validateConnection=validat
 exports.noRunningJob=noRunningJob;
 exports.replaceComputerIP=replaceComputerIP;
 exports.sameComputer=sameComputer;
+exports.sameConnection=sameConnection;exports.checkedWrite=checkedWrite;exports.listNames=listNames;exports.folder=folder;

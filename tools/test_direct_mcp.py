@@ -45,6 +45,8 @@ class DirectMCPTests(unittest.IsolatedAsyncioTestCase):
                 names = {tool.name for tool in (await session.list_tools()).tools}
                 self.assertEqual(names, set(PROFILES['interaction']))
                 a = await self.call(session, 'get_installation_status')
+                self.assertEqual(a['server_instance_id'], self.app.server_instance_id)
+                self.assertEqual(a['pairing_id'], self.pair['id'])
                 b = await self.call(session, 'doll_get_status')
                 self.assertNotEqual(a['verification']['call_id'], b['verification']['call_id'])
                 self.assertTrue(b['online'])

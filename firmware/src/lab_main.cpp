@@ -19,7 +19,7 @@ static int pressChannel=-1, pressValue=0, lastWifi=-1;
 static constexpr int LED_PIN=8; // Common SuperMini blue LED, active low.
 static bool scanBusy=false;
 static uint32_t scanStartedAt=0;
-static const char* VERSION="doll-lab-2.12.1";
+static const char* VERSION="doll-lab-2.13.0";
 static const char* PROTOCOL="2025-11-25";
 
 static String encode(const JsonDocument &d){String s;serializeJson(d,s);return s;}
@@ -51,6 +51,7 @@ static void status(JsonObject o){
  o["ip"]=WiFi.localIP().toString();o["ap_ip"]=WiFi.softAPIP().toString();o["ap_ssid"]=deviceName;
  o["hostname"]=deviceHostname()+".local";o["mdns_active"]=mdnsActive;
  o["mcp_enabled"]=mcpEnabled;o["mcp_path"]="/mcp";o["protocol_version"]=PROTOCOL;
+ o["archive_lease_supported"]=true;
  o["discovery_protocol"]=DISCOVERY_PROTOCOL;o["discovery_port"]=DISCOVERY_PORT;o["discovery_active"]=discoveryActive;
  eventStorageStatus(o["event_storage"].to<JsonObject>());
  remoteStatus(o["remote_server"].to<JsonObject>());
@@ -131,6 +132,7 @@ static JsonDocument rpc(const JsonDocument &in){
   et["inputSchema"]["properties"]["include_persistent"]["type"]="boolean";
   et["inputSchema"]["properties"]["after"]["type"]="integer";et["inputSchema"]["properties"]["after"]["minimum"]=0;
   et["inputSchema"]["properties"]["boot_id"]["type"]="string";
+  et["inputSchema"]["properties"]["archive_lease_id"]["type"]="string";
   add("doll_get_status","Read device Wi-Fi, uptime, LED and simulated pressure state.");
   JsonObject t=add("doll_simulate_press","Inject a simulated FSR press; does not read a physical sensor. Auto releases after five seconds.");
   t["inputSchema"]["properties"]["channel"]["type"]="integer";t["inputSchema"]["properties"]["channel"]["minimum"]=0;t["inputSchema"]["properties"]["channel"]["maximum"]=MAX_CHANNELS-1;
@@ -139,16 +141,28 @@ static JsonDocument rpc(const JsonDocument &in){
   t=add("doll_set_led","Set the SuperMini active-low GPIO8 LED for a visible hardware test.");t["inputSchema"]["properties"]["on"]["type"]="boolean";t["inputSchema"]["required"].to<JsonArray>().add("on");
   addChannelTools(tools);
   add("get_event_storage_status","Read bounded flash backlog, loss counters and clock quality; no event contents.");
+  t=add("acquire_archive_lease","Internal collector operation: acquire or recover a 90-second archive lease. Does not change sensor settings.");
+  t["inputSchema"]["properties"]["collector_id"]["type"]="string";
+  t["inputSchema"]["properties"]["collector_kind"]["type"]="string";
+  JsonArray kinds=t["inputSchema"]["properties"]["collector_kind"]["enum"].to<JsonArray>();kinds.add("phone");kinds.add("computer");kinds.add("server");
+  JsonArray leaseRequired=t["inputSchema"]["required"].to<JsonArray>();leaseRequired.add("collector_id");leaseRequired.add("collector_kind");
+  t["annotations"]["readOnlyHint"]=false;
+  for(const char* name:{"renew_archive_lease","release_archive_lease"}){
+   t=add(name,"Internal collector operation: renew or release the matching archive lease.");
+   t["inputSchema"]["properties"]["lease_id"]["type"]="string";t["inputSchema"]["required"].to<JsonArray>().add("lease_id");
+   t["annotations"]["readOnlyHint"]=false;
+  }
   t=add("acknowledge_events","Internal collector operation: acknowledge only AFTER durable database commit. Never replay output commands.");
   t["inputSchema"]["properties"]["storage_cursor"]["type"]="integer";
   t["inputSchema"]["properties"]["storage_epoch"]["type"]="string";t["inputSchema"]["properties"]["boot_id"]["type"]="string";
-  JsonArray required=t["inputSchema"]["required"].to<JsonArray>();required.add("storage_cursor");required.add("storage_epoch");required.add("boot_id");
+  t["inputSchema"]["properties"]["archive_lease_id"]["type"]="string";
+  JsonArray required=t["inputSchema"]["required"].to<JsonArray>();required.add("storage_cursor");required.add("storage_epoch");required.add("boot_id");required.add("archive_lease_id");
   t=add("set_device_time","Internal collector operation: synchronize device clock from authenticated computer UTC time. Old events remain unchanged.");
   t["inputSchema"]["properties"]["unix_time_ms"]["type"]="integer";t["inputSchema"]["properties"]["boot_id"]["type"]="string";
   required=t["inputSchema"]["required"].to<JsonArray>();required.add("unix_time_ms");required.add("boot_id");
  }else if(method=="tools/call"){
   String name=in["params"]["name"]|"";JsonVariantConst a=in["params"]["arguments"];JsonDocument data;
-  if((otaActive||otaCommitted)&&!(name.startsWith("get_")||name=="doll_get_status"||name=="read_channel_values"||name=="acknowledge_events"||name=="set_device_time")){
+  if((otaActive||otaCommitted)&&!(name.startsWith("get_")||name=="doll_get_status"||name=="read_channel_values"||name=="acknowledge_events"||name=="set_device_time"||name=="acquire_archive_lease"||name=="renew_archive_lease"||name=="release_archive_lease")){
    rpcError(out,-32602,"Upgrade in progress; channel changes and simulation paused");return out;
   }
   if(name=="get_channel_capabilities"){channelCapabilities(data.to<JsonObject>());}
@@ -172,10 +186,15 @@ static JsonDocument rpc(const JsonDocument &in){
   else if(name=="get_body_map"){bodyMap(data.to<JsonObject>());}
   else if(name=="set_body_map"){String error;if(!saveBodyMap(a,error)){rpcError(out,-32602,error.c_str());return out;}bodyMap(data.to<JsonObject>());}
   else if(name=="get_touch_events"){
-   if((!a["after"].isNull()&&!a["after"].is<uint32_t>())||(!a["include_persistent"].isNull()&&!a["include_persistent"].is<bool>())){rpcError(out,-32602,"after nonnegative integer; include_persistent boolean");return out;}
-   touchRead(data.to<JsonObject>(),a["after"]|0U,a["boot_id"]|"",a["include_persistent"]|false);
+   if((!a["after"].isNull()&&!a["after"].is<uint32_t>())||(!a["include_persistent"].isNull()&&!a["include_persistent"].is<bool>())||(!a["archive_lease_id"].isNull()&&!a["archive_lease_id"].is<String>())){rpcError(out,-32602,"after nonnegative integer; include_persistent boolean; archive_lease_id string");return out;}
+   String lease=a["archive_lease_id"]|"";
+   if(!lease.isEmpty()&&!archiveLease.matches(lease.c_str(),touchNow())){rpcError(out,-32602,"Archive lease expired or belongs to another collector");return out;}
+   touchRead(data.to<JsonObject>(),a["after"]|0U,a["boot_id"]|"",a["include_persistent"]|false,lease);
   }
   else if(name=="get_event_storage_status"){eventStorageStatus(data.to<JsonObject>());}
+  else if(name=="acquire_archive_lease"){String error;if(!acquireArchiveLease(a,data.to<JsonObject>(),error)){rpcError(out,-32602,error.c_str());return out;}}
+  else if(name=="renew_archive_lease"){String error;if(!renewArchiveLease(a,data.to<JsonObject>(),error)){rpcError(out,-32602,error.c_str());return out;}}
+  else if(name=="release_archive_lease"){String error;if(!releaseArchiveLease(a,data.to<JsonObject>(),error)){rpcError(out,-32602,error.c_str());return out;}}
   else if(name=="acknowledge_events"){String error;if(!acknowledgeStoredEvents(a,error)){rpcError(out,-32602,error.c_str());return out;}eventStorageStatus(data.to<JsonObject>());}
   else if(name=="set_device_time"){String error;if(!syncDeviceClock(a,error)){rpcError(out,-32602,error.c_str());return out;}eventStorageStatus(data.to<JsonObject>());}
   else if(name=="doll_get_status"){status(data.to<JsonObject>());}
@@ -198,6 +217,7 @@ static void sendJson(int code,const JsonDocument &d){web.sendHeader("Cache-Contr
 #include "device_page_asset.h"
 #include "channel_editor_asset.h"
 #include "ota_manager_asset.h"
+#include "pairing_asset.h"
 
 static void serialCommand(const String &line){
  JsonDocument in,out;if(deserializeJson(in,line)){out["error"]="invalid JSON";serialJson(out);return;}
@@ -206,7 +226,7 @@ static void serialCommand(const String &line){
   out["error"]="Upgrade in progress";if(in["serial_request_id"].is<String>())out["serial_request_id"]=in["serial_request_id"];serialJson(out);return;
  }
  if(cmd=="status")status(out.to<JsonObject>());
- else if(cmd=="events")touchRead(out.to<JsonObject>(),in["after"]|0U,in["boot_id"]|"",true);
+ else if(cmd=="events")touchRead(out.to<JsonObject>(),in["after"]|0U,in["boot_id"]|"",true,in["archive_lease_id"]|"");
  else if(cmd=="ack_events"){String error;out["ok"]=acknowledgeStoredEvents(in.as<JsonVariantConst>(),error);if(error.length())out["error"]=error;}
  else if(cmd=="sync_time"){String error;out["ok"]=syncDeviceClock(in.as<JsonVariantConst>(),error);if(error.length())out["error"]=error;}
  else if(cmd=="setup_mode"){openConfigAP(NetworkMode::SETUP);out["ok"]=true;}
@@ -265,6 +285,7 @@ void setup(){
  web.on("/",HTTP_GET,[]{if(admin()){web.sendHeader("Content-Encoding","gzip");web.send_P(200,"text/html; charset=utf-8",(const char*)DEVICE_PAGE_GZIP,sizeof(DEVICE_PAGE_GZIP));}});
  web.on("/channel-editor.js",HTTP_GET,[]{if(admin()){web.sendHeader("Content-Encoding","gzip");web.send_P(200,"application/javascript; charset=utf-8",(const char*)CHANNEL_EDITOR_GZIP,sizeof(CHANNEL_EDITOR_GZIP));}});
  web.on("/ota-manager.js",HTTP_GET,[]{if(admin()){web.sendHeader("Content-Encoding","gzip");web.send_P(200,"application/javascript; charset=utf-8",(const char*)OTA_MANAGER_GZIP,sizeof(OTA_MANAGER_GZIP));}});
+ web.on("/pairing.js",HTTP_GET,[]{if(admin()){web.sendHeader("Content-Encoding","gzip");web.send_P(200,"application/javascript; charset=utf-8",(const char*)PAIRING_GZIP,sizeof(PAIRING_GZIP));}});
  web.on("/api/setup",HTTP_GET,[]{if(!admin())return;JsonDocument d;d["token"]=token;d["enabled"]=mcpEnabled;d["auth_enabled"]=adminAuthEnabled;d["admin_user"]=adminUser;d["password_set"]=adminPasswordSet;d["network_mode"]=networkModeName();sendJson(200,d);});
  web.on("/api/security",HTTP_POST,[]{
   if(!admin())return;

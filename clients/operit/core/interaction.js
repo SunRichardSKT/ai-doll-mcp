@@ -29,16 +29,18 @@ async function load(p) {
       throw Error('状态文件的父目录不存在或无法访问，请先在手机文件管理器创建并授权该目录');
     return {schema:1, chat_id:p.chat_id, mcp_url:p.mcp_url, pending:null, session_id:null,
       ...(p.connection?.kind==='ai-doll-device-connection'?{
-        connection_device_id:p.connection.device_id,connection_storage_key:p.connection.storage_key}:{})};
+        connection_device_id:p.connection.device_id,connection_storage_key:p.connection.storage_key}:{}),
+      ...(p.connection?.server_instance_id?{server_instance_id:p.connection.server_instance_id,pairing_id:p.connection.pairing_id}:{})};
   }
   const file = await Tools.Files.read({path:p.state_path, environment:'android'});
   const value = JSON.parse(file.content);
   const samePhone=p.connection?.kind==='ai-doll-device-connection'&&
     value.connection_device_id===p.connection.device_id&&value.connection_storage_key===p.connection.storage_key;
   const movedComputer=require('./settings.js').sameComputer(value.mcp_url,p.connection);
-  if (value.schema !== 1 || value.chat_id !== p.chat_id || (value.mcp_url !== p.mcp_url&&!samePhone&&!movedComputer))
+  const sameServer=value.server_instance_id&&value.server_instance_id===p.connection?.server_instance_id&&value.pairing_id===p.connection.pairing_id;
+  if (value.schema !== 1 || value.chat_id !== p.chat_id || (value.mcp_url !== p.mcp_url&&!samePhone&&!movedComputer&&!sameServer))
     throw Error('State belongs to another chat/connection; use a different path');
-  return {...value,mcp_url:p.mcp_url};
+  return {...value,mcp_url:p.mcp_url,...(p.connection?.server_instance_id?{server_instance_id:p.connection.server_instance_id,pairing_id:p.connection.pairing_id}:{})};
 }
 
 async function save(p, state) {
@@ -229,7 +231,8 @@ async function listen_interaction(p) {
   } catch (error) {
     // Keep a known queue and owned lease over a transient read/ACK failure.
     // An ambiguous model send still blocks automatic retry through its journal.
-    if(p.continuous===true&&!cancelled&&session?.deadline>Date.now()/1000+(state?.server_clock_offset||0)&&report.state!=='disabled')report.state='continued';
+    if(p.continuous===true&&!cancelled&&session?.deadline>Date.now()/1000+(state?.server_clock_offset||0)&&report.state!=='disabled'&&
+      (require('./recovery.js').retryable(error)||stage==='main_chat_send'))report.state='continued';
     const recovery=stage==='main_chat_send'?
       '。发送结果可能不完整，请先核对原聊天；不要删除状态文件或自动重试。可由用户选择 reconcile_delivery 的 delivered / not_sent / discard。':'';
     throw Error('AI Doll ['+stage+']: '+(error?.message || String(error))+recovery);

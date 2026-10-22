@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 @unittest.skipUnless(os.name == 'nt', 'Windows portable distribution')
 class PortableRuntimeTests(unittest.TestCase):
     def test_clean_package_without_system_python(self):
-        package = ROOT / 'delivery/AI_Doll_Code_v2.24.1.zip'
+        package = ROOT / 'delivery/AI_Doll_Code_v2.25.0.zip'
         with tempfile.TemporaryDirectory(prefix='AI Doll 中文 ') as temp:
             root = Path(temp)
             with zipfile.ZipFile(package) as archive:
@@ -52,7 +52,7 @@ class PortableRuntimeTests(unittest.TestCase):
                         if time.monotonic() >= deadline: raise
                         time.sleep(.3)
                 self.assertTrue(state['environment_ready'])
-                self.assertEqual(state['version'], '2.24.1')
+                self.assertEqual(state['version'], '2.25.0')
                 self.assertIn('operit', state)
                 self.assertTrue((root/'src/ai_doll/core/interaction_bridge.py').is_file())
                 self.assertTrue((root/'delivery/AI_Doll_Operit.toolpkg').is_file())

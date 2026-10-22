@@ -100,6 +100,17 @@ class TransportTests(unittest.TestCase):
         self.assertEqual(result['id'],99)
         self.assertFalse(result['result']['isError'])
 
+    def test_archive_lease_reaches_persistent_read_and_ack(self):
+        lease = 'ab'*16
+        self.link.exchange({'cmd':'events','boot_id':self.boot,'after':7,'archive_lease_id':lease})
+        self.assertEqual(self.frames[-1][1]['params']['arguments'],
+                         {'boot_id':self.boot,'after':7,'include_persistent':True,'archive_lease_id':lease})
+        self.link.exchange({'cmd':'ack_events','boot_id':self.boot,'storage_epoch':'cd'*16,
+                            'storage_cursor':24,'archive_lease_id':lease})
+        self.assertEqual(self.frames[-1][1]['params']['name'],'acknowledge_events')
+        self.assertEqual(self.frames[-1][1]['params']['arguments'],
+                         {'boot_id':self.boot,'storage_epoch':'cd'*16,'storage_cursor':24,'archive_lease_id':lease})
+
     def test_reconnect_and_archive_dedup(self):
         event = {'seq':1,'phase':'start','uptime_ms':1000,'touch_id':'one-1','channel':0,
                  'body_part':'head','source':'simulation','peak_raw':3200,'duration_ms':0}

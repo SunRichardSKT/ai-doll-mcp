@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Remote Linux deployment. Run a saved script, never pipe a download to a shell.
 set -Eeuo pipefail
-APP_VERSION=2.24.1
+APP_VERSION=2.25.0
 PACKAGE="AI_Doll_Server_v${APP_VERSION}.tar.gz"
 DOWNLOAD_BASE="https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v${APP_VERSION}"
 INSTALL_DIR=/opt/ai-doll-mcp
@@ -262,6 +262,8 @@ main() {
     if [[ "$SOURCE_DIR" == "$INSTALL_DIR" || ! -f "$SOURCE_DIR/deploy/direct-server/compose.yml" ]]; then download_source; fi
     local source_file
     for source_file in Install_Server.sh requirements-server.txt tools/direct_server.py \
+        tools/pairing_connection.js clients/operit/vendor/qrcodegen.js clients/operit/vendor/qrcodegen.LICENSE \
+        clients/operit/vendor/SOURCES.json \
         src/ai_doll/core/version.py src/ai_doll/core/companion_experience.py delivery/AI_Doll_Operit.toolpkg \
         deploy/direct-server/compose.yml deploy/direct-server/Caddyfile \
         deploy/direct-server/Dockerfile deploy/direct-server/Dockerfile.dockerignore; do
@@ -272,9 +274,11 @@ main() {
     printf 'domain=%s\nproject=%s\nversion=%s\n' "$DOMAIN" "$PROJECT" "$APP_VERSION" > "$INSTALL_DIR/deployment-private.conf"
     if [[ "$SOURCE_DIR" != "$INSTALL_DIR" ]]; then
         umask 022
-        mkdir -p "$INSTALL_DIR/tools" "$INSTALL_DIR/src" "$INSTALL_DIR/delivery" "$INSTALL_DIR/deploy/direct-server"
+        mkdir -p "$INSTALL_DIR/tools" "$INSTALL_DIR/src" "$INSTALL_DIR/delivery" "$INSTALL_DIR/deploy/direct-server" "$INSTALL_DIR/clients/operit/vendor"
         cp -- "$SOURCE_DIR"/tools/*.{py,js,html} "$INSTALL_DIR/tools/"
         cp -R -- "$SOURCE_DIR/src/." "$INSTALL_DIR/src/"
+        cp -- "$SOURCE_DIR/clients/operit/vendor/qrcodegen.js" "$SOURCE_DIR/clients/operit/vendor/qrcodegen.LICENSE" \
+            "$SOURCE_DIR/clients/operit/vendor/SOURCES.json" "$INSTALL_DIR/clients/operit/vendor/"
         cp -- "$SOURCE_DIR/delivery/AI_Doll_Operit.toolpkg" "$INSTALL_DIR/delivery/"
         cp -- "$SOURCE_DIR/requirements-server.txt" "$SOURCE_DIR/Install_Server.sh" "$INSTALL_DIR/"
         cp -- "$SOURCE_DIR/deploy/direct-server/compose.yml" "$SOURCE_DIR/deploy/direct-server/Caddyfile" \

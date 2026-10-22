@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict'),path=require('node:path');
 const {fixture}=require('./operit_test_host.cjs');
 function phone(options={}){
-  const f=fixture(),nativeCalls=[];
+  const f=fixture(),nativeCalls=[],requests=[];
   const token='test_device_token_1234567890';let boot='fixture-boot',device='AI-Doll-phone-fixture',events=[],seq=0;
   const channels=[{channel:0,name:'头',type:'pressure',enabled:true,driver:'mux_adc',mode:'connected',calibration:{keep:42}}];
   const uptime=()=>100000+(f.shared.Date.now()-1700000000000);
@@ -11,9 +11,10 @@ function phone(options={}){
       source:'sensor',sensor_type:'pressure',direction:'input',quality:'ok',value:2500,unit:'adc_raw',...change});
   }
   f.tools.Net.http=async p=>{
+    requests.push(p);
     if(options.offline)throw Error('device unavailable');
     const endpoint=p.url.split('/')[2];
-    if(options.hostname&&p.url.endsWith('/api/identity'))return {statusCode:200,content:JSON.stringify({
+    if(p.url.endsWith('/api/identity'))return {statusCode:options.identityStatus||(options.noIdentity?404:200),content:JSON.stringify({
       device_id:options.address&&endpoint==='192.168.1.50'?'another-LAN-device':device,hostname:options.hostname,ip:options.address||'192.168.1.50'})};
     if(options.address&&endpoint==='192.168.1.50')throw Error('old DHCP address must not receive credentials');
     if(p.method==='GET')return {statusCode:options.authRequired?401:200,content:JSON.stringify({enabled:true,token})};
@@ -41,7 +42,7 @@ function phone(options={}){
   };
   async function prepare(){await f.invoke('setup_device',{host:'192.168.1.50'});await f.invoke('bind_chat',{chat_id:'chat-1'});}
   const connect=()=>f.load(path.resolve(__dirname,'../clients/operit/core/device.js')).connect(f.cfg().connection);
-  return {f,options,nativeCalls,emit,prepare,connect,reboot:()=>{boot='new-boot';seq=0;events=[];},replaceDevice:()=>{device='different-device';}};
+  return {f,options,nativeCalls,requests,emit,prepare,connect,reboot:()=>{boot='new-boot';seq=0;events=[];},replaceDevice:()=>{device='different-device';}};
 }
 (async()=>{
   const p=phone();await p.prepare();
@@ -130,6 +131,26 @@ function phone(options={}){
   assert.equal(named.f.cfg().binding,namedBinding);assert.equal(named.f.cfg().connection.storage_key,namedKey);
   assert.ok(recovered.settings_entries.some(e=>e.url==='http://192.168.1.61/'),'settings link follows the live IP');
   named.replaceDevice();await assert.rejects(named.f.invoke('get_panel'),/身份/,'a different device at the hostname is rejected');
+  const unnamed=phone();await unnamed.prepare();
+  const oldConfig=unnamed.f.disk.get('/managed/settings.json');unnamed.options.address='192.168.1.70';
+  const beforeConflict=unnamed.requests.length;
+  await assert.rejects(unnamed.f.invoke('get_panel'),/身份/,'legacy connection without hostname still verifies the public identity');
+  const conflict=unnamed.requests.slice(beforeConflict);
+  assert.ok(conflict.some(r=>r.url==='http://192.168.1.50/api/identity'));
+  assert.ok(conflict.every(r=>r.method==='GET'&&!r.headers?.Authorization),'occupied old IP never receives the saved token, including initialize');
+  assert.equal(unnamed.f.disk.get('/managed/settings.json'),oldConfig,'identity conflict preserves the original binding');
+  const unsupported=phone();await unsupported.prepare();unsupported.options.noIdentity=true;
+  const beforeUnsupported=unsupported.requests.length;
+  await assert.rejects(unsupported.f.invoke('get_panel'),/公开设备身份|手动重新配对/);
+  assert.ok(unsupported.requests.slice(beforeUnsupported).every(r=>r.method==='GET'&&!r.headers?.Authorization),'no silent credential probing on old firmware without public identity');
+  const temporary=phone();await temporary.prepare();temporary.options.identityStatus=503;
+  let temporaryError;try{await temporary.f.invoke('get_panel');}catch(error){temporaryError=error;}
+  assert.match(temporaryError?.message||'',/MCP HTTP 503/);
+  const recovering=temporary.f.load(path.resolve(__dirname,'../clients/operit/core/recovery.js'));
+  assert.equal(recovering.fatal(temporaryError),false,'temporary public identity failure must not revoke the pairing');
+  assert.equal(recovering.retryable(temporaryError),true);
+  temporary.options.identityStatus=200;
+  assert.equal((await temporary.f.invoke('get_panel')).overview.online,true,'the same binding recovers after the device is ready');
   const upgraded=phone();await upgraded.prepare();
   const upgradeBinding=upgraded.f.cfg().binding;
   upgraded.options.hostname='ai-doll-aabbccddeeff.local';await upgraded.f.invoke('get_panel');

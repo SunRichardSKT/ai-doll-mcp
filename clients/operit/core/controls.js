@@ -56,7 +56,7 @@ async function diagnostics() {
   return {device:overview.device_id,online:overview.online,last_sync:overview.last_sync,
     channels:overview.channels,values:overview.values,collector_error:overview.collector_error||null,
     job:await store.read('job.json'),continuous_enabled:!!cfg.continuous_enabled,
-    recording_scope:cfg.connection.mode==='phone'?'互动任务运行时':'设备或采集服务运行时'};
+    recording_scope:cfg.connection.mode==='phone'?'自动同步或互动任务运行时':'设备或采集服务运行时'};
 }
 async function testSensor() {
   const {call}=await tool();

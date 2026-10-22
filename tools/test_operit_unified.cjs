@@ -91,6 +91,7 @@ const {fixture}=require('./operit_test_host.cjs');
   const nodes=[],state={},uiCalls=[];
   const ctx={UI:new Proxy({},{get:(_,type)=>(props,children)=>{const node={type,props,children};nodes.push(node);return node;}}),
     useState:(key,value)=>[state[key]??value,v=>{state[key]=v;}],
+    useRef:(key,value)=>{if(!(key in state))state[key]={current:value};return state[key];},
     // Reproduce Operit's container fallback when native name resolution is empty.
     resolveToolName:async o=>(o.packageName||o.subpackageId)+':'+o.toolName,
     openFilePicker:async()=>({cancelled:false,files:[{uri:'content://fixture/connection',path:'/import.json'}]}),
@@ -109,7 +110,7 @@ const {fixture}=require('./operit_test_host.cjs');
   assert.equal(state.chats?.length,2,'list_chats must reach the actual subpackage, not the container');
   assert.ok(uiCalls.every(name=>name.startsWith('ai_doll_companion:')),'strict namespace for every UI call');
   state.page='connection';nodes.length=0;await ui.default(ctx);
-  assert.equal(nodes.filter(x=>x.type==='TextField').length,1);
+  assert.ok(nodes.some(x=>x.type==='TextField'&&x.props.label==='电脑 IP（电脑重启后可修改）'));
   f.disk.set('/import.json',JSON.stringify(f.connection));
   await nodes.find(x=>x.type==='Button'&&x.props.text==='导入服务器／电脑连接').props.onClick();
   assert.ok(state.message.includes('连接已保存'),'actual documented files[] picker result');

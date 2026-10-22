@@ -32,6 +32,13 @@ async function devices(){
       const note=document.createElement('p');note.className='muted';
       note.textContent='安卓手机：先安装本页工具包，再导入此设备连接。设备直接上传服务器，电脑无需运行。';
       info.append(note,operit);
+      const showPairing=document.createElement('button'),pairing=document.createElement('div');
+      showPairing.textContent='连接 Operit：文件、连接码或二维码';showPairing.className='secondary';
+      showPairing.onclick=async()=>{showPairing.disabled=true;try{
+        const connection=await api('/d/'+encodeURIComponent(device.id)+'/operit-connection.json');
+        AIDollPairing.render(pairing,connection);
+      }catch(error){notice(error.message,true)}finally{showPairing.disabled=false}};
+      info.append(showPairing,pairing);
     }
     const latest=document.createElement('span');latest.className='muted';latest.textContent=device.last_sync?'最后同步 '+new Date(device.last_sync*1000).toLocaleString():'尚未同步';row.append(latest);el('devices').append(row);
   }

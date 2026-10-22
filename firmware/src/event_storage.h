@@ -3,15 +3,44 @@
 #include <esp_partition.h>
 #include <sys/time.h>
 #include "event_integrity.h"
+#include "archive_lease.h"
 
 static constexpr size_t EVENT_DISK_CAP=256,EVENT_FILE_MAX=1536;
 static constexpr uint64_t EVENT_ID_MAX=9007199254740991ULL;
 static uint64_t eventDiskIds[EVENT_DISK_CAP]={};
 static size_t eventDiskCount=0;
-static uint64_t eventNextId=0,eventReservedEnd=0,eventDelivered=0,eventAcked=0;
+static uint64_t eventNextId=0,eventReservedEnd=0,eventAcked=0;
 static uint64_t eventLost=0,eventCorrupt=0,eventWriteFailures=0;
 static bool eventStorageReady=false,eventClockSynced=false;
 static String eventStorageEpoch,eventStorageError="not_initialized";
+static ArchiveLeaseState archiveLease;
+static bool archiveServerReserved=false;
+
+static void archiveLeaseView(JsonObject out,bool credential=false){
+ uint64_t now=touchNow();bool active=archiveLease.active(now);
+ out["archive_lease_supported"]=true;out["active"]=active;
+ out["collector_kind"]=active?archiveLease.kind:"";
+ out["expires_in_sec"]=active?(archiveLease.expires-now+999)/1000:0;
+ out["boot_id"]=touchBoot;
+ if(credential&&active)out["lease_id"]=archiveLease.id;
+}
+static bool acquireArchiveLease(JsonVariantConst args,JsonObject out,String &error,bool internal=false){
+ if(archiveServerReserved&&!internal){error="Archive occupied by device server upload";return false;}
+ String collector=args["collector_id"]|"",kind=args["collector_kind"]|"";
+ int result=archiveLease.acquire(collector.c_str(),kind.c_str(),randomHex().c_str(),touchNow());
+ if(result){error=result==1?"Archive occupied by another collector":"Valid collector_id and collector_kind required";return false;}
+ archiveLeaseView(out,true);return true;
+}
+static bool renewArchiveLease(JsonVariantConst args,JsonObject out,String &error){
+ String lease=args["lease_id"]|"";
+ if(!archiveLease.renew(lease.c_str(),touchNow())){error="Archive lease expired or belongs to another collector";return false;}
+ archiveLeaseView(out,true);return true;
+}
+static bool releaseArchiveLease(JsonVariantConst args,JsonObject out,String &error){
+ String lease=args["lease_id"]|"";
+ if(!archiveLease.release(lease.c_str(),touchNow())){error="Archive lease belongs to another collector";return false;}
+ out["released"]=true;archiveLeaseView(out);return true;
+}
 
 static uint64_t deviceWallTime(){
  if(!eventClockSynced)return 0;
@@ -123,13 +152,14 @@ static void __attribute__((noinline)) persistTouchRecord(const TouchRecord &even
  eventDiskIds[eventDiskCount++]=id;eventStorageError="";
 }
 static void eventStorageStatus(JsonObject out){
+ out["archive_lease_supported"]=true;archiveLeaseView(out["archive_lease"].to<JsonObject>());
  out["available"]=eventStorageReady;out["error"]=eventStorageError;out["storage_epoch"]=eventStorageEpoch;
  out["pending_records"]=eventDiskCount;out["max_records"]=EVENT_DISK_CAP;out["max_record_bytes"]=EVENT_FILE_MAX;
  out["lost_records"]=eventLost;out["corrupt_records"]=eventCorrupt;out["write_failures_since_boot"]=eventWriteFailures;
  out["filesystem_bytes"]=eventStorageReady?LittleFS.totalBytes():0;out["filesystem_used_bytes"]=eventStorageReady?LittleFS.usedBytes():0;
  out["clock_synced"]=eventClockSynced;out["device_time_ms"]=deviceWallTime();out["outputs_replay"]=false;
 }
-static void __attribute__((noinline)) readEventBacklog(JsonObject out){
+static void __attribute__((noinline)) readEventBacklog(JsonObject out,const String &lease=""){
  JsonArray entries=out["persistent_events"].to<JsonArray>();uint64_t cursor=0;
  for(size_t i=0;i<eventDiskCount&&entries.size()<24;){
   uint64_t id=eventDiskIds[i];JsonDocument record,payload;
@@ -140,7 +170,7 @@ static void __attribute__((noinline)) readEventBacklog(JsonObject out){
   JsonObject entry=entries.add<JsonObject>();entry["storage_id"]=id;entry["boot_id"]=record["boot_id"];
   entry["event"].set(payload.as<JsonObject>());cursor=id;i++;
  }
- eventDelivered=max(eventDelivered,cursor);
+ archiveLease.record(lease.c_str(),cursor,touchNow());
  out["storage_cursor"]=cursor;out["storage_has_more"]=eventDiskCount>entries.size();
  eventStorageStatus(out["event_storage"].to<JsonObject>());
 }
@@ -149,7 +179,8 @@ static bool acknowledgeStoredEvents(JsonVariantConst arguments,String &error){
  if(!arguments["storage_cursor"].is<uint64_t>()||arguments["boot_id"].as<String>()!=touchBoot||
     arguments["storage_epoch"].as<String>()!=eventStorageEpoch){error="Current boot, storage epoch and integer cursor required";return false;}
  uint64_t cursor=arguments["storage_cursor"].as<uint64_t>();
- if(!cursor||cursor>eventDelivered){error="Only a previously delivered cursor may be acknowledged";return false;}
+ String lease=arguments["archive_lease_id"]|"";
+ if(!archiveLease.canAck(lease.c_str(),cursor,touchNow())){error="Valid archive lease and its previously delivered cursor required";return false;}
  while(eventDiskCount&&eventDiskIds[0]<=cursor){
   if(!LittleFS.remove(eventFileName(eventDiskIds[0]))){error="Unable to clear acknowledged event";return false;}
   eraseIndex(0);
