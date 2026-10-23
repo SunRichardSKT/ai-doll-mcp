@@ -33,7 +33,7 @@ def build(output=None):
         if PRIVATE_URL.search(raw) or any(secret in raw for secret in secrets):
             raise ValueError('Local installation data found in ToolPkg source')
     manifest = json.loads(contents['manifest.json'])
-    if manifest['version'] != '2.25.1' or manifest['toolpkg_id'] != 'org.ai_doll.companion':
+    if manifest['version'] != '2.25.2' or manifest['toolpkg_id'] != 'org.ai_doll.companion':
         raise ValueError('Unexpected Operit identity/version')
     from operit_metadata import validate_archive, validate_contents
     validate_contents(contents)

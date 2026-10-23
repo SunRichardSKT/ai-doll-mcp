@@ -1,0 +1,3 @@
+# Developer-only build tools; not needed by Windows or Linux end users.
+platformio==6.1.18
+zopfli==0.4.3

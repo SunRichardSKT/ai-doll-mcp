@@ -2,6 +2,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {chromium}=require('playwright');
 const root=path.resolve(__dirname,'..');
+const {source}=require('./firmware_test_assets.cjs');
 (async()=>{
   const executable=[chromium.executablePath(),'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe','C:/Program Files/Google/Chrome/Application/chrome.exe'].find(p=>fs.existsSync(p));
   const browser=await chromium.launch({headless:true,executablePath:executable});
@@ -9,7 +10,8 @@ const root=path.resolve(__dirname,'..');
     const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];
     page.on('pageerror',e=>errors.push(e.message));
     await page.setContent('<!doctype html><meta charset="utf-8"><style>body{font:16px system-ui;margin:20px}button{display:block;width:100%;margin:12px 0;padding:12px}textarea{max-width:100%}</style><h1>连接手机 Operit</h1><div id="pairing"></div>');
-    for(const source of ['clients/operit/vendor/qrcodegen.js','clients/operit/vendor/jsQR.js','tools/pairing_connection.js'])await page.addScriptTag({path:path.join(root,source)});
+    await page.addScriptTag({content:source('pairing')});
+    await page.addScriptTag({path:path.join(root,'clients/operit/vendor/jsQR.js')});
     const connection={schema:1,kind:'ai-doll-device-connection',mode:'phone',mcp_url:'http://192.168.1.23/mcp',
       device_id:'fixture-device',hostname:'ai-doll-000000000001.local',token:'fixture_token_225_1234',label:'头顶娃娃'};
     await page.evaluate(c=>AIDollPairing.render(document.getElementById('pairing'),c),connection);

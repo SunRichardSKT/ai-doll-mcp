@@ -1,19 +1,20 @@
 // Real browser with the production device page; radio and HTTP are explicit doubles.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {chromium}=require('playwright'),root=path.resolve(__dirname,'..');
+const {source}=require('./firmware_test_assets.cjs');
 (async()=>{
  const executable=[chromium.executablePath(),'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe','C:/Program Files/Google/Chrome/Application/chrome.exe'].find(p=>fs.existsSync(p));
  const browser=await chromium.launch({headless:true,executablePath:executable});
  try{
   const page=await browser.newPage(),errors=[],requests=[];page.on('pageerror',e=>errors.push(e.message));
-  const html=fs.readFileSync(path.join(root,'firmware/src/device_page.h'),'utf8').split('R"HTML(')[1].split(')HTML"')[0];
+  const html=source('device_page');
   const token='fixture_hotspot_token_225';let windowOpen=false;
   await page.route('http://192.168.1.23/**',async route=>{
    const req=route.request(),url=new URL(req.url()),p=url.pathname;requests.push({p,token:req.headers()['x-setup-token'],body:req.postData()});
    if(p==='/')return route.fulfill({contentType:'text/html',body:html});
    const asset={'/channel-editor.js':'tools/channel_editor.js','/ota-manager.js':'tools/ota_manager.js'}[p];
-   if(asset)return route.fulfill({contentType:'application/javascript',body:fs.readFileSync(path.join(root,asset),'utf8')});
-   if(p==='/pairing.js')return route.fulfill({contentType:'application/javascript',body:'window.AIDollPairing={};'});
+   if(asset)return route.fulfill({contentType:'application/javascript',body:source(p==='/channel-editor.js'?'channel_editor':'ota_manager')});
+   if(p==='/pairing.js')return route.fulfill({contentType:'application/javascript',body:source('pairing')});
    if(req.headers()['x-setup-token']!==token)return route.fulfill({status:401,json:{error:'请从已配对客户端打开设置'}});
    let data={};
    if(p==='/api/setup')data={token,enabled:true,auth_enabled:false};

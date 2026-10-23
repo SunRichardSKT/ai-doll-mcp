@@ -1,0 +1,18 @@
+[
+  {
+    "file": "rjsmin.py",
+    "source": "https://files.pythonhosted.org/packages/59/16/14288d309d0f42c6586440c47bf6ec1a880218f698f30293fa3782db4008/rjsmin-1.2.5.tar.gz",
+    "archive_sha256": "a3f8040b0273dec773e0e807e86a4d0a9535516c0a0a35aa1bb6de6e15bb1f09",
+    "archive_member": "rjsmin-1.2.5/rjsmin.py",
+    "version": "1.2.5",
+    "sha256": "956c4b39adfc479bd8217179b860116a6d4be9836d3d1bd72e57bce48cc2598d"
+  },
+  {
+    "file": "rjsmin.LICENSE",
+    "source": "https://files.pythonhosted.org/packages/59/16/14288d309d0f42c6586440c47bf6ec1a880218f698f30293fa3782db4008/rjsmin-1.2.5.tar.gz",
+    "archive_sha256": "a3f8040b0273dec773e0e807e86a4d0a9535516c0a0a35aa1bb6de6e15bb1f09",
+    "archive_member": "rjsmin-1.2.5/LICENSE",
+    "version": "1.2.5",
+    "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+  }
+]

@@ -8,7 +8,7 @@ from flash_esp32 import validate_images
 
 ROOT = Path(__file__).resolve().parents[1]
 APP_BYTES = 0x140000
-MIN_FREE_BYTES = 8192
+MIN_FREE_BYTES = 24576
 
 
 def check(root=ROOT):

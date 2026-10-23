@@ -168,7 +168,7 @@ def export_connection():
         raise ValueError('请先启动并检查 Operit 服务，再导出手机连接。')
     return dict(schema=1, kind='ai-doll-operit-connection', mcp_url=address(cfg),
                 mode=cfg['mode'], label='AI Doll · '+('模拟演示' if cfg['mode'] == 'simulation' else '真实设备'),
-                version='2.25.1')
+                version='2.25.2')
 
 
 def serve():

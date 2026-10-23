@@ -1,10 +1,10 @@
 /* Isolated browser test: no owner device, history or firmware writes. */
 const fs = require('fs'), path = require('path');
 const {chromium} = require('playwright');
+const {source:assetSource}=require('./firmware_test_assets.cjs');
 (async () => {
   const root = path.resolve(__dirname, '..');
-  const source = fs.readFileSync(path.join(root, 'firmware/src/device_page.h'), 'utf8');
-  const html = source.split('R"HTML(')[1].split(')HTML";')[0].replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, '');
+  const html = assetSource('device_page').replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, '');
   const executable = [chromium.executablePath(), 'C:/Program Files/Google/Chrome/Application/chrome.exe',
     'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'].find(fs.existsSync);
   const browser = await chromium.launch({headless: true, executablePath: executable});
@@ -26,7 +26,7 @@ const {chromium} = require('playwright');
         throw Error('Unexpected fixture action');
       };
     });
-    await page.addScriptTag({path: path.join(root, 'tools/ota_manager.js')});
+    await page.addScriptTag({content:assetSource('ota_manager')});
     await page.click('#upgradeFirmware');
     if (!(await page.textContent('#otaResult')).includes('同时选择')) throw Error('Missing files not explained');
     if (await page.evaluate(() => testCalls.length)) throw Error('Empty selection wrote API');

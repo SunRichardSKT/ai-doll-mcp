@@ -19,7 +19,7 @@ static int pressChannel=-1, pressValue=0, lastWifi=-1;
 static constexpr int LED_PIN=8; // Common SuperMini blue LED, active low.
 static bool scanBusy=false;
 static uint32_t scanStartedAt=0;
-static const char* VERSION="doll-lab-2.13.2";
+static const char* VERSION="doll-lab-2.13.3";
 static const char* PROTOCOL="2025-11-25";
 
 static String encode(const JsonDocument &d){String s;serializeJson(d,s);return s;}
@@ -112,55 +112,7 @@ static JsonDocument rpc(const JsonDocument &in){
   out["result"]["serverInfo"]["name"]="ai-doll-esp32c3";out["result"]["serverInfo"]["version"]=VERSION;
  }else if(method=="ping"){out["result"].to<JsonObject>();}
  else if(method=="tools/list"){
-  JsonArray tools=out["result"]["tools"].to<JsonArray>();
-  auto add=[&](const char* name,const char* desc){JsonObject t=tools.add<JsonObject>();t["name"]=name;t["description"]=desc;t["inputSchema"]["type"]="object";t["inputSchema"]["properties"].to<JsonObject>();t["inputSchema"]["additionalProperties"]=false;return t;};
-  add("get_sensor_config","Read physical 74HC4051 acquisition mode, raw readings and thresholds.");
-  JsonObject st=add("set_sensor_config","Legacy temporary physical-input override for assembled hardware. Prefer set_channel_state for persistent port modes; reboot follows saved input policy. GPIO ADC=0, S0/S1/S2=3/4/5.");
-  st["inputSchema"]["properties"]["enabled"]["type"]="boolean";
-  st["inputSchema"]["properties"]["press_threshold"]["type"]="integer";
-  st["inputSchema"]["properties"]["release_threshold"]["type"]="integer";
-  JsonArray sr=st["inputSchema"]["required"].to<JsonArray>();sr.add("enabled");sr.add("press_threshold");sr.add("release_threshold");
-  add("get_body_map","Read user-defined sensor body names from device.");
-  JsonObject mapTool=add("set_body_map","Save names for all configured channels on device; historical events keep original names.");
-  mapTool["inputSchema"]["properties"]["parts"]["type"]="array";
-  mapTool["inputSchema"]["properties"]["parts"]["minItems"]=1;
-  mapTool["inputSchema"]["properties"]["parts"]["maxItems"]=MAX_CHANNELS;
-  JsonObject item=mapTool["inputSchema"]["properties"]["parts"]["items"].to<JsonObject>();
-  item["type"]="object";item["properties"]["channel"]["type"]="integer";item["properties"]["channel"]["minimum"]=0;item["properties"]["channel"]["maximum"]=MAX_CHANNELS-1;
-  item["properties"]["name"]["type"]="string";item["required"].to<JsonArray>().add("channel");item["required"].as<JsonArray>().add("name");
-  mapTool["inputSchema"]["required"].to<JsonArray>().add("parts");
-  JsonObject et=add("get_touch_events","Read bounded device RAM queue. Use companion MCP for persistent history and interaction sessions.");
-  et["inputSchema"]["properties"]["include_persistent"]["type"]="boolean";
-  et["inputSchema"]["properties"]["after"]["type"]="integer";et["inputSchema"]["properties"]["after"]["minimum"]=0;
-  et["inputSchema"]["properties"]["boot_id"]["type"]="string";
-  et["inputSchema"]["properties"]["archive_lease_id"]["type"]="string";
-  add("doll_get_status","Read device Wi-Fi, uptime, LED and simulated pressure state.");
-  JsonObject t=add("doll_simulate_press","Inject a simulated FSR press; does not read a physical sensor. Auto releases after five seconds.");
-  t["inputSchema"]["properties"]["channel"]["type"]="integer";t["inputSchema"]["properties"]["channel"]["minimum"]=0;t["inputSchema"]["properties"]["channel"]["maximum"]=MAX_CHANNELS-1;
-  t["inputSchema"]["properties"]["value"]["type"]="integer";t["inputSchema"]["properties"]["value"]["minimum"]=0;t["inputSchema"]["properties"]["value"]["maximum"]=4095;
-  t["inputSchema"]["required"].to<JsonArray>().add("channel");t["inputSchema"]["required"].as<JsonArray>().add("value");
-  t=add("doll_set_led","Set the SuperMini active-low GPIO8 LED for a visible hardware test.");t["inputSchema"]["properties"]["on"]["type"]="boolean";t["inputSchema"]["required"].to<JsonArray>().add("on");
-  addChannelTools(tools);
-  add("get_event_storage_status","Read bounded flash backlog, loss counters and clock quality; no event contents.");
-  t=add("acquire_archive_lease","Internal collector operation: acquire or recover a 90-second archive lease. Does not change sensor settings.");
-  t["inputSchema"]["properties"]["collector_id"]["type"]="string";
-  t["inputSchema"]["properties"]["collector_kind"]["type"]="string";
-  JsonArray kinds=t["inputSchema"]["properties"]["collector_kind"]["enum"].to<JsonArray>();kinds.add("phone");kinds.add("computer");kinds.add("server");
-  JsonArray leaseRequired=t["inputSchema"]["required"].to<JsonArray>();leaseRequired.add("collector_id");leaseRequired.add("collector_kind");
-  t["annotations"]["readOnlyHint"]=false;
-  for(const char* name:{"renew_archive_lease","release_archive_lease"}){
-   t=add(name,"Internal collector operation: renew or release the matching archive lease.");
-   t["inputSchema"]["properties"]["lease_id"]["type"]="string";t["inputSchema"]["required"].to<JsonArray>().add("lease_id");
-   t["annotations"]["readOnlyHint"]=false;
-  }
-  t=add("acknowledge_events","Internal collector operation: acknowledge only AFTER durable database commit. Never replay output commands.");
-  t["inputSchema"]["properties"]["storage_cursor"]["type"]="integer";
-  t["inputSchema"]["properties"]["storage_epoch"]["type"]="string";t["inputSchema"]["properties"]["boot_id"]["type"]="string";
-  t["inputSchema"]["properties"]["archive_lease_id"]["type"]="string";
-  JsonArray required=t["inputSchema"]["required"].to<JsonArray>();required.add("storage_cursor");required.add("storage_epoch");required.add("boot_id");required.add("archive_lease_id");
-  t=add("set_device_time","Internal collector operation: synchronize device clock from authenticated computer UTC time. Old events remain unchanged.");
-  t["inputSchema"]["properties"]["unix_time_ms"]["type"]="integer";t["inputSchema"]["properties"]["boot_id"]["type"]="string";
-  required=t["inputSchema"]["required"].to<JsonArray>();required.add("unix_time_ms");required.add("boot_id");
+  listDeviceTools(out);
  }else if(method=="tools/call"){
   String name=in["params"]["name"]|"";JsonVariantConst a=in["params"]["arguments"];JsonDocument data;
   if((otaActive||otaCommitted)&&!(name.startsWith("get_")||name=="doll_get_status"||name=="read_channel_values"||name=="acknowledge_events"||name=="set_device_time"||name=="acquire_archive_lease"||name=="renew_archive_lease"||name=="release_archive_lease")){

@@ -1,48 +1,7 @@
 #pragma once
-static void addChannelTools(JsonArray tools){
- auto add=[&](const char* name,const char* description){JsonObject t=tools.add<JsonObject>();t["name"]=name;t["description"]=description;JsonObject s=t["inputSchema"].to<JsonObject>();s["type"]="object";s["properties"].to<JsonObject>();s["additionalProperties"]=false;return s;};
- add("get_channel_capabilities","Discover installed input/output types, drivers, free GPIOs and physical limits before configuring.");
- add("get_channel_config","Read persistent logical channel types, body labels, drivers, bindings and calibration. IDs independent of MUX ports.");
- JsonObject port=add("set_channel_state","Persist one input port as off, simulation or connected; optional body name. Preserve other ports, calibration and wiring. Connected is installed configuration, not electrical detection.");
- port["properties"]["channel"]["type"]="integer";port["properties"]["channel"]["minimum"]=0;port["properties"]["channel"]["maximum"]=15;
- port["properties"]["mode"]["type"]="string";JsonArray portModes=port["properties"]["mode"]["enum"].to<JsonArray>();for(auto value:{"off","simulation","connected"})portModes.add(value);
- port["properties"]["name"]["type"]="string";port["required"].to<JsonArray>().add("channel");
- add("read_channel_values","Read typed values with units, source, quality and age. Output readings report commanded state, not motor feedback.");
- JsonObject enable=add("set_input_enabled","Legacy temporary physical-input override. Prefer set_channel_state for persistent per-port modes; preserves thresholds.");enable["properties"]["enabled"]["type"]="boolean";enable["required"].to<JsonArray>().add("enabled");
- add("get_operating_mode","Read saved manual/daily startup mode and current input/output state. Outputs never resume after reboot.");
- JsonObject mode=add("set_operating_mode","Legacy saved input startup policy: daily requires assembled sensors; manual pauses inputs. Both stop outputs. Configs with explicit port modes resume connected inputs; configs without modes pause inputs. Prefer set_channel_state.");
- mode["properties"]["mode"]["type"]="string";JsonArray modes=mode["properties"]["mode"]["enum"].to<JsonArray>();modes.add("manual");modes.add("daily");mode["properties"]["hardware_confirmed"]["type"]="boolean";mode["required"].to<JsonArray>().add("mode");
- JsonObject cal=add("capture_pressure_calibration","Capture real pressure only: stage 0 idle, 1 light, 2 strong. Suppress selected channel touch events during calibration; capture nonblocking, expires after 60s inactivity. No automatic save.");
- cal["properties"]["channel"]["type"]="integer";cal["properties"]["channel"]["minimum"]=0;cal["properties"]["channel"]["maximum"]=15;
- cal["properties"]["stage"]["type"]="integer";cal["properties"]["stage"]["minimum"]=0;cal["properties"]["stage"]["maximum"]=2;
- cal["properties"]["duration_ms"]["type"]="integer";cal["properties"]["duration_ms"]["minimum"]=500;cal["properties"]["duration_ms"]["maximum"]=10000;
- cal["required"].to<JsonArray>().add("channel");cal["required"].add("stage");
- add("get_pressure_calibration","Read capture progress/statistics and recommended hysteresis thresholds. Missing sensors, insufficient separation or ADC saturation prevent saving.");
- add("apply_pressure_calibration","Explicitly persist recommended thresholds for the calibrated pressure channel only; other configuration and output state are preserved.");
- add("cancel_pressure_calibration","Cancel capture without changing saved thresholds; resume ordinary event generation.");
- JsonObject s=add("set_channel_config","Replace all 1..16 channels, preserving historical labels/types. Explicit modes resume connected inputs; legacy configs without modes pause inputs. Both disable physical outputs. Prefer set_channel_state for one port.");
- s["properties"]["schema_version"]["type"]="integer";s["properties"]["schema_version"]["const"]=1;
- JsonObject arr=s["properties"]["channels"].to<JsonObject>();arr["type"]="array";arr["minItems"]=1;arr["maxItems"]=16;
- JsonObject item=arr["items"].to<JsonObject>();item["type"]="object";item["additionalProperties"]=false;JsonObject p=item["properties"].to<JsonObject>();
- p["channel"]["type"]="integer";p["channel"]["minimum"]=0;p["channel"]["maximum"]=15;p["name"]["type"]="string";p["name"]["minLength"]=1;
- p["type"]["type"]="string";
- p["mode"]["type"]="string";JsonArray states=p["mode"]["enum"].to<JsonArray>();for(auto value:{"off","simulation","connected"})states.add(value);
- JsonArray types=p["type"]["enum"].to<JsonArray>();types.add("pressure");types.add("temperature");types.add("vibration");
- p["driver"]["type"]="string";JsonArray drivers=p["driver"]["enum"].to<JsonArray>();for(auto v:{"simulation","mux_adc","gpio_adc","gpio_pwm"})drivers.add(v);
- p["enabled"]["type"]="boolean";p["direction"]["type"]="string";JsonArray directions=p["direction"]["enum"].to<JsonArray>();directions.add("input");directions.add("output");
- p["mux_port"]["type"]="integer";p["mux_port"]["minimum"]=0;p["mux_port"]["maximum"]=7;p["gpio"]["type"]="integer";p["options"]["type"]="object";p["rom"]["type"]="string";p["rom"]["pattern"]="^[a-fA-F0-9]{16}$";
- JsonArray required=item["required"].to<JsonArray>();for(auto k:{"channel","name","type","driver"})required.add(k);s["required"].to<JsonArray>().add("channels");
- s=add("simulate_channel_input","Inject pressure adc_raw (0 releases) or temperature degC/-40..125. millivolt temperature mode exercises NTC conversion/fault detection. Not a physical reading.");
- s["properties"]["channel"]["type"]="integer";s["properties"]["channel"]["minimum"]=0;s["properties"]["channel"]["maximum"]=15;s["properties"]["value"]["type"]="number";s["properties"]["unit"]["type"]="string";
- required=s["required"].to<JsonArray>();required.add("channel");required.add("value");
- s=add("scan_input_devices","Read DS18B20 ROMs on GPIO1. Physical sampling must be disabled and GPIO1 cannot belong to ADC. No channel assignment or output activation.");
- s["properties"]["driver"]["type"]="string";s["properties"]["driver"]["enum"].to<JsonArray>().add("ds18b20");s["properties"]["gpio"]["type"]="integer";s["properties"]["gpio"]["enum"].to<JsonArray>().add(1);
- required=s["required"].to<JsonArray>();required.add("driver");required.add("gpio");
- s=add("set_output_enabled","Enable physical PWM only after user confirms external motor driver. Disabled on reboot/config changes. false stops all outputs. Simulation does not require arming.");
- s["properties"]["enabled"]["type"]="boolean";s["properties"]["external_driver_confirmed"]["type"]="boolean";s["required"].to<JsonArray>().add("enabled");
- s=add("set_vibration","Command an enabled vibration output 0..100 percent for 1..5000 ms, automatically stops; intensity=0 stops immediately. Never evidence of motor movement or touch.");
- s["properties"]["channel"]["type"]="integer";s["properties"]["channel"]["minimum"]=0;s["properties"]["channel"]["maximum"]=15;
- s["properties"]["intensity"]["type"]="integer";s["properties"]["intensity"]["minimum"]=0;s["properties"]["intensity"]["maximum"]=100;
- s["properties"]["duration_ms"]["type"]="integer";s["properties"]["duration_ms"]["minimum"]=1;s["properties"]["duration_ms"]["maximum"]=5000;
- required=s["required"].to<JsonArray>();for(auto k:{"channel","intensity","duration_ms"})required.add(k);
+#include "device_tools_asset.h"
+
+// Static metadata is serialized directly from flash; dispatch remains in rpc().
+static void listDeviceTools(JsonDocument &out){
+ out["result"]["tools"]=serialized(reinterpret_cast<const char*>(DEVICE_TOOLS_JSON));
 }

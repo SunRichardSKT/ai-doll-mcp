@@ -1,0 +1,9 @@
+{
+  "ecma": 2017,
+  "compress": false,
+  "mangle": true,
+  "format": {
+    "comments": false,
+    "preamble": "/*!\nQR Code generator library (TypeScript)\n\nCopyright (c) Project Nayuki. (MIT License)\nhttps://www.nayuki.io/page/qr-code-generator-library\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of\nthis software and associated documentation files (the \"Software\"), to deal in\nthe Software without restriction, including without limitation the rights to\nuse, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of\nthe Software, and to permit persons to whom the Software is furnished to do so,\nsubject to the following conditions:\n- The above copyright notice and this permission notice shall be included in\n  all copies or substantial portions of the Software.\n- The Software is provided \"as is\", without warranty of any kind, express or\n  implied, including but not limited to the warranties of merchantability,\n  fitness for a particular purpose and noninfringement. In no event shall the\n  authors or copyright holders be liable for any claim, damages or other\n  liability, whether in an action of contract, tort or otherwise, arising from,\n  out of or in connection with the Software or the use or other dealings in the\n  Software.\n\n*/"
+  }
+}

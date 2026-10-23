@@ -21,11 +21,14 @@
     "file": "qrcodegen.js",
     "source": "https://github.com/nayuki/QR-Code-generator/blob/3c6d0b3cefb4e049dc337e82237c9644399716a8/typescript-javascript/qrcodegen.ts",
     "commit": "3c6d0b3cefb4e049dc337e82237c9644399716a8",
-    "sha256": "79f419f267ce5a80d97f8099e0a789a4ecc4697b5348d86371a1f3b2a75d6e03",
+    "sha256": "12a465a69a45dde501be7459d83656a48641b109d977efed8b336ff5e50cb689",
     "derived_from": "qrcodegen.ts",
-    "compiler": "typescript@5.8.3",
+    "compiler": "typescript@5.8.3 + terser@5.44.0 (no compression transforms, local names only)",
     "compiler_source": "https://registry.npmjs.org/typescript/-/typescript-5.8.3.tgz",
-    "command": "tsc qrcodegen.ts --target es2017 --outFile qrcodegen.js --removeComments false"
+    "command": "tsc clients/operit/vendor/qrcodegen.ts --target es2017 --outFile build/qrcodegen.js --removeComments false; npx --yes --package=terser@5.44.0 terser build/qrcodegen.js --config-file tools/qrcodegen_minify.json --output clients/operit/vendor/qrcodegen.js",
+    "minifier_source": "https://registry.npmjs.org/terser/-/terser-5.44.0.tgz",
+    "minifier_integrity": "sha512-nIVck8DK+GM/0Frwd+nIhZ84pR/BX7rmXMfYwyg+Sri5oGVE99/E3KvXqpC2xHFxyqXyGHTKBSioxxplrO4I4w==",
+    "unminified_sha256": "79f419f267ce5a80d97f8099e0a789a4ecc4697b5348d86371a1f3b2a75d6e03"
   },
   {
     "file": "qrcodegen.LICENSE",

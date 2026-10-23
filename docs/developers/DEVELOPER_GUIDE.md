@@ -5,7 +5,7 @@
 
 普通使用者不需要编译，按 [首次安装](../start/AI_INSTALL.md)使用完整包。本页面向维护代码、定制接口和制作交付包的开发者。
 
-当前版本为 **2.25.1预发布／固件2.13.2**。完整文件在[本版Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.1)，源码中的`delivery/`只保留入口和校验元数据。目标手机与新固件实板仍待单独验收。
+当前版本为 **2.25.2预发布／固件2.13.3**。完整文件在[本版Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.2)，源码中的`delivery/`只保留入口和校验元数据。目标手机与新固件实板仍待单独验收。
 
 ## 项目结构
 
@@ -54,10 +54,10 @@ node --version
 
 ## 编译固件
 
-复用上面的 Python 3.12 开发环境，为 PlatformIO 安装编译工具。日常随包 Python 不等于编译工具已安装：
+复用上面的 Python 3.12 开发环境，为 PlatformIO 安装固定版本编译工具与构建端压缩器。日常随包 Python 不等于编译工具已安装：
 
 ```powershell
-.\.venv\Scripts\python.exe -X utf8 -m pip install platformio
+.\.venv\Scripts\python.exe -X utf8 -m pip install -r requirements-firmware.txt
 .\tools\build_lab.ps1
 ```
 
@@ -65,7 +65,7 @@ node --version
 
 构建后运行 `.\.venv\Scripts\python.exe -X utf8 tools/export_firmware.py`，导出本次三个编译镜像并为完整四文件更新清单。网页嵌入头文件在构建前生成，不提交。正式 USB 烧录使用 `Flash_ESP32.cmd` 或 `tools/flash_esp32.py`，才能生成新的内部设备编号、可选显示名及完整日志；PlatformIO 的直接 Upload 仅供开发调试，保留既有设备编号。
 
-2.13.0新增原生源码 `firmware/src/archive_lease.h`，随源码包保留；它只包含有限归档租约策略，不改变NVS、Flash分区或电气参数。二维码网页使用随包的 `clients/operit/vendor/qrcodegen.js` 与 `tools/pairing_connection.js`。构建前会额外生成 `firmware/src/pairing_asset.h`，与其他 `*_asset.h` 一样为gzip派生产物，不提交或重新加入源码允许列表；修改来源后重新编译和导出镜像，不能只替换网页源码。
+2.13.0新增原生源码 `firmware/src/archive_lease.h`，随源码包保留；它只包含有限归档租约策略，不改变NVS、Flash分区或电气参数。二维码网页使用随包的 `clients/operit/vendor/qrcodegen.js` 与 `tools/pairing_connection.js`。构建前会额外生成 `firmware/src/pairing_asset.h`及工具清单的`firmware/src/device_tools_asset.h`，与其他 `*_asset.h` 一样为gzip派生产物，不提交或重新加入源码允许列表；修改来源后重新编译和导出镜像，不能只替换网页源码。
 
 ## 验证原则与入口
 
@@ -89,11 +89,11 @@ Node / Playwright 页面测试需要开发者另装对应环境，运行 `tools/
 .\.venv\Scripts\python.exe -X utf8 tools/build_portable_python.py
 .\.venv\Scripts\python.exe -X utf8 hardware/enclosure/package_enclosures.py
 .\.venv\Scripts\python.exe -X utf8 tools/package_companion.py
-.\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Code_v2.25.1.zip
-.\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Server_v2.25.1.tar.gz
+.\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Code_v2.25.2.zip
+.\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Server_v2.25.2.tar.gz
 .\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --repository .
-.\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --archive delivery/AI_Doll_Code_v2.25.1.zip
-.\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --archive delivery/AI_Doll_Server_v2.25.1.tar.gz
+.\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --archive delivery/AI_Doll_Code_v2.25.2.zip
+.\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --archive delivery/AI_Doll_Server_v2.25.2.tar.gz
 ```
 
 `build_portable_python.py` 从官方 CPython 和固定 wheel 构建 Windows x64 运行环境，需要联网。已有完整运行环境时先验证并复用，不要再次覆盖运行中的 `python/`；确需重建时，在停止本项目服务后，将整个已有 `python/` 移到项目内明确的备份位置，再恢复源码的 README、许可和版本元数据后构建。不要打包开发用 `.venv`。
@@ -134,4 +134,12 @@ Node / Playwright 页面测试需要开发者另装对应环境，运行 `tools/
 
 每次push／PR运行 `.github/workflows/checks.yml`，检查固件清单及固定分区、生产网络与租约策略、完整ToolPkg、实际MCP SDK、文档和Linux交付包。使用已声明依赖，不访问真实板子或手机，不自动发布。Windows完整包仍需本地运行环境与交付审计。
 
-`tools/check_firmware.py` 在导出及完整打包时也执行，保持原历史分区和双OTA槽。每日手机JSON为128条间隔的兼容检查点，已提交归档段保留全部尾部记录；不能只拷贝日文件作完整导出。设置／任务副本校验用于恢复，不承诺文件系统fsync或物理断电安全。详见[2.25.1修订](../reports/RELEASE_2_25_1.md)。
+`tools/check_firmware.py` 在导出及完整打包时也执行，保持原历史分区和双OTA槽。每日手机JSON为128条间隔的兼容检查点，已提交归档段保留全部尾部记录；不能只拷贝日文件作完整导出。设置／任务副本校验用于恢复，不承诺文件系统fsync或物理断电安全。详见[2.25.2修订](../reports/RELEASE_2_25_2.md)。
+
+## 2.13.3固件资源与工具清单
+
+`device_tools.json`是设备工具元数据的唯一编辑入口；修改后重新构建，不手工维护生成头文件。`channel_rpc.h`只将Flash内元数据交给真实JSON序列化器，分发在`lab_main.cpp`，需要同时维护协议与处理函数。`test_firmware_tools.py`在已有ArduinoJson头文件后编译生产函数并用MCP SDK核对输出，CI固件任务会先安装固定库并编译完整应用。
+
+网页精简只在构建端运行：rJSmin固定源码和许可证位于`tools/vendor/`，gzip编码器Zopfli固定为0.4.3；运行前安装`requirements-firmware.txt`，不要把开发依赖塞进随包Python。更新Nayuki派生脚本时按`clients/operit/vendor/SOURCES.json`的固定TypeScript／Terser命令和配置重建，更新散列并保留许可证；普通构建复用已校验的派生JS，无需npm下载。
+
+压缩资源的浏览器回归使用`test_hotspot_ui.cjs --firmware`、`test_pairing_portal.cjs --firmware`、`test_ota_ui.cjs --firmware`与`test_developer_ui.cjs --firmware`，读取实际生成头文件的gzip数据。它们使用API替身，不访问用户开发板。检查含64位事件编号与完整HTTPS能力，不能改用不兼容的nano格式库或删除回溯支持来取得尺寸收益。

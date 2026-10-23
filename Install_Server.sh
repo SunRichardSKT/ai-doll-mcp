@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Remote Linux deployment. Run a saved script, never pipe a download to a shell.
 set -Eeuo pipefail
-APP_VERSION=2.25.1
+APP_VERSION=2.25.2
 PACKAGE="AI_Doll_Server_v${APP_VERSION}.tar.gz"
 DOWNLOAD_BASE="https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v${APP_VERSION}"
 INSTALL_DIR=/opt/ai-doll-mcp

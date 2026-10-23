@@ -2,6 +2,7 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const {chromium}=require('playwright');
 const root=path.resolve(__dirname,'..');
+const {source:assetSource}=require('./firmware_test_assets.cjs');
 const channels=[{channel:0,name:'头顶',type:'pressure',driver:'mux_adc',mux_port:0,mode:'connected',enabled:true,options:{press_threshold:699,release_threshold:295}},
  {channel:1,name:'手',type:'pressure',driver:'mux_adc',mux_port:1,mode:'off',enabled:false,options:{press_threshold:900,release_threshold:300}}];
 const storage={available:true,pending_records:0,max_records:256,lost_records:0,corrupt_records:0,write_failures_since_boot:0,clock_synced:true};
@@ -35,8 +36,8 @@ const calibration=()=>({capturing:false,engaged:false,ready:false,reason:'captur
    await page.route('http://fixture/**',async route=>{
     const request=route.request(),p=new URL(request.url()).pathname;let body,type='application/json',code=200;
     if(p==='/'||p==='/companion'){
-     body=kind==='device'?fs.readFileSync(path.join(root,'firmware/src/device_page.h'),'utf8').split('R"HTML(')[1].split(')HTML"')[0]:fs.readFileSync(path.join(root,'tools/companion.html'),'utf8');type='text/html';
-    }else if(p==='/channel-editor.js'||p==='/console-embed.js'){body=fs.readFileSync(path.join(root,'tools',p==='/channel-editor.js'?'channel_editor.js':'console_embed.js'),'utf8');type='application/javascript';}
+     body=kind==='device'?assetSource('device_page'):fs.readFileSync(path.join(root,'tools/companion.html'),'utf8');type='text/html';
+    }else if(p==='/channel-editor.js'||p==='/console-embed.js'){body=p==='/channel-editor.js'?assetSource('channel_editor'):fs.readFileSync(path.join(root,'tools/console_embed.js'),'utf8');type='application/javascript';}
     else if(p.endsWith('.js')){body='/* Unrelated history, OTA and persona UI excluded from this fixture. */';type='application/javascript';}
     else if(p==='/api/setup')body=JSON.stringify({token:'fixture',enabled:true,auth_enabled:false});
     else if(p==='/api/uplink')body=JSON.stringify({enabled:false});
@@ -92,9 +93,9 @@ const calibration=()=>({capturing:false,engaged:false,ready:false,reason:'captur
    }
    if(kind==='device'){
     assert.equal(await page.textContent('#deviceName'),'ai-doll-112233445566.local');
-    assert.equal(await page.getAttribute('#deviceName','href'),'http://ai-doll-112233445566.local/');
+    assert.equal(await page.getAttribute('#deviceName','href'),'http://ai-doll-112233445566.local/#setup_token=fixture');
     assert.ok((await page.textContent('#serverStatus')).includes('Operit 手机直接读取'));
-    assert.equal(await page.textContent('#deviceIP'),address);assert.equal(await page.getAttribute('#deviceIP','href'),'http://'+address+'/');
+    assert.equal(await page.textContent('#deviceIP'),address);assert.equal(await page.getAttribute('#deviceIP','href'),'http://'+address+'/#setup_token=fixture');
     connected=false;await page.waitForFunction(()=>document.getElementById('deviceIP').textContent==='未连接');
     assert.equal(await page.getAttribute('#deviceIP','href'),null,'offline IP is not clickable');
     connected=true;address='192.168.1.51';await page.waitForFunction(ip=>document.getElementById('deviceIP').textContent===ip,address);

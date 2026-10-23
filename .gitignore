@@ -16,10 +16,7 @@ _local/
 *-private.json
 *.pem
 *.key
-firmware/src/channel_editor_asset.h
-firmware/src/ota_manager_asset.h
-firmware/src/device_page_asset.h
-firmware/src/pairing_asset.h
+firmware/src/*_asset.h
 delivery/*.zip
 delivery/*.tar.gz
 delivery/*.sha256

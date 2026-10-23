@@ -1,0 +1,627 @@
+[
+  {
+    "name": "get_sensor_config",
+    "description": "Read physical 74HC4051 acquisition mode, raw readings and thresholds.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "set_sensor_config",
+    "description": "Legacy temporary physical-input override for assembled hardware. Prefer set_channel_state for persistent port modes; reboot follows saved input policy. GPIO ADC=0, S0/S1/S2=3/4/5.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "press_threshold": {
+          "type": "integer"
+        },
+        "release_threshold": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "press_threshold",
+        "release_threshold"
+      ]
+    }
+  },
+  {
+    "name": "get_body_map",
+    "description": "Read user-defined sensor body names from device.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "set_body_map",
+    "description": "Save names for all configured channels on device; historical events keep original names.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "parts": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "items": {
+            "type": "object",
+            "properties": {
+              "channel": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 15
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "channel",
+              "name"
+            ]
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "parts"
+      ]
+    }
+  },
+  {
+    "name": "get_touch_events",
+    "description": "Read bounded device RAM queue. Use companion MCP for persistent history and interaction sessions.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "include_persistent": {
+          "type": "boolean"
+        },
+        "after": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "boot_id": {
+          "type": "string"
+        },
+        "archive_lease_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "doll_get_status",
+    "description": "Read device Wi-Fi, uptime, LED and simulated pressure state.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "doll_simulate_press",
+    "description": "Inject a simulated FSR press; does not read a physical sensor. Auto releases after five seconds.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "channel": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 15
+        },
+        "value": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4095
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "channel",
+        "value"
+      ]
+    }
+  },
+  {
+    "name": "doll_set_led",
+    "description": "Set the SuperMini active-low GPIO8 LED for a visible hardware test.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "on": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "on"
+      ]
+    }
+  },
+  {
+    "name": "get_channel_capabilities",
+    "description": "Discover installed input/output types, drivers, free GPIOs and physical limits before configuring.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_channel_config",
+    "description": "Read persistent logical channel types, body labels, drivers, bindings and calibration. IDs independent of MUX ports.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "set_channel_state",
+    "description": "Persist one input port as off, simulation or connected; optional body name. Preserve other ports, calibration and wiring. Connected is installed configuration, not electrical detection.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "channel": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 15
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "off",
+            "simulation",
+            "connected"
+          ]
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "channel"
+      ]
+    }
+  },
+  {
+    "name": "read_channel_values",
+    "description": "Read typed values with units, source, quality and age. Output readings report commanded state, not motor feedback.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "set_input_enabled",
+    "description": "Legacy temporary physical-input override. Prefer set_channel_state for persistent per-port modes; preserves thresholds.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "enabled"
+      ]
+    }
+  },
+  {
+    "name": "get_operating_mode",
+    "description": "Read saved manual/daily startup mode and current input/output state. Outputs never resume after reboot.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "set_operating_mode",
+    "description": "Legacy saved input startup policy: daily requires assembled sensors; manual pauses inputs. Both stop outputs. Configs with explicit port modes resume connected inputs; configs without modes pause inputs. Prefer set_channel_state.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "manual",
+            "daily"
+          ]
+        },
+        "hardware_confirmed": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "mode"
+      ]
+    }
+  },
+  {
+    "name": "capture_pressure_calibration",
+    "description": "Capture real pressure only: stage 0 idle, 1 light, 2 strong. Suppress selected channel touch events during calibration; capture nonblocking, expires after 60s inactivity. No automatic save.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "channel": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 15
+        },
+        "stage": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2
+        },
+        "duration_ms": {
+          "type": "integer",
+          "minimum": 500,
+          "maximum": 10000
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "channel",
+        "stage"
+      ]
+    }
+  },
+  {
+    "name": "get_pressure_calibration",
+    "description": "Read capture progress/statistics and recommended hysteresis thresholds. Missing sensors, insufficient separation or ADC saturation prevent saving.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "apply_pressure_calibration",
+    "description": "Explicitly persist recommended thresholds for the calibrated pressure channel only; other configuration and output state are preserved.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "cancel_pressure_calibration",
+    "description": "Cancel capture without changing saved thresholds; resume ordinary event generation.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "set_channel_config",
+    "description": "Replace all 1..16 channels, preserving historical labels/types. Explicit modes resume connected inputs; legacy configs without modes pause inputs. Both disable physical outputs. Prefer set_channel_state for one port.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "integer",
+          "const": 1
+        },
+        "channels": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "channel": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 15
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "pressure",
+                  "temperature",
+                  "vibration"
+                ]
+              },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "off",
+                  "simulation",
+                  "connected"
+                ]
+              },
+              "driver": {
+                "type": "string",
+                "enum": [
+                  "simulation",
+                  "mux_adc",
+                  "gpio_adc",
+                  "gpio_pwm"
+                ]
+              },
+              "enabled": {
+                "type": "boolean"
+              },
+              "direction": {
+                "type": "string",
+                "enum": [
+                  "input",
+                  "output"
+                ]
+              },
+              "mux_port": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 7
+              },
+              "gpio": {
+                "type": "integer"
+              },
+              "options": {
+                "type": "object"
+              },
+              "rom": {
+                "type": "string",
+                "pattern": "^[a-fA-F0-9]{16}$"
+              }
+            },
+            "required": [
+              "channel",
+              "name",
+              "type",
+              "driver"
+            ]
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "channels"
+      ]
+    }
+  },
+  {
+    "name": "simulate_channel_input",
+    "description": "Inject pressure adc_raw (0 releases) or temperature degC/-40..125. millivolt temperature mode exercises NTC conversion/fault detection. Not a physical reading.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "channel": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 15
+        },
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "channel",
+        "value"
+      ]
+    }
+  },
+  {
+    "name": "scan_input_devices",
+    "description": "Read DS18B20 ROMs on GPIO1. Physical sampling must be disabled and GPIO1 cannot belong to ADC. No channel assignment or output activation.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "driver": {
+          "type": "string",
+          "enum": [
+            "ds18b20"
+          ]
+        },
+        "gpio": {
+          "type": "integer",
+          "enum": [
+            1
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "driver",
+        "gpio"
+      ]
+    }
+  },
+  {
+    "name": "set_output_enabled",
+    "description": "Enable physical PWM only after user confirms external motor driver. Disabled on reboot/config changes. false stops all outputs. Simulation does not require arming.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "external_driver_confirmed": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "enabled"
+      ]
+    }
+  },
+  {
+    "name": "set_vibration",
+    "description": "Command an enabled vibration output 0..100 percent for 1..5000 ms, automatically stops; intensity=0 stops immediately. Never evidence of motor movement or touch.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "channel": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 15
+        },
+        "intensity": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "duration_ms": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5000
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "channel",
+        "intensity",
+        "duration_ms"
+      ]
+    }
+  },
+  {
+    "name": "get_event_storage_status",
+    "description": "Read bounded flash backlog, loss counters and clock quality; no event contents.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "acquire_archive_lease",
+    "description": "Internal collector operation: acquire or recover a 90-second archive lease. Does not change sensor settings.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "collector_id": {
+          "type": "string"
+        },
+        "collector_kind": {
+          "type": "string",
+          "enum": [
+            "phone",
+            "computer",
+            "server"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "collector_id",
+        "collector_kind"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false
+    }
+  },
+  {
+    "name": "renew_archive_lease",
+    "description": "Internal collector operation: renew or release the matching archive lease.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "lease_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "lease_id"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false
+    }
+  },
+  {
+    "name": "release_archive_lease",
+    "description": "Internal collector operation: renew or release the matching archive lease.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "lease_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "lease_id"
+      ]
+    },
+    "annotations": {
+      "readOnlyHint": false
+    }
+  },
+  {
+    "name": "acknowledge_events",
+    "description": "Internal collector operation: acknowledge only AFTER durable database commit. Never replay output commands.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "storage_cursor": {
+          "type": "integer"
+        },
+        "storage_epoch": {
+          "type": "string"
+        },
+        "boot_id": {
+          "type": "string"
+        },
+        "archive_lease_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "storage_cursor",
+        "storage_epoch",
+        "boot_id",
+        "archive_lease_id"
+      ]
+    }
+  },
+  {
+    "name": "set_device_time",
+    "description": "Internal collector operation: synchronize device clock from authenticated computer UTC time. Old events remain unchanged.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "unix_time_ms": {
+          "type": "integer"
+        },
+        "boot_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "unix_time_ms",
+        "boot_id"
+      ]
+    }
+  }
+]
