@@ -29,9 +29,9 @@ Windows 包内置 Python，无需另装。Linux 小型包不含 Windows Python�
 
 Linux安装入口位于本版TAR内和Release附件 `Install_Server.sh`；使用同版安装器，保留原目录、项目名与数据卷。大型文件仅放在Releases，源码目录保留下载链接与校验元数据。
 
-- `AI_Doll_Code_v2.25.1.zip`：`538437b2b4aa51a5c80c140802c713b2492081585a3234f341e4291a5321cf38`
+- `AI_Doll_Code_v2.25.1.zip`：`7c625785d831591996014481afee427fbe5e90c0ac0572bbf988a0f39c65bf1a`
 - `AI_Doll_PCB_V2_20261016.zip`：`eaca9c0ea31840a33b1d0637fd15ee6bd3260a1611119d23256e51f799e530d7`
-- `AI_Doll_Server_v2.25.1.tar.gz`：`073fc467a7cadd8be2c1143685d3767e89c09a8daee7957ac7ab0b75ffdd8add`
+- `AI_Doll_Server_v2.25.1.tar.gz`：`918d59e16c6850b839438342d7c884043378ac07d767e267e14a6d3daaf75d87`
 - `AI_Doll_Operit.toolpkg`：`c72a2da4c7bb993742ce222a47371757d253ca6265eeda1349a30453413f36ea`
 - `AI_Doll_Enclosures_103450_20261020.zip`：`1904338094c2246c1dcabaf534a88af1550b948ba622a022567c94b655861005`
 - `AI_Doll_Enclosure_Stacked_103450_20261020.zip`：`76b6ff720db7e472b97f6fc3c72ca80886a9c0a32159ae77b64811ef216a8da5`

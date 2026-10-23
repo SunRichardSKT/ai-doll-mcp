@@ -73,4 +73,4 @@
 
 [2.19.1 Operit 1.12.2 导入兼容性](reports/RELEASE_2_19_1.md)记录旧工具包解析失败的原因与修正。
 
-稳定版：[2.21 连接稳定性与日常使用改进](reports/RELEASE_2_21.md)。2.24 同时整合 [2.22 Operit 陪伴与端口三态](reports/RELEASE_2_22.md)及 [2.23 连接与界面改进](reports/RELEASE_2_23.md)；历史报告保留各自当时的验证范围。
+兼容回退基线：[2.21 连接稳定性与日常使用改进](reports/RELEASE_2_21.md)。2.24 同时整合 [2.22 Operit 陪伴与端口三态](reports/RELEASE_2_22.md)及 [2.23 连接与界面改进](reports/RELEASE_2_23.md)；历史报告保留各自当时的验证范围。
