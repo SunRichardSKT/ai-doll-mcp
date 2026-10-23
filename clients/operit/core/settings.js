@@ -11,14 +11,69 @@ function path(name) {
   if (!/^[a-zA-Z0-9_-]+\.json$/.test(name)) throw Error('Invalid internal filename');
   return folder()+'/'+name;
 }
-async function read(name, fallback=null) {
+const critical=name=>name==='settings.json'||name==='job.json';
+const writes=new Map();
+function digest(value){
+  const text=JSON.stringify(value);let hash=2166136261;
+  for(let i=0;i<text.length;i++){hash^=text.charCodeAt(i);hash=Math.imul(hash,16777619);}
+  return (hash>>>0).toString(16);
+}
+function valid(name,value){
+  return value&&typeof value==='object'&&(name==='settings.json'?
+    value.schema===1&&typeof value.installation==='string'&&value.workflows&&typeof value.workflows==='object':
+    typeof value.id==='string'&&typeof value.phase==='string');
+}
+async function rawRead(name, fallback=null) {
   const file=path(name), state=await Tools.Files.exists(file,'android');
   if (typeof state.exists !== 'boolean' || state.isDirectory) throw Error('无法读取插件状态，请检查 Operit 文件权限。');
   if (!state.exists) return fallback;
-  // Corrupt state must never be treated as a fresh install or replay permission.
   return JSON.parse((await Tools.Files.read({path:file,environment:'android'})).content);
 }
-async function write(name, value) {
+function paused(value){return {...value,continuous_enabled:false,active_reply_requested:false,sync_paused:true,
+  control_generation:Math.max(Date.now(),(value.control_generation||0)+1)};}
+async function read(name,fallback=null){
+  if(!critical(name))return await rawRead(name,fallback);
+  const missing={};let value,error;
+  try{value=await rawRead(name,missing);if(value!==missing&&!valid(name,value))throw Error('invalid state');}
+  catch(e){error=e;}
+  if(!error&&value!==missing)return value;
+  const backupName=name.replace('.json','_backup.json');let backup,backupError;
+  try{backup=await rawRead(backupName,missing);}catch(e){backupError=e;}
+  if(backup?.schema===1&&valid(name,backup.data)&&backup.checksum===digest(backup.data)){
+    // Never resume a task from a possibly older copy, even if it was running.
+    const restored=name==='settings.json'?{...paused(backup.data),storage_recovery:'设置已从有效副本恢复，后台任务已暂停；请核对连接后重新开启。'}:
+      {...backup.data,phase:'interrupted',error:'任务记录已恢复，请重新开启后台任务。'};
+    if(error)await preserveDamaged(name);
+    await rawWrite(name,restored);await verify(name,restored);
+    if(name==='job.json')await pauseSettings();else await interruptJob();
+    return restored;
+  }
+  if(!error&&value===missing&&backup===missing&&!backupError)return fallback;
+  if(name==='job.json'){
+    await pauseSettings();
+    return {id:'storage-recovery',phase:'interrupted',error:'任务记录损坏，已暂停后台任务，原文件保留。'};
+  }
+  const failure=Error('设置及恢复副本无法读取。原记录保留；请重新导入连接并选择原聊天，后台任务不会自动恢复。');
+  failure.storage_recovery=true;throw failure;
+}
+async function pauseSettings(){
+  const cfg=await read('settings.json').catch(e=>{if(!e.storage_recovery)throw e;return null;});
+  if(cfg){const value={...paused(cfg),storage_recovery:'任务记录损坏，后台任务已暂停；请核对后重新开启。'};
+    await rawWrite('settings.json',value);await verify('settings.json',value);}
+}
+async function interruptJob(){
+  let job;try{job=await rawRead('job.json');}catch(_){}
+  if(job&&['scheduled','running','handoff','stopping'].includes(job.phase)){
+    job={...job,phase:'interrupted',error:'设置恢复后已暂停任务，请核对连接后重新开启。'};
+    await rawWrite('job.json',job);await verify('job.json',job);
+  }
+}
+async function preserveDamaged(name){
+  const state=await Tools.Files.exists(path(name),'android');
+  if(state.exists){const text=(await Tools.Files.read({path:path(name),environment:'android'})).content;
+    await rawWrite(name.replace('.json','_damaged_'+id()+'.json'),{original_file:name,content:text});}
+}
+async function rawWrite(name, value) {
   const parent=folder();
   const directory=await Tools.Files.exists(parent,'android');
   if (!directory.exists) {
@@ -27,6 +82,24 @@ async function write(name, value) {
   } else if (directory.isDirectory === false) throw Error('插件数据目录不是文件夹。');
   const result=await Tools.Files.write(path(name),JSON.stringify(value),false,'android');
   if (result.successful !== true) throw Error('设置未保存，请检查文件权限；不会继续发送。');
+}
+async function verify(name,value){
+  if(JSON.stringify(await rawRead(name))!==JSON.stringify(value))throw Error('文件写入校验失败，未提交新的状态。');
+}
+async function write(name,value){
+  if(!critical(name))return await rawWrite(name,value);
+  if(!valid(name,value))throw Error('无法保存不完整的设置或任务。');
+  value=JSON.parse(JSON.stringify(value));
+  const previous=writes.get(name)||Promise.resolve();
+  const next=previous.then(async()=>{
+    let old;try{old=await rawRead(name);if(old!==null&&!valid(name,old))await preserveDamaged(name);}catch(_){await preserveDamaged(name);}
+    const backupName=name.replace('.json','_backup.json');
+    const backup=async data=>{const envelope={schema:1,data,checksum:digest(data)};await rawWrite(backupName,envelope);await verify(backupName,envelope);};
+    if(valid(name,old))await backup(old);
+    await rawWrite(name,value);await verify(name,value);
+    await backup(value);
+  });
+  writes.set(name,next.catch(()=>{}));return await next;
 }
 async function checkedWrite(name,value){
   await write(name,value);
@@ -39,7 +112,15 @@ async function listNames(prefix=''){
 }
 function id() { return Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,12); }
 async function config() {
-  const saved=await read('settings.json');
+  let saved;
+  try{saved=await read('settings.json');}catch(e){
+    if(!e.storage_recovery)throw e;
+    await interruptJob();
+    // Recovery UI is usable, but this is not a new installation or permission to send.
+    return {schema:1,installation:null,connection:null,chat:null,binding:null,workflows:{},duration_sec:60,
+      response_wait_sec:1,continuous:false,continuous_enabled:false,auto_sync_enabled:false,sync_paused:true,
+      recovery_required:true,storage_recovery:e.message};
+  }
   if (saved) {
     if (saved.schema!==1 || typeof saved.installation!=='string' || !saved.workflows)
       throw Error('配置版本无法识别，原文件保留。请导出诊断后更新工具包。');

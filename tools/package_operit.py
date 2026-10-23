@@ -33,7 +33,7 @@ def build(output=None):
         if PRIVATE_URL.search(raw) or any(secret in raw for secret in secrets):
             raise ValueError('Local installation data found in ToolPkg source')
     manifest = json.loads(contents['manifest.json'])
-    if manifest['version'] != '2.25.0' or manifest['toolpkg_id'] != 'org.ai_doll.companion':
+    if manifest['version'] != '2.25.1' or manifest['toolpkg_id'] != 'org.ai_doll.companion':
         raise ValueError('Unexpected Operit identity/version')
     from operit_metadata import validate_archive, validate_contents
     validate_contents(contents)
@@ -47,7 +47,7 @@ def build(output=None):
         raise ValueError('Developer build requires Node.js for the ToolPkg registration check')
     checks = ['test_operit_registration.cjs', 'test_operit_unified.cjs', 'test_operit_phone.cjs', 'test_operit_address.cjs', 'test_operit_continuous.cjs', 'test_operit_controls.cjs', 'test_operit_queue.cjs']
     checks += ['test_operit_pairing.cjs', 'test_operit_pairing_ui.cjs', 'test_operit_qr.cjs',
-               'test_operit_archive.cjs', 'test_operit_sync.cjs', 'test_operit_sync_lifecycle.cjs']
+               'test_operit_archive.cjs', 'test_operit_storage.cjs', 'test_operit_sync.cjs', 'test_operit_sync_lifecycle.cjs']
     upstream = ROOT / 'build/integration-research/operit-1.12.2/runtime/context.js'
     if upstream.is_file():
         checks.append('test_operit_ui_bridge.cjs')

@@ -23,7 +23,7 @@ async function connect(url,token,options={}) {
     return body.result;
   }
   const hello=await rpc('initialize',{protocolVersion:'2025-11-25',capabilities:{},
-    clientInfo:{name:'ai-doll-operit',version:'2.25.0'}});
+    clientInfo:{name:'ai-doll-operit',version:'2.25.1'}});
   if(!hello?.protocolVersion)throw Error('MCP 未返回协议版本。');
   await rpc('notifications/initialized',{},hello.protocolVersion);
   const call=async(name,args={})=>{

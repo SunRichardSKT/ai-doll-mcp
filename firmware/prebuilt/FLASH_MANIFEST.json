@@ -1,5 +1,5 @@
 {
-  "firmware": "doll-lab-2.13.1",
+  "firmware": "doll-lab-2.13.2",
   "chip": "esp32c3",
   "flashSize": "4MB",
   "flashMode": "dio",
@@ -26,8 +26,8 @@
     {
       "file": "firmware.bin",
       "offset": "0x10000",
-      "bytes": 1297744,
-      "sha256": "150fb2ba4b1352d80fcf253743c34db55861e60685f7c62e6a190c5d4ecb710e"
+      "bytes": 1298304,
+      "sha256": "bae4d85989bc3f188c6566f8737a3181881cd9f4ce95202fdc1592ee39f37d0b"
     }
   ],
   "target": "ai-doll-supermini-v1"

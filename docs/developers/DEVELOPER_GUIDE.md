@@ -5,7 +5,7 @@
 
 普通使用者不需要编译，按 [首次安装](../start/AI_INSTALL.md)使用完整包。本页面向维护代码、定制接口和制作交付包的开发者。
 
-当前版本为 **2.25.0预发布／固件2.13.1**。完整文件在[本版Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.0)，源码中的`delivery/`只保留入口和校验元数据。目标手机与新固件实板仍待单独验收。
+当前版本为 **2.25.1预发布／固件2.13.2**。完整文件在[本版Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.1)，源码中的`delivery/`只保留入口和校验元数据。目标手机与新固件实板仍待单独验收。
 
 ## 项目结构
 
@@ -89,11 +89,11 @@ Node / Playwright 页面测试需要开发者另装对应环境，运行 `tools/
 .\.venv\Scripts\python.exe -X utf8 tools/build_portable_python.py
 .\.venv\Scripts\python.exe -X utf8 hardware/enclosure/package_enclosures.py
 .\.venv\Scripts\python.exe -X utf8 tools/package_companion.py
-.\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Code_v2.25.0.zip
-.\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Server_v2.25.0.tar.gz
+.\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Code_v2.25.1.zip
+.\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Server_v2.25.1.tar.gz
 .\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --repository .
-.\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --archive delivery/AI_Doll_Code_v2.25.0.zip
-.\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --archive delivery/AI_Doll_Server_v2.25.0.tar.gz
+.\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --archive delivery/AI_Doll_Code_v2.25.1.zip
+.\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --archive delivery/AI_Doll_Server_v2.25.1.tar.gz
 ```
 
 `build_portable_python.py` 从官方 CPython 和固定 wheel 构建 Windows x64 运行环境，需要联网。已有完整运行环境时先验证并复用，不要再次覆盖运行中的 `python/`；确需重建时，在停止本项目服务后，将整个已有 `python/` 移到项目内明确的备份位置，再恢复源码的 README、许可和版本元数据后构建。不要打包开发用 `.venv`。
@@ -129,3 +129,9 @@ Node / Playwright 页面测试需要开发者另装对应环境，运行 `tools/
 `/api/identity`公开最少身份信息；`/api/setup`及状态、配置API要求物理热点窗口、已配对令牌，或已开启的网页登录认证。静态页面不含凭据，允许加载；新浏览器裸LAN地址不会导出令牌。已配对客户端给设置链接附加`#setup_token=...`，网页读入sessionStorage后清除片段，不放入查询参数或日志。若开启网页登录仍须登录；物理热点窗口提供登录恢复，独立热点密码仍生效。
 
 服务器直传与OTA沿用原鉴权和LAN限制。网页开关热点不应中断在线STA或上传，实际无线、手机切网和OTA仍需目标设备验收。旧固件保持原行为，需要升级镜像才获得限时策略。
+
+## 自动检查与修订维护
+
+每次push／PR运行 `.github/workflows/checks.yml`，检查固件清单及固定分区、生产网络与租约策略、完整ToolPkg、实际MCP SDK、文档和Linux交付包。使用已声明依赖，不访问真实板子或手机，不自动发布。Windows完整包仍需本地运行环境与交付审计。
+
+`tools/check_firmware.py` 在导出及完整打包时也执行，保持原历史分区和双OTA槽。每日手机JSON为128条间隔的兼容检查点，已提交归档段保留全部尾部记录；不能只拷贝日文件作完整导出。设置／任务副本校验用于恢复，不承诺文件系统fsync或物理断电安全。详见[2.25.1修订](../reports/RELEASE_2_25_1.md)。

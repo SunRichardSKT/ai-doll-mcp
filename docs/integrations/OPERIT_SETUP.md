@@ -1,6 +1,8 @@
 # Operit：一次配置，在原聊天中互动
 
-本文对应 **2.25.0预发布／固件2.13.1**，文件从[本版Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.0)取得。[改进与验收边界](../reports/RELEASE_2_25.md)。电脑／服务器与手机包同批次升级；完整手机归档与ACK另需固件租约支持。保留插件数据并替换同名包，不卸载插件或清空数据。
+2.25.1为配置恢复和归档性能修订。[修订与验证记录](../reports/RELEASE_2_25_1.md)。设置文件异常时优先恢复校验副本，界面说明恢复情况并暂停后台；核对原聊天后重新开启。两份配置都不可用时仍能停止并重新导入，原配置和历史文件保留，原绑定不会被宣称已恢复。
+
+本文对应 **2.25.1预发布／固件2.13.2**，文件从[本版Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.1)取得。[改进与验收边界](../reports/RELEASE_2_25_1.md)。电脑／服务器与手机包同批次升级；完整手机归档与ACK另需固件租约支持。保留插件数据并替换同名包，不卸载插件或清空数据。
 
 上一修订版[2.24.1](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.24.1)仍可回退，旧包按其[固定版本教程](https://github.com/SunRichardSKT/ai-doll-mcp/blob/v2.24.1/docs/integrations/OPERIT_SETUP.md)操作；其中没有本版“添加娃娃”和独立同步入口。2.21按[稳定版入口](../start/STABLE_2_21.md)操作。
 
@@ -27,7 +29,7 @@
 
 ## 电脑采集：首次使用
 
-1. 完整解压预发布 `AI_Doll_Code_v2.25.0.zip`，保留根目录 `python`、`src`、`tools`、`clients` 和 `delivery`。双击 `AI_Doll.cmd`，打开“Operit 手机陪伴”。不需要另装 Python。
+1. 完整解压预发布 `AI_Doll_Code_v2.25.1.zip`，保留根目录 `python`、`src`、`tools`、`clients` 和 `delivery`。双击 `AI_Doll.cmd`，打开“Operit 手机陪伴”。不需要另装 Python。
 2. 手机和电脑接同一个 Wi-Fi。默认使用已安装的真实主板和传感器。网络列表只有一项时自动选择；多项时选手机可访问的**电脑 IP**，再点“保存并启动”。模拟演示仅在开发者选项中使用，独立保存数据，不修改真实硬件。
 3. 页面点击“下载手机工具包”和“导出手机连接”，将两个文件传到手机。工具包只有一个：`AI_Doll_Operit.toolpkg`；连接文件为这台电脑生成，不在公共包中预填。
 4. 在 Operit 的包管理中导入 `.toolpkg`。打开工具箱里的“AI Doll · 连接与互动”，点“导入服务器／电脑连接”，选择刚传来的 JSON。
@@ -64,7 +66,7 @@ Operit 本身需已能在这个聊天里正常回复，继续使用你的原模�
 
 有效新事件仍需在30秒内采集；已捕获触摸最多排队120秒，结束、静音和到期取消未发送反馈。常开任务续接保留同一有效会话的队列；不会把未知发送自动重试。
 
-电脑／服务器用户升级时同时安装预发布 2.25.0 服务端和手机包，再重启本项目服务；批次接口至少需要 2.24 服务端。只换手机包而服务端过旧时会明确提示不支持新接口。手机直连更新工具包后可使用旧固件的复制归档；需要完整分页和自动 ACK 时，另按固件指南更新至具有归档租约能力的配套版本。不要仅凭手机版本判断开发板已升级。
+电脑／服务器用户升级时同时安装预发布 2.25.1 服务端和手机包，再重启本项目服务；批次接口至少需要 2.24 服务端。只换手机包而服务端过旧时会明确提示不支持新接口。手机直连更新工具包后可使用旧固件的复制归档；需要完整分页和自动 ACK 时，另按固件指南更新至具有归档租约能力的配套版本。不要仅凭手机版本判断开发板已升级。
 
 暗色和亮色页面均跟随Operit主题；卡片、文字和说明使用配套主题颜色。
 
@@ -139,7 +141,7 @@ Operit 本身需已能在这个聊天里正常回复，继续使用你的原模�
 
 本机检查、实际 APK、真实传感器和目标聊天回复分别记录，见 [2.19 交付记录](../reports/RELEASE_2_19.md)。陪伴、事件策略、压力摘要和历史核心已迁到 `src/ai_doll/core/`，旧 `tools` 导入保留兼容；硬件与管理适配器的进一步整理不影响现有 MCP 名称及 Linux 服务。
 
-本版软件结果与目标环境待验收项目见 [2.25预发布记录](../reports/RELEASE_2_25.md)。拍照／相册、本地 WebView 解码往返、热点路由、真实 CH0 连续排队及至少 30 分钟锁屏需分别取得实际证据。技术依据：[ToolPkg 格式](https://github.com/AAswordman/Operit/blob/main/docs/TOOLPKG_FORMAT_GUIDE.md)、[Compose DSL 类型](https://github.com/AAswordman/Operit/blob/main/examples/types/compose-dsl.d.ts)、[工作流调度实现](https://github.com/AAswordman/Operit/blob/main/app/src/main/java/com/ai/assistance/operit/core/workflow/WorkflowScheduler.kt)。
+本版软件结果与目标环境待验收项目见 [2.25预发布记录](../reports/RELEASE_2_25_1.md)。拍照／相册、本地 WebView 解码往返、热点路由、真实 CH0 连续排队及至少 30 分钟锁屏需分别取得实际证据。技术依据：[ToolPkg 格式](https://github.com/AAswordman/Operit/blob/main/docs/TOOLPKG_FORMAT_GUIDE.md)、[Compose DSL 类型](https://github.com/AAswordman/Operit/blob/main/examples/types/compose-dsl.d.ts)、[工作流调度实现](https://github.com/AAswordman/Operit/blob/main/app/src/main/java/com/ai/assistance/operit/core/workflow/WorkflowScheduler.kt)。
 
 ## 临时配网热点（固件2.13.1）
 

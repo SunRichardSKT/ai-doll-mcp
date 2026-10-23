@@ -22,13 +22,14 @@ void pinMode(int,int){}int digitalRead(int){return pressed?LOW:HIGH;}void setLed
 struct {uint64_t getEfuseMac(){return 0x112233445566;}}ESP;
 struct {void end(){}bool begin(const char*){return true;}void addService(const char*,const char*,int){}void addServiceTxt(const char*,const char*,const char*,String){}}MDNS;
 struct Radio {bool online=false,failAP=false,ap=false;int modes=WIFI_STA,starts=0,disconnects=0,joins=0;
+ String currentSSID;String SSID(){return currentSSID;}
  int status(){return online?WL_CONNECTED:0;}IPAddress localIP(){return online?IPAddress(10,0,0,2):IPAddress();}
  void onEvent(void(*)(int,arduino_event_info_t)){} void setSleep(bool){}void persistent(bool){}void setAutoReconnect(bool){}
  bool mode(int m){modes=m;ap=(m&WIFI_AP)!=0;return true;}bool setTxPower(int){return true;}int getTxPower(){return 34;}
  void disconnect(bool,bool){online=false;disconnects++;}bool softAPConfig(IPAddress,IPAddress,IPAddress){return true;}
  String softAPSSID(){return ap?String("test-doll"):String("");}IPAddress softAPIP(){return ap?IPAddress(192,168,4,1):IPAddress();}
  bool softAP(const char*,const char*,int,int,int){starts++;ap=!failAP;return ap;}
- void softAPdisconnect(bool){ap=false;}void setHostname(const char*){}void begin(const char*,const char*){joins++;}void reconnect(){joins++;}
+ void softAPdisconnect(bool){ap=false;}void setHostname(const char*){}void begin(const char* ssid,const char*){currentSSID=ssid;joins++;}void reconnect(){joins++;}
 }WiFi;
 struct {void stop(){}void start(int,const char*,IPAddress){}}dns;
 struct {String getString(const char*,const char* d){return String(d);}}prefs;
@@ -57,6 +58,16 @@ int main(){
  // millis wrap cannot turn ten minutes into an unlimited window.
  SetupWindow w;w.open(0xffff0000U);assert(w.remaining(0xffff0000U)==600000);assert(w.remaining(uint32_t(0xffff0000U+600000U))==0);
  w.open(0);w.connected(1000);w.connected(80000);assert(w.deadline==91000);w.close();assert(!w.remaining(80000));
+ // Changing Wi-Fi while online: the old station is not success for the new target.
+ ssid="old-home";WiFi.currentSSID=ssid;WiFi.online=true;WiFi.failAP=false;clockNow=2000000;
+ openConfigAP(NetworkMode::NORMAL);setupWindow.joined=false;ssid="wrong-new-home";
+ connectPending=true;connectAt=clockNow+500;tick(2000001);
+ assert(setupWindow.remaining(clockNow)==599999);
+ tick(2000500);assert(!WiFi.online);tick(2090002);assert(configAP&&setupWindow.active);
+ // A late callback for the old target still must not start the grace timer.
+ WiFi.online=true;WiFi.currentSSID="old-home";tick(2090003);assert(!setupWindow.joined);
+ WiFi.currentSSID=ssid;tick(2090004);assert(setupWindow.remaining(clockNow)==90000);
+ tick(2180004);assert(!configAP&&WiFi.online);
 }
 '''
         with tempfile.TemporaryDirectory(prefix='aidoll-hotspot-') as folder:

@@ -12,6 +12,8 @@ from urllib.parse import urlsplit
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 TOOLS = (
+    'check_firmware.py', 'test_firmware_delivery.py',
+    'test_operit_storage.cjs',
     'pairing_connection.js', 'test_pairing_exports.py', 'test_pairing_portal.cjs', 'test_hotspot_policy.py', 'test_hotspot_ui.cjs',
     'test_operit_pairing.cjs', 'test_operit_pairing_ui.cjs', 'test_operit_qr.cjs',
     'test_operit_archive.cjs', 'test_operit_sync.cjs', 'test_operit_sync_lifecycle.cjs', 'test_archive_lease.py',
@@ -73,6 +75,7 @@ DOCS += ('integrations/OPERIT_NO_PC.md', 'reports/RELEASE_2_20.md')
 DOCS += ('reports/UPDATE_20261019.md', 'reports/RELEASE_2_21.md', 'reports/RELEASE_2_22.md', 'reports/RELEASE_2_23.md', 'reports/RELEASE_2_24.md', 'developers/STABILITY_AND_DAILY_USE_PLAN.md')
 DOCS += ('reports/RELEASE_2_24_1.md', 'start/STABLE_2_21.md')
 DOCS += ('developers/PHONE_PAIRING_AND_RECOVERY_PLAN.md', 'reports/RELEASE_2_25.md')
+DOCS += ('reports/RELEASE_2_25_1.md',)
 SOURCE = ('remote_uplink.h', 'digital_temperature.h', 'ota_update.h', 'event_storage.h', 'event_integrity.h', 'lab_main.cpp', 'device_page.h', 'touch_events.h', 'network_state.h', 'network_policy.h',
           'channel_devices.h', 'channel_rpc.h', 'pressure_calibration.h', 'device_discovery.h', 'archive_lease.h')
 PREBUILT = ('firmware.bin', 'bootloader.bin', 'partitions.bin', 'boot_app0.bin', 'FLASH_MANIFEST.json', 'README.md')
@@ -173,7 +176,7 @@ def server_package(delivery):
     vendor = ROOT/'clients/operit/vendor'
     for asset in ('qrcodegen.js', 'qrcodegen.LICENSE', 'SOURCES.json'):
         contents['clients/operit/vendor/'+asset] = (vendor/asset).read_bytes()
-    for name in ('docs/ai/AI_GUIDE.md', 'docs/reports/RELEASE_2_25.md'):
+    for name in ('docs/ai/AI_GUIDE.md', 'docs/reports/RELEASE_2_25_1.md'):
         contents[name] = (ROOT/name).read_bytes()
     guide = contents['docs/daily/NATURAL_COMPANION.md'].decode('utf-8').replace('](../developers/EXISTING_CHAT.md)', '](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/developers/EXISTING_CHAT.md)')
     contents['docs/daily/NATURAL_COMPANION.md'] = guide.encode('utf-8')
@@ -185,7 +188,7 @@ def server_package(delivery):
         '本小型包只包含服务器所需文件。设备设置、Windows 和 AI 教程见 '
         '[项目完整目录](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/README.md)。\n').encode()
     contents['README.md'] = ('# AI Doll Linux 服务包\n\n'
-        '2.25.0预发布，配套文件见 https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.0 ；从本包目录运行安装入口，保留原部署数据。\n\n'
+        '2.25.1预发布，配套文件见 https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.1 ；从本包目录运行安装入口，保留原部署数据。\n\n'
         '准备 Ubuntu / Debian 服务器，将域名解析到它，并放行 TCP 80 / 443。\n\n'
         '上传并解压此包，在解压目录运行：\n\n'
         '```bash\nsudo bash Install_Server.sh\n```\n\n'
@@ -211,10 +214,10 @@ def server_package(delivery):
                 return match.group(0)
             return ']('+ 'https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/'+path+('#'+parsed.fragment if parsed.fragment else '')+')'
         contents[name]=re.sub(r'\]\(([^)]+)\)',public_link,raw.decode('utf-8')).encode('utf-8')
-    manifest = dict(version='ai-doll-server-2.25.0',files={
+    manifest = dict(version='ai-doll-server-2.25.1',files={
         name:hashlib.sha256(raw).hexdigest() for name,raw in contents.items()})
     contents['MANIFEST.json'] = json.dumps(manifest,ensure_ascii=False,indent=2).encode()
-    output = delivery/'AI_Doll_Server_v2.25.0.tar.gz'
+    output = delivery/'AI_Doll_Server_v2.25.1.tar.gz'
     # Stable tar metadata and gzip timestamps produce reproducible downloads.
     with output.open('wb') as handle, gzip.GzipFile(fileobj=handle,mode='wb',filename='',mtime=0) as compressed:
         with tarfile.open(fileobj=compressed,mode='w') as archive:
@@ -230,6 +233,8 @@ def server_package(delivery):
 
 
 def main():
+    from check_firmware import check
+    check()
     delivery = ROOT/'delivery'
     files = [ROOT/'Install_Server.sh', ROOT/'AI_Doll_Server.cmd', ROOT/'AI_Doll.cmd', ROOT/'Flash_ESP32.cmd', ROOT/'AGENTS.md', ROOT/'requirements-flash.txt', ROOT/'requirements-flash-runtime.txt', ROOT/'requirements-companion.txt', ROOT/'.gitignore', ROOT/'LICENSE', ROOT/'firmware/platformio.ini']
     from package_operit import build as build_operit, FILES as OPERIT_FILES
@@ -251,7 +256,7 @@ def main():
     files += [ROOT/'templates'/name for name in ('chatgpt-mcp-config.json','README.md','operit/ai_doll.js','operit/ai_doll_prototype.js','operit/ai_doll_chat_probe.js','host-event.example.json','openclaw-hook.example.json')]
     files += [ROOT/'firmware/src'/name for name in SOURCE]
     files += [ROOT/'firmware/prebuilt'/name for name in PREBUILT]
-    outputs = [package(delivery/'AI_Doll_Code_v2.25.0.zip', files, CODE_README, 'doll-bridge-2.25.0')]
+    outputs = [package(delivery/'AI_Doll_Code_v2.25.1.zip', files, CODE_README, 'doll-bridge-2.25.1')]
     hardware = ROOT/'hardware/rev-v2'
     if hardware.exists():
         pcb = [hardware/name for name in PCB_FILES]
@@ -280,11 +285,11 @@ def main():
         checksums[name] = hashlib.sha256((delivery/name).read_bytes()).hexdigest()
     checksums['Install_Server.sh'] = hashlib.sha256((ROOT/'Install_Server.sh').read_bytes()).hexdigest()
     (delivery/'SHA256SUMS.txt').write_text(''.join(digest+'  '+name+'\n' for name,digest in sorted(checksums.items())), encoding='ascii')
-    readme = '# 下载与交付文件\n\n**2.25.0预发布 / 固件2.13.1**，更新于2026-10-23。[下载本版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.0)。稳定版仍为[2.21.0](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.21.0)，上一修订版2.24.1保留回退；不同版本使用各自Release的固定校验文件。\n\n本版增加单手机热点配对、临时二维码、身份恢复、独立同步和归档租约。电脑／服务器与手机包同版更新；完整手机ACK还需配套固件。目标手机、实板与锁屏仍待分别验收。普通Windows用户使用完整包，无需安装Python或Arduino。\n\n'
+    readme = '# 下载与交付文件\n\n**2.25.1预发布 / 固件2.13.2**，更新于2026-10-24。[下载本版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.1)。兼容回退基线为[2.21.0](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.21.0)，上一修订版2.24.1保留回退；不同版本使用各自Release的固定校验文件。\n\n本修订修复手机配置恢复、换Wi-Fi计时和归档性能，并加入自动检查；保留热点配对、身份恢复、独立同步和归档租约。电脑／服务器与手机包同版更新；完整手机ACK还需配套固件。目标手机、实板与锁屏仍待分别验收。普通Windows用户使用完整包，无需安装Python或Arduino。\n\n'
     readme += '## 应该下载哪个\n\n| 包 | 适合谁 | 解压后做什么 |\n| --- | --- | --- |\n'
     purposes = {
-        'AI_Doll_Code_v2.25.0.zip': ('Windows 用户 / 软件开发者', '普通 Chat 双击 AI_Doll.cmd；自建应用本机接收双击 AI_Doll_Server.cmd'),
-        'AI_Doll_Server_v2.25.0.tar.gz': ('远程 Linux 服务器', '运行 sudo bash Install_Server.sh，按提示填写域名'),
+        'AI_Doll_Code_v2.25.1.zip': ('Windows 用户 / 软件开发者', '普通 Chat 双击 AI_Doll.cmd；自建应用本机接收双击 AI_Doll_Server.cmd'),
+        'AI_Doll_Server_v2.25.1.tar.gz': ('远程 Linux 服务器', '运行 sudo bash Install_Server.sh，按提示填写域名'),
         PCB_PACKAGE: ('采购和手工焊接主板', '打开新版丝印工程与 BOM；重新下单前核对现有网表不匹配'),
         'AI_Doll_Operit.toolpkg': ('Operit 安卓用户', '在包管理中导入，选择电脑、服务器或仅手机连接，按标题绑定原聊天'),
         'AI_Doll_Enclosures_103450_20261020.zip': ('3D打印与机械修改', '三个候选：旧板平铺、新板平铺、旧板堆叠；按主板选STL或STEP'),
@@ -292,11 +297,11 @@ def main():
     }
     for item in outputs:
         who, action = purposes[item['file']]
-        readme += f"| [{item['file']}](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.25.0/{item['file']}) · {item['bytes']/1048576:.2f} MiB | {who} | {action} |\n"
+        readme += f"| [{item['file']}](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.25.1/{item['file']}) · {item['bytes']/1048576:.2f} MiB | {who} | {action} |\n"
     readme += '\nOperit 无需为了取得手机工具包下载 Windows 包。服务器管理页可导出连接文件、连接码与临时二维码；仅手机模式默认从设备热点读取，不要求实体标签。原电脑入口继续兼容，完整包内含相同工具包。[统一安装](../docs/integrations/OPERIT_SETUP.md) · [免电脑指南](../docs/integrations/OPERIT_NO_PC.md)。\n'
     readme += '\nWindows 包内置 Python，无需另装。Linux 小型包不含 Windows Python，由容器准备运行环境。20261016 PCB 包已优化丝印并修正背面文字，电路与原下单文件保持；当前仍有 1 项网表不匹配，重新下单前须核对。[丝印与 3D 核对](../hardware/rev-v2/丝印镜像修正说明_20261016.md)。\n\n'
     readme += '[Windows 首次安装](../docs/start/AI_INSTALL.md) · [远程部署](../docs/integrations/REMOTE_SERVER_SETUP.md) · [给 AI 的执行指南](../docs/ai/AI_GUIDE.md) · [全部文档](../docs/README.md)\n\n'
-    readme += '## 如何校验发布包\n\n本目录仅记录2.25.0；稳定版与旧版必须使用其Release内的固定清单，不使用这里校验同名旧手机包。[2.21校正版入口](../docs/start/STABLE_2_21.md)。\n\n[DELIVERY_MANIFEST.json](DELIVERY_MANIFEST.json) 与 [SHA256SUMS.txt](SHA256SUMS.txt) 记录哈希；ZIP / TAR 内的 MANIFEST.json 记录逐文件校验，ToolPkg 使用 CHECKSUMS.json。Linux 包另有同目录 `.sha256`。\n\n'
+    readme += '## 如何校验发布包\n\n本目录仅记录2.25.1；稳定版与旧版必须使用其Release内的固定清单，不使用这里校验同名旧手机包。[2.21校正版入口](../docs/start/STABLE_2_21.md)。\n\n[DELIVERY_MANIFEST.json](DELIVERY_MANIFEST.json) 与 [SHA256SUMS.txt](SHA256SUMS.txt) 记录哈希；ZIP / TAR 内的 MANIFEST.json 记录逐文件校验，ToolPkg 使用 CHECKSUMS.json。Linux 包另有同目录 `.sha256`。\n\n'
     readme += 'Linux安装入口位于本版TAR内和Release附件 `Install_Server.sh`；使用同版安装器，保留原目录、项目名与数据卷。大型文件仅放在Releases，源码目录保留下载链接与校验元数据。\n\n'
     for item in outputs:
         readme += f"- `{item['file']}`：`{item['sha256']}`\n"

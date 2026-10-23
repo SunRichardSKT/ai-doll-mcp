@@ -2,7 +2,7 @@
 {
   "name":"ai_doll_companion",
   "enabledByDefault":true,
-  "version":"2.25.0",
+  "version":"2.25.1",
   "description":"AI Doll 统一入口。配置与启动请使用工具箱的 AI Doll 面板；不从目标聊天递归等待或发送。",
   "category":"NETWORK",
   "tools":[
@@ -50,7 +50,8 @@ async function refreshJob() {
   return job;
 }
 async function status(p={}) {
-  const cfg=await store.config(),job=await refreshJob();
+  let cfg=await store.config();const job=await refreshJob();
+  if(job?.phase==='interrupted')cfg=await store.config();
   const journal=cfg.binding?await store.read('delivery_'+cfg.binding+'.json'):null;
   const network=cfg.connection?.kind==='ai-doll-device-connection'?await store.read('device_'+cfg.connection.storage_key+'_network.json'):null;
   let panel=cfg.binding?await store.read('panel_'+cfg.binding+'.json'):null;
@@ -69,11 +70,13 @@ async function status(p={}) {
     job,uncertain_delivery:journal?.pending?.phase==='sending',
     auto_sync_enabled:!!cfg.auto_sync_enabled,sync_paused:!!cfg.sync_paused,
     sync_state:cfg.connection?.kind==='ai-doll-device-connection'?await store.read('device_'+cfg.connection.storage_key+'_sync.json',{}):null,
+    storage_recovery:cfg.storage_recovery||null,recovery_required:!!cfg.recovery_required,
     display_verified:false,storage_managed:true};
 }
 function wantsSync(cfg){return !!(cfg.connection?.kind==='ai-doll-device-connection'&&cfg.auto_sync_enabled&&!cfg.sync_paused&&!cfg.sync_identity_changed);}
 async function commitConnection(connection){
   const cfg=await store.config(),same=store.sameConnection(cfg.connection,connection);
+  if(cfg.recovery_required){cfg.installation=store.id();delete cfg.recovery_required;cfg.storage_recovery='连接已重新核对；请选择原聊天后再开启，原归档文件保留。';}
   if(!same){await refreshJob();await store.noRunningJob();if(cfg.continuous_enabled)throw Error('请先停止当前陪伴再更换设备。');}
   if(connection.kind==='ai-doll-device-connection')connection={...connection,storage_key:same?cfg.connection.storage_key:(connection.storage_key||store.id())};
   if(!same){if(cfg.connection)cfg.chat=null;cfg.binding=store.id();cfg.background_verified=false;cfg.probe_file=null;cfg.continuous_enabled=false;
@@ -111,7 +114,7 @@ async function setup_device(p) {
 async function set_record_sync(p){
   if(typeof p.enabled!=='boolean')throw Error('请选择是否自动同步记录。');
   const cfg=await store.config();if(cfg.connection?.kind!=='ai-doll-device-connection')throw Error('自动同步用于手机直连；服务器自行保存设备上传记录。');
-  cfg.auto_sync_enabled=p.enabled;cfg.sync_paused=false;await store.checkedWrite('settings.json',cfg);
+  cfg.auto_sync_enabled=p.enabled;cfg.sync_paused=false;if(p.enabled)delete cfg.storage_recovery;await store.checkedWrite('settings.json',cfg);
   const job=await refreshJob();
   if(p.enabled){if(!job||!['scheduled','running','handoff'].includes(job.phase))await schedule({kind:'sync'});}
   else if(job?.kind==='sync')await stopSyncOnly(cfg,job);
@@ -126,7 +129,7 @@ async function sync_now(){
   const cfg=await store.config();if(cfg.connection?.kind!=='ai-doll-device-connection')throw Error('服务器收到上传后会自动同步，可刷新设备状态。');
   const job=await refreshJob();
   if(job&&['scheduled','running','handoff'].includes(job.phase))return {scheduled:true,reused:true,message:'正在复用当前采集任务同步记录。'};
-  cfg.sync_paused=false;await store.write('settings.json',cfg);
+  cfg.sync_paused=false;delete cfg.storage_recovery;await store.write('settings.json',cfg);
   const once={schema:1,id:store.id(),binding:cfg.binding,kind:'sync',phase:'running',worker_deadline:Date.now()+30000};
   await store.write('job.json',once);
   try{
@@ -178,7 +181,7 @@ async function set_experience(p) {
         if(wantsSync(cfg)){job.kind='sync';job.continuous=true;await store.write('job.json',job);}
         else await stop();
       }
-    }else cfg.sync_paused=false;
+    }else {cfg.sync_paused=false;delete cfg.storage_recovery;}
   }
   if(p.duration_sec!==undefined)cfg.duration_sec=p.duration_sec;
   if(p.continuous!==undefined)cfg.continuous=p.continuous;
@@ -382,6 +385,7 @@ async function executeTask(p) {
 }
 async function stop() {
   const cfg=await store.config(),job=await store.read('job.json');
+  if(cfg.recovery_required)return {stopped:true,cleanup_pending:true,message:cfg.storage_recovery};
   cfg.continuous_enabled=false;cfg.active_reply_requested=false;cfg.sync_paused=true;cfg.control_generation=(cfg.control_generation||0)+1;await store.write('settings.json',cfg);
   if (job && ['scheduled','running','handoff','stopping','interrupted'].includes(job.phase)) {
     job.phase='stopped';await store.write('job.json',job);

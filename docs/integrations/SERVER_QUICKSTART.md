@@ -5,7 +5,7 @@
 
 适用于自己的聊天应用，先用 Windows 电脑接收设备直接上传的记录。普通 Chat 用户使用 [AI_Doll.cmd](../start/AI_INSTALL.md)；真正远程 Linux 部署使用 [Install_Server.sh](REMOTE_SERVER_SETUP.md)。
 
-准备 [2.25.0 Windows 完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.0)、已配网的娃娃和可互通的局域网。适合自建应用；只想在 ChatGPT 用娃娃时，选首次安装教程。使用其他版本时，安装入口与包内工具一起使用，不单独混换脚本。
+准备 [2.25.1 Windows 完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.1)、已配网的娃娃和可互通的局域网。适合自建应用；只想在 ChatGPT 用娃娃时，选首次安装教程。使用其他版本时，安装入口与包内工具一起使用，不单独混换脚本。
 
 ## 四步连接
 

@@ -21,7 +21,7 @@ class SharedCoreTests(unittest.TestCase):
         tools = Path(__file__).resolve().parent
         script = ('import sys;sys.path.insert(0,' + repr(str(tools)) + ');'
                   'import interaction_bridge,companion_experience,history_management;'
-                  'assert interaction_bridge.VERSION=="doll-bridge-2.25.0";'
+                  'assert interaction_bridge.VERSION=="doll-bridge-2.25.1";'
                   'assert "src" in interaction_bridge.__file__;print("shared source OK")')
         result = subprocess.run([sys.executable, '-I', '-c', script], capture_output=True, text=True, timeout=10)
         self.assertEqual(result.returncode, 0, result.stderr)

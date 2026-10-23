@@ -1,6 +1,6 @@
 # Operit：服务器或仅安卓手机使用
 
-本文对应 **2.25.0预发布／固件2.13.1**。从[本版Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.0)下载同批次文件；旧版按其固定tag操作，不把新手机包单独接到旧服务端。[验收范围](../reports/RELEASE_2_25.md)。
+本文对应 **2.25.1预发布／固件2.13.2**。从[本版Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.1)下载同批次文件；旧版按其固定tag操作，不把新手机包单独接到旧服务端。[验收范围](../reports/RELEASE_2_25_1.md)。
 
 | 用法 | 需要运行 | 历史位置 | 手机网络 |
 | --- | --- | --- | --- |
@@ -63,6 +63,8 @@
 [完整设置](OPERIT_SETUP.md) · [配网与恢复](../daily/WIFI_CONNECTION.md) · [离线记录](../daily/OFFLINE_RECORDS.md) · [验证范围](../reports/VALIDATION.md)
 
 ## 临时配网热点（固件2.13.1）
+
+2.13.2修复在线换网时旧连接被误判为新配网成功的问题。新凭据未连通时保留原10分钟窗口，不提前进入90秒关闭期；设备实际版本以状态返回为准。
 
 新设备首次开机提供最长10分钟热点；已有家庭Wi-Fi的重启不开热点，断网只重连。需要配对、换网或找回地址时，运行中长按BOOT约3秒再松开，不按RST。若设置过独立热点密码，在手机系统Wi-Fi中填写；它不同于网页账号密码。
 

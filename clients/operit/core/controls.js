@@ -7,6 +7,8 @@ async function tool() {
 }
 function mode(c) {return c.mode||(!c.enabled?'off':c.driver==='simulation'?'simulation':'connected');}
 async function panel() {
+  const state=await store.config();
+  if(state.recovery_required)return {channels:[],settings_entries:[],storage_recovery:state.storage_recovery,recovery_required:true};
   const {cfg,call}=await tool();
   const overview=await call('get_device_overview');
   let config,entry,persona;

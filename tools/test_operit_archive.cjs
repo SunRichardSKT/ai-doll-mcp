@@ -193,4 +193,21 @@ test('local dates filter across midnight independently of ingestion date',async(
   await p.tool('_sync_records');assert.equal((await p.archive.query({date:'2026-10-22'})).events.length,1);assert.equal((await p.archive.query({date:'2026-10-23'})).events.length,1);
 });
 exports.phone=phone;
+test('append cost stays bounded; checkpoints and restart retain the committed tail',async()=>{
+  const p=await phone();let reads=0,dailyWrites=0;const read=p.f.tools.Files.read,write=p.f.tools.Files.write;
+  p.f.tools.Files.read=async(...args)=>{reads++;return await read(...args);};
+  p.f.tools.Files.write=async(name,...args)=>{if(name.includes('_history_'))dailyWrites++;return await write(name,...args);};
+  const costs={};
+  for(let seq=1;seq<=251;seq++){
+    const before=reads;
+    await p.archive.ingest({boot_id:'boot-new',uptime_ms:seq*100,next_cursor:seq,events:[p.raw(seq,{uptime_ms:seq*100})]},{live:true});
+    if([11,101,251].includes(seq))costs[seq]=reads-before;
+  }
+  assert.ok(Math.max(...Object.values(costs))<=15,JSON.stringify(costs));assert.ok(dailyWrites<=3);
+  const before=await p.archive.query({after:200,limit:100});assert.equal(before.events.length,51);
+  p.f.disk.set('/managed/device_archive_test_events.json','{');p.f.resetModules();
+  const restored=p.f.load(modulePath('archive')).create(p.c);
+  assert.equal((await restored.all()).length,251);assert.equal((await restored.query({after:250})).events.length,1);
+  console.log('Archive file reads at 10/100/250 prior batches: '+Object.values(costs).join('/'));
+});
 if(require.main===module)(async()=>{for(const [name,fn]of tests){await fn();console.log('PASS archive: '+name);}finished=true;console.log('PASS '+tests.length+' archive scenarios. No physical device, fsync guarantee or Android lock-screen claim.');})().catch(e=>{console.error(e);process.exitCode=1;});

@@ -106,7 +106,9 @@ static void networkTick(){
  if(!held){buttonDown=false;buttonHandled=false;}
  if(held&&!buttonHandled&&now-buttonDownAt>=3000){buttonHandled=true;openConfigAP(NetworkMode::SETUP);}
  if(connectPending&&(int32_t)(now-connectAt)>=0){connectPending=false;beginNetworkConnect();}
- if(allowConnect&&WiFi.status()==WL_CONNECTED){
+ // provision() queues a new target while the old station can still be online.
+ // Only the completed target connection may shorten the setup window.
+ if(allowConnect&&!connectPending&&WiFi.status()==WL_CONNECTED&&WiFi.SSID()==ssid){
   networkMode=NetworkMode::NORMAL;
   setupWindow.connected(now);
  }else if(networkMode==NetworkMode::NORMAL){

@@ -11,18 +11,23 @@ function create(c){
   if(archives.has(c.storage_key))return archives.get(c.storage_key);
   const prefix='device_'+c.storage_key+'_';
   const read=(n,d)=>store.read(prefix+n+'.json',d),write=(n,v)=>store.write(prefix+n+'.json',v);
-  let recovered=null,catalogSignature=null,tail=Promise.resolve();
+  let recovered=null,catalog=new Set(),dailyCounts=new Map(),tail=Promise.resolve();
   const serial=fn=>{const next=tail.then(fn,fn);tail=next.catch(()=>{});return next;};
   async function all(){
     let names=[];
     if(typeof Tools.Files.list==='function')names=await store.listNames(prefix);
-    const signature=names.filter(n=>n.startsWith(prefix+'segment_')||n.startsWith(prefix+'commit_')||n.startsWith(prefix+'history_')).sort().join('|');
-    if(recovered&&catalogSignature===signature)return recovered;
-    const state=await index();
-    const byKey=new Map();for(const e of state.events||[])byKey.set(e.event_id||'legacy:'+e.id,e);
-    for(const name of names){
+    names=names.filter(n=>n.startsWith(prefix+'segment_')||n.startsWith(prefix+'commit_')||n.startsWith(prefix+'history_'));
+    const present=new Set(names),rebuild=!recovered||[...catalog].some(n=>!present.has(n));
+    const changed=rebuild?names:names.filter(n=>!catalog.has(n));
+    if(!rebuild&&!changed.length)return recovered;
+    const byKey=new Map();
+    for(const e of rebuild?(await index()).events||[]:recovered)byKey.set(e.event_id||'legacy:'+e.id,e);
+    // A commit arriving after its segment must also cause the pair to be read.
+    const files=new Set(changed.map(n=>n.replace(prefix+'commit_',prefix+'segment_')));
+    for(const name of files){
       if(name.startsWith(prefix+'history_')){
         let day;try{day=await store.read(name);}catch(_){continue;}
+        dailyCounts.set(name,(day.events||[]).length);
         for(const e of day.events||[])byKey.set(e.event_id||'legacy:'+e.id,e);
       }else if(name.startsWith(prefix+'segment_')){
         let value,commit;try{value=await store.read(name);commit=await store.read(name.replace(prefix+'segment_',prefix+'commit_'));}catch(_){continue;}
@@ -33,7 +38,7 @@ function create(c){
         }
       }
     }
-    catalogSignature=signature;recovered=[...byKey.values()].sort((a,b)=>a.id-b.id);return recovered;
+    catalog=present;recovered=[...byKey.values()].sort((a,b)=>a.id-b.id);return recovered;
   }
   async function index(){
     let value,receipt,badIndex=false;
@@ -94,14 +99,19 @@ function create(c){
         if(!existing||existing.checksum!==digest||checksum(existing.data)!==digest)
           await store.checkedWrite(segment,{schema:1,data,checksum:digest});
         else if(JSON.stringify(existing.data)!==JSON.stringify(data))throw Error('归档页校验不一致，未确认设备副本。');
-        await store.checkedWrite(prefix+'commit_'+suffix+'.json',{schema:1,segment:'segment_'+suffix,checksum:digest});
+        const commit=prefix+'commit_'+suffix+'.json';
+        await store.checkedWrite(commit,{schema:1,segment:'segment_'+suffix,checksum:digest});
+        catalog.add(segment);catalog.add(commit);
         recovered=[...byKey.values()].sort((x,y)=>x.id-y.id);
-        // Preserve the existing daily-file layout; old consumers can still read it.
+        // Daily files are compatibility checkpoints, not the authoritative tail.
+        // Read/commit immutable segments first; do not rewrite a whole day per touch.
         for(const day of new Set(added.map(e=>Number.isFinite(e.at)?new Date(e.at*1000).toISOString().slice(0,10).replace(/-/g,''):'unknown'))){
-          const history=await read('history_'+day,{schema:1,events:[]});
-          for(const e of added.filter(e=>(Number.isFinite(e.at)?new Date(e.at*1000).toISOString().slice(0,10).replace(/-/g,''):'unknown')===day))
-            if(!history.events.some(x=>x.event_id===e.event_id))history.events.push(e);
-          await store.checkedWrite(prefix+'history_'+day+'.json',history);
+          const filename=prefix+'history_'+day+'.json';
+          const events=recovered.filter(e=>(Number.isFinite(e.at)?new Date(e.at*1000).toISOString().slice(0,10).replace(/-/g,''):'unknown')===day);
+          if(!dailyCounts.has(filename)||events.length-dailyCounts.get(filename)>=128){
+            await store.checkedWrite(filename,{schema:1,events});
+            dailyCounts.set(filename,events.length);catalog.add(filename);
+          }
         }
       }
       a.events=(recovered||records).slice(-2000);a.next_id=next;a.last_sync=stamp;

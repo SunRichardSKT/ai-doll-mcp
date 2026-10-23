@@ -38,6 +38,7 @@ async function Screen(ctx) {
   if(s.panel){panel=s.panel;setPanel(panel);}
   if(s.configured&&withPanel){panel=await call('get_panel');setPanel(panel);s.connection_state=panel.overview?.online?'online':'device_offline';}
   setState(s);setDuration(s.duration_sec||60);setContinuous(!!s.continuous);setWaitText(String(s.response_wait_sec??1));
+  if(s.storage_recovery)setMessage(s.storage_recovery);
   setComputerHost(s.connection?.computer_host||'');if(s.connection?.mode==='phone')setMode('phone');
   if(s.connection?.device_host)setHost(s.connection.device_host);
   setPersonaText(panel.persona||'');return s;

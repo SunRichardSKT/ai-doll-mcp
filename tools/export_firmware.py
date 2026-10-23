@@ -23,6 +23,8 @@ def main():
         item.update(bytes=len(data),sha256=hashlib.sha256(data).hexdigest())
     (out/'FLASH_MANIFEST.json').write_text(json.dumps(manifest,indent=2)+'\n',encoding='utf-8')
     validate_images(out)
+    from check_firmware import check
+    print(json.dumps(check(), indent=2))
     print('Exported and verified four images:',version)
 
 

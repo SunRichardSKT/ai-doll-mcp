@@ -24,7 +24,7 @@ class OperitMetadataTests(unittest.TestCase):
 
     def test_all_current_parameters_have_required_descriptions(self):
         report = validate_contents(self.contents)
-        self.assertEqual(report['version'], '2.25.0')
+        self.assertEqual(report['version'], '2.25.1')
         self.assertGreater(report['parameters'], 0)
 
     def test_each_of_the_five_missing_fields_reproduces_import_rejection(self):
