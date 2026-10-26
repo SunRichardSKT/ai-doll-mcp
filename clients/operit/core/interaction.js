@@ -202,11 +202,11 @@ async function listen_interaction(p) {
         if(!current||current.id!==session.id||current.chat_id!==p.chat_id)break;
         // Captured during a live session, kept at most two minutes while the
         // previous reply runs. Preserve timestamps: queued data is not new input.
-        const ready=state.queue.filter(q=>q.queue_deadline>serverNow()&&q.events.every(e=>{
+        const ready=state.queue.filter(q=>q.queue_deadline>serverNow()).map(q=>({...q,events:q.events.filter(e=>{
           const port=policy.channels?.find(c=>c.channel===e.channel);
-          return (!policy.channels||(port&&port.mode!=='off'&&(!port.feedback_level||port.feedback_level==='normal')));
-        }));
-        report.queue_cancelled=(report.queue_cancelled||0)+state.queue.length-ready.length;
+          return !policy.channels||(port&&port.mode!=='off'&&(!port.feedback_level||port.feedback_level==='normal'));
+        })})).filter(q=>q.events.length);
+        report.queue_cancelled=(report.queue_cancelled||0)+state.queue.reduce((n,q)=>n+q.events.length,0)-ready.reduce((n,q)=>n+q.events.length,0);
         state.queue=[];
         if(ready.length){
           const merged={...ready[ready.length-1],preferences:policy.preferences,persona:policy.persona,feedback:policy.feedback,
@@ -237,20 +237,25 @@ async function listen_interaction(p) {
       '。发送结果可能不完整，请先核对原聊天；不要删除状态文件或自动重试。可由用户选择 reconcile_delivery 的 delivered / not_sent / discard。':'';
     throw Error('AI Doll ['+stage+']: '+(error?.message || String(error))+recovery);
   } finally {
-    if(flight){
-      await flight.promise;
-      if(!flight.error&&flight.reply?.chatId===p.chat_id&&flight.reply.aiResponse?.trim()&&state.pending){
-        state.pending.phase='completed';await save(p,state);
+    try{
+      try{
+        if(flight){
+          await flight.promise;
+          if(!flight.error&&flight.reply?.chatId===p.chat_id&&flight.reply.aiResponse?.trim()&&state.pending)
+            state.pending.phase='completed';
+        }
+        if(state&&report.state!=='continued'){state.queue=[];state.pressed={};}
+        // Keep a known reply outcome durable before waiting for remote cleanup.
+        if(state)await save(p,state);
+      }finally{
+        if (tool && session?.id && report.state!=='continued') {
+          try {
+            await tool('end_interaction', {chat_id:p.chat_id, session_id:session.id});
+            if(state){state.session_id=null;await save(p,state);}
+          } catch (_) { report.cleanup_pending=true; }
+        }
       }
-    }
-    if(state&&report.state!=='continued'){state.queue=[];state.pressed={};await save(p,state);}
-    if (tool && session?.id && report.state!=='continued') {
-      try {
-        await tool('end_interaction', {chat_id:p.chat_id, session_id:session.id});
-        if (state) { state.session_id=null; await save(p,state); }
-      } catch (_) { report.cleanup_pending=true; }
-    }
-    running=false;
+    }finally{running=false;}
   }
   return report;
 }

@@ -27,19 +27,19 @@ jobs:
         run: python -m pip install -r requirements-companion.txt -r requirements-flash.txt -r requirements-firmware.txt
       - name: Firmware integrity, source version, OTA reserve and fixed partitions
         run: python tools/check_firmware.py
-      - name: Native network and archive policies
-        run: python -m unittest test_hotspot_policy test_archive_lease test_embed_assets test_firmware_delivery
+      - name: Core behavior and native network and archive policies
+        run: python -m unittest test_shared_core test_companion_experience test_hotspot_policy test_archive_lease test_embed_assets test_firmware_delivery
       - name: Build and validate ToolPkg, including storage and queue regressions
         run: python tools/package_operit.py
       - name: Actual MCP SDK over HTTP and STDIO
-        run: python -m unittest test_companion_experience_sdk.LocalSDKTests.test_new_tools_through_http_sdk test_companion_experience_sdk.LocalSDKTests.test_stdio_new_tools
+        run: python -m unittest test_companion_experience_sdk.LocalSDKTests.test_new_tools_through_http_sdk test_companion_experience_sdk.LocalSDKTests.test_stdio_new_tools test_companion_experience_sdk.DirectExperienceSDKTests.test_new_tools_on_linux_transport_and_read_only_profiles test_direct_mcp
       - name: Documentation links
         run: python tools/check_documentation.py --repository .
       - name: Build and audit Linux delivery
         run: |
           python -c "from pathlib import Path; from package_companion import server_package; server_package(Path('delivery'))"
-          python tools/audit_delivery.py delivery/AI_Doll_Server_v2.25.2.tar.gz
-          python tools/check_documentation.py --archive delivery/AI_Doll_Server_v2.25.2.tar.gz
+          python tools/audit_delivery.py delivery/AI_Doll_Server_v2.25.3.tar.gz
+          python tools/check_documentation.py --archive delivery/AI_Doll_Server_v2.25.3.tar.gz
   firmware:
     runs-on: ubuntu-latest
     timeout-minutes: 20

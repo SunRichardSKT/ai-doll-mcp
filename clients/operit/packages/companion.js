@@ -2,7 +2,7 @@
 {
   "name":"ai_doll_companion",
   "enabledByDefault":true,
-  "version":"2.25.2",
+  "version":"2.25.3",
   "description":"AI Doll 统一入口。配置与启动请使用工具箱的 AI Doll 面板；不从目标聊天递归等待或发送。",
   "category":"NETWORK",
   "tools":[
@@ -194,7 +194,7 @@ async function list_chats() { return await Tools.Chat.listChats({limit:100,sort_
 async function view_history(p={}) {
   const cfg=await store.config();if(!cfg.connection)throw Error('请先保存连接。');
   const tool=await interaction.connect(cfg.connection.mcp_url,cfg.connection);
-  const result=await tool('query_device_history',{...(p.date?{date:p.date}:{}),after:p.after||0,limit:p.limit||50});
+  const result=await tool('query_device_history',{...(p.date?{date:p.date}:{}),after:p.after??0,limit:p.limit??50});
   return {...result,events:result.events||[],has_more:!!result.has_more,next_cursor:result.next_cursor??p.after??0};
 }
 async function bind_chat(p) {

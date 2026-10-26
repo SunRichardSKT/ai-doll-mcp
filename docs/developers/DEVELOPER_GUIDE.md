@@ -5,7 +5,7 @@
 
 普通使用者不需要编译，按 [首次安装](../start/AI_INSTALL.md)使用完整包。本页面向维护代码、定制接口和制作交付包的开发者。
 
-当前版本为 **2.25.2预发布／固件2.13.3**。完整文件在[本版Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.2)，源码中的`delivery/`只保留入口和校验元数据。目标手机与新固件实板仍待单独验收。
+当前源码为 **2.25.3本地候选／固件2.13.3**，尚未发布；[维护记录](../reports/RELEASE_2_25_3.md)。公开完整文件仍在[2.25.2 Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.2)，源码中的`delivery/`只保留入口和校验元数据。源码构建的包使用2.25.3文件名；不要用它的清单核对已发布的2.25.2。目标手机仍待单独验收。
 
 ## 项目结构
 
@@ -89,11 +89,11 @@ Node / Playwright 页面测试需要开发者另装对应环境，运行 `tools/
 .\.venv\Scripts\python.exe -X utf8 tools/build_portable_python.py
 .\.venv\Scripts\python.exe -X utf8 hardware/enclosure/package_enclosures.py
 .\.venv\Scripts\python.exe -X utf8 tools/package_companion.py
-.\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Code_v2.25.2.zip
-.\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Server_v2.25.2.tar.gz
+.\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Code_v2.25.3.zip
+.\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Server_v2.25.3.tar.gz
 .\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --repository .
-.\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --archive delivery/AI_Doll_Code_v2.25.2.zip
-.\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --archive delivery/AI_Doll_Server_v2.25.2.tar.gz
+.\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --archive delivery/AI_Doll_Code_v2.25.3.zip
+.\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --archive delivery/AI_Doll_Server_v2.25.3.tar.gz
 ```
 
 `build_portable_python.py` 从官方 CPython 和固定 wheel 构建 Windows x64 运行环境，需要联网。已有完整运行环境时先验证并复用，不要再次覆盖运行中的 `python/`；确需重建时，在停止本项目服务后，将整个已有 `python/` 移到项目内明确的备份位置，再恢复源码的 README、许可和版本元数据后构建。不要打包开发用 `.venv`。

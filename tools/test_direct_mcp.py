@@ -94,20 +94,20 @@ class DirectMCPTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(len((await self.call(session, 'query_device_history'))['events']), 1)
 
     async def test_invalid_url_origin_revocation_and_bearer(self):
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(trust_env=False) as client:
             for url in (self.url.replace(self.app.mcp_token, '0'*64),
                         f'http://127.0.0.1:{self.port}/mcp'):
                 self.assertEqual((await client.post(url,json={})).status_code,404)
             self.assertEqual((await client.post(self.url,json={},headers={'Origin':'https://other.example'})).status_code,404)
         bearer_url = f'http://127.0.0.1:{self.port}/d/{self.pair["id"]}/mcp'
-        async with httpx.AsyncClient(headers={'Authorization':'Bearer '+self.app.mcp_token}) as client:
+        async with httpx.AsyncClient(trust_env=False, headers={'Authorization':'Bearer '+self.app.mcp_token}) as client:
             async with streamable_http_client(bearer_url, http_client=client) as (read, write, _):
                 async with ClientSession(read, write) as session:
                     await session.initialize()
                     self.assertTrue((await self.call(session,'doll_get_status'))['online'])
         with self.app.lock, self.app.db:
             self.app.db.execute('UPDATE devices SET revoked=1')
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(trust_env=False) as client:
             self.assertEqual((await client.post(self.url,json={})).status_code,404)
 
     async def test_profile_and_expiry(self):

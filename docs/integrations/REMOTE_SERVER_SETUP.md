@@ -7,6 +7,8 @@
 
 本页按 **2.25.2预发布**编写，安装入口、Linux包与Operit手机包从[同一Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.2)下载。新部署和升级均推荐从完整包解压目录运行安装器；同版独立脚本也可下载配套服务包。
 
+2.25.3为尚未发布的[本地维护候选](../reports/RELEASE_2_25_3.md)。持有完整候选包时，从该包解压目录运行安装器，并搭配同批次手机包；不要将候选安装器单独用于下载尚未发布的Release。
+
 上一修订版[2.24.1](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.24.1)按其固定版本教程操作。2.21旧安装器有复制清单缺项，保留与升级边界见[稳定版入口](../start/STABLE_2_21.md)。
 
 整个流程是：**准备服务器和域名 → 运行安装入口 → 打开管理页面 → 手机连接娃娃 → 将 MCP 地址接入原聊天**。小型包同时包含接收服务和 MCP，原前端与 MCP 可以部署在同一台服务器。

@@ -3,9 +3,9 @@ const assert=require('node:assert/strict'),path=require('node:path');
 const {fixture}=require('./operit_test_host.cjs');
 let finished=false;
 process.on('beforeExit',()=>{if(!finished){console.error('FAIL unresolved queue test');process.exitCode=1;}});
-async function scenario({delay=45,duration=70,wait=0,disable=false,stop=false,ackFailure=false,continuous=false}={}){
+async function scenario({delay=45,duration=70,wait=0,disable=false,stop=false,ackFailure=false,continuous=false,mixedPorts=false}={}){
  let f,session,resolveFirst,started,reads=0,active=0,maxActive=0,emitted=0,firstSendAt;
- const events=[],acks=[],sends=[],captured=[],times=[0,2,2.2,2.4,2.6,2.8];
+ const events=[],acks=[],sends=[],captured=[],times=mixedPorts?[0,2,2,2,2,2]:[0,2,2.2,2.4,2.6,2.8];
  const prefs={proactive_enabled:true,chat_integration_enabled:true};
  const options={tool:async(name,a)=>{
   const now=f.shared.Date.now()/1000;
@@ -16,7 +16,8 @@ async function scenario({delay=45,duration=70,wait=0,disable=false,stop=false,ac
    const selected=a.session_id?events.filter(e=>e.phase==='start'&&e.id>a.after&&e.id<=a.through):[];
    if(selected.length)captured.push(...selected.map(e=>e.event_id));
    return {context_protocol:'leased-batch-v1',preferences:prefs,proactive_delivery_allowed:!disable||firstSendAt===undefined||now-firstSendAt<delay,
-    channels:[{channel:0,mode:'connected',feedback_level:'normal'}],events:selected,
+    channels:[{channel:0,mode:mixedPorts&&firstSendAt!==undefined&&now-firstSendAt>=delay?'off':'connected',feedback_level:'normal'},
+     {channel:1,mode:'connected',feedback_level:'normal'}],events:selected,
     receipt_id:selected.length?'r'+selected.map(e=>e.id).join('_'):null,
     expires_at:selected.length?selected[0].at+30:null,persona:'',feedback:{}};
   }
@@ -24,7 +25,7 @@ async function scenario({delay=45,duration=70,wait=0,disable=false,stop=false,ac
    reads++;if(reads>1)f.advance(100);
    const t=f.shared.Date.now()/1000;
    while(emitted<times.length&&t-started>=times[emitted]){
-    const e={id:events.length+1,event_id:'e'+(events.length+1),session_id:session.id,channel:0,touch_id:'t'+emitted,
+    const e={id:events.length+1,event_id:'e'+(events.length+1),session_id:session.id,channel:mixedPorts?emitted%2:0,touch_id:'t'+emitted,
      boot:'boot',phase:'start',sensor_type:'pressure',direction:'input',quality:'ok',source:'sensor',at:started+times[emitted],
      body_preferences:{feedback_level:'normal'}};
     events.push(e,{...e,id:e.id+1,event_id:'e'+(e.id+1),phase:'end',duration_ms:50});emitted++;
@@ -65,6 +66,9 @@ async function scenario({delay=45,duration=70,wait=0,disable=false,stop=false,ac
  assert.equal(JSON.parse(merged.sends[0].text.split('\n').pop()).touch_count,6);
  assert.ok(merged.sends[0].at-merged.started>=5.8,'wait restarts after the last press/release');
  const mute=await scenario({disable:true});assert.ifError(mute.error);assert.equal(mute.sends.length,1);
+ const partial=await scenario({mixedPorts:true});assert.ifError(partial.error);assert.equal(partial.sends.length,2);
+ const remaining=JSON.parse(partial.sends[1].text.split('\n').pop());
+ assert.deepEqual(remaining.events.map(e=>e.touch_id),['t1','t3','t5'],'disabling one port must retain other ports from the same queued batch');
  const expiry=await scenario({delay:135,duration:155});assert.ifError(expiry.error);assert.equal(expiry.sends.length,1);
  const deadline=await scenario({delay:25,duration:20});assert.ifError(deadline.error);assert.equal(deadline.sends.length,1);
  const stopped=await scenario({stop:true});assert.match(stopped.error.message,/停止/);assert.equal(stopped.sends.length,1);assert.deepEqual(stopped.journal.queue,[]);
@@ -79,5 +83,30 @@ async function scenario({delay=45,duration=70,wait=0,disable=false,stop=false,ac
  const saved=JSON.parse(recovery.disk.get(params.state_path));assert.deepEqual(saved.pending.receipt_ids,['r2','r3']);
  const resumed=[];await engine.settle(params,saved,async(name,a)=>{resumed.push(a.receipt_id);return {acknowledged:true};});
  assert.deepEqual(resumed,['r2','r3'],'partial ACK recovery never starts over at a pruned receipt');
+ const cleanup=fixture({tool:async(name,a)=>{
+  if(name==='get_installation_status')return {online:true};
+  if(name==='get_interaction_status')return {};
+  if(name==='get_chat_context')return {context_protocol:'leased-batch-v1',preferences:{proactive_enabled:true,chat_integration_enabled:true}};
+  if(name==='start_interaction')return {id:'cleanup-session',chat_id:a.chat_id,started:cleanup.shared.Date.now()/1000,deadline:cleanup.shared.Date.now()/1000+60};
+  if(name==='get_interaction_device_events'){
+   cleanup.options.writeFailure=true;return {session_closed:true};
+  }
+  if(name==='end_interaction')return {ended:true};
+  throw Error('unexpected '+name);
+ }});
+ await cleanup.prepare();
+ const cleanupEngine=cleanup.load(path.resolve(__dirname,'../clients/operit/core/interaction.js'));
+ const cleanupParams={...cleanup.load(path.resolve(__dirname,'../clients/operit/core/settings.js')).parameters(cleanup.cfg()),workflow_confirmed:true};
+ await assert.rejects(cleanupEngine.listen_interaction(cleanupParams),/durably written/);
+ assert.ok(cleanup.calls.some(c=>c.params?.name==='end_interaction'),'failed state write still attempts owned session cleanup');
+ cleanup.options.writeFailure=false;
+ cleanup.options.tool=async(name,a)=>{
+  if(name==='get_interaction_status')return {};
+  if(name==='get_chat_context')return {context_protocol:'leased-batch-v1',preferences:{proactive_enabled:true,chat_integration_enabled:true}};
+  if(name==='start_interaction')return {id:'reopened-session',chat_id:a.chat_id,started:cleanup.shared.Date.now()/1000,deadline:cleanup.shared.Date.now()/1000+60};
+  if(name==='get_interaction_device_events')return {session_closed:true};
+  return {ended:true};
+ };
+ assert.equal((await cleanupEngine.listen_interaction(cleanupParams)).state,'ended','failed cleanup must not permanently latch the listener');
  finished=true;console.log('PASS queue: 1 + 5 rapid presses during 45s generation, IDs/durations, custom quiet wait, single stream, expiry, stop, mute, ACK recovery and handoff. Host/device are doubles.');
 })().catch(e=>{console.error(e);process.exitCode=1;});

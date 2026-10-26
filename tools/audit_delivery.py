@@ -6,8 +6,10 @@ from pathlib import Path, PurePosixPath
 import re
 import zipfile
 from delivery_archive import open_delivery
+from _source_path import load
 
 ROOT=Path(__file__).resolve().parents[1]
+VERSION=load('ai_doll.core.version').VERSION
 SECRET_NAMES=re.compile(r'password|token|secret|api.?key|^key$',re.I)
 PRIVATE_URL=re.compile(rb'https?://[^\s"<>]+/[0-9a-f]{64}/mcp')
 
@@ -52,7 +54,7 @@ def audit(path,secrets=None):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('package',type=Path,nargs='?',default=ROOT/'delivery/AI_Doll_Code_v2.25.2.zip')
+    parser.add_argument('package',type=Path,nargs='?',default=ROOT/f'delivery/AI_Doll_Code_v{VERSION}.zip')
     args=parser.parse_args()
     print(json.dumps(audit(args.package),indent=2))
 

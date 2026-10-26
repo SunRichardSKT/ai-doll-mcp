@@ -118,6 +118,19 @@ class ExperienceTests(unittest.TestCase):
         self.assertEqual(self.channels[1],before[1])
         self.assertEqual(self.c.experience.channels()[1]['mode'],'off')
 
+    def test_modern_name_only_uses_one_port_patch(self):
+        self.port_states = True
+        self.channels[0].update(mode='off', enabled=False)
+        self.channels[1].update(mode='connected')
+        self.save_config()
+        before = json.loads(json.dumps(self.channels))
+        result = self.c.experience.update_body(0, {'name': '头顶'})
+        self.assertTrue(result['updated'])
+        self.assertEqual(self.calls, [('get_channel_config', {}),
+                                     ('set_channel_state', {'channel': 0, 'name': '头顶'})])
+        self.assertEqual(self.channels[0], dict(before[0], name='头顶'))
+        self.assertEqual(self.channels[1], before[1])
+
     def test_legacy_and_failed_port_sync_are_not_queued(self):
         result=self.c.experience.update_body(0,{'mode':'off','aliases':['不要保存']})
         self.assertFalse(result['updated']);self.assertEqual(self.calls,[('get_channel_config',{})])

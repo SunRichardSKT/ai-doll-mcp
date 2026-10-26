@@ -128,14 +128,16 @@ function create(c){
     });
   }
   async function query(args={}){
-    const after=args.after||0,limit=args.limit||50;
+    const after=args.after??0,limit=args.limit??50;
     if(!Number.isSafeInteger(after)||after<0||!Number.isInteger(limit)||limit<1||limit>200)throw Error('历史游标或页大小无效。');
     let records=await all();
     if(args.date==='unknown'||args.unknown_time===true)records=records.filter(e=>!Number.isFinite(e.at));
     else if(args.date){
       if(!/^\d{4}-\d{2}-\d{2}$/.test(args.date))throw Error('日期格式为YYYY-MM-DD。');
       const start=new Date(args.date+'T00:00:00'),end=new Date(start);end.setDate(end.getDate()+1);
-      if(!Number.isFinite(start.getTime()))throw Error('日期无效。');
+      const [year,month,day]=args.date.split('-').map(Number);
+      if(!Number.isFinite(start.getTime())||start.getFullYear()!==year||start.getMonth()+1!==month||start.getDate()!==day)
+        throw Error('日期无效，请填写实际存在的日期。');
       records=records.filter(e=>Number.isFinite(e.at)&&e.at>=start.getTime()/1000&&e.at<end.getTime()/1000);
     }
     const page=records.filter(e=>e.id>after).sort((x,y)=>x.id-y.id),selected=page.slice(0,limit),sync=await read('sync',{});

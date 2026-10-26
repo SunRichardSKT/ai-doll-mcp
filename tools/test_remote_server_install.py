@@ -16,8 +16,11 @@ import tempfile
 import time
 import unittest
 import urllib.request
+from unittest.mock import patch
+from _source_path import load
 
 ROOT=Path(__file__).resolve().parents[1]
+VERSION=load('ai_doll.core.version').VERSION
 BASH=Path('C:/Program Files/Git/bin/bash.exe') if os.name=='nt' else Path(shutil.which('bash') or '/missing')
 TOKEN='a'*64
 DOMAIN='doll.test-domain.net'
@@ -25,6 +28,26 @@ DOMAIN='doll.test-domain.net'
 
 @unittest.skipUnless(BASH.is_file(), 'Bash is required')
 class RemoteInstallTests(unittest.TestCase):
+    def test_installer_uses_LF_and_matches_the_package(self):
+        source = (ROOT/'Install_Server.sh').read_bytes()
+        self.assertNotIn(b'\r', source)
+        result = subprocess.run([str(BASH), '--noprofile', '--norc', '-n'],
+                                input=source, capture_output=True, timeout=10)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        with tarfile.open(ROOT/f'delivery/AI_Doll_Server_v{VERSION}.tar.gz','r:gz') as archive:
+            self.assertEqual(archive.extractfile('Install_Server.sh').read(), source)
+
+    def test_Linux_packaging_rejects_windows_installer_bytes(self):
+        from package_companion import server_package
+        original = Path.read_bytes
+        def windows_lines(path):
+            data = original(path)
+            return data.replace(b'\n', b'\r\n') if path == ROOT/'Install_Server.sh' else data
+        with patch.object(Path, 'read_bytes', windows_lines):
+            with self.assertRaisesRegex(ValueError, 'LF line endings'):
+                server_package(self.root/'rejected-delivery')
+        self.assertFalse((self.root/'rejected-delivery').exists())
+
     def posix(self,path):
         if os.name!='nt':return str(path)
         return subprocess.check_output([str(BASH),'-c','cygpath -u "$1"','convert',str(path)],
@@ -38,7 +61,7 @@ class RemoteInstallTests(unittest.TestCase):
         self.log=self.root/'docker.txt'
         self.env=dict(os.environ,PATH=self.posix(self.bin)+':/usr/bin:/bin',MSYS2_ARG_CONV_EXCL='*',
             FIXTURE_PATH=self.posix(self.bin)+':/usr/bin:/bin',
-            FIXTURE_PACKAGE=self.posix(ROOT/'delivery/AI_Doll_Server_v2.25.2.tar.gz'),
+            FIXTURE_PACKAGE=self.posix(ROOT/f'delivery/AI_Doll_Server_v{VERSION}.tar.gz'),
             FIXTURE_LOG=self.posix(self.log),FIXTURE_TOKEN=TOKEN,FIXTURE_DOMAIN=DOMAIN,
             FIXTURE_ID=hashlib.sha256(('installation:'+TOKEN).encode()).hexdigest())
         self.stub('uname','printf "Linux\\n"')
@@ -129,7 +152,7 @@ fi
                 sources.extend(value for value in fields[1:-1] if not value.startswith('--'))
         self.assertIn('src',sources)
         self.assertIn('delivery/AI_Doll_Operit.toolpkg',sources)
-        with tarfile.open(ROOT/'delivery/AI_Doll_Server_v2.25.2.tar.gz','r:gz') as archive:
+        with tarfile.open(ROOT/f'delivery/AI_Doll_Server_v{VERSION}.tar.gz','r:gz') as archive:
             for source in sources:
                 self.assertTrue((self.target/source).exists(),source)
                 members=[member for member in archive.getmembers() if member.isfile() and
@@ -163,7 +186,7 @@ fi
         phone=(self.target/'delivery/AI_Doll_Operit.toolpkg').read_bytes()
         record=(self.target/'deployment-private.conf').read_bytes()
         source=self.root/'incomplete-source';source.mkdir()
-        with tarfile.open(ROOT/'delivery/AI_Doll_Server_v2.25.2.tar.gz','r:gz') as archive:
+        with tarfile.open(ROOT/f'delivery/AI_Doll_Server_v{VERSION}.tar.gz','r:gz') as archive:
             archive.extractall(source,filter='data')
         (source/'delivery/AI_Doll_Operit.toolpkg').unlink()
         self.script=source/'Install_Server.sh'
@@ -252,7 +275,7 @@ fi
 
     def test_minimal_payload_serves_authenticated_management(self):
         payload=self.root/'payload';payload.mkdir()
-        with tarfile.open(ROOT/'delivery/AI_Doll_Server_v2.25.2.tar.gz','r:gz') as archive:
+        with tarfile.open(ROOT/f'delivery/AI_Doll_Server_v{VERSION}.tar.gz','r:gz') as archive:
             archive.extractall(payload,filter='data')
         with socket.socket() as probe:
             probe.bind(('127.0.0.1',0));port=probe.getsockname()[1]

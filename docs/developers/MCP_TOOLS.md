@@ -5,7 +5,7 @@
 
 先按 [连接方式](../start/MCP_TRANSPORT_DECISION.md)安装。工具不会自行启动 AI 对话；实际可用范围以当前客户端发现的 schema 为准。
 
-本页跟随 **2.25.2预发布／固件2.13.2**，配套文件见[本版Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.2)。旧安装以实际工具发现为准；预发布不表示所有目标宿主已实测。
+本页工具目录适用 **2.25.2预发布／固件2.13.3**；2.25.3源码维护候选保持相同工具范围。公开配套文件见[2.25.2 Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.2)。旧安装以实际工具发现为准；预发布不表示所有目标宿主已实测。
 
 ## 不同连接有多少工具
 

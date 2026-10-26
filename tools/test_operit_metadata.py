@@ -7,6 +7,7 @@ import unittest
 import zipfile
 
 from operit_metadata import validate_archive, validate_contents
+from package_operit import VERSION
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -24,7 +25,7 @@ class OperitMetadataTests(unittest.TestCase):
 
     def test_all_current_parameters_have_required_descriptions(self):
         report = validate_contents(self.contents)
-        self.assertEqual(report['version'], '2.25.2')
+        self.assertEqual(report['version'], VERSION)
         self.assertGreater(report['parameters'], 0)
 
     def test_each_of_the_five_missing_fields_reproduces_import_rejection(self):

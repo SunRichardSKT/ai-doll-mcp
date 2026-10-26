@@ -102,11 +102,15 @@ async function watchdog(cfg) {
   if(saved.enabled!==true||saved.nodes[0].triggerConfig?.repeat!=='true')throw Error('常开恢复任务未确认。');
 }
 async function disable(cfg) {
+  const errors=[];
   for (const kind of Object.keys(cfg.workflows)) {
-    const flow=await Tools.Workflow.get(cfg.workflows[kind]);
-    owned(cfg,kind,flow);
-    await Tools.Workflow.update(flow.id,{enabled:false});
+    try{
+      const flow=await Tools.Workflow.get(cfg.workflows[kind]);
+      owned(cfg,kind,flow);
+      await Tools.Workflow.update(flow.id,{enabled:false});
+    }catch(error){errors.push(kind+': '+String(error.message||error));}
   }
+  if(errors.length)throw Error('部分后台任务未确认停止：'+errors.join('；'));
 }
 exports.ensure=ensure; exports.schedule=schedule; exports.disable=disable;
 exports.watchdog=watchdog;

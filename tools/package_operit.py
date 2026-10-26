@@ -6,8 +6,10 @@ import shutil
 import subprocess
 import sys
 import zipfile
+from _source_path import load
 
 ROOT = Path(__file__).resolve().parents[1]
+VERSION = load('ai_doll.core.version').VERSION
 FILES = ('manifest.json', 'main.js', 'core/settings.js', 'core/workflows.js',
          'core/interaction.js', 'core/probe.js', 'core/mcp.js', 'core/device.js', 'core/controls.js',
          'core/archive.js', 'core/recovery.js', 'core/collector.js', 'core/pairing.js', 'core/qr.js',
@@ -33,7 +35,7 @@ def build(output=None):
         if PRIVATE_URL.search(raw) or any(secret in raw for secret in secrets):
             raise ValueError('Local installation data found in ToolPkg source')
     manifest = json.loads(contents['manifest.json'])
-    if manifest['version'] != '2.25.2' or manifest['toolpkg_id'] != 'org.ai_doll.companion':
+    if manifest['version'] != VERSION or manifest['toolpkg_id'] != 'org.ai_doll.companion':
         raise ValueError('Unexpected Operit identity/version')
     from operit_metadata import validate_archive, validate_contents
     validate_contents(contents)

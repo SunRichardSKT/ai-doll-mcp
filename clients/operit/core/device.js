@@ -169,6 +169,7 @@ async function connect(c) {
       const liveSession=s||{id:null,boot:st.boot_id,boundary};
       const result=!batch.events.length&&sameBoot&&a.cursor===batch.next_cursor&&now()-(a.last_sync||0)<5?
         {added:0,sync}:{...await durable.ingest(liveBatch,{session:liveSession,live:true})};
+      let added=result.added;
       let state={...result.sync,live_boot:st.boot_id,live_boundary:boundary,last_error:null,
         delivery_recovery_required:!!(result.archive||a).delivery_recovery_required,
         archive_lease_supported:st.archive_lease_supported===true||batch.event_storage?.archive_lease_supported===true,
@@ -195,6 +196,7 @@ async function connect(c) {
         if(backlog.device_id!==c.device_id||backlog.boot_id!==st.boot_id)throw Error('设备已重启，尚未确认任何旧游标。');
         active();
         const committed=await durable.ingest(backlog,{persistent:true});
+        added+=committed.added;
         state={...committed.sync,live_boot:st.boot_id,live_boundary:boundary,last_error:null,
           archive_lease_supported:state.archive_lease_supported,compatibility_copy_only:!held,
           lease_owner:held?'phone':null,last_backlog_check:now(),storage_has_more:!!backlog.storage_has_more,
@@ -215,7 +217,7 @@ async function connect(c) {
         await write('sync',state);
       }
       if(changed)throw Error('设备已重启，本次互动结束；常开恢复后只读取新触摸。');
-      return {synchronized:true,added:result.added,sync:state};
+      return {synchronized:true,added,sync:state};
     })().catch(async error=>{
       const prior=await read('sync',{});await write('sync',{...prior,last_error:String(error.message||error)});throw error;
     }).finally(()=>{syncFlight=null;});
@@ -324,6 +326,9 @@ async function connect(c) {
       if(!r)throw Error('回执不属于当前聊天或不存在。');
       if(!r.acked){r.acked=true;for(const e of r.events)a.seen.push({chat_id:args.chat_id,boot:e.boot,touch_id:e.touch_id,at:e.at});
         a.seen=a.seen.slice(-2000);a.receipts=[...a.receipts.filter(x=>!x.acked),...a.receipts.filter(x=>x.acked).slice(-2000)];}
+      // An acknowledged receipt only needs its identity for idempotent retries.
+      // Full records already live in the archive; pending sends retain theirs.
+      for(const receipt of a.receipts)if(receipt.acked)delete receipt.events;
       return {acknowledged:true,display_verified:false};
       });
     }

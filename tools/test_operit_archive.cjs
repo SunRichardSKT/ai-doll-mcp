@@ -59,11 +59,12 @@ async function phone(options={}){
 }
 test('256 records page without starving live input; cross-boot unknown time',async()=>{
   const p=await phone();p.backlog(256);
-  await p.tool('_sync_records');p.emit();
-  for(let i=0;i<11;i++)await p.tool('_sync_records');
+  let reported=(await p.tool('_sync_records')).added;p.emit();
+  for(let i=0;i<11;i++)reported+=(await p.tool('_sync_records')).added;
   const history=await p.tool('query_device_history',{limit:200});
   const second=await p.tool('query_device_history',{after:history.next_cursor,limit:200});
   assert.equal(history.events.length+second.events.length,257);assert.equal(p.state.persistent.length,0);assert.equal(p.state.acks.length,11);
+  assert.equal(reported,257,'sync progress includes newly archived backlog without counting duplicates');
   const all=[...history.events,...second.events],live=all.find(e=>e.boot==='boot-new');
   assert.equal(live.delivery_quality,'live');assert.equal(live.body_part,'头顶');
   const unknown=await p.tool('query_device_history',{date:'unknown',limit:200});assert.equal(unknown.events.length,200);
@@ -123,6 +124,22 @@ test('receipts survive corrupt/missing event index and a concurrent ingest',asyn
   assert.equal((await tool('acknowledge_chat_context',{chat_id:'chat-1',receipt_id:context.receipt_id})).acknowledged,true);
   p.f.disk.delete('/managed/device_archive_test_events.json');p.f.resetModules();
   const archive=p.f.load(modulePath('archive')).create(p.c);assert.equal((await archive.index()).receipts[0].acked,true);
+});
+
+test('acknowledged receipts retain retry identity without duplicate event bodies',async()=>{
+  const p=await phone();await p.tool('_sync_records');let last;
+  for(let i=0;i<20;i++){
+    p.f.advance(2000);p.state.uptime+=2000;p.emit();await p.tool('_sync_records');
+    last=await p.tool('get_chat_context',{chat_id:'chat-1'});
+    assert.ok(last.receipt_id);
+    await p.tool('acknowledge_chat_context',{chat_id:'chat-1',receipt_id:last.receipt_id});
+  }
+  const saved=await p.archive.index();assert.equal(saved.receipts.length,20);
+  assert.ok(saved.receipts.every(r=>r.acked&&!r.events&&r.ids&&r.chat_id==='chat-1'));
+  assert.equal((await p.archive.query()).events.length,20,'compacting receipts does not delete history');
+  p.f.resetModules();const resumed=await p.f.load(modulePath('device')).connect(p.c);
+  assert.equal((await resumed('acknowledge_chat_context',{chat_id:'chat-1',receipt_id:last.receipt_id})).acknowledged,true);
+  assert.equal((await resumed('get_chat_context',{chat_id:'chat-1'})).events.length,0);
 });
 test('missing delivery metadata blocks replay instead of inventing empty receipts',async()=>{
   const p=await phone();await p.tool('_sync_records');p.emit();await p.tool('_sync_records');
@@ -191,6 +208,15 @@ test('local dates filter across midnight independently of ingestion date',async(
   p.state.persistent=[{storage_id:1,boot_id:'old',event:p.raw(1,{device_time_ms:midnight-1000,time_quality:'device_clock'})},
     {storage_id:2,boot_id:'old',event:p.raw(2,{device_time_ms:midnight+1000,time_quality:'device_clock'})}];
   await p.tool('_sync_records');assert.equal((await p.archive.query({date:'2026-10-22'})).events.length,1);assert.equal((await p.archive.query({date:'2026-10-23'})).events.length,1);
+});
+
+test('calendar dates and explicit zero pagination are not silently normalized',async()=>{
+  const p=await phone();
+  for(const date of ['2026-02-29','2026-02-30','2026-04-31'])
+    await assert.rejects(p.archive.query({date}),/日期/);
+  assert.equal((await p.archive.query({date:'2028-02-29'})).events.length,0);
+  await assert.rejects(p.archive.query({limit:0}),/页大小/);
+  await assert.rejects(p.archive.query({after:false}),/游标/);
 });
 exports.phone=phone;
 test('append cost stays bounded; checkpoints and restart retain the committed tail',async()=>{

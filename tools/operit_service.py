@@ -12,8 +12,10 @@ import time
 from owned_processes import alive, launch, terminate
 from private_storage import write_json
 from service_lifecycle import ServiceLease
+from _source_path import load
 
 ROOT = Path(__file__).resolve().parents[1]
+VERSION = load('ai_doll.core.version').VERSION
 WORK = ROOT / 'build/device-lab/operit'
 CHILDREN = {}
 
@@ -168,7 +170,7 @@ def export_connection():
         raise ValueError('请先启动并检查 Operit 服务，再导出手机连接。')
     return dict(schema=1, kind='ai-doll-operit-connection', mcp_url=address(cfg),
                 mode=cfg['mode'], label='AI Doll · '+('模拟演示' if cfg['mode'] == 'simulation' else '真实设备'),
-                version='2.25.2')
+                version=VERSION)
 
 
 def serve():

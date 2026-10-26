@@ -59,6 +59,8 @@
 
 ## 06 验证记录
 
+源码维护候选见[2.25.3：日常互动与维护](reports/RELEASE_2_25_3.md)，尚未发布；区分本地软件检查与目标手机验收。
+
 最新预发布见 [2.25.2：固件空间优化](reports/RELEASE_2_25_2.md)。上次修订见 [2.25.1：恢复与归档](reports/RELEASE_2_25_1.md)，配对能力来源见 [2.25记录](reports/RELEASE_2_25.md)。已发布修订见 [2.24.1：文档与安装整改](reports/RELEASE_2_24_1.md)，此前队列功能见 [2.24：Operit稳定性](reports/RELEASE_2_24.md)。新旧版本的升级区别见 [Operit 指南](integrations/OPERIT_SETUP.md)。
 
 先看 [当前验证范围](reports/VALIDATION.md)和 [2.20 交付记录](reports/RELEASE_2_20.md)。[2.17 记录](reports/RELEASE_2_17.md)及其他历史报告保留当时版本，不代表新版本或你的新安装已经通过。

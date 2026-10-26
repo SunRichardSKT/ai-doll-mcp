@@ -1,15 +1,15 @@
 // Settings operations share the actual connection used by the chat worker.
 const store=require('./settings.js'),interaction=require('./interaction.js');
-async function tool() {
-  const cfg=await store.config();
+async function tool(cfg) {
+  cfg=cfg||await store.config();
   if(!cfg.connection)throw Error('请先设置设备连接。');
   return {cfg,call:await interaction.connect(cfg.connection.mcp_url,cfg.connection)};
 }
 function mode(c) {return c.mode||(!c.enabled?'off':c.driver==='simulation'?'simulation':'connected');}
 async function panel() {
-  const state=await store.config();
-  if(state.recovery_required)return {channels:[],settings_entries:[],storage_recovery:state.storage_recovery,recovery_required:true};
-  const {cfg,call}=await tool();
+  const cfg=await store.config();
+  if(cfg.recovery_required)return {channels:[],settings_entries:[],storage_recovery:cfg.storage_recovery,recovery_required:true};
+  const {call}=await tool(cfg);
   const overview=await call('get_device_overview');
   let config,entry,persona;
   config=overview.port_state_model||(!overview.online&&Array.isArray(overview.channels))?{channels:overview.channels||[],port_state_model:overview.port_state_model}:await call('get_channel_config');

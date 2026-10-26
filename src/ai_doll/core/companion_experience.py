@@ -89,20 +89,20 @@ class CompanionExperience:
             if not device or not any(ch['channel'] == channel for ch in channels):
                 raise ValueError('Synchronize the actual device/channel configuration first')
             if 'name' in changes or 'mode' in changes:
-                # Read all names immediately before the firmware's names-only operation.
-                # Never use set_channel_config: it disables sampling and resets daily mode.
+                # Patch one modern port atomically. Legacy firmware still needs
+                # the names-only map; neither path replaces hardware configuration.
                 try:
                     live = self.c.device('get_channel_config', {})
                     if not any(ch['channel'] == channel for ch in live['channels']):
                         raise ValueError('Channel no longer exists')
-                    if 'mode' in changes:
-                        if live.get('port_state_model') != 'per_port_v1':
-                            raise ValueError('Upgrade firmware for per-port states')
+                    if live.get('port_state_model') == 'per_port_v1':
                         request = dict(channel=channel, **{k: changes[k] for k in ('name', 'mode') if k in changes})
                         live = self.c.device('set_channel_state', request)
                         target = next(ch for ch in live['channels'] if ch['channel'] == channel)
                         if any(target.get(k) != changes[k] for k in ('name','mode') if k in changes):
                             raise ValueError('Device did not confirm port change')
+                    elif 'mode' in changes:
+                        raise ValueError('Upgrade firmware for per-port states')
                     else:
                         parts = [dict(channel=ch['channel'], name=changes['name'] if ch['channel'] == channel else ch['name'])
                                  for ch in live['channels']]
