@@ -55,7 +55,6 @@ function create(c){
     await store.checkedWrite(prefix+'events.json',value);
   }
   async function updateIndex(change){return await serial(async()=>{const value=await index(),before=JSON.stringify(value),result=await change(value);if(JSON.stringify(value)!==before)await writeIndex(value);return result;});}
-  async function saveIndex(value){return await serial(()=>writeIndex(value));}
   async function ingest(batch,{session=null,live=false,persistent=false}={}){
     return await serial(async()=>{
       const records=await all(),a=await index(),sync=await read('sync',{}),stamp=Date.now()/1000;
@@ -148,6 +147,6 @@ function create(c){
       durable_history:'checked_segments_in_plugin_directory',recording_scope:'while_record_sync_or_interaction_runs'};
     });
   }
-  const api={ingest,query,index,saveIndex,updateIndex,all,read,write};archives.set(c.storage_key,api);return api;
+  const api={ingest,query,index,updateIndex,all};archives.set(c.storage_key,api);return api;
 }
 exports.create=create;exports.checksum=checksum;
