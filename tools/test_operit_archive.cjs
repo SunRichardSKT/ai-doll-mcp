@@ -126,6 +126,34 @@ test('receipts survive corrupt/missing event index and a concurrent ingest',asyn
   const archive=p.f.load(modulePath('archive')).create(p.c);assert.equal((await archive.index()).receipts[0].acked,true);
 });
 
+test('opening history during collection preserves newly committed live context',async()=>{
+  const p=await phone();await p.tool('_sync_records');p.emit();await p.tool('_sync_records');
+  p.f.resetModules();
+  const archive=p.f.load(modulePath('archive')).create(p.c),tool=await p.f.load(modulePath('device')).connect(p.c);
+  const gate=()=>{let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve};};
+  const reading=gate(),continueRead=gate(),continueWrite=gate();
+  const read=p.f.tools.Files.read,write=p.f.tools.Files.write;let heldRead=false,heldWrite=false;
+  p.f.tools.Files.read=async arg=>{
+    const result=await read(arg);
+    if(!heldRead&&arg.path.includes('_segment_')){heldRead=true;reading.resolve();await continueRead.promise;}
+    return result;
+  };
+  const history=archive.query();await reading.promise;
+  p.f.advance(86400000);p.state.uptime+=86400000;p.emit();
+  p.f.tools.Files.write=async(name,...args)=>{
+    const result=await write(name,...args);
+    if(!heldWrite&&name.includes('_history_')){heldWrite=true;await continueWrite.promise;}
+    return result;
+  };
+  const sync=tool('_sync_records');
+  // Let collection progress while Android's earlier history read is suspended.
+  await new Promise(setImmediate);continueRead.resolve();await history;
+  continueWrite.resolve();await sync;
+  assert.deepEqual(Array.from((await tool('get_chat_context',{chat_id:'chat-1'})).events,e=>e.seq),[2],
+    'an earlier history snapshot must not replace newly committed live input');
+  assert.deepEqual(Array.from((await archive.query()).events,e=>e.seq),[1,2]);
+});
+
 test('acknowledged receipts retain retry identity without duplicate event bodies',async()=>{
   const p=await phone();await p.tool('_sync_records');let last;
   for(let i=0;i<20;i++){

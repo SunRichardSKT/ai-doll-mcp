@@ -128,6 +128,8 @@ function create(c){
     });
   }
   async function query(args={}){
+    // Rebuilding the history cache must not race a committing live page.
+    return await serial(async()=>{
     const after=args.after??0,limit=args.limit??50;
     if(!Number.isSafeInteger(after)||after<0||!Number.isInteger(limit)||limit<1||limit>200)throw Error('历史游标或页大小无效。');
     let records=await all();
@@ -144,6 +146,7 @@ function create(c){
     return {events:selected,has_more:page.length>limit,next_cursor:selected[selected.length-1]?.id??after,
       history_source:'android_local',scope:args.date?'daily_archive':'durable_archive',last_sync:sync.last_sync||(await index()).last_sync,
       durable_history:'checked_segments_in_plugin_directory',recording_scope:'while_record_sync_or_interaction_runs'};
+    });
   }
   const api={ingest,query,index,saveIndex,updateIndex,all,read,write};archives.set(c.storage_key,api);return api;
 }
