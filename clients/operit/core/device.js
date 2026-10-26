@@ -183,7 +183,7 @@ async function connect(c) {
         catch(error){
           if(!/Archive occupied/.test(String(error.message||error)))throw error;
           state={...state,lease_owner:'another_collector',archive_message:'另一归档端正在同步；手机保留实时读取，不清理设备缓存。'};
-          await write('sync',state);return {synchronized:true,added:result.added,sync:state};
+          await write('sync',state);return {synchronized:true,added:result.added,observed_live:result.observed_live||0,sync:state};
         }
         active();
         state.lease_owner=held?'phone':null;
@@ -217,7 +217,7 @@ async function connect(c) {
         await write('sync',state);
       }
       if(changed)throw Error('设备已重启，本次互动结束；常开恢复后只读取新触摸。');
-      return {synchronized:true,added,sync:state};
+      return {synchronized:true,added,observed_live:result.observed_live||0,sync:state};
     })().catch(async error=>{
       const prior=await read('sync',{});await write('sync',{...prior,last_error:String(error.message||error)});throw error;
     }).finally(()=>{syncFlight=null;});
@@ -228,7 +228,7 @@ async function connect(c) {
     do{
       const active=await session();if(!active||active.id!==s.id)return;
       const result=await syncOnce(s);
-      if(result.added||now()>=end)return;
+      if(result.added||result.observed_live||now()>=end)return;
       await Tools.System.sleep(700);
     }while(now()<end);
   }

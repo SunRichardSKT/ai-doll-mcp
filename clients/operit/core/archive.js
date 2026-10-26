@@ -28,7 +28,10 @@ function create(c){
       if(name.startsWith(prefix+'history_')){
         let day;try{day=await store.read(name);}catch(_){continue;}
         dailyCounts.set(name,(day.events||[]).length);
-        for(const e of day.events||[])byKey.set(e.event_id||'legacy:'+e.id,e);
+        for(const e of day.events||[]){
+          const key=e.event_id||'legacy:'+e.id,old=byKey.get(key);
+          if(!old||old.delivery_quality==='offline_replay')byKey.set(key,e);
+        }
       }else if(name.startsWith(prefix+'segment_')){
         let value,commit;try{value=await store.read(name);commit=await store.read(name.replace(prefix+'segment_',prefix+'commit_'));}catch(_){continue;}
         if(value?.schema!==1||value.data?.device_id!==c.device_id||value.checksum!==checksum(value.data)||!Array.isArray(value.data?.events)||
@@ -65,7 +68,7 @@ function create(c){
       if(!Number.isFinite(anchors[batch.boot_id]))anchors[batch.boot_id]=stamp-batch.uptime_ms/1000;
       const byKey=new Map(records.filter(e=>e.event_id).map(e=>[e.event_id,e]));
       let next=records.reduce((n,e)=>Math.max(n,(e.id||0)+1),a.next_id||1);
-      const added=[],pageEvents=[];
+      const changed=[],pageEvents=[];let added=0;
       const entries=persistent?(batch.persistent_events||[]).map(e=>({raw:e.event,boot:e.boot_id,storage_id:e.storage_id})):
         (batch.events||[]).map(e=>({raw:e,boot:batch.boot_id}));
       let lastStorage=0;
@@ -76,21 +79,24 @@ function create(c){
         if(persistent&&(!Number.isSafeInteger(entry.storage_id)||entry.storage_id<=lastStorage))throw Error('持久事件游标顺序无效。');
         lastStorage=entry.storage_id||lastStorage;
         const key=c.device_id+':'+boot+':'+raw.seq;
-        if(byKey.has(key)){pageEvents.push(byKey.get(key));continue;}
+        const prior=byKey.get(key);
         let at=null,quality='unknown';
         if(raw.time_quality==='device_clock'&&Number.isFinite(raw.device_time_ms)&&raw.device_time_ms>=1704067200000&&raw.device_time_ms<=4102444800000){at=raw.device_time_ms/1000;quality='device_clock';}
         else if(Number.isFinite(anchors[boot])){at=anchors[boot]+raw.uptime_ms/1000;quality='estimated_from_boot_anchor';}
         const age=boot===batch.boot_id?(batch.uptime_ms-raw.uptime_ms)/1000:Infinity;
         const inSession=session&&session.boot===boot&&raw.seq>session.boundary;
         const current=live&&!persistent&&!batch.gap&&0<=age&&age<=30&&(!session||inSession);
-        const event={...raw,id:next++,event_id:key,device_id:c.device_id,boot,boot_id:boot,at,time_quality:quality,
-          session_id:inSession?session.id:null,delivery_quality:current?'live':'offline_replay',received_at:stamp,
+        // Flash can include a new touch before the next RAM poll observes it.
+        // Only a qualified live observation promotes it; backlog alone cannot.
+        if(prior&&(!current||prior.delivery_quality!=='offline_replay')){pageEvents.push(prior);continue;}
+        const event={...prior,...raw,id:prior?prior.id:next++,event_id:key,device_id:c.device_id,boot,boot_id:boot,at,time_quality:quality,
+          session_id:inSession?session.id:null,delivery_quality:current?'live':'offline_replay',received_at:prior?.received_at??stamp,
           ...(entry.storage_id?{storage_id:entry.storage_id,storage_epoch:batch.event_storage?.storage_epoch}:{})};
-        byKey.set(key,event);added.push(event);pageEvents.push(event);
+        byKey.set(key,event);if(!prior)added++;changed.push(event);pageEvents.push(event);
       }
       if(persistent&&((batch.storage_cursor||0)!==lastStorage))throw Error('补传页游标与记录不符，未确认缓存。');
-      if(added.length||(persistent&&pageEvents.length)){
-        const snapshot=persistent?pageEvents:added;
+      if(changed.length||(persistent&&pageEvents.length)){
+        const snapshot=persistent?pageEvents:changed;
         const data={device_id:c.device_id,events:snapshot},digest=checksum(data);
         const suffix=snapshot[0].id+'_'+snapshot[snapshot.length-1].id+'_'+digest;
         const segment=prefix+'segment_'+suffix+'.json';
@@ -104,7 +110,7 @@ function create(c){
         recovered=[...byKey.values()].sort((x,y)=>x.id-y.id);
         // Daily files are compatibility checkpoints, not the authoritative tail.
         // Read/commit immutable segments first; do not rewrite a whole day per touch.
-        for(const day of new Set(added.map(e=>Number.isFinite(e.at)?new Date(e.at*1000).toISOString().slice(0,10).replace(/-/g,''):'unknown'))){
+        for(const day of new Set(changed.map(e=>Number.isFinite(e.at)?new Date(e.at*1000).toISOString().slice(0,10).replace(/-/g,''):'unknown'))){
           const filename=prefix+'history_'+day+'.json';
           const events=recovered.filter(e=>(Number.isFinite(e.at)?new Date(e.at*1000).toISOString().slice(0,10).replace(/-/g,''):'unknown')===day);
           if(!dailyCounts.has(filename)||events.length-dailyCounts.get(filename)>=128){
@@ -123,7 +129,8 @@ function create(c){
         corrupt_records:batch.event_storage?.corrupt_records??sync.corrupt_records??0,
         write_failures_since_boot:batch.event_storage?.write_failures_since_boot??sync.write_failures_since_boot??0};
       await store.checkedWrite(prefix+'sync.json',updated);
-      return {added:added.length,cursor:batch.storage_cursor||0,commit_verified:true,archive:a,sync:updated};
+      return {added,observed_live:changed.filter(e=>e.delivery_quality==='live').length,
+        cursor:batch.storage_cursor||0,commit_verified:true,archive:a,sync:updated};
     });
   }
   async function query(args={}){

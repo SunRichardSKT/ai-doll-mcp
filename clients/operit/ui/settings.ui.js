@@ -66,6 +66,7 @@ async function Screen(ctx) {
   interrupted:'手机任务已暂停',failed:'需要检查连接',stopped:'已关闭',stopping:'停止待核对'};
  const source={device:'电脑采集',simulation:'电脑模拟',server:'服务器直传',phone:'手机直连'};
  const active=state.job?.kind==='interaction'&&['scheduled','running','handoff'].includes(state.job?.phase),on=active||!!state.continuous_enabled;
+ const feedbackState=state.job?.kind==='interaction'?(phases[state.job.phase]||'尚未开启'):(on?'等待互动任务启动':'已关闭');
  const ports=panel.channels||[];
  async function toggle(enabled){
   if(!enabled){const r=await call('set_experience',{enabled:false});await refresh(false);setMessage(r.message||'已关闭触摸主动回复。');return;}
@@ -138,7 +139,7 @@ async function Screen(ctx) {
   card('原聊天陪伴',[
    text('回复到：'+(state.chat?.title||'尚未绑定聊天')),text('人设：'+(panel.preferences?.persona_source==='doll'?'娃娃人设':'跟随当前聊天')),
    row([text('触摸主动回复',{weight:1,fontSize:17}),UI.Switch({checked:on,enabled:!busy&&(on||!!state.configured&&!!state.chat),onCheckedChange:v=>action(()=>toggle(v))})]),
-   text((phases[state.job?.phase]||'尚未开启')+(state.continuous_enabled?' · 常开已启用':'')),
+   text(feedbackState+(state.continuous_enabled?' · 常开已启用':'')),
    ...(state.queued_touches?[note('上一条回复进行中，'+state.queued_touches+'次触摸正在排队，随后合并回应。')]:[]),
    note(continuous?'常开：不设自动结束时间，可随时关闭。':'限时：'+(duration===900?'15分钟':'1分钟')+'，到期结束。'),
    button('触摸合并：停止按压后 '+(state.response_wait_sec??1)+' 秒',()=>go('batching')),

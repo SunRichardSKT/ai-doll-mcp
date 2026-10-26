@@ -40,6 +40,15 @@ async function test(ui) {
   assert.ok(find(home,'发送诊断消息（可选）'),'diagnostic remains optional and accessible');
   assert.ok(!find(home,'② 我已看到自检输入和回复'),'normal startup does not require manual confirmation');
   function collect(node,type){return [node,...(node.children||[]).flatMap(c=>collect(c,type))].filter(n=>n.type===type);}
+  const originalStatus=good.bundle.state.status;
+  good.bundle.state.status={...originalStatus,job:{kind:'sync',phase:'running'},continuous_enabled:false};
+  let syncHome=await good.context.exports.default(good.bundle.ctx);
+  assert.ok(collect(syncHome,'Text').some(n=>n.props.text==='已关闭'));
+  assert.ok(!collect(syncHome,'Text').some(n=>n.props.text==='正在陪伴'),'record-only collection is not active touch feedback');
+  good.bundle.state.status={...originalStatus,job:{kind:'interaction',phase:'failed'},continuous_enabled:false};
+  syncHome=await good.context.exports.default(good.bundle.ctx);
+  assert.ok(collect(syncHome,'Text').some(n=>n.props.text==='需要检查连接'),'interaction failures remain visible');
+  good.bundle.state.status=originalStatus;
   for(const c of collect(home,'Card')){
     assert.equal(c.props.containerColor.__colorToken,'surfaceContainer');
     assert.equal(c.props.contentColor.__colorToken,'onSurface');

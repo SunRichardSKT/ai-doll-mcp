@@ -77,6 +77,52 @@ test('deduplicate RAM/flash and retain original source/name',async()=>{
   assert.equal((await p.archive.query()).events.length,1);assert.equal((await p.archive.query()).events[0].source,'simulation');
   await p.tool('_sync_records');assert.equal((await p.archive.query()).events.length,1);
 });
+test('a fresh RAM observation can promote a flash-first touch without replaying old backlog',async()=>{
+  let p,armed=false;
+  p=await phone({beforeCall:async(name,args,state)=>{
+    if(armed&&name==='get_touch_events'&&args.include_persistent){
+      armed=false;
+      const event=p.emit({touch_id:'arrived-between-reads'});
+      state.persistent.push({storage_id:2,boot_id:state.boot,event:clone(event)});
+    }
+  }});
+  await p.tool('_sync_records');
+  await p.tool('update_companion_preferences',{changes:{proactive_enabled:true}});
+  const session=await p.tool('start_interaction',{chat_id:'chat-1',duration_sec:60});
+  p.backlog(1);armed=true;await p.tool('_sync_records');
+  const first=await p.archive.query(),newTouch=first.events.find(e=>e.boot===p.state.boot);
+  assert.equal(newTouch.delivery_quality,'offline_replay','flash alone never creates a live reply');
+  assert.equal((await p.tool('get_chat_context',{chat_id:'chat-1',session_id:session.id})).events.length,0);
+  const started=p.f.shared.Date.now();
+  const observed=await p.tool('get_interaction_device_events',{chat_id:'chat-1',session_id:session.id,after:0,wait_seconds:20});
+  assert.equal(observed.events.length,1);assert.ok(p.f.shared.Date.now()-started<2000,'fresh RAM promotion should wake the listener promptly');
+  const next=await p.tool('_sync_records');assert.equal(next.added,0,'the same touch remains one archived record');
+  const context=await p.tool('get_chat_context',{chat_id:'chat-1',session_id:session.id});
+  assert.equal(context.events.length,1,'a fresh session-bound RAM observation must not disappear behind a flash duplicate');
+  assert.equal(context.events[0].id,newTouch.id);assert.equal(context.events[0].event_id,newTouch.event_id);
+  assert.equal(context.events[0].received_at,newTouch.received_at);
+  assert.equal(context.events[0].delivery_quality,'live');
+  p.f.disk.set('/managed/device_archive_test_events.json','{');p.f.resetModules();
+  const list=p.f.tools.Files.list;
+  p.f.tools.Files.list=async(...args)=>{const r=await list(...args);r.entries.sort((x,y)=>Number(x.name.includes('_history_'))-Number(y.name.includes('_history_')));return r;};
+  const restored=await p.f.load(modulePath('archive')).create(p.c).query();
+  assert.equal(restored.events.length,2);
+  assert.equal(restored.events.find(e=>e.boot===p.state.boot).delivery_quality,'live','legacy daily checkpoints must not downgrade a committed RAM observation');
+  assert.equal(restored.events.find(e=>e.boot!==p.state.boot).delivery_quality,'offline_replay');
+});
+
+test('expired, gapped and pre-session RAM duplicates remain history',async()=>{
+  for(const condition of ['expired','gap','before-session']){
+    const p=await phone(),event=p.raw(1),batch={device_id:p.c.device_id,boot_id:p.state.boot,uptime_ms:p.state.uptime,
+      storage_cursor:1,event_storage:{storage_epoch:'epoch-a'},persistent_events:[{storage_id:1,boot_id:p.state.boot,event}]};
+    await p.archive.ingest(batch,{persistent:true});
+    await p.archive.ingest({boot_id:p.state.boot,uptime_ms:p.state.uptime+(condition==='expired'?31000:0),
+      next_cursor:1,gap:condition==='gap',events:[event]},
+      {live:true,session:{id:'active-session',boot:p.state.boot,boundary:condition==='before-session'?1:0}});
+    const events=(await p.archive.query()).events;assert.equal(events.length,1);assert.equal(events[0].delivery_quality,'offline_replay',condition);
+  }
+});
+
 test('legacy copies only first 24 and throttles without ACK',async()=>{
   const p=await phone({legacy:true});p.backlog(48);await p.tool('_sync_records');
   for(let i=0;i<3;i++)await p.tool('_sync_records');
