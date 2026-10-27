@@ -56,10 +56,12 @@ async function Screen(ctx) {
   else if(['home','settings'].includes(value))await refresh(false,true);
  }
  async function loadHistory(append=false,date=historyDate){
+  date=append?(history.filter_date||''):date.trim().replace(/－/g,'-');
+  if(!append&&date!=='unknown')setHistoryDate(date);
   setPage('history');
   const previous=append?history:{events:[]};setHistory({...previous,loading:true,error:null});
   try{const r=await call('view_history',{...(date?{date}:{}),after:append?history.next_cursor||0:0,limit:50});
-   setHistory({...r,events:[...previous.events,...r.events],loading:false});
+   setHistory({...r,filter_date:date,events:[...previous.events,...r.events],loading:false});
   }catch(e){setHistory({...previous,loading:false,error:String(e.message||e)});throw e;}
  }
  const phases={scheduled:'等待手机启动',running:'正在陪伴',handoff:'正在续接',completed:'本次已结束',expired:'手机未及时启动，等待恢复',

@@ -70,6 +70,27 @@ async function test(ui) {
   assert.equal(good.bundle.state.page,'history');assert.equal(good.bundle.state.history.events.length,1);
   const historyTree=await good.context.exports.default(good.bundle.ctx);
   assert.ok(collect(historyTree,'Text').some(n=>n.props.text==='头顶 · 按下'),'history is a readable page, not the top status message');
+  const historyCalls=[],previousTool=good.f.options.tool,previousStatus=good.bundle.state.status;
+  good.f.options.tool=async(name,args)=>{
+    if(name!=='query_device_history')return previousTool(name,args);
+    historyCalls.push({...args});
+    return {events:[{id:args.after+1,body_part:'头顶',phase:'start',source:'sensor',channel:0,at:1700000000}],
+      has_more:args.date==='unknown'&&args.after===0,next_cursor:args.after+1};
+  };
+  good.bundle.state.historyDate=' 2026－10－28 ';
+  let dateHistory=await good.context.exports.default(good.bundle.ctx);
+  await good.bundle.invokeAction(find(dateHistory,'按日期查询').props.onClick.__actionId);
+  assert.equal(historyCalls.at(-1).date,'2026-10-28','Chinese full-width hyphens become canonical before querying');
+  assert.equal(good.bundle.state.historyDate,'2026-10-28');
+  good.bundle.state.status={...previousStatus,connection:{...previousStatus.connection,mode:'phone'}};
+  dateHistory=await good.context.exports.default(good.bundle.ctx);
+  await good.bundle.invokeAction(find(dateHistory,'查看时间未确认的记录').props.onClick.__actionId);
+  good.bundle.state.historyDate='2026-10-01'; // Editing the field does not change the active page's filter.
+  dateHistory=await good.context.exports.default(good.bundle.ctx);
+  await good.bundle.invokeAction(find(dateHistory,'加载下一页').props.onClick.__actionId);
+  assert.equal(historyCalls.at(-1).date,'unknown','unknown-time pagination must keep its original filter');
+  assert.equal(historyCalls.at(-1).after,1);
+  good.f.options.tool=previousTool;good.bundle.state.status=previousStatus;good.bundle.state.historyDate='';
   good.bundle.state.page='home';
   home=await good.context.exports.default(good.bundle.ctx);
   const batchButton=collect(home,'Button').find(n=>n.props.text.startsWith('触摸合并：'));
