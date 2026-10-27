@@ -116,6 +116,8 @@ Node / Playwright 页面测试需要开发者另装对应环境，运行 `tools/
 
 手机主源码在 `clients/operit/`，运行 `.\.venv\Scripts\python.exe -X utf8 tools/package_operit.py` 生成单个 `.toolpkg`。完整包构建会自动包含它。旧 `templates/operit/` 为冻结的独立脚本兼容参考，不再开发新的增量安装入口。当前 Android 调度、文件选择器和真实后台回复边界见 [统一使用指南](../integrations/OPERIT_SETUP.md)。
 
+公开工具直接返回结果或Promise，交由Operit按调用完成；不要在await之后调用环境`complete`。1.12.2并发前台与后台调用时，该环境回调可能指向另一调用。`test_operit_registration.cjs --upstream 本地官方runtime目录`用官方运行代码复现旧结果错位，并验证两个返回值隔离；官方脚本缓存仅放在`build/`，不随包交付。
+
 二维码解码使用本地jsQR（Apache-2.0），生成使用Nayuki（MIT）；固定来源、提交及SHA-256记录在 `clients/operit/vendor/SOURCES.json`，许可证随工具包和需要相应资源的服务包交付。Nayuki的随包JS已由固定TypeScript版本编译，普通源码打包不需重新下载依赖或运行TypeScript编译器。改动供应商文件时先核对来源、许可和哈希，再更新资源与检查；不引入CDN。手机扫码流程使用相机／图片选择器与本地WebView，异步图片解码完成后再读取结果，不能假设 `evaluateJavascript` 等待网页Promise。
 
 源码构建 Docker 前同样需要先生成该 ToolPkg，要求开发环境具有 Node.js 18+；使用 Release 的 Linux 包部署时已包含工具包，用户不需要安装 Node 或另装手机服务。

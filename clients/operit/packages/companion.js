@@ -426,8 +426,8 @@ async function recover(p) {
   return {recovered:true,automatic_retry:false,continued:!!next?.continued,display_verified:false,
     message:next?.continued?'已保存核对结果，常开陪伴将继续；不会自动重发刚才未确认的消息。':'结果已保存，可重新开启陪伴；无需重新发送自检。'};
 }
-// Export plain functions for tests and tools. Native complete is called only at
-// the public boundary, never from a shared engine that could end the wrong turn.
+// Return each promise to Operit's caller. Its ambient complete callback can
+// belong to an overlapping UI/worker call when an awaited operation ends.
 for (const [name,fn] of Object.entries({status,setup,setup_device,read_hotspot_pairing,finish_pairing,import_connection_code,set_record_sync,sync_now,update_computer_address,set_experience,view_history,list_chats,bind_chat,check_connection,schedule,
   get_panel:controls.panel,update_port:controls.updatePort,set_persona_source:controls.persona,diagnostics:controls.diagnostics,test_sensor:controls.testSensor,
-  stop,confirm_probe,recover,run_task,import_legacy_state})) exports[name]=async(p={})=>complete(await fn(p));
+  stop,confirm_probe,recover,run_task,import_legacy_state})) exports[name]=async(p={})=>fn(p);
