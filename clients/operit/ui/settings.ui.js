@@ -11,6 +11,7 @@ async function Screen(ctx) {
  const [advanced,setAdvanced]=ctx.useState('advanced',false),[developer,setDeveloper]=ctx.useState('developer',false);
  const [chats,setChats]=ctx.useState('chats',[]),[candidate,setCandidate]=ctx.useState('candidate',null);
  const [names,setNames]=ctx.useState('names',{}),[personaText,setPersonaText]=ctx.useState('personaText','');
+ const [replyPrompt,setReplyPrompt]=ctx.useState('replyPrompt','');
  const [waitText,setWaitText]=ctx.useState('responseWait','1');
  const [historyDate,setHistoryDate]=ctx.useState('historyDate',''),[history,setHistory]=ctx.useState('history',{events:[]});
  const [diagnostic,setDiagnostic]=ctx.useState('diagnostic',''),[webUrl,setWebUrl]=ctx.useState('webUrl','');
@@ -41,7 +42,7 @@ async function Screen(ctx) {
   if(s.storage_recovery)setMessage(s.storage_recovery);
   setComputerHost(s.connection?.computer_host||'');if(s.connection?.mode==='phone')setMode('phone');
   if(s.connection?.device_host)setHost(s.connection.device_host);
-  setPersonaText(panel.persona||'');return s;
+  setPersonaText(panel.persona||'');setReplyPrompt(s.reply_prompt||'');return s;
  }
  async function onEnter(){
   // Operit dispatches the root onLoad once for each opened page instance.
@@ -215,6 +216,11 @@ async function Screen(ctx) {
   UI.TextField({label:'娃娃人设',value:personaText,minLines:4,maxLines:10,singleLine:false,onValueChange:setPersonaText}),
   button('保存并使用娃娃人设',async()=>{if(!personaText.trim())throw Error('请先填写娃娃人设。');await call('set_persona_source',{source:'doll',text:personaText});await refresh();setMessage('娃娃人设已保存，仅用于身体互动反馈。');}),
   note('沿用原模型与话题，不改写原聊天的设置。不同连接各自保存娃娃人设。')
+ ]),card('触摸回应方式',[
+  UI.TextField({label:'触摸回应提示词',value:replyPrompt,minLines:4,maxLines:12,singleLine:false,onValueChange:setReplyPrompt}),
+  note('可设置语气、长短、是否提及触摸次数，以及连续触摸的回应方式。只影响本机 Operit 后续的触摸反馈，不修改原聊天人设。'),
+  button('保存回应方式',async()=>{await call('set_experience',{reply_prompt:replyPrompt});await refresh(false,false);setMessage('回应方式已保存，用于后续触摸反馈。');}),
+  button('恢复默认回应方式',async()=>{await call('set_experience',{reply_prompt:''});await refresh(false,false);setMessage('已恢复默认回应方式。');})
  ])];
  else if(page==='chat')content=[card('回复到哪个聊天',[
   text('当前：'+(state.chat?.title||'尚未绑定')),

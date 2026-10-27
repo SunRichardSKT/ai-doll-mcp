@@ -2,15 +2,11 @@
 
 把娃娃的触摸与按压，接入你正在使用的 AI 聊天。继续使用原来的模型、人设和上下文，让 AI 在原对话中回应身体互动，也能查询过去的互动记录。
 
-**兼容回退基线：2.21.0 · ESP32-C3 固件：2.10.0**
+**最新正式版：2.25.3 · ESP32-C3 固件：2.13.3**
 
-**最新预发布：2.25.2 · 配套固件：2.13.3**。包含免电脑配对、地址恢复、手机补传与限时配网热点。[下载本版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.2)；完整流程需要同批次手机包和配套固件，见[更新与验收范围](docs/reports/RELEASE_2_25_2.md)。目标手机与新固件实板仍待验收。
+支持 Operit 原聊天触摸回应、免电脑配对、地址恢复和手机历史同步。本版改善连续触摸排队与连接稳定性，新增可自定义的触摸回应提示词。
 
-**源码维护候选：2.25.3，尚未发布。** 修复互动清理卡住、混合端口排队、部分后台任务停止、手机补传计数、历史日期与Flash先到导致的新触摸漏读，精简已确认回执。固件沿用2.13.3；[改动与检查](docs/reports/RELEASE_2_25_3.md)。Operit 1.12.2已实测手机直连CH0、原聊天连续触摸排队及历史查询，30分钟锁屏另行记录。公开下载仍使用上面的2.25.2。若使用完整2.25.3本地候选，直接运行包内入口并使用包内手机工具包，不再下载旧版附件混装。
-
-上一修订版[2.24.1](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.24.1)保留用于回退，使用旧包时阅读其固定tag说明；不要把2.25新增的配对向导与归档租约步骤套到旧界面。
-
-[更新与验收边界](docs/reports/RELEASE_2_25_2.md) · [完整教程目录](docs/README.md) · [故障排查](docs/TROUBLESHOOTING.md) · [给 AI 的安装指南](docs/ai/AI_GUIDE.md)
+[下载正式版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.3) · [更新说明](docs/reports/RELEASE_2_25_3.md) · [完整教程目录](docs/README.md) · [故障排查](docs/TROUBLESHOOTING.md) · [给 AI 的安装指南](docs/ai/AI_GUIDE.md)
 
 ## 目录
 
@@ -38,16 +34,25 @@
 
 ## 最近更新
 
+**2.25.3 正式版**（2026-10-28）：
+
+- “人设与反馈”可自定义触摸回应提示词，支持保存和恢复默认，后续触摸直接使用新设置。
+- 修复前台查询与后台任务的返回错位，以及新触摸先进入Flash时的漏回应。
+- 改善思考期间连续触摸排队、单独关闭端口及后台任务停止。
+- 修复手机历史日期输入、翻页筛选与补传计数，精简回执和冗余代码。
+
+升级保留历史、聊天绑定与校准；电脑／服务器和手机工具包使用同批次文件。已运行2.13.3固件的设备无需重刷。[详细说明](docs/reports/RELEASE_2_25_3.md)。
+
 **2.25.2 预发布**（2026-10-24）优化固件空间：镜像减少20,112字节，OTA余量从12,416提升到32,528字节。保留全部30个设备工具、校准、HTTPS与双OTA；新增实际固件编译检查。[优化记录](docs/reports/RELEASE_2_25_2.md)。
 
-保留之前的配置恢复、配网计时与归档性能修复，以及以下配对能力；目标手机和新固件实板仍待验收：
+保留之前的配置恢复、配网计时与归档性能修复，以及以下配对能力：
 
 - “添加娃娃”向导从热点读取配对草稿，切回家庭 Wi-Fi 核对成功后保存；也支持连接文件、连接码及本地二维码图片识别，无需贴实体标签。
 - 优先检查保存地址与固定名称，并核对安装身份；同一身份换 IP 保留聊天、回执和历史，重新烧录后重新配对。
 - 手机“自动同步记录”默认开启，主动回复仍默认关闭；关闭主动后继续同步，“停止后台任务”同时停止同步与自动续接。
 - 实时采集优先，Flash 补传分小页归档；先校验手机归档再确认设备缓存。2.13.0 增加主归档端租约，旧固件仅复制当前可读的最多 24 条持久记录、不自动 ACK。
 
-[使用步骤](docs/integrations/OPERIT_NO_PC.md) · [实施进度](docs/developers/PHONE_PAIRING_AND_RECOVERY_PLAN.md) · [验证范围](docs/reports/RELEASE_2_25_2.md)。二维码、热点路由与至少 30 分钟锁屏仍需目标 Operit 实测。
+[使用步骤](docs/integrations/OPERIT_NO_PC.md) · [实施进度](docs/developers/PHONE_PAIRING_AND_RECOVERY_PLAN.md) · [验证范围](docs/reports/RELEASE_2_25_2.md)。当前使用方式见[Operit指南](docs/integrations/OPERIT_SETUP.md)。
 
 **2.24.1 预发布修订**修复 Linux 安装时遗漏共享核心和手机包的问题，统一安装版本、端口设置、可选诊断与验收说明，补齐源码构建步骤。[18 项审查整改与验证范围](docs/reports/RELEASE_2_24_1.md)。
 
@@ -83,21 +88,21 @@
 
 ## 下载哪个文件
 
-本版完整文件从[2.25.2 Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.2)下载。Windows为`AI_Doll_Code_v2.25.2.zip`，Linux为`AI_Doll_Server_v2.25.2.tar.gz`，手机为同批次`AI_Doll_Operit.toolpkg`。校验使用该Release的固定`SHA256SUMS.txt`和`DELIVERY_MANIFEST.json`；源码ZIP不含Windows运行环境。
+本版完整文件从[2.25.3 Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.3)下载。Windows为`AI_Doll_Code_v2.25.3.zip`，Linux为`AI_Doll_Server_v2.25.3.tar.gz`，手机为同批次`AI_Doll_Operit.toolpkg`。校验使用该Release的固定`SHA256SUMS.txt`和`DELIVERY_MANIFEST.json`；源码ZIP不含Windows运行环境。
 
-下表对应**2.25.2预发布版**，配套操作见[固定tag文档](https://github.com/SunRichardSKT/ai-doll-mcp/tree/v2.25.2/docs)。继续使用2.21稳定版时，从[2.21发布页](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.21.0)下载，并使用[校正版安装入口](docs/start/STABLE_2_21.md)；不要混配不同版本的服务端与手机包。
+下表对应**2.25.3正式版**，配套操作见[固定tag文档](https://github.com/SunRichardSKT/ai-doll-mcp/tree/v2.25.3/docs)。继续使用2.21稳定版时，从[2.21发布页](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.21.0)下载，并使用[校正版安装入口](docs/start/STABLE_2_21.md)；不要混配不同版本的服务端与手机包。
 
 | 使用者 | 下载 | 下载后做什么 |
 | --- | --- | --- |
-| Windows 用户 | [Windows 完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.25.2/AI_Doll_Code_v2.25.2.zip) | 完整解压，保留内置 Python，双击对应入口 |
-| Operit 安卓用户 | [AI_Doll_Operit.toolpkg](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.25.2/AI_Doll_Operit.toolpkg) | 在 Operit 包管理中替换同名包，保留插件数据；电脑／服务器同时升级 |
-| Linux 服务器用户 | [Linux 小型服务包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.25.2/AI_Doll_Server_v2.25.2.tar.gz) | 按 [2.25.2 服务器指南](https://github.com/SunRichardSKT/ai-doll-mcp/blob/v2.25.2/docs/integrations/REMOTE_SERVER_SETUP.md)运行安装脚本 |
-| 采购、制作或焊接主板 | [PCB 与硬件交付包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.25.2/AI_Doll_PCB_V2_20261016.zip) | 制造数据未改变；重新下单前核对现有网表不匹配 |
-| 3D打印外壳 | [全部模型](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.25.2/AI_Doll_Enclosures_103450_20261020.zip) / [旧板上下堆叠版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.25.2/AI_Doll_Enclosure_Stacked_103450_20261020.zip) | 模型几何不变，修订版本适配说明；按实物主板选择 |
+| Windows 用户 | [Windows 完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.25.3/AI_Doll_Code_v2.25.3.zip) | 完整解压，保留内置 Python，双击对应入口 |
+| Operit 安卓用户 | [AI_Doll_Operit.toolpkg](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.25.3/AI_Doll_Operit.toolpkg) | 先停止任务，再按[升级步骤](docs/integrations/OPERIT_SETUP.md#工具包升级)导入，保留插件数据 |
+| Linux 服务器用户 | [Linux 小型服务包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.25.3/AI_Doll_Server_v2.25.3.tar.gz) | 按 [2.25.3 服务器指南](https://github.com/SunRichardSKT/ai-doll-mcp/blob/v2.25.3/docs/integrations/REMOTE_SERVER_SETUP.md)运行安装脚本 |
+| 采购、制作或焊接主板 | [PCB 与硬件交付包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.25.3/AI_Doll_PCB_V2_20261016.zip) | 制造数据未改变；重新下单前核对现有网表不匹配 |
+| 3D打印外壳 | [全部模型](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.25.3/AI_Doll_Enclosures_103450_20261020.zip) / [旧板上下堆叠版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.25.3/AI_Doll_Enclosure_Stacked_103450_20261020.zip) | 模型几何不变，修订版本适配说明；按实物主板选择 |
 
 Windows 完整包自带运行环境，**无需另装 Python 或 Arduino**。仅使用 Operit 手机直连时，不需要下载 Windows 包，也不需要安装额外的服务器软件。
 
-上述已发布文件校验见固定的 [2.25.2 SHA256SUMS](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.25.2/SHA256SUMS.txt)；稳定版使用 [2.21 SHA256SUMS](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.21.0/SHA256SUMS.txt)。同名手机包也必须按其下载版本校验；2.25预发布包不能使用旧Release清单。[当前交付范围](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/delivery/README.md) · [历史 Releases](https://github.com/SunRichardSKT/ai-doll-mcp/releases)。源码仓库用于阅读和开发，大型完整包统一放在 Releases。
+上述已发布文件校验见固定的 [2.25.3 SHA256SUMS](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.25.3/SHA256SUMS.txt)；稳定版使用 [2.21 SHA256SUMS](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.21.0/SHA256SUMS.txt)。同名手机包也必须按其下载版本校验；本版包不能使用旧Release清单。[当前交付范围](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/delivery/README.md) · [历史 Releases](https://github.com/SunRichardSKT/ai-doll-mcp/releases)。源码仓库用于阅读和开发，大型完整包统一放在 Releases。
 
 ## 第一次使用
 
@@ -198,7 +203,7 @@ Windows 完整包自带运行环境，**无需另装 Python 或 Arduino**。仅�
 | CH0 实体 FSR | 已有真实按压、释放与电脑归档记录；不能据此确认其他通道 |
 | ChatGPT 普通 Chat | Secure 状态、历史与限时模拟文字反馈已有验证；空闲主动唤醒未验证 |
 | Operit 原聊天 | 用户已报告能回应触摸；不能据此确认所有部署与后台场景 |
-| 2.25 免电脑预发布 | 配对、身份恢复、手机归档与租约已在代码整合；软件检查见候选报告，目标 APK、新固件实板、真实 CH0 排队及 30 分钟锁屏仍需实测 |
+| 2.25 免电脑预发布 | 配对、身份恢复、手机归档与租约已在代码整合；2.25.3有真实CH0排队与锁屏触发证据，新固件实板、扫码和热点配对仍需分别实测 |
 | 其他硬件 | 温度、电机、其他压力通道及整机电池体验需分别验收 |
 
 完整证据与边界见 [当前验证范围](docs/reports/VALIDATION.md)和 [2.25更新记录](docs/reports/RELEASE_2_25_2.md)。[2.20 实施记录](docs/reports/RELEASE_2_20.md)保留旧版本的证据范围。模拟数据会保留来源标记，不能用来证明实体传感器或执行器工作正常。

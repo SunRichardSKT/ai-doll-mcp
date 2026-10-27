@@ -1,6 +1,6 @@
 # Operit：服务器或仅安卓手机使用
 
-本文下载步骤对应 **2.25.2预发布／固件2.13.3**。从[本版Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.2)下载同批次文件；旧版按其固定tag操作，不把新手机包单独接到旧服务端。[验收范围](../reports/RELEASE_2_25_2.md)。源码另有[2.25.3本地维护候选](../reports/RELEASE_2_25_3.md)，尚未发布。
+本文对应 **2.25.3正式版／固件2.13.3**。从[本版Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.3)下载同批次文件，升级保留插件数据、历史和聊天绑定。[更新说明](../reports/RELEASE_2_25_3.md)。
 
 | 用法 | 需要运行 | 历史位置 | 手机网络 |
 | --- | --- | --- | --- |

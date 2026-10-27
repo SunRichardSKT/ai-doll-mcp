@@ -191,12 +191,12 @@ def server_package(delivery):
     contents['docs/README.md'] = ('# Linux 服务包教程\n\n'
         '[远程安装与维护](integrations/REMOTE_SERVER_SETUP.md) · [Operit 无电脑使用](integrations/OPERIT_NO_PC.md) · [自然陪伴](daily/NATURAL_COMPANION.md) · '
         '[已有安装验证记录](reports/SIMPLE_SETUP_ACCEPTANCE.md)\n\n'
-        '[2.25改进与待验收](reports/RELEASE_2_25.md) · [给AI的执行指南](ai/AI_GUIDE.md)\n\n'
+        '[2.25.3更新说明](reports/RELEASE_2_25_3.md) · [给AI的执行指南](ai/AI_GUIDE.md)\n\n'
         '历史记录：[2.24.1](reports/RELEASE_2_24_1.md) · [2.24](reports/RELEASE_2_24.md) · [2.23](reports/RELEASE_2_23.md)。\n\n'
         '本小型包只包含服务器所需文件。设备设置、Windows 和 AI 教程见 '
         '[项目完整目录](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/README.md)。\n').encode()
     contents['README.md'] = ('# AI Doll Linux 服务包\n\n'
-        f'{VERSION}本地候选；本包从解压目录安装，保留原部署数据。公开下载版以项目Release为准。\n\n'
+        f'{VERSION}正式版；从解压目录运行安装入口，保留原部署数据。\n\n'
         '准备 Ubuntu / Debian 服务器，将域名解析到它，并放行 TCP 80 / 443。\n\n'
         '上传并解压此包，在解压目录运行：\n\n'
         '```bash\nsudo bash Install_Server.sh\n```\n\n'
@@ -235,7 +235,7 @@ def server_package(delivery):
                 archive.addfile(item,io.BytesIO(raw))
     digest=hashlib.sha256(output.read_bytes()).hexdigest()
     checksum=output.with_name(output.name+'.sha256')
-    checksum.write_text(digest+'  '+output.name+'\n',encoding='ascii')
+    checksum.write_text(digest+'  '+output.name+'\n',encoding='ascii',newline='\n')
     return dict(file=output.name,files=len(manifest['files']),bytes=output.stat().st_size,
                 sha256=digest,checksum_file=checksum.name)
 
@@ -289,13 +289,13 @@ def main():
                 assert hashlib.sha256(archive.read(relative)).hexdigest() == digest, relative
         outputs.append(dict(file=name, files=len(manifest['files']), bytes=path.stat().st_size,
                             sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
-    (delivery/'DELIVERY_MANIFEST.json').write_text(json.dumps({'packages': outputs}, ensure_ascii=False, indent=2), encoding='utf-8')
+    (delivery/'DELIVERY_MANIFEST.json').write_text(json.dumps({'packages': outputs}, ensure_ascii=False, indent=2), encoding='utf-8',newline='\n')
     checksums = {item['file']: item['sha256'] for item in outputs}
     for name in ('DELIVERY_MANIFEST.json',):
         checksums[name] = hashlib.sha256((delivery/name).read_bytes()).hexdigest()
     checksums['Install_Server.sh'] = hashlib.sha256((ROOT/'Install_Server.sh').read_bytes()).hexdigest()
-    (delivery/'SHA256SUMS.txt').write_text(''.join(digest+'  '+name+'\n' for name,digest in sorted(checksums.items())), encoding='ascii')
-    readme = f'# 下载与交付文件\n\n**{VERSION}本地候选 / 固件2.13.3**，更新于2026-10-26。公开下载仍以[已发布版本](https://github.com/SunRichardSKT/ai-doll-mcp/releases)为准，本地候选不等于已发布。兼容回退基线为[2.21.0](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.21.0)。\n\n本修订修复互动清理、混合端口排队、部分任务停止、手机补传计数与历史日期，并精简已确认回执。电脑／服务器与手机包同版更新，固件沿用2.13.3。目标手机与锁屏仍待分别验收。普通Windows用户使用完整包，无需安装Python或Arduino。\n\n'
+    (delivery/'SHA256SUMS.txt').write_text(''.join(digest+'  '+name+'\n' for name,digest in sorted(checksums.items())), encoding='ascii',newline='\n')
+    readme = f'# 下载与交付文件\n\n**{VERSION}正式版 / 固件2.13.3**，更新于2026-10-28。[下载本版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v{VERSION})。\n\n新增可自定义的触摸回应提示词，改善连续触摸排队、连接状态与手机历史。电脑／服务器与手机包同版更新，保留原数据。Windows完整包内置Python，无需另装。\n\n'
     readme += '## 应该下载哪个\n\n| 包 | 适合谁 | 解压后做什么 |\n| --- | --- | --- |\n'
     purposes = {
         f'AI_Doll_Code_v{VERSION}.zip': ('Windows 用户 / 软件开发者', '普通 Chat 双击 AI_Doll.cmd；自建应用本机接收双击 AI_Doll_Server.cmd'),
@@ -311,14 +311,14 @@ def main():
     readme += '\nOperit 无需为了取得手机工具包下载 Windows 包。服务器管理页可导出连接文件、连接码与临时二维码；仅手机模式默认从设备热点读取，不要求实体标签。原电脑入口继续兼容，完整包内含相同工具包。[统一安装](../docs/integrations/OPERIT_SETUP.md) · [免电脑指南](../docs/integrations/OPERIT_NO_PC.md)。\n'
     readme += '\nWindows 包内置 Python，无需另装。Linux 小型包不含 Windows Python，由容器准备运行环境。20261016 PCB 包已优化丝印并修正背面文字，电路与原下单文件保持；当前仍有 1 项网表不匹配，重新下单前须核对。[丝印与 3D 核对](../hardware/rev-v2/丝印镜像修正说明_20261016.md)。\n\n'
     readme += '[Windows 首次安装](../docs/start/AI_INSTALL.md) · [远程部署](../docs/integrations/REMOTE_SERVER_SETUP.md) · [给 AI 的执行指南](../docs/ai/AI_GUIDE.md) · [全部文档](../docs/README.md)\n\n'
-    readme += f'## 如何校验发布包\n\n本目录仅记录{VERSION}本地候选；已发布版必须使用其Release内的固定清单，不使用这里校验同名旧手机包。[2.21校正版入口](../docs/start/STABLE_2_21.md)。\n\n[DELIVERY_MANIFEST.json](DELIVERY_MANIFEST.json) 与 [SHA256SUMS.txt](SHA256SUMS.txt) 记录哈希；ZIP / TAR 内的 MANIFEST.json 记录逐文件校验，ToolPkg 使用 CHECKSUMS.json。Linux 包另有同目录 `.sha256`。\n\n'
+    readme += f'## 如何校验发布包\n\n使用[本版Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v{VERSION})附带的固定清单；旧版下载使用对应Release清单。\n\n[DELIVERY_MANIFEST.json](DELIVERY_MANIFEST.json) 与 [SHA256SUMS.txt](SHA256SUMS.txt) 记录哈希；ZIP / TAR 内的 MANIFEST.json 记录逐文件校验，ToolPkg 使用 CHECKSUMS.json。Linux 包另有同目录 `.sha256`。\n\n'
     readme += 'Linux安装入口位于本版TAR内和Release附件 `Install_Server.sh`；使用同版安装器，保留原目录、项目名与数据卷。大型文件仅放在Releases，源码目录保留下载链接与校验元数据。\n\n'
     for item in outputs:
         readme += f"- `{item['file']}`：`{item['sha256']}`\n"
     readme += '\n## 交付范围\n\n公共包只包含代码、文档、固件、PCB 和公共模板，不包含个人配对、Wi-Fi、令牌或互动数据库。更新保留自己的 build 数据，远程部署保留数据卷。\n\n'
     readme += '新板烧录：双击 Flash_ESP32.cmd，点击一键烧录。日常管理：双击 AI_Doll.cmd。手机连接娃娃热点后，固定设置页为 http://192.168.4.1/，首次热点最长10分钟，新配网成功后约90秒关闭；正常重启不开热点，运行中长按BOOT约3秒重新开启。\n\n'
     readme += '每次 USB 烧录产生新内部配对编号；可选择自定义显示名和热点名并保留独立日志；标准烧录保留设置，恢复出厂才清空设备。CH0 实体按压/释放及电脑归档已实测；其他硬件、普通 Chat 空闲唤醒和真实公网部署仍按 [验证汇总](../docs/reports/VALIDATION.md)列出的范围。\n'
-    (delivery/'README.md').write_text(readme, encoding='utf-8')
+    (delivery/'README.md').write_text(readme, encoding='utf-8',newline='\n')
     for item in outputs:
         print(item['file'], item['files'], 'files, verified')
 

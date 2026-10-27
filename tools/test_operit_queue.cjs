@@ -3,7 +3,7 @@ const assert=require('node:assert/strict'),path=require('node:path');
 const {fixture}=require('./operit_test_host.cjs');
 let finished=false;
 process.on('beforeExit',()=>{if(!finished){console.error('FAIL unresolved queue test');process.exitCode=1;}});
-async function scenario({delay=45,duration=70,wait=0,disable=false,stop=false,ackFailure=false,continuous=false,mixedPorts=false}={}){
+async function scenario({delay=45,duration=70,wait=0,disable=false,stop=false,ackFailure=false,continuous=false,mixedPorts=false,replyPrompt,updatedReplyPrompt}={}){
  let f,session,resolveFirst,started,reads=0,active=0,maxActive=0,emitted=0,firstSendAt;
  const events=[],acks=[],sends=[],captured=[],times=mixedPorts?[0,2,2,2,2,2]:[0,2,2.2,2.4,2.6,2.8];
  const prefs={proactive_enabled:true,chat_integration_enabled:true};
@@ -50,7 +50,9 @@ async function scenario({delay=45,duration=70,wait=0,disable=false,stop=false,ac
  };
  const engine=f.load(path.resolve(__dirname,'../clients/operit/core/interaction.js'));
  const p={mcp_url:f.connection.mcp_url,chat_id:'chat-1',state_path:'/managed/queue.json',workflow_confirmed:true,duration_sec:duration,
-  response_wait_sec:wait,continuous,ensure_active:async()=>{if(stop&&emitted===6){if(resolveFirst){const r=resolveFirst;resolveFirst=null;active--;r({chatId:'chat-1',aiResponse:'完成'});}throw Error('任务已停止');}}};
+  response_wait_sec:wait,continuous,reply_prompt:replyPrompt,
+  ...(updatedReplyPrompt!==undefined?{get_reply_prompt:async()=>sends.length?updatedReplyPrompt:replyPrompt}:{}),
+  ensure_active:async()=>{if(stop&&emitted===6){if(resolveFirst){const r=resolveFirst;resolveFirst=null;active--;r({chatId:'chat-1',aiResponse:'完成'});}throw Error('任务已停止');}}};
  let result,error;try{result=await engine.listen_interaction(p);}catch(e){error=e;}
  return {result,error,sends,acks,maxActive,captured,started,journal:JSON.parse(f.disk.get('/managed/queue.json'))};
 }
@@ -62,6 +64,14 @@ async function scenario({delay=45,duration=70,wait=0,disable=false,stop=false,ac
  assert.deepEqual(second.events.map(e=>e.touch_id),['t1','t2','t3','t4','t5']);
  assert.equal(q.captured.length,6);assert.equal(new Set(q.captured).size,6);assert.equal(q.journal.pending,null);
  assert.ok(q.sends[1].at-q.sends[0].at>=45);assert.ok(second.events.every(e=>e.duration_ms===50));
+ assert.ok(q.sends[0].text.includes('不要输出检测报告、ADC、编号或倒计时'),'existing installations retain the default reply style');
+ const custom=await scenario({replyPrompt:'用轻快的语气回应，可以提及本批触摸次数。',updatedReplyPrompt:'后续触摸用一句话回应，不必报数。'});
+ assert.ifError(custom.error);assert.equal(custom.sends.length,2);
+ assert.ok(custom.sends[0].text.includes('用轻快的语气回应，可以提及本批触摸次数。'));
+ assert.ok(!custom.sends[0].text.includes('不逐条报数'),'custom reply style replaces the default style');
+ assert.ok(custom.sends[1].text.includes('后续触摸用一句话回应，不必报数。'),'an active worker reads the latest style for its next send');
+ assert.deepEqual(JSON.parse(custom.sends[1].text.split('\n').pop()).events,second.events,'customization preserves original event data and queue contents');
+ assert.equal(custom.journal.pending,null);assert.deepEqual(custom.acks,q.acks);
  const merged=await scenario({wait:3});assert.ifError(merged.error);assert.equal(merged.sends.length,1);
  assert.equal(JSON.parse(merged.sends[0].text.split('\n').pop()).touch_count,6);
  assert.ok(merged.sends[0].at-merged.started>=5.8,'wait restarts after the last press/release');

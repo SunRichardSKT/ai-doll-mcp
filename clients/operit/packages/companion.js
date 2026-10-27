@@ -22,7 +22,7 @@
     {"name":"list_chats","description":"列出已有聊天，让用户按标题选择绑定。","parameters":[]},
     {"name":"view_history","description":"读取互动记录页面，支持按日期和游标翻页，不发送消息。","parameters":[{"name":"date","type":"string","required":false,"description":"可选本地日期YYYY-MM-DD；省略为近期记录"},{"name":"after","type":"number","required":false,"description":"上一页next_cursor，首次0"},{"name":"limit","type":"number","required":false,"description":"每页1到100条，默认50"}]},
     {"name":"setup_device","description":"在面板连接家庭网络的设备，仅安卓手机模式，不更改采样或校准。","parameters":[{"name":"host","type":"string","required":true,"description":"设备家庭局域网 IP 或固件显示的固定 .local 连接名"},{"name":"token","type":"string","required":false,"description":"可选设备 MCP 令牌"}]},
-    {"name":"set_experience","description":"设置陪伴方式与合并等待；连接和聊天已保存即可开启，无需发送测试。","parameters":[{"name":"enabled","type":"boolean","required":false,"description":"主动回应和聊天融入"},{"name":"duration_sec","type":"number","required":false,"description":"限时60或900秒"},{"name":"continuous","type":"boolean","required":false,"description":"是否常开"},{"name":"response_wait_sec","type":"number","required":false,"description":"停止按压后等待0到30秒合并回应；0立即触发，默认1"}]},
+    {"name":"set_experience","description":"设置陪伴方式、合并等待与触摸回应提示词；连接和聊天已保存即可开启，无需发送测试。","parameters":[{"name":"enabled","type":"boolean","required":false,"description":"主动回应和聊天融入"},{"name":"duration_sec","type":"number","required":false,"description":"限时60或900秒"},{"name":"continuous","type":"boolean","required":false,"description":"是否常开"},{"name":"response_wait_sec","type":"number","required":false,"description":"停止按压后等待0到30秒合并回应；0立即触发，默认1"},{"name":"reply_prompt","type":"string","required":false,"description":"用户自定义的触摸回应方式，最多4000字；空白恢复默认，省略保留"}]},
     {"name":"bind_chat","description":"仅在用户选择聊天标题后保存绑定。","parameters":[{"name":"chat_id","type":"string","required":true,"description":"设置页用户选中的聊天"}]},
     {"name":"check_connection","description":"一键检查文件、已有聊天与真实 MCP 工具发现，不发送消息。","parameters":[]},
     {"name":"import_legacy_state","description":"升级时由用户选择旧发送记录；核对原聊天与连接后导入，不删除旧文件。","parameters":[{"name":"legacy_file","type":"string","required":true,"description":"系统文件选择器提供的旧 JSON 文件"}]},
@@ -66,7 +66,8 @@ async function status(p={}) {
     probe_has_attempt:!!(job?.kind==='probe'&&job.result?.probe_id),
     panel,connection_state:!cfg.connection?'unconfigured':!panel?.checked_at?'checking':panel.connection_error?'unreachable':Date.now()-panel.checked_at>15000?'stale':panel.overview?.online?'online':'device_offline',
     queued_touches:(journal?.queue||[]).reduce((n,q)=>n+(q.events?.length||0),0),
-    duration_sec:cfg.duration_sec,response_wait_sec:cfg.response_wait_sec??1,continuous:!!cfg.continuous,continuous_enabled:!!cfg.continuous_enabled,
+    duration_sec:cfg.duration_sec,response_wait_sec:cfg.response_wait_sec??1,reply_prompt:cfg.reply_prompt||interaction.DEFAULT_REPLY_PROMPT,
+    continuous:!!cfg.continuous,continuous_enabled:!!cfg.continuous_enabled,
     job,uncertain_delivery:journal?.pending?.phase==='sending',
     auto_sync_enabled:!!cfg.auto_sync_enabled,sync_paused:!!cfg.sync_paused,
     sync_state:cfg.connection?.kind==='ai-doll-device-connection'?await store.read('device_'+cfg.connection.storage_key+'_sync.json',{}):null,
@@ -164,6 +165,7 @@ async function set_experience(p) {
   if(p.enabled!==undefined&&typeof p.enabled!=='boolean')throw Error('请明确选择开启或关闭。');
   if(p.continuous!==undefined&&typeof p.continuous!=='boolean')throw Error('请明确选择常开或限时。');
   if(p.response_wait_sec!==undefined&&(!Number.isFinite(p.response_wait_sec)||p.response_wait_sec<0||p.response_wait_sec>30))throw Error('合并等待时间应为0～30秒。');
+  if(p.reply_prompt!==undefined&&(typeof p.reply_prompt!=='string'||p.reply_prompt.length>4000))throw Error('触摸回应提示词最多4000字。');
   const cfg=await store.config();
   if(cfg.continuous_enabled&&(p.continuous!==undefined||p.duration_sec!==undefined)&&p.enabled!==false)throw Error('请先关闭常开，再修改陪伴方式。');
   let preferences;
@@ -186,6 +188,7 @@ async function set_experience(p) {
   if(p.duration_sec!==undefined)cfg.duration_sec=p.duration_sec;
   if(p.continuous!==undefined)cfg.continuous=p.continuous;
   if(p.response_wait_sec!==undefined)cfg.response_wait_sec=p.response_wait_sec;
+  if(p.reply_prompt!==undefined)cfg.reply_prompt=p.reply_prompt.trim();
   await store.write('settings.json',cfg);
   return {saved:true,duration_sec:cfg.duration_sec,response_wait_sec:cfg.response_wait_sec??1,continuous:!!cfg.continuous,preferences,
     auto_sync_enabled:!!cfg.auto_sync_enabled,message:p.enabled===false&&wantsSync(cfg)?'触摸主动回复已关闭，记录同步继续。':undefined};
@@ -334,6 +337,7 @@ async function executeTask(p) {
   params.duration_sec=chunk;params.continuous=!!job.continuous;
   let responseWait=cfg.response_wait_sec??1,lastHeartbeat=0;
   params.get_response_wait=()=>responseWait;
+  params.get_reply_prompt=async()=>(await store.config()).reply_prompt;
   params.ensure_active=async()=>{
     const active=await store.read('job.json');
     if (active?.id!==job.id || active.phase!=='running')

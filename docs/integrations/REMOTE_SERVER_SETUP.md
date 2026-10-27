@@ -5,9 +5,9 @@
 
 适用于你自己的 Linux 服务器。首次选择方式可先看 [连接方式](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/start/MCP_TRANSPORT_DECISION.md)。电脑端的 Windows 启动程序和内置 Python 不需要上传到服务器。
 
-本页按 **2.25.2预发布**编写，安装入口、Linux包与Operit手机包从[同一Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.2)下载。新部署和升级均推荐从完整包解压目录运行安装器；同版独立脚本也可下载配套服务包。
+本页按 **2.25.3正式版**编写，安装入口、Linux包与Operit手机包从[同一Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.3)下载。新部署和升级均推荐从完整包解压目录运行安装器；同版独立脚本也可下载配套服务包。
 
-2.25.3为尚未发布的[本地维护候选](../reports/RELEASE_2_25_3.md)。持有完整候选包时，从该包解压目录运行安装器，并搭配同批次手机包；不要将候选安装器单独用于下载尚未发布的Release。
+[2.25.3更新说明](../reports/RELEASE_2_25_3.md)。从完整包解压目录运行安装器，升级保留原部署目录与数据卷。
 
 上一修订版[2.24.1](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.24.1)按其固定版本教程操作。2.21旧安装器有复制清单缺项，保留与升级边界见[稳定版入口](../start/STABLE_2_21.md)。
 
@@ -27,13 +27,13 @@ Operit 用户部署后可直接在服务器管理页下载手机工具包与设�
 
 ## 2. 上传并运行发布包
 
-将本机 `delivery/AI_Doll_Server_v2.25.2.tar.gz` 与同目录的 `.sha256` 文件上传到服务器同一目录。在 SSH 终端校验、解压，然后运行**包内**入口：
+将本机 `delivery/AI_Doll_Server_v2.25.3.tar.gz` 与同目录的 `.sha256` 文件上传到服务器同一目录。在 SSH 终端校验、解压，然后运行**包内**入口：
 
 ```bash
-sha256sum -c AI_Doll_Server_v2.25.2.tar.gz.sha256
-mkdir ai-doll-server-2.25.2
-tar -xzf AI_Doll_Server_v2.25.2.tar.gz -C ai-doll-server-2.25.2
-cd ai-doll-server-2.25.2
+sha256sum -c AI_Doll_Server_v2.25.3.tar.gz.sha256
+mkdir ai-doll-server-2.25.3
+tar -xzf AI_Doll_Server_v2.25.3.tar.gz -C ai-doll-server-2.25.3
+cd ai-doll-server-2.25.3
 sudo bash Install_Server.sh
 ```
 

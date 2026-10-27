@@ -4,7 +4,7 @@ const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const root=path.resolve(__dirname,'../clients/operit');
 function fixture(options={}) {
   const disk=new Map(),dirs=new Set(['/managed']),flows=new Map(),messages=[],calls=[];
-  let clock=1700000000000,result,counter=0;
+  let clock=1700000000000,counter=0;
   class Clock extends Date {constructor(...args){super(...(args.length?args:[clock]));}static now(){return clock;}}
   // Operit 1.12.2 ToolResultData.toJson uses __type and omits Kotlin defaults.
   // In particular WorkflowNode.type and manual triggerType are absent on wire.
@@ -53,7 +53,7 @@ function fixture(options={}) {
     }}};
   const cache=new Map();
   const shared={Tools:tools,Date:options.realTime?Date:Clock,JSON,Math,Number,String,Set,Error,Object,
-    getPluginConfigDir:()=>'/managed',complete:r=>{result=r;}};
+    getPluginConfigDir:()=>'/managed'};
   function load(file) {
     file=path.resolve(file);
     if(!file.startsWith(root+path.sep))throw Error('Module outside toolpkg');
@@ -64,7 +64,7 @@ function fixture(options={}) {
     return exported;
   }
   let app=load(path.join(root,'packages/companion.js'));
-  const invoke=async(name,args={})=>{result=undefined;const returned=await app[name](args);return returned===undefined?result:returned;};
+  const invoke=(name,args={})=>app[name](args);
   const cfg=()=>JSON.parse(disk.get('/managed/settings.json'));
   const job=()=>JSON.parse(disk.get('/managed/job.json'));
   const connection={schema:1,kind:'ai-doll-operit-connection',mcp_url:'http://192.168.1.20:8775/'+ 'a'.repeat(64)+'/mcp',mode:'simulation',label:'演示'};

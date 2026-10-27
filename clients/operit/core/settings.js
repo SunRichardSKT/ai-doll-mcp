@@ -136,7 +136,7 @@ function parameters(cfg) {
   if (!cfg.connection || !cfg.chat || !cfg.binding) throw Error('请先连接娃娃，并选择已有聊天。');
   return {mcp_url:cfg.connection.mcp_url,connection:cfg.connection,chat_id:cfg.chat.id,
     state_path:path('delivery_'+cfg.binding+'.json'),workflow_confirmed:true,duration_sec:cfg.duration_sec,
-    response_wait_sec:cfg.response_wait_sec??1};
+    response_wait_sec:cfg.response_wait_sec??1,reply_prompt:cfg.reply_prompt};
 }
 function validateConnection(value) {
   if (!value || value.schema!==1 || value.kind!=='ai-doll-operit-connection' ||

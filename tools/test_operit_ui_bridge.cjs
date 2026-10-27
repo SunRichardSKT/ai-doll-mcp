@@ -145,5 +145,17 @@ async function test(ui) {
   await good.bundle.invokeAction(stop.props.onClick.__actionId);
   assert.equal(good.f.job().phase,'stopped');assert.equal(good.f.messages.length,0);
   assert.ok(good.bundle.state.message.includes('可以修改设置'));
+  good.bundle.state.page='persona';tree=await good.context.exports.default(good.bundle.ctx);
+  const replyField=findField(tree,'触摸回应提示词');assert.ok(replyField);
+  await good.bundle.invokeAction(replyField.props.onValueChange.__actionId,{__composeTextFieldPayload:true,value:'温柔地回应，可以提次数。'});
+  tree=await good.context.exports.default(good.bundle.ctx);
+  await good.bundle.invokeAction(find(tree,'保存回应方式').props.onClick.__actionId);
+  assert.equal(good.f.cfg().reply_prompt,'温柔地回应，可以提次数。');
+  assert.equal(good.bundle.state.replyPrompt,'温柔地回应，可以提次数。');
+  tree=await good.context.exports.default(good.bundle.ctx);
+  await good.bundle.invokeAction(find(tree,'恢复默认回应方式').props.onClick.__actionId);
+  assert.equal(good.f.cfg().reply_prompt,'');
+  assert.ok(good.bundle.state.replyPrompt.includes('自然简短回应'));
+  assert.equal(good.f.messages.length,0,'style controls leave the original chat untouched');
   console.log('PASS official Operit 1.12.2 UI bridge: old namespace failure reproduced; actual UI lists chats, confirms binding and checks MCP through exact subpackage names. Android/model remain unverified.');
 })().catch(e=>{console.error(e);process.exitCode=1;});
