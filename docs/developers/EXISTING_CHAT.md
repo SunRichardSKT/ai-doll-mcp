@@ -13,7 +13,7 @@ Secure 已通过普通 Chat 的模拟文字反馈；空闲自动唤醒尚未验�
 
 ## 自己的应用开发者
 
-2.18 增加普通聊天融入。在同一个原聊天队列中调用 `bridge.replyWithContext({generate,display,signal})`：generate 接收近期互动上下文，并使用原模型、当前人设和话题；display 幂等保存原消息。不要再将该方法放进同一个 queue.run 外层，否则会重复排队。方法已经通过 runDelivery 进入共享队列，在显示成功后确认 receipt_id；中止、过期和静音的结果不插入。服务不可用时使用空互动上下文，原聊天继续。数据不是模型指令。示例：
+0.1.0 增加普通聊天融入。在同一个原聊天队列中调用 `bridge.replyWithContext({generate,display,signal})`：generate 接收近期互动上下文，并使用原模型、当前人设和话题；display 幂等保存原消息。不要再将该方法放进同一个 queue.run 外层，否则会重复排队。方法已经通过 runDelivery 进入共享队列，在显示成功后确认 receipt_id；中止、过期和静音的结果不插入。服务不可用时使用空互动上下文，原聊天继续。数据不是模型指令。示例：
 
 ```javascript
 function sendWithDoll(text, signal) {

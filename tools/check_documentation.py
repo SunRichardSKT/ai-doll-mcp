@@ -94,7 +94,7 @@ def main():
             files={n:(archive.read(n) if n.endswith('.md') else b'') for n in archive.namelist()}
     else:
         files={}
-        ignored={'build','.tools','.git','.venv','.pio','__pycache__','_local','node_modules'}
+        ignored={'build','outputs','.tools','.git','.venv','.pio','__pycache__','_local','node_modules'}
         for folder,directories,names in os.walk(args.repository):
             directories[:]=[name for name in directories if name not in ignored]
             if Path(folder).resolve()==(args.repository/'python').resolve():

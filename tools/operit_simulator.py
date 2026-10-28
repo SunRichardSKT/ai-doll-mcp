@@ -1,19 +1,14 @@
-"""Isolated simulation for first Operit installation; never opens an ESP32 port."""
-import argparse
+"""Developer-only simulation for the current Operit tools; never opens an ESP32 port."""
 import json
-import logging
-from pathlib import Path
 import threading
 import time
 import uuid
 
 from companion import Companion
 from private_storage import private_directory
-from remote_mcp import create_private_remote
-from service_lifecycle import ServiceLease
 
 
-class DemoBackend:
+class SimulationBackend:
     def __init__(self,folder,delay=3):
         self.folder=private_directory(folder)
         self.c=Companion(self.folder/'simulation.sqlite3',None,threading.Lock())
@@ -29,7 +24,7 @@ class DemoBackend:
 
     def device(self,name,args):
         if name=='doll_get_status':
-            return {'device_id':'operit-demo-not-hardware','firmware':'prototype-simulation-only',
+            return {'device_id':'operit-demo-not-hardware','firmware':'simulation-only',
                     'sensor_mode':'simulation','physical_outputs_enabled':False,'wifi_connected':False,
                     'demo':True,'hardware_verified':False}
         if name=='get_channel_config':return self.c.call('get_cached_channel_config',{})
@@ -68,28 +63,3 @@ class DemoBackend:
         self.stop.set()
         for thread in self.threads:thread.join(timeout=2)
         self.c.db.close()
-
-
-def main():
-    parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--listen-host',default='127.0.0.1')
-    parser.add_argument('--port',type=int,default=8775)
-    parser.add_argument('--folder',type=Path,default=Path(__file__).resolve().parents[1]/'build/operit-demo')
-    args=parser.parse_args()
-    logging.disable(logging.CRITICAL)
-    with ServiceLease(args.folder/'demo.lock'):
-        demo=DemoBackend(args.folder)
-        try:
-            # This standalone process owns its adapter; no production collector is patched.
-            import companion_mcp
-            companion_mcp.call=demo.call
-            _,app,store=create_private_remote(args.folder/'mcp',port=args.port,listen_host=args.listen_host)
-            print('SIMULATION ONLY: no ESP32, no real pressure, physical outputs disabled.',flush=True)
-            print(store.local_url(args.listen_host,args.port),flush=True)
-            print('Each new bounded session emits one simulated head touch after 3 seconds. Ctrl+C stops.',flush=True)
-            import uvicorn
-            uvicorn.run(app,host=args.listen_host,port=args.port,log_level='critical',access_log=False)
-        finally:demo.close()
-
-
-if __name__=='__main__':main()

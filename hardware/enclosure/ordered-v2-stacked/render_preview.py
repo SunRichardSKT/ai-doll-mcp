@@ -53,11 +53,13 @@ c.onpointerdown=e=>{drag=[e.clientX,e.clientY];c.setPointerCapture(e.pointerId)}
 def run():
     data=json.loads((OUT/'meshes.json').read_text(encoding='utf-8'))
     audit=json.loads((OUT/'audit.json').read_text(encoding='utf-8'))
+    p=json.loads((HERE/'parameters.json').read_text(encoding='utf-8'))
     page=TEMPLATE
     replacements={
         'AI Doll · 外壳 P01':'AI Doll · 原尺寸上下堆叠外壳',
-        'AI DOLL / HARDWARE / V22-ENC-P01':'AI DOLL / ORDERED PCB / STACK P01',
-        '圆角双片外壳':'原长宽 · 电池上下堆叠',
+        'AI DOLL / HARDWARE / V22-ENC-P01':'AI DOLL / ORDERED PCB / STACK P02',
+        '圆角双片外壳':'P02 · 开关易拨 · 加紧卡扣',
+        '首版试装样件 · 尚未实物验证':'只换上盖 · 保留原底壳与托板',
         'J9 日常供电 · USB 开盖维护 · 八路带线传感输入':'下层电池 · 中间绝缘托板 · 上层主板 · 下沉开关口',
         '46.29 × 56.45':'46.29 × 56.45 mm',
         '20.4 / 1.8 mm':f"{data['dimensions']['height']:.1f} / 1.8 mm",
@@ -65,9 +67,9 @@ def run():
         '为当前布线板留出的空间':'保持原来无电池版长宽',
         '边缘托座固定 PCB，不使用板上的线束固定孔。线束从敞口槽放入，盖上的挡片补齐槽口，无需让 SM 塑壳穿过小孔。':'电池平放在底层，长边沿外壳长度方向。1.4 mm可拆绝缘托板同时承托主板，将载荷传到壳壁侧轨。托板上方给5 mm针脚再留1 mm间隙，无需剪短针脚。',
         '正面独立 J9 出线口与开关检修口；松开上盖后操作 USB、BOOT / RST。天线端不布置紧固螺钉。':'需要打印底壳、绝缘托板、上盖三件。托板保护电芯不被针脚刺压，并可单独取出更换电池。前后墙卡扣避开八路侧面线槽。USB开盖维护。',
-        '元件高度、板厚与线径为预留假设。灰色元件是包络参考，USB 不是已验证插拔模型。':'开关采用下沉拨动口：按15 mm总叠高估计，拨杆高于局部凹槽底1 mm；不依赖它伸出整个外壳。14 × 12 mm观察口保留。',
+        '元件高度、板厚与线径为预留假设。灰色元件是包络参考，USB 不是已验证插拔模型。':f"开关凹槽底面降低1.4 mm，入口扩大到15.4 × 12.4 mm并向前侧展开，避开后卡扣。导向单边间隙{p['lid_guide_clearance']:.2f} mm，挂钩咬合{p['wall']-p['snap_tip_inset']:.2f} mm。",
         '先打印 fit_tray，再检查焊点、线束弯折和开关可达性。此结构没有防水等级，也不包含电池。':'电池净空36 × 52 × 12 mm，出线向上经过托板开口；短边水平余量约1.85 mm，原厂线弯曲及封边必须试装。建议PETG，不压电芯。J9仍需5 V电源管理。',
-        '模型来自当前 PCB 实际 XY 回读；Z 向包络采用公开标注的假设。剖切仅用于观察，不改变打印模型。单位 mm。2026-10-17':'15 mm总叠高和5 mm底针来自用户近似测量。仅几何检查，未打印、未验证开关手感与射频。黄色电池及绿色PCB不要打印。单位 mm。2026-10-20',
+        '模型来自当前 PCB 实际 XY 回读；Z 向包络采用公开标注的假设。剖切仅用于观察，不改变打印模型。单位 mm。2026-10-17':'P02针对实物反馈调整开关凹槽与卡扣；总尺寸、电池仓和主板位置不变。建议先只打印lid.stl试装。黄色电池及绿色PCB不要打印。单位 mm。2026-10-29',
         '<button id="cut">':'<button data-mode="tray">绝缘托板</button><button id="side">层叠侧视</button><button id="cut">',
         '<i style="background:#22736c"></i>PCB 位置参考</span>':'<i style="background:#22736c"></i>PCB 位置参考</span><span><i style="background:#dfbc5e"></i>103450电池</span><span><i style="background:#c7af8a"></i>可拆绝缘托板</span>',
         '<a href="lid.stl">上盖 STL</a>':'<a href="tray.stl">绝缘托板 STL</a> · <a href="lid.stl">上盖 STL</a>',

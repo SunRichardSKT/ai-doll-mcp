@@ -45,4 +45,4 @@ ESP32 → 电脑采集 → SQLite → 专用 MCP → Sakura HTTPS。电脑需持
 
 verify 需可信证书、工具发现和实际调用；只能证明这次 SDK 路径。普通 Chat 必须另外实际添加并调用，不能用 Secure / Cloudflare 的成功替代。
 
-连接配置在 `build/device-lab/remote-mcp/chatgpt-connection-private.json`。服务操作和地址重置参数可用 `tools/deploy_mcp.py --help` 查看；当前验收见 [MCP 报告](../reports/MCP_ACCEPTANCE_2_13.md)。
+连接配置在 `build/device-lab/remote-mcp/chatgpt-connection-private.json`。服务操作和地址重置参数可用 `tools/deploy_mcp.py --help` 查看；当前验收见 [MCP 报告](../reports/VALIDATION.md)。

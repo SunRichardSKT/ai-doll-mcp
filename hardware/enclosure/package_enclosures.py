@@ -7,10 +7,10 @@ import zipfile
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
-MODELS = ('ordered-v2-prototype', 'v22-prototype')
+MODELS = ('v22-prototype',)
 COMMON = ('README.md', 'preview.html', 'validation_103450.json',
           'validate_enclosures.py', 'package_enclosures.py',
-          'preview-assets/ordered.png', 'preview-assets/v22.png', 'preview-assets/comparison.png')
+          'preview-assets/v22.png')
 SOURCE = ('README.md', 'parameters.json', 'pcb_reference.json', 'requirements-cad.txt',
           'build_enclosure.py', 'render_preview.py', 'SHA256SUMS.txt')
 OUTPUT = ('base.stl', 'lid.stl', 'base.step', 'lid.step', 'assembly_reference.step',
@@ -24,7 +24,7 @@ STACKED_SOURCE = ('README.md', 'parameters.json', 'pcb_reference.json', 'require
 STACKED_OUTPUT = ('base.stl', 'base.step', 'tray.stl', 'tray.step', 'lid.stl', 'lid.step',
                   'assembly_reference.step', 'audit.json', 'validation.json',
                   'independent_validation.json', 'meshes.json', 'preview.html', 'preview.png',
-                  'assembled.png', 'side.png', 'tray.png', 'stack.svg', 'stack.png', 'preview_check.json')
+                  'assembled.png', 'side.png', 'tray.png', 'lid.png', 'stack.svg', 'stack.png', 'preview_check.json')
 
 
 def write_archive(target, files, **metadata):
@@ -75,7 +75,7 @@ def build(target, stacked_target=None):
     for line in files[STACKED+'/SHA256SUMS.txt'].decode('utf-8').splitlines():
         digest,relative=line.split(None,1)
         assert hashlib.sha256(files[STACKED+'/'+relative.strip()]).hexdigest()==digest, relative
-    write_archive(target, files, version='103450-20261020', physical_fit_tested=False)
+    write_archive(target, files, version='0.1.0', physical_fit_tested=False)
     if stacked_target is not None:
         prefix=STACKED+'/'
         standalone={name[len(prefix):]:raw for name,raw in files.items() if name.startswith(prefix)}
@@ -84,7 +84,7 @@ def build(target, stacked_target=None):
 
 if __name__ == '__main__':
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--output',type=Path,default=ROOT/'delivery/AI_Doll_Enclosures_103450_20261020.zip')
-    parser.add_argument('--stacked-output',type=Path,default=ROOT/'delivery/AI_Doll_Enclosure_Stacked_103450_20261020.zip')
+    parser.add_argument('--output',type=Path,default=ROOT/'delivery/AI_Doll_Enclosures_v0.1.0.zip')
+    parser.add_argument('--stacked-output',type=Path,default=ROOT/'delivery/AI_Doll_Stacked_Enclosure_v0.1.0.zip')
     args=parser.parse_args()
     build(args.output, args.stacked_output)

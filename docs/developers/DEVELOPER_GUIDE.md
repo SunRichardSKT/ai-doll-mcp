@@ -5,7 +5,7 @@
 
 普通使用者不需要编译，按 [首次安装](../start/AI_INSTALL.md)使用完整包。本页面向维护代码、定制接口和制作交付包的开发者。
 
-当前版本为 **2.25.3正式版／固件2.13.3**。[下载](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.3) · [更新说明](../reports/RELEASE_2_25_3.md)。源码中的`delivery/`只保存入口和校验元数据，完整包放在Releases。
+当前版本为 **0.1.0内测第一版／固件0.1.0**。[下载](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.0) · [更新说明](../../CHANGELOG.md)。源码中的`delivery/`只保存入口和校验元数据，完整包放在Releases。
 
 ## 项目结构
 
@@ -22,7 +22,7 @@
 | `python/` | 完整包运行环境；源码仓库仅说明和元数据 |
 | `build/` | 本机配置、SQLite、生成物与证据，不公开 |
 
-硬件与交付下载见 [公开硬件目录](https://github.com/SunRichardSKT/ai-doll-mcp/tree/main/hardware/rev-v2)和 [交付说明](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/delivery/README.md)。
+维护规则见[AGENTS.md](../../AGENTS.md)。硬件与交付下载见 [公开硬件目录](https://github.com/SunRichardSKT/ai-doll-mcp/tree/main/hardware/rev-v2)和 [交付说明](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/delivery/README.md)。
 
 ## 常用端口
 
@@ -65,7 +65,7 @@ node --version
 
 构建后运行 `.\.venv\Scripts\python.exe -X utf8 tools/export_firmware.py`，导出本次三个编译镜像并为完整四文件更新清单。网页嵌入头文件在构建前生成，不提交。正式 USB 烧录使用 `Flash_ESP32.cmd` 或 `tools/flash_esp32.py`，才能生成新的内部设备编号、可选显示名及完整日志；PlatformIO 的直接 Upload 仅供开发调试，保留既有设备编号。
 
-2.13.0新增原生源码 `firmware/src/archive_lease.h`，随源码包保留；它只包含有限归档租约策略，不改变NVS、Flash分区或电气参数。二维码网页使用随包的 `clients/operit/vendor/qrcodegen.js` 与 `tools/pairing_connection.js`。构建前会额外生成 `firmware/src/pairing_asset.h`及工具清单的`firmware/src/device_tools_asset.h`，与其他 `*_asset.h` 一样为gzip派生产物，不提交或重新加入源码允许列表；修改来源后重新编译和导出镜像，不能只替换网页源码。
+原生源码 `firmware/src/archive_lease.h`，随源码包保留；它只包含有限归档租约策略，不改变NVS、Flash分区或电气参数。二维码网页使用随包的 `clients/operit/vendor/qrcodegen.js` 与 `tools/pairing_connection.js`。构建前会额外生成 `firmware/src/pairing_asset.h`及工具清单的`firmware/src/device_tools_asset.h`，与其他 `*_asset.h` 一样为gzip派生产物，不提交或重新加入源码允许列表；修改来源后重新编译和导出镜像，不能只替换网页源码。
 
 ## 验证原则与入口
 
@@ -89,16 +89,16 @@ Node / Playwright 页面测试需要开发者另装对应环境，运行 `tools/
 .\.venv\Scripts\python.exe -X utf8 tools/build_portable_python.py
 .\.venv\Scripts\python.exe -X utf8 hardware/enclosure/package_enclosures.py
 .\.venv\Scripts\python.exe -X utf8 tools/package_companion.py
-.\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Code_v2.25.3.zip
-.\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Server_v2.25.3.tar.gz
+.\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Code_v0.1.0.zip
+.\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Server_v0.1.0.tar.gz
 .\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --repository .
-.\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --archive delivery/AI_Doll_Code_v2.25.3.zip
-.\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --archive delivery/AI_Doll_Server_v2.25.3.tar.gz
+.\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --archive delivery/AI_Doll_Code_v0.1.0.zip
+.\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --archive delivery/AI_Doll_Server_v0.1.0.tar.gz
 ```
 
 `build_portable_python.py` 从官方 CPython 和固定 wheel 构建 Windows x64 运行环境，需要联网。已有完整运行环境时先验证并复用，不要再次覆盖运行中的 `python/`；确需重建时，在停止本项目服务后，将整个已有 `python/` 移到项目内明确的备份位置，再恢复源码的 README、许可和版本元数据后构建。不要打包开发用 `.venv`。
 
-`hardware/enclosure/package_enclosures.py` 使用仓库已有的导出模型和校验文件，一次生成全部外壳与独立堆叠版两份 ZIP，不需要 CAD 依赖。只有修改或重新生成几何时，才按 [外壳说明](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/README.md#生成与检查)建立独立 CAD 环境。完整打包器会验证这两份机械制品并生成手机 ToolPkg；Node.js 必须可用。
+`hardware/enclosure/package_enclosures.py` 使用已有导出模型和校验文件，生成当前两种外壳及独立堆叠包。修改几何时先按[外壳说明](../../hardware/enclosure/README.md#修改和打包)准备CAD环境、重新生成并检查。完整打包器会核对机械包并生成手机ToolPkg，需要Node.js。
 
 上述命令不重新编译固件；默认使用仓库中已配套校验的四个预编译镜像。只有修改了固件源码时，才先完成“编译固件”与导出清单，再打包。ZIP / TAR 内 `MANIFEST.json` 是逐文件 SHA-256，ToolPkg 使用 `CHECKSUMS.json`。`DELIVERY_MANIFEST.json` 和 `SHA256SUMS.txt` 记录 Windows、Linux、PCB 与独立手机工具包的哈希。
 
@@ -114,7 +114,7 @@ Node / Playwright 页面测试需要开发者另装对应环境，运行 `tools/
 
 ## Operit 统一入口
 
-手机主源码在 `clients/operit/`，运行 `.\.venv\Scripts\python.exe -X utf8 tools/package_operit.py` 生成单个 `.toolpkg`。完整包构建会自动包含它。旧 `templates/operit/` 为冻结的独立脚本兼容参考，不再开发新的增量安装入口。当前 Android 调度、文件选择器和真实后台回复边界见 [统一使用指南](../integrations/OPERIT_SETUP.md)。
+手机主源码在 `clients/operit/`，运行 `.\.venv\Scripts\python.exe -X utf8 tools/package_operit.py` 生成单个 `.toolpkg`。完整包构建会自动包含它。当前 Android 调度、文件选择器和真实后台回复边界见 [统一使用指南](../integrations/OPERIT_SETUP.md)。
 
 公开工具直接返回结果或Promise，交由Operit按调用完成；不要在await之后调用环境`complete`。1.12.2并发前台与后台调用时，该环境回调可能指向另一调用。`test_operit_registration.cjs --upstream 本地官方runtime目录`用官方运行代码复现旧结果错位，并验证两个返回值隔离；官方脚本缓存仅放在`build/`，不随包交付。
 
@@ -124,7 +124,7 @@ Node / Playwright 页面测试需要开发者另装对应环境，运行 `tools/
 
 源码构建 Docker 前同样需要先生成该 ToolPkg，要求开发环境具有 Node.js 18+；使用 Release 的 Linux 包部署时已包含工具包，用户不需要安装 Node 或另装手机服务。
 
-## 2.13.1临时热点与管理访问
+##临时热点与管理访问
 
 配对窗口最长600秒；新配置的STA首次连通后最多再保留90秒，重复连接不延长窗口。已有STA连接时手动打开保留完整窗口及STA链路；无网只退避重连，不自行开AP。BOOT、USB `setup_mode` 或已授权LAN管理可开启；热点客户端不能通过HTTP续窗。关闭AP不清除Wi-Fi、身份、通道、校准或归档租约。
 
@@ -138,9 +138,9 @@ Node / Playwright 页面测试需要开发者另装对应环境，运行 `tools/
 
 每次push／PR运行 `.github/workflows/checks.yml`，检查固件清单及固定分区、生产网络与租约策略、完整ToolPkg、实际MCP SDK、文档和Linux交付包。使用已声明依赖，不访问真实板子或手机，不自动发布。Windows完整包仍需本地运行环境与交付审计。
 
-`tools/check_firmware.py` 在导出及完整打包时也执行，保持原历史分区和双OTA槽。每日手机JSON为128条间隔的兼容检查点，已提交归档段保留全部尾部记录；不能只拷贝日文件作完整导出。设置／任务副本校验用于恢复，不承诺文件系统fsync或物理断电安全。详见[2.25.2修订](../reports/RELEASE_2_25_2.md)。
+`tools/check_firmware.py` 在导出及完整打包时也执行，保持原历史分区和双OTA槽。每日手机JSON为128条间隔的兼容检查点，已提交归档段保留全部尾部记录；不能只拷贝日文件作完整导出。设置／任务副本校验用于恢复，不承诺文件系统fsync或物理断电安全。详见[0.1.0修订](../../CHANGELOG.md)。
 
-## 2.13.3固件资源与工具清单
+## 0.1.0固件资源与工具清单
 
 `device_tools.json`是设备工具元数据的唯一编辑入口；修改后重新构建，不手工维护生成头文件。`channel_rpc.h`只将Flash内元数据交给真实JSON序列化器，分发在`lab_main.cpp`，需要同时维护协议与处理函数。`test_firmware_tools.py`在已有ArduinoJson头文件后编译生产函数并用MCP SDK核对输出，CI固件任务会先安装固定库并编译完整应用。
 

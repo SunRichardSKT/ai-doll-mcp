@@ -12,7 +12,7 @@ from unittest.mock import patch
 import uvicorn
 from mcp import ClientSession
 from mcp.client.streamable_http import streamable_http_client
-from operit_demo import DemoBackend
+from operit_simulator import SimulationBackend
 from remote_mcp import create_private_remote
 from operit_service import lan_addresses
 
@@ -21,7 +21,7 @@ class UnifiedSDKTests(unittest.IsolatedAsyncioTestCase):
     async def test_unified_configuration_probe_and_simulated_touch(self):
         with tempfile.TemporaryDirectory() as temporary:
             folder = Path(temporary)
-            demo = DemoBackend(folder / 'demo', delay=.1)
+            demo = SimulationBackend(folder / 'demo', delay=.1)
             try:
                 with patch('companion_mcp.call', side_effect=demo.call):
                     with socket.socket() as sock:

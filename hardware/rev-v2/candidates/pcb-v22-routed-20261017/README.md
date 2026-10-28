@@ -11,7 +11,6 @@
 | [原生正面](原生正面.png) | 保存重载后，官方 API 采集的整板正面图层视口 |
 | [原生背面图层](原生背面图层.png) | 底层聚焦视口，没有物理翻板；不能凭此图判断底面文字镜像 |
 | [核对摘要](audit.json) / [文件校验](SHA256SUMS.txt) | 结果、覆盖范围、遗留问题和导出完整性 |
-| [此前布局候选](../pcb-v22-20261016/README.md) | 已确认布局及 SuperMini 封装资料、装配边界 |
 
 ## 实际修改
 
@@ -40,3 +39,7 @@
 - 确认新工程底面物理 3D 的文字方向，并进行制造预览和实物测试。
 
 本目录没有生成新的下单 Gerber，没有替换原下单文件，没有更新 GitHub 或 Releases。布线采用本地 [Freerouting 文件交换流程](https://prodocs.easyeda.com/en/pcb/route-auto-routing/index.html)，并经嘉立创官方接口导入、保存及检查；路由器生成成功本身不作为验收结论。
+
+## SuperMini机械参考
+
+模块参考尺寸22.50 × 18.00 mm，纵向节距2.54 mm、内排孔中心距15.24 mm。当前库贴片焊盘约2.103 × 1.801 mm、两列中心距16.002 mm，外侧露铜约0.05 mm，定版前需要实物叠合并加长合适的手焊焊盘。来源：[NoLogo官方资料](https://www.nologo.tech/product/esp32/esp32c3/esp32c3supermini/esp32C3SuperMini.html)。

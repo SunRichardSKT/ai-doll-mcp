@@ -1,6 +1,7 @@
 .tools/
 .pio/
 build/
+outputs/
 __pycache__/
 *.log
 .vscode/

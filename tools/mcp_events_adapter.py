@@ -7,7 +7,9 @@ import datetime as dt
 import hashlib
 import json
 from webhook_delivery import WebhookSender, decode_secret, validate_url
+from _source_path import load
 
+VERSION = load('ai_doll.core.version').VERSION
 PROTOCOL = '2026-07-28'
 EVENT_NAME = 'doll.interaction'
 EVENT_ARGUMENTS = dict(type='object', properties={
@@ -54,7 +56,7 @@ class MCPEventsAdapter:
     def execute(self, method, params, owner):
         if method == 'server/discover':
             return dict(supportedVersions=[PROTOCOL], capabilities=dict(tools={},events={}),
-                        serverInfo=dict(name='ai-doll-event-bridge',version='2.12.3'))
+                        serverInfo=dict(name='ai-doll-event-bridge',version=VERSION))
         if method == 'ping': return {}
         if method == 'events/list':
             return dict(events=[EVENT_DEFINITION])

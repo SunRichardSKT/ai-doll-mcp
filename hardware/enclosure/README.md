@@ -1,48 +1,32 @@
-# 外壳设计入口
+# 外壳模型
 
-2026-10-20 更新：提供平铺电池仓与上下堆叠两种布局，均有卡扣上盖和指示灯观察窗。两版平铺壳只打印底盒和上盖两件；新增堆叠壳打印底盒、绝缘载架、上盖三件。
+当前提供两种板型对应的模型，含103450电池空间、指示灯窗口与可拆卡扣上盖。
 
-[两版效果对比](preview.html) · [对比图](preview-assets/comparison.png) · [独立导出检查](validation_103450.json)
-
-## 先按主板选版本
-
-| 实际主板 | 对应外壳 | 外形（毫米） | 接线与装配区别 |
-| --- | --- | --- | --- |
-| 已经制作、焊接的旧板，双排通孔SuperMini，约8mm架高 | [已制板P03](ordered-v2-prototype/README.md) · [可旋转预览](ordered-v2-prototype/output/preview.html) | 62 × 100.45 × 20.8 | J9保持右侧靠上出口，按旧板托座、针脚及开关位置处理 |
-| V2.2紧凑贴片板，SuperMini贴近主板安装 | [紧凑板P02](v22-prototype/README.md) · [可旋转预览](v22-prototype/output/preview.html) | 62 × 100.45 × 20.4 | J9线从主板区前方右侧出壳，避免跨过电池仓；PCB焊点位置不变 |
-| 已制作旧板，底针约5mm、针尖至开关顶约15mm；希望保持原长宽 | [上下堆叠P01](ordered-v2-stacked/README.md) · [可旋转预览](ordered-v2-stacked/output/preview.html) · [侧剖尺寸图](ordered-v2-stacked/output/stack.svg) | 46.29 × 56.45 × 35.2 | 电池下置、主板上置，绝缘载架隔开针脚，下沉开关口；独立打印三件 |
-
-两块板的线槽、开关、托座和USB位置不同，不能混用。原已制板P02和紧凑板P01螺钉版本已由当前模型替换；已有打印旧外壳不能只换新盖。上下堆叠候选按最新约15mm整板高度重新设计，保留最早无电池版46.29×56.45mm长宽；它没有给V2.2贴片板做适配。
-
-堆叠版的电池名义尺寸转为34×50×10mm，净空36×52×12mm，引线向上穿过载架开口。它不保留平铺版7.2mm端部空间，实际封边、出线弯曲、开关行程仍需试装。具体层叠尺寸与打印顺序见该版说明。下文“独立前仓”和“两件打印”均指两版平铺候选。
-
-## 电池与盖板结构
-
-按用户提供的103450尺寸**50 × 34 × 10mm**设计。电池横向放在独立前仓，与后方主板平面分开，避免紧贴针脚、焊点和天线下方；因此外壳比无电池版加长。电池仓至少预留**52 × 36 × 12mm**的完整净空，另留**12 × 8 × 10mm**插头区域和隔板走线缺口。短边出线端朝+X侧，两版引线空间不同：
-
-| 平铺版本 | 引线转弯保留区（毫米） | 位置与用法 |
+| 实际主板 | 选择的外壳 | 外形尺寸 |
 | --- | --- | --- |
-| 已制旧板P03 | 5 × 14 × 12 | 电池出线端右侧局部空间，引线松弯后进入隔板缺口 |
-| V2.2紧凑板P02 | 6 × 34 × 12 | 电池出线端右侧沿短边保留的走线区域 |
+| 已制作的通孔SuperMini主板 | [上下堆叠壳P02](ordered-v2-stacked/README.md) · [旋转预览](ordered-v2-stacked/output/preview.html) | 46.29 × 56.45 × 35.2 mm |
+| 紧凑贴片研发主板 | [平铺壳P02](v22-prototype/README.md) · [旋转预览](v22-prototype/output/preview.html) | 62 × 100.45 × 20.4 mm |
 
-两版都保留约**7.2mm**端部宽度；该宽度不等于整段均有相同的走线净空。按所选子版本说明安排原厂引线，不把线硬塞到包膜侧缝。
+[查看两种结构](preview.html)。按实际板型选模型，勿混用。最新堆叠盖扩大开关入口、凹槽降低1.4mm并加紧卡扣；现有底壳和绝缘托板可以继续用，先只重打上盖。
 
-采用可从壳外释放的四个悬臂卡扣，上盖正向装入，不需要把已焊好的SM接头穿过小孔。卡扣不接触或压紧电池。观察窗口按SuperMini模块指示灯的大致位置留余量，并保留可调参数；不同模块小改版仍需实装核对。
+## 打印文件
 
-黄色电池、主板和元件都是装配参考，**不要打印**。打印文件只选各目录的`output/base.stl`和`output/lid.stl`。STEP供修改，`assembly_reference.step`用于查看装配关系。
+- 堆叠版打印`base.stl`、`tray.stl`、`lid.stl`，其中托板隔离约5mm底针与电池。
+- 紧凑平铺版打印`base.stl`与`lid.stl`。
+- 各自`output/`中包含STL、STEP和装配预览。模型中的PCB、电池与元件是参考件，不打印。
 
-## 试装与供电边界
+103450电池按50 × 34 × 10mm预留。仓位不提供充电、保护或升压功能；J9仍需合适的5V电源。先用断电实物试放，不能压紧电芯来固定。
 
-先试放断电主板和实际电池，确认电池封边、包膜与插头均能自然放入。可用柔软侧垫和可拆提拉带限位、方便取出；不要通过压紧盖板固定电芯。卡扣尺寸按打印候选设置，建议先按各版说明验证配合，弹性、扣合力和多次拆装寿命尚未实测。
+## 修改和打包
 
-此次增加的是机械仓位。103450为单节3.7V电池，现有主板J9为5V输入；仓位与PH2.0空间不会自动提供充电、保护或升压功能。电源管理模块需另行匹配并核对极性，当前外壳没有按未知模块尺寸做固定支架。USB仍用于开盖维护，按原供电说明操作。
+按各目录`requirements-cad.txt`准备CAD环境，运行其生成与预览脚本。紧凑壳导出检查使用`validate_enclosures.py`；堆叠壳使用其`validate_and_package.py`。几何检查不能代替打印试装。
 
-## 生成与检查
+在项目根目录运行：
 
-安装各版[CAD依赖](ordered-v2-prototype/requirements-cad.txt)，在对应目录运行`build_enclosure.py`和`render_preview.py`。两个生成器只写各自目录，不修改PCB或用户配置。
+```text
+python hardware/enclosure/package_enclosures.py
+```
 
-从本目录运行`python -X utf8 validate_enclosures.py`可独立回读两版平铺候选STEP/STL，检查单实体、水密、盖板装配、名义电池及完整净空。堆叠版使用其目录内`validate_and_package.py`进行几何验证。
+使用现有导出和校验清单生成当前`AI_Doll_Enclosures_v0.1.0.zip`及独立堆叠包，不需要重新建模。
 
-只重新制作交付ZIP时，从项目根目录运行`python -X utf8 hardware/enclosure/package_enclosures.py`。该命令使用已有导出模型和校验文件，一次生成汇总三个候选的机械包与独立堆叠版ZIP，不需要安装CAD依赖，也不重新建模。修改几何后应先用相应CAD环境重新生成并验证模型，不能跳过几何检查。模型相交检查以报告为准，不能代替打印和真实装配。
-
-PCB来源：[旧版已下单板](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/rev-v2/ordered-gerber-20260920/已下单PCB封装核对.md) · [V2.2布线候选](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/rev-v2/candidates/pcb-v22-routed-20261017/README.md)。两版均为待试装机械候选，未修改原PCB制造文件。
+[主板资料](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/rev-v2/README.md) · [紧凑壳导出检查](validation_103450.json)

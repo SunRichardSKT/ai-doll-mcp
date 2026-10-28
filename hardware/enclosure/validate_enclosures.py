@@ -1,4 +1,4 @@
-"""Independent exported-model checks for both 103450 enclosure candidates.
+"""Independent exported-model checks for the compact 103450 enclosure.
 
 Use the pinned requirements-cad.txt environment. This checks exported geometry,
 not snap material life, real battery tolerances, or a physically assembled board.
@@ -12,7 +12,7 @@ import cadquery as cq
 import trimesh
 
 HERE = Path(__file__).resolve().parent
-MODELS = ('ordered-v2-prototype', 'v22-prototype')
+MODELS = ('v22-prototype',)
 
 
 def box(origin, size):
@@ -92,7 +92,7 @@ def validate(folder):
     assert not audit['componentEnvelopeCollisions'], audit['componentEnvelopeCollisions']
     snap = audit.get('snaps', audit.get('snapLid', {}))
     snap_count = snap.get('count', len(snap.get('positions', [])))
-    assert snap_count == 4, 'Both candidates use four removable lid clips'
+    assert snap_count == 4, 'Current enclosure uses four removable lid clips'
     window = audit['ledWindow']
     window_size = window.get('sizeMm', window.get('openingMm'))
     assert window_size and min(window_size) >= 8, 'LED observation opening missing'

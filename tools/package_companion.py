@@ -14,74 +14,229 @@ from _source_path import load
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 VERSION = load('ai_doll.core.version').VERSION
 TOOLS = (
-    'firmware_test_assets.cjs', 'test_firmware_tools.py', 'qrcodegen_minify.json',
-    'vendor/rjsmin.py', 'vendor/rjsmin.LICENSE', 'vendor/SOURCES.json',
-    'check_firmware.py', 'test_firmware_delivery.py',
+    'firmware_test_assets.cjs',
+    'test_firmware_tools.py',
+    'qrcodegen_minify.json',
+    'vendor/rjsmin.py',
+    'vendor/rjsmin.LICENSE',
+    'vendor/SOURCES.json',
+    'check_firmware.py',
+    'test_firmware_delivery.py',
     'test_operit_storage.cjs',
-    'pairing_connection.js', 'test_pairing_exports.py', 'test_pairing_portal.cjs', 'test_hotspot_policy.py', 'test_hotspot_ui.cjs',
-    'test_operit_pairing.cjs', 'test_operit_pairing_ui.cjs', 'test_operit_qr.cjs',
-    'test_operit_archive.cjs', 'test_operit_sync.cjs', 'test_operit_sync_lifecycle.cjs', 'test_archive_lease.py',
-    'operit_metadata.py', 'test_operit_metadata.py',
-    'test_operit_queue.cjs', 'test_operit_continuous.cjs', 'test_operit_controls.cjs', 'test_operit_phone.cjs', 'test_operit_server.py', 'operit_server_sdk_runner.cjs', 'test_operit_no_pc_ui.cjs',
-    '_source_path.py', 'test_shared_core.py',
-    'test_operit_registration.cjs', 'prepare_operit_registration_check.py', 'test_operit_ui_bridge.cjs',
-    'test_companion_startup.py', 'test_flash_ui.cjs', 'test_operit_address.cjs', 'test_developer_ui.cjs',
-    'companion_experience.py', 'companion_experience.js', 'test_companion_experience.py', 'test_companion_experience_sdk.py', 'test_companion_experience_ui.cjs',
-    'flash_esp32.py', 'test_flash_esp32.py', 'flash_server.py', 'flash.html', 'open_flash.ps1', 'test_flash_server.py', 'export_firmware.py', 'test_network_policy.cpp',
-    'check_documentation.py', 'operit_service.py', 'package_operit.py', 'test_operit_service.py', 'test_operit_unified.cjs', 'operit_test_host.cjs', 'test_operit_unified_sdk.py', 'operit_unified_sdk_runner.cjs', 'test_operit_setup_ui.cjs',
-    'delivery_archive.py', 'test_remote_server_install.py',
-    'open_direct_server.ps1', 'start_direct_server.py', 'direct_setup.py', 'test_direct_setup.py', 'test_server_launcher.py',
-    'runtime_python.ps1', 'build_portable_python.py', 'test_portable_build.py', 'test_portable_runtime.py',
-    'direct_server.py', 'direct_mcp.py', 'test_direct_mcp.py', 'direct_server.html', 'direct_server.js', 'test_direct_server.py', 'test_direct_frontend.cjs', 'test_uplink_portal.cjs',
-    'host_event_forwarder.py', 'test_host_event_forwarder.py', 'test_operit_package.cjs',
-    'start_operit_prototype.ps1', 'operit_demo.py', 'test_operit_startup.py', 'test_operit_prototype.cjs',
-    'test_operit_prototype_sdk.py', 'operit_prototype_sdk_runner.cjs', 'package_operit_prototype.py', 'test_operit_chat_probe.cjs',
-    'control_panel.py', 'control_panel.html', 'control_panel.js', 'console_embed.js', 'open_control_panel.ps1', 'test_control_panel.py', 'test_control_panel_ui.cjs',
-    'install_tunnel_client.py', 'secure_mcp.py', 'secure_mcp.ps1', 'test_secure_mcp.py', 'verify_chat_calls.py',
-    'remote_mcp.py', 'private_storage.py', 'sakura_frp.py', 'owned_processes.py', 'deploy_mcp.py',
-    'remote_mcp.ps1', 'install_chat_mcp.ps1', 'package_remote_plugin.py', 'audit_delivery.py',
-    'test_private_mcp.py', 'test_remote_deployment.py', 'test_private_mcp_device.py',
-    'Start_Remote_MCP.cmd', 'Stop_Remote_MCP.cmd',
-    'chat_mcp_gateway.py', 'test_chat_gateway.py', 'verify_mcp_connection.py',
-    'test_bridge_lifecycle.cjs', 'test_bridge_lifecycle_device.cjs',
-    'conversation_queue.js', 'test_conversation_queue.cjs',
-    'test_existing_chat_mcp.py', 'test_device_contention.py', 'package_chatgpt_plugin.py', 'launch_companion_mcp.ps1',
-    'test_digital_temperature.cpp', 'test_digital_mcp.py', 'test_digital_ui.cjs', 'test_digital_device.py',
-    'ota_device.py', 'ota_manager.js', 'test_ota.py', 'test_ota_ui.cjs',
-    'history_management.py', 'history_manager.js', 'test_history_management.py',
-    'test_history_ui_fixture.py', 'test_history_ui.cjs', 'test_history_sdk.py', 'test_history_mcp.py',
-    'test_offline_archive.py', 'test_offline_device.py', 'test_offline_ui.cjs',
-    'test_serial_transport.py', 'test_event_integrity.cpp',
-    'build_lab.ps1', 'start_companion.ps1', 'install_companion_mcp.py',
-    'device_setup_server.py', 'device_lab.py', 'companion.py',
-    'companion_mcp.py', 'companion.html', 'test_companion.py',
-    'test_companion_device.py', 'test_companion_ui.cjs',
-    'test_mcp_sdk_device.py', 'test_device_portal.cjs', 'package_companion.py',
-    'channel_editor.js', 'embed_channel_editor.py', 'firmware_link.py', 'test_embed_assets.py', 'test_channel_devices.py',
-    'test_channel_ui.cjs', 'test_pressure_calibration.cpp',
-    'test_sensor_experience.py', 'test_sensor_experience_ui.cjs',
-    'interaction_bridge.py', 'webhook_delivery.py', 'mcp_events_adapter.py',
-    'bridge_client.js', 'bridge_demo.html', 'install_bridge.ps1',
-    'test_interaction_bridge.py', 'test_bridge_ui.cjs', 'test_bridge_protocol.py', 'test_bridge_client.cjs',
-    'device_transport.py', 'pair_wifi_device.py', 'test_device_transport.py', 'test_wifi_companion.py',
-    'input_observations.py', 'test_input_observations.py',
-    'test_feedback_features.py', 'test_feedback_features_ui.cjs',
-    'device_discovery.py', 'discover_device.py', 'service_lifecycle.py',
-    'run_background.py', 'configure_startup.py', 'test_device_discovery.py', 'test_connection_recovery.py',
-    'test_service_lifecycle.py', 'test_wireless_recovery.py', 'test_wireless_recovery_ui.cjs',
+    'pairing_connection.js',
+    'test_pairing_exports.py',
+    'test_pairing_portal.cjs',
+    'test_hotspot_policy.py',
+    'test_hotspot_ui.cjs',
+    'test_operit_pairing.cjs',
+    'test_operit_pairing_ui.cjs',
+    'test_operit_qr.cjs',
+    'test_operit_archive.cjs',
+    'test_operit_sync.cjs',
+    'test_operit_sync_lifecycle.cjs',
+    'test_archive_lease.py',
+    'operit_metadata.py',
+    'test_operit_metadata.py',
+    'test_operit_queue.cjs',
+    'test_operit_continuous.cjs',
+    'test_operit_controls.cjs',
+    'test_operit_phone.cjs',
+    'test_operit_server.py',
+    'operit_server_sdk_runner.cjs',
+    'test_operit_no_pc_ui.cjs',
+    '_source_path.py',
+    'test_shared_core.py',
+    'test_operit_registration.cjs',
+    'prepare_operit_registration_check.py',
+    'test_operit_ui_bridge.cjs',
+    'test_companion_startup.py',
+    'test_flash_ui.cjs',
+    'test_operit_address.cjs',
+    'test_developer_ui.cjs',
+    'companion_experience.py',
+    'companion_experience.js',
+    'test_companion_experience.py',
+    'test_companion_experience_sdk.py',
+    'test_companion_experience_ui.cjs',
+    'flash_esp32.py',
+    'test_flash_esp32.py',
+    'flash_server.py',
+    'flash.html',
+    'open_flash.ps1',
+    'test_flash_server.py',
+    'export_firmware.py',
+    'test_network_policy.cpp',
+    'check_documentation.py',
+    'operit_service.py',
+    'package_operit.py',
+    'test_operit_service.py',
+    'test_operit_unified.cjs',
+    'operit_test_host.cjs',
+    'test_operit_unified_sdk.py',
+    'operit_unified_sdk_runner.cjs',
+    'test_operit_setup_ui.cjs',
+    'delivery_archive.py',
+    'test_remote_server_install.py',
+    'open_direct_server.ps1',
+    'start_direct_server.py',
+    'direct_setup.py',
+    'test_direct_setup.py',
+    'test_server_launcher.py',
+    'runtime_python.ps1',
+    'build_portable_python.py',
+    'test_portable_build.py',
+    'test_portable_runtime.py',
+    'direct_server.py',
+    'direct_mcp.py',
+    'test_direct_mcp.py',
+    'direct_server.html',
+    'direct_server.js',
+    'test_direct_server.py',
+    'test_direct_frontend.cjs',
+    'test_uplink_portal.cjs',
+    'host_event_forwarder.py',
+    'test_host_event_forwarder.py',
+    'operit_simulator.py',
+    'control_panel.py',
+    'control_panel.html',
+    'control_panel.js',
+    'console_embed.js',
+    'open_control_panel.ps1',
+    'test_control_panel.py',
+    'test_control_panel_ui.cjs',
+    'install_tunnel_client.py',
+    'secure_mcp.py',
+    'secure_mcp.ps1',
+    'test_secure_mcp.py',
+    'verify_chat_calls.py',
+    'remote_mcp.py',
+    'private_storage.py',
+    'sakura_frp.py',
+    'owned_processes.py',
+    'deploy_mcp.py',
+    'remote_mcp.ps1',
+    'install_chat_mcp.ps1',
+    'package_remote_plugin.py',
+    'audit_delivery.py',
+    'test_private_mcp.py',
+    'test_remote_deployment.py',
+    'test_private_mcp_device.py',
+    'Start_Remote_MCP.cmd',
+    'Stop_Remote_MCP.cmd',
+    'chat_mcp_gateway.py',
+    'test_chat_gateway.py',
+    'verify_mcp_connection.py',
+    'test_bridge_lifecycle.cjs',
+    'test_bridge_lifecycle_device.cjs',
+    'conversation_queue.js',
+    'test_conversation_queue.cjs',
+    'test_existing_chat_mcp.py',
+    'test_device_contention.py',
+    'package_chatgpt_plugin.py',
+    'launch_companion_mcp.ps1',
+    'test_digital_temperature.cpp',
+    'test_digital_mcp.py',
+    'test_digital_ui.cjs',
+    'test_digital_device.py',
+    'ota_device.py',
+    'ota_manager.js',
+    'test_ota.py',
+    'test_ota_ui.cjs',
+    'history_management.py',
+    'history_manager.js',
+    'test_history_management.py',
+    'test_history_ui_fixture.py',
+    'test_history_ui.cjs',
+    'test_history_mcp.py',
+    'test_offline_archive.py',
+    'test_offline_device.py',
+    'test_offline_ui.cjs',
+    'test_serial_transport.py',
+    'test_event_integrity.cpp',
+    'build_lab.ps1',
+    'start_companion.ps1',
+    'install_companion_mcp.py',
+    'device_setup_server.py',
+    'device_lab.py',
+    'companion.py',
+    'companion_mcp.py',
+    'companion.html',
+    'test_companion.py',
+    'test_companion_device.py',
+    'test_companion_ui.cjs',
+    'test_mcp_sdk_device.py',
+    'test_device_portal.cjs',
+    'package_companion.py',
+    'channel_editor.js',
+    'embed_channel_editor.py',
+    'firmware_link.py',
+    'test_embed_assets.py',
+    'test_channel_devices.py',
+    'test_channel_ui.cjs',
+    'test_pressure_calibration.cpp',
+    'test_sensor_experience.py',
+    'test_sensor_experience_ui.cjs',
+    'interaction_bridge.py',
+    'webhook_delivery.py',
+    'mcp_events_adapter.py',
+    'bridge_client.js',
+    'bridge_demo.html',
+    'install_bridge.ps1',
+    'test_interaction_bridge.py',
+    'test_bridge_ui.cjs',
+    'test_bridge_client.cjs',
+    'device_transport.py',
+    'pair_wifi_device.py',
+    'test_device_transport.py',
+    'input_observations.py',
+    'test_input_observations.py',
+    'test_feedback_features_ui.cjs',
+    'device_discovery.py',
+    'discover_device.py',
+    'service_lifecycle.py',
+    'run_background.py',
+    'configure_startup.py',
+    'test_device_discovery.py',
+    'test_connection_recovery.py',
+    'test_service_lifecycle.py',
+    'test_wireless_recovery_ui.cjs',
 )
-DOCS = ('integrations/REMOTE_SERVER_SETUP.md', 'integrations/SERVER_QUICKSTART.md', 'reports/SIMPLE_SETUP_ACCEPTANCE.md','daily/RUNTIME_AND_LOGIN.md','developers/DIRECT_SERVER.md', 'reports/DIRECT_SERVER_ACCEPTANCE.md', 'daily/USER_GUIDE.md', 'reports/GUI_ACCEPTANCE_2_14.md', 'developers/EXISTING_CHAT.md', 'developers/MCP_TOOLS.md', 'daily/DIGITAL_TEMPERATURE.md', 'daily/OTA_UPDATE.md', 'daily/HISTORY_MANAGEMENT.md', 'daily/OFFLINE_RECORDS.md', 'start/AI_INSTALL.md', 'daily/USER_GUIDE.md', 'reports/DEVICE_LAB_TEST_REPORT.md', 'daily/SENSOR_CHANNELS.md', 'developers/PROACTIVE_INTERACTION.md', 'integrations/CHAT_MCP.md', 'daily/WIFI_CONNECTION.md', 'daily/CALIBRATION_AND_DAILY_MODE.md', 'developers/DEVELOPMENT_PLAN.md', 'daily/INTERACTION_OBSERVATIONS.md', 'daily/WIFI_CONNECTION.md')
-DOCS += ('daily/NATURAL_COMPANION.md', 'reports/RELEASE_2_18.md', 'ai/AI_GUIDE.md', 'TROUBLESHOOTING.md', 'reports/VALIDATION.md', 'developers/DEVELOPER_GUIDE.md', 'start/QUICK_FLASH.md')
-DOCS += ('integrations/OPERIT_PROTOTYPE.md', 'reports/OPERIT_PROTOTYPE_VALIDATION.md')
-DOCS += ('developers/UNIFIED_DELIVERY_PLAN.md', 'integrations/OPERIT_SETUP.md', 'reports/RELEASE_2_19.md')
-DOCS += ('reports/RELEASE_2_19_1.md',)
-DOCS += ('integrations/OPERIT_NO_PC.md', 'reports/RELEASE_2_20.md')
-DOCS += ('reports/UPDATE_20261019.md', 'reports/RELEASE_2_21.md', 'reports/RELEASE_2_22.md', 'reports/RELEASE_2_23.md', 'reports/RELEASE_2_24.md', 'developers/STABILITY_AND_DAILY_USE_PLAN.md')
-DOCS += ('reports/RELEASE_2_24_1.md', 'start/STABLE_2_21.md')
-DOCS += ('developers/PHONE_PAIRING_AND_RECOVERY_PLAN.md', 'reports/RELEASE_2_25.md')
-DOCS += ('reports/RELEASE_2_25_1.md',)
-DOCS += ('reports/RELEASE_2_25_2.md',)
-DOCS += ('reports/RELEASE_2_25_3.md',)
+DOCS = (
+    'README.md',
+    'TROUBLESHOOTING.md',
+    'ai/AI_GUIDE.md',
+    'daily/CALIBRATION_AND_DAILY_MODE.md',
+    'daily/DIGITAL_TEMPERATURE.md',
+    'daily/HISTORY_MANAGEMENT.md',
+    'daily/INTERACTION_OBSERVATIONS.md',
+    'daily/NATURAL_COMPANION.md',
+    'daily/OFFLINE_RECORDS.md',
+    'daily/OTA_UPDATE.md',
+    'daily/RUNTIME_AND_LOGIN.md',
+    'daily/SENSOR_CHANNELS.md',
+    'daily/USER_GUIDE.md',
+    'daily/WIFI_CONNECTION.md',
+    'developers/DEVELOPER_GUIDE.md',
+    'developers/DEVELOPMENT_PLAN.md',
+    'developers/DIRECT_SERVER.md',
+    'developers/EXISTING_CHAT.md',
+    'developers/MCP_TOOLS.md',
+    'developers/PROACTIVE_INTERACTION.md',
+    'developers/REPOSITORY_LAYOUT.md',
+    'integrations/CHAT_MCP.md',
+    'integrations/HOST_INTEGRATIONS.md',
+    'integrations/OPERIT_NO_PC.md',
+    'integrations/OPERIT_SETUP.md',
+    'integrations/REMOTE_MCP.md',
+    'integrations/REMOTE_SERVER_SETUP.md',
+    'integrations/SECURE_MCP.md',
+    'integrations/SERVER_QUICKSTART.md',
+    'reports/VALIDATION.md',
+    'start/AI_INSTALL.md',
+    'start/FACTORY_SETTINGS.md',
+    'start/MCP_TRANSPORT_DECISION.md',
+    'start/QUICK_FLASH.md',
+)
 SOURCE = ('device_tools.json', 'remote_uplink.h', 'digital_temperature.h', 'ota_update.h', 'event_storage.h', 'event_integrity.h', 'lab_main.cpp', 'device_page.h', 'touch_events.h', 'network_state.h', 'network_policy.h',
           'channel_devices.h', 'channel_rpc.h', 'pressure_calibration.h', 'device_discovery.h', 'archive_lease.h')
 PREBUILT = ('firmware.bin', 'bootloader.bin', 'partitions.bin', 'boot_app0.bin', 'FLASH_MANIFEST.json', 'README.md')
@@ -89,42 +244,30 @@ SHARED_SOURCE = ('src/ai_doll/__init__.py', 'src/ai_doll/core/__init__.py', 'src
                  'src/ai_doll/core/interaction_bridge.py', 'src/ai_doll/core/input_observations.py',
                  'src/ai_doll/core/history_management.py', 'src/ai_doll/core/companion_experience.py')
 PCB_FILES = (
-    'AI_Doll_V2_标准化完成_20261003.epro2', 'AI_Doll_V2_标准化采购BOM_20261003.csv',
-    'AI_Doll_V2_板外器件与测试点_20261003.csv', '元器件标准化核对记录.md',
-    'AI_Doll_V2_丝印镜像修正_20261016.epro2', '丝印镜像修正说明_20261016.md', 'README.md',
+    'AI_Doll_V2_标准化采购BOM_20261003.csv', 'AI_Doll_V2_板外器件与测试点_20261003.csv',
+    'AI_Doll_V2_丝印镜像修正_20261016.epro2', '元器件标准化核对记录.md',
+    '丝印镜像修正说明_20261016.md', 'README.md',
 )
-PCB_PACKAGE = 'AI_Doll_PCB_V2_20261016.zip'
-PCB_MIRROR_PROOF = ('audit.json', '3d-confirmation.json', 'bottom-3d-confirmed.png',
-                    'bottom-2d-mirrored.png', 'drc-after.json')
-PROOF = (
-    'standardize-completion-proof.json', 'standardize-sch-final.json',
-    'standardize-pcb-list-final.json', 'standardize-pcb-final.json',
-    'standardize-pcb-20261003-before.json', 'standardize-pcb-drc-final.json',
-    'standardize-sch-drc-final.json', 'standardize-sch-check-final.json',
-)
+PCB_PACKAGE = f'AI_Doll_PCB_v{VERSION}.zip'
 CODE_README = (ROOT/'README.md').read_bytes().decode('utf-8')
-PCB_README = '''# AI_Doll_V2 PCB 交付
+PCB_README = '# AI Doll PCB · 内测第一版\n\n当前实物主板为34.29 × 44.45 mm双层通孔板，使用ESP32-C3 SuperMini、74HC4051和八路板外FSR。\n\n- [主板与采购说明](hardware/rev-v2/README.md)\n- [当前原生工程](hardware/rev-v2/AI_Doll_V2_丝印镜像修正_20261016.epro2)\n- [采购BOM](hardware/rev-v2/AI_Doll_V2_标准化采购BOM_20261003.csv)\n- [板外器件与测试点](hardware/rev-v2/AI_Doll_V2_板外器件与测试点_20261003.csv)\n- [在用制造资料](hardware/rev-v2/ordered-gerber-20260920/已下单PCB封装核对.md)\n- [紧凑贴片板研发参考](hardware/rev-v2/candidates/pcb-v22-routed-20261017/README.md)\n\nJ9要求5V输入，主板不包含锂电池充电、升压或保护电路。紧凑贴片板手焊焊盘和制造适配仍需确认，不直接用于下单。\n\n[接线教程](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/daily/SENSOR_CHANNELS.md) · [外壳选择](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/README.md)\n'
 
-## 打开工程和准备元器件
 
-1. 在嘉立创 EDA 专业版 V4 导入 `hardware/rev-v2/AI_Doll_V2_丝印镜像修正_20261016.epro2`，包含原理图和 PCB。20261003 工程保留供前版对照。
-2. 按同目录的标准化采购 BOM 购买板上器件；SuperMini、FSR、电池与板外充放电模块单独准备。
-3. 焊接前读 [器件与电源核对](hardware/rev-v2/元器件标准化核对记录.md)和 [已下单焊位](hardware/rev-v2/ordered-gerber-20260920/已下单PCB封装核对.md)。
-
-## 板子与装配
-
-两层 **34.29 × 44.45mm**，SuperMini 模块、74HC4051 SOIC-16、八路外置 FSR。阻容以 0805 为主，C13 / C14 为 1206。J9 1=GND、2=外部5V；主板不含充电、升压或 BMS。
-
-45 个采购器件已核对立创编号，SuperMini 自行采购，5 个裸铜测试点不采购插针。SW1 额定电流需向卖家确认。
-
-## 验证边界
-
-2026-10-16 已优化丝印位置并修正背面 33 处文字，用户提供的新版 3D 图已确认背面文字正向；两轮保存重载回读通过，电路、铜图形和焊盘保持原样。当前原生 DRC 仍有 1 项网表不匹配，不能沿用 20261003 的 DRC 0 历史结论；重新下单前需单独核对。见 [本次检查说明](hardware/rev-v2/丝印镜像修正说明_20261016.md)。
-
-`ordered-gerber-20260920/` 是原已下单文件，不是新导出的生产文件。`verification/` 保留回读、几何和 DRC 证据。新主板 CH0 实体 FSR 的按压、释放和电脑归档已实测；其余通道、温度、电机和电池仍待验收。完整 [通道教程](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/daily/SENSOR_CHANNELS.md) 与 [当前验证范围](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/reports/VALIDATION.md)分开说明。
-
-逐文件校验见 `MANIFEST.json`。软件另从 [公开交付目录](https://github.com/SunRichardSKT/ai-doll-mcp/tree/main/delivery)下载。
-'''
+def link_unbundled_docs(contents):
+    """Keep bundled links offline; point omitted resources to the source repo."""
+    for name, raw in list(contents.items()):
+        if not name.endswith('.md'):
+            continue
+        def public_link(match):
+            target = match.group(1)
+            parsed = urlsplit(target)
+            if parsed.scheme or target.startswith(('#', '//')):
+                return match.group(0)
+            path = posixpath.normpath(posixpath.join(posixpath.dirname(name), parsed.path))
+            if path in contents or any(n.startswith(path.rstrip('/') + '/') for n in contents):
+                return match.group(0)
+            return '](' + 'https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/' + path + ('#' + parsed.fragment if parsed.fragment else '') + ')'
+        contents[name] = re.sub(r'\]\(([^)]+)\)', public_link, raw.decode('utf-8')).encode('utf-8')
 
 
 def package(output, files, readme, version):
@@ -135,9 +278,11 @@ def package(output, files, readme, version):
         relative = p.relative_to(ROOT)
         if any(part in {'build', '.tools', '_local', '.pio', '__pycache__'} for part in relative.parts):
             raise ValueError('Local/private path cannot enter a delivery package')
+    contents = {p.relative_to(ROOT).as_posix(): p.read_bytes() for p in files}
+    contents['README.md'] = readme.encode('utf-8')
+    link_unbundled_docs(contents)
     manifest = {'version': version, 'files': {
-        p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in files}}
-    manifest['files']['README.md'] = hashlib.sha256(readme.encode()).hexdigest()
+        name: hashlib.sha256(raw).hexdigest() for name, raw in contents.items()}}
     output.parent.mkdir(parents=True, exist_ok=True)
     # Keep an unchanged verified package byte-identical, including its ZIP dates.
     # This avoids republishing the PCB merely because code was updated.
@@ -154,9 +299,8 @@ def package(output, files, readme, version):
         except (OSError, ValueError, KeyError, zipfile.BadZipFile):
             pass
     with zipfile.ZipFile(output, 'w', zipfile.ZIP_DEFLATED) as archive:
-        for p in files:
-            archive.write(p, p.relative_to(ROOT).as_posix())
-        archive.writestr('README.md', readme)
+        for name, raw in sorted(contents.items()):
+            archive.writestr(name, raw)
         archive.writestr('MANIFEST.json', json.dumps(manifest, ensure_ascii=False, indent=2))
     with zipfile.ZipFile(output) as archive:
         if archive.testzip() is not None:
@@ -170,33 +314,29 @@ def package(output, files, readme, version):
 
 def server_package(delivery):
     """Small Linux payload: no Windows runtime, firmware images or PCB."""
-    names = ['Install_Server.sh', 'LICENSE', 'requirements-server.txt', 'docs/integrations/REMOTE_SERVER_SETUP.md', 'docs/reports/SIMPLE_SETUP_ACCEPTANCE.md', 'docs/daily/NATURAL_COMPANION.md']
+    names = ['Install_Server.sh', 'LICENSE', 'requirements-server.txt', 'docs/integrations/REMOTE_SERVER_SETUP.md', 'CHANGELOG.md', 'docs/daily/NATURAL_COMPANION.md']
     names += ['deploy/direct-server/'+name for name in ('Dockerfile','Dockerfile.dockerignore','compose.yml','compose.backend.yml','Caddyfile','.env.example')]
     names += ['tools/'+name for name in (
         'direct_server.py','direct_mcp.py','companion.py','interaction_bridge.py','input_observations.py',
         'history_management.py','private_storage.py','direct_server.html','direct_server.js','pairing_connection.js',
         'bridge_client.js','conversation_queue.js','channel_editor.js','history_manager.js',
         'console_embed.js','companion.html','companion_experience.py','companion_experience.js')]
-    names += list(SHARED_SOURCE) + ['tools/_source_path.py', 'delivery/AI_Doll_Operit.toolpkg', 'docs/integrations/OPERIT_NO_PC.md', 'docs/reports/RELEASE_2_23.md', 'docs/reports/RELEASE_2_24.md', 'docs/reports/RELEASE_2_24_1.md', 'docs/start/STABLE_2_21.md']
+    names += list(SHARED_SOURCE) + ['tools/_source_path.py', 'delivery/AI_Doll_Operit.toolpkg', 'docs/integrations/OPERIT_NO_PC.md', 'docs/integrations/OPERIT_SETUP.md']
     contents = {name:(ROOT/name).read_bytes() for name in names}
     if b'\r' in contents['Install_Server.sh']:
         raise ValueError('Linux installer must use LF line endings; save Install_Server.sh with LF before packaging')
     vendor = ROOT/'clients/operit/vendor'
     for asset in ('qrcodegen.js', 'qrcodegen.LICENSE', 'SOURCES.json'):
         contents['clients/operit/vendor/'+asset] = (vendor/asset).read_bytes()
-    for name in ('docs/ai/AI_GUIDE.md', 'docs/reports/RELEASE_2_25_1.md', 'docs/reports/RELEASE_2_25_3.md'):
+    for name in ('docs/ai/AI_GUIDE.md', 'docs/reports/VALIDATION.md'):
         contents[name] = (ROOT/name).read_bytes()
-    guide = contents['docs/daily/NATURAL_COMPANION.md'].decode('utf-8').replace('](../developers/EXISTING_CHAT.md)', '](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/developers/EXISTING_CHAT.md)')
-    contents['docs/daily/NATURAL_COMPANION.md'] = guide.encode('utf-8')
-    contents['docs/README.md'] = ('# Linux 服务包教程\n\n'
-        '[远程安装与维护](integrations/REMOTE_SERVER_SETUP.md) · [Operit 无电脑使用](integrations/OPERIT_NO_PC.md) · [自然陪伴](daily/NATURAL_COMPANION.md) · '
-        '[已有安装验证记录](reports/SIMPLE_SETUP_ACCEPTANCE.md)\n\n'
-        '[2.25.3更新说明](reports/RELEASE_2_25_3.md) · [给AI的执行指南](ai/AI_GUIDE.md)\n\n'
-        '历史记录：[2.24.1](reports/RELEASE_2_24_1.md) · [2.24](reports/RELEASE_2_24.md) · [2.23](reports/RELEASE_2_23.md)。\n\n'
-        '本小型包只包含服务器所需文件。设备设置、Windows 和 AI 教程见 '
-        '[项目完整目录](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/README.md)。\n').encode()
+    contents['docs/README.md'] = ('# Linux服务包教程\n\n'
+        '[远程部署](integrations/REMOTE_SERVER_SETUP.md) · [Operit免电脑使用](integrations/OPERIT_NO_PC.md) · '
+        '[Operit设置](integrations/OPERIT_SETUP.md) · [自然陪伴](daily/NATURAL_COMPANION.md)\n\n'
+        '[本版说明](../CHANGELOG.md) · [AI使用说明书](ai/AI_GUIDE.md) · [检查记录](reports/VALIDATION.md)\n\n'
+        '[完整教程目录](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/README.md)\n').encode()
     contents['README.md'] = ('# AI Doll Linux 服务包\n\n'
-        f'{VERSION}正式版；从解压目录运行安装入口，保留原部署数据。\n\n'
+        f'{VERSION} · 内测第一版；从解压目录运行安装入口，保留原部署数据。\n\n'
         '准备 Ubuntu / Debian 服务器，将域名解析到它，并放行 TCP 80 / 443。\n\n'
         '上传并解压此包，在解压目录运行：\n\n'
         '```bash\nsudo bash Install_Server.sh\n```\n\n'
@@ -207,21 +347,7 @@ def server_package(delivery):
         'Operit 手机可在管理页下载工具包、连接文件或临时二维码，直接使用服务器，无需电脑或实体二维码标签。见 [Operit 免电脑指南](docs/integrations/OPERIT_NO_PC.md)。\n\n'
         '完整步骤与故障处理见 [远程部署指南](docs/integrations/REMOTE_SERVER_SETUP.md)。'
         '无需上传 Windows Python；不包含个人配置或互动历史。\n').encode()
-    # Small bundles link out only for documentation they do not carry. Preserve
-    # local links for bundled files, so the AI guide works offline too.
-    for name, raw in list(contents.items()):
-        if not name.endswith('.md'):
-            continue
-        def public_link(match):
-            target=match.group(1)
-            parsed=urlsplit(target)
-            if parsed.scheme or target.startswith(('#','//')):
-                return match.group(0)
-            path=posixpath.normpath(posixpath.join(posixpath.dirname(name),parsed.path))
-            if path in contents:
-                return match.group(0)
-            return ']('+ 'https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/'+path+('#'+parsed.fragment if parsed.fragment else '')+')'
-        contents[name]=re.sub(r'\]\(([^)]+)\)',public_link,raw.decode('utf-8')).encode('utf-8')
+    link_unbundled_docs(contents)
     manifest = dict(version=f'ai-doll-server-{VERSION}',files={
         name:hashlib.sha256(raw).hexdigest() for name,raw in contents.items()})
     contents['MANIFEST.json'] = json.dumps(manifest,ensure_ascii=False,indent=2).encode()
@@ -244,7 +370,7 @@ def main():
     from check_firmware import check
     check()
     delivery = ROOT/'delivery'
-    files = [ROOT/'Install_Server.sh', ROOT/'AI_Doll_Server.cmd', ROOT/'AI_Doll.cmd', ROOT/'Flash_ESP32.cmd', ROOT/'AGENTS.md', ROOT/'requirements-flash.txt', ROOT/'requirements-flash-runtime.txt', ROOT/'requirements-companion.txt', ROOT/'.gitignore', ROOT/'LICENSE', ROOT/'firmware/platformio.ini']
+    files = [ROOT/'Install_Server.sh', ROOT/'AI_Doll_Server.cmd', ROOT/'AI_Doll.cmd', ROOT/'Flash_ESP32.cmd', ROOT/'AGENTS.md', ROOT/'CHANGELOG.md', ROOT/'requirements-flash.txt', ROOT/'requirements-flash-runtime.txt', ROOT/'requirements-companion.txt', ROOT/'.gitignore', ROOT/'LICENSE', ROOT/'firmware/platformio.ini']
     files.append(ROOT/'requirements-firmware.txt')
     from package_operit import build as build_operit, FILES as OPERIT_FILES
     phone_package = build_operit()
@@ -260,26 +386,23 @@ def main():
     if not (ROOT/'python/python.exe').is_file():
         raise ValueError('Build the portable Python runtime before packaging')
     files += [ROOT/'deploy/direct-server'/name for name in ('Dockerfile','Dockerfile.dockerignore','compose.yml','compose.backend.yml','Caddyfile','.env.example')]
-    files += [ROOT/'docs'/name for name in DOCS+('README.md','integrations/HOST_INTEGRATIONS.md','integrations/REMOTE_MCP.md','reports/MCP_ACCEPTANCE_2_13.md','start/MCP_TRANSPORT_DECISION.md','integrations/SECURE_MCP.md')]
-    files += [ROOT/'docs'/name for name in ('start/FACTORY_SETTINGS.md','developers/REPOSITORY_LAYOUT.md','reports/RELEASE_2_17.md')]
+    files += [ROOT/'docs'/name for name in DOCS]
     files += sorted((ROOT/'docs/images').glob('*.png'))
-    files += [ROOT/'templates'/name for name in ('chatgpt-mcp-config.json','README.md','operit/ai_doll.js','operit/ai_doll_prototype.js','operit/ai_doll_chat_probe.js','host-event.example.json','openclaw-hook.example.json')]
+    files += [ROOT/'templates'/name for name in ('chatgpt-mcp-config.json','README.md','host-event.example.json','openclaw-hook.example.json')]
     files += [ROOT/'firmware/src'/name for name in SOURCE]
     files += [ROOT/'firmware/prebuilt'/name for name in PREBUILT]
     outputs = [package(delivery/f'AI_Doll_Code_v{VERSION}.zip', files, CODE_README, f'doll-bridge-{VERSION}')]
     hardware = ROOT/'hardware/rev-v2'
     if hardware.exists():
         pcb = [hardware/name for name in PCB_FILES]
-        pcb += [hardware/'verification'/name for name in PROOF]
-        pcb += [p for p in (hardware/'ordered-gerber-20260920').iterdir() if p.is_file()]
-        pcb += [p for p in (hardware/'verification/catalog-20261003').iterdir() if p.suffix in {'.pdf', '.json'}]
-        preview = hardware/'verification/standardized-preview/standardized-complete'
-        pcb += [p for p in preview.iterdir() if p.is_file() and p.suffix in {'.png','.json'}]
-        pcb += [hardware/'verification/silkscreen-mirror-20261016'/name for name in PCB_MIRROR_PROOF]
-        outputs.append(package(delivery/PCB_PACKAGE, pcb, PCB_README, 'AI_Doll_V2-silkscreen-corrected-20261016'))
+        for directory in ('ordered-gerber-20260920','verification/catalog-20261003',
+                          'verification/silkscreen-mirror-20261016','candidates/pcb-v22-routed-20261017'):
+            pcb += [p for p in (hardware/directory).iterdir() if p.is_file()
+                    and p.suffix.lower() in {'.pdf','.json','.png','.svg','.md','.csv','.txt','.epro2','.drl','.gko','.gbl','.gbp','.gbo','.gbs','.gdl','.gdd','.gtl','.gtp','.gto','.gts'}]
+        outputs.append(package(delivery/PCB_PACKAGE, pcb, PCB_README, f'ai-doll-pcb-{VERSION}'))
     outputs.append(server_output)
     outputs.append(dict(phone_package, bytes=(delivery/phone_package['file']).stat().st_size))
-    for name in ('AI_Doll_Enclosures_103450_20261020.zip', 'AI_Doll_Enclosure_Stacked_103450_20261020.zip'):
+    for name in (f'AI_Doll_Enclosures_v{VERSION}.zip', f'AI_Doll_Stacked_Enclosure_v{VERSION}.zip'):
         path = delivery/name
         with zipfile.ZipFile(path) as archive:
             manifest = json.loads(archive.read('MANIFEST.json'))
@@ -295,23 +418,23 @@ def main():
         checksums[name] = hashlib.sha256((delivery/name).read_bytes()).hexdigest()
     checksums['Install_Server.sh'] = hashlib.sha256((ROOT/'Install_Server.sh').read_bytes()).hexdigest()
     (delivery/'SHA256SUMS.txt').write_text(''.join(digest+'  '+name+'\n' for name,digest in sorted(checksums.items())), encoding='ascii',newline='\n')
-    readme = f'# 下载与交付文件\n\n**{VERSION}正式版 / 固件2.13.3**，更新于2026-10-28。[下载本版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v{VERSION})。\n\n新增可自定义的触摸回应提示词，改善连续触摸排队、连接状态与手机历史。电脑／服务器与手机包同版更新，保留原数据。Windows完整包内置Python，无需另装。\n\n'
+    readme = f'# 下载与交付文件\n\n**{VERSION} · 内测第一版 / 固件0.1.0**，更新于2026-10-29。[下载本版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v{VERSION})。\n\n新增可自定义的触摸回应提示词，改善连续触摸排队、连接状态与手机历史。电脑／服务器与手机包同版更新，保留原数据。Windows完整包内置Python，无需另装。\n\n'
     readme += '## 应该下载哪个\n\n| 包 | 适合谁 | 解压后做什么 |\n| --- | --- | --- |\n'
     purposes = {
         f'AI_Doll_Code_v{VERSION}.zip': ('Windows 用户 / 软件开发者', '普通 Chat 双击 AI_Doll.cmd；自建应用本机接收双击 AI_Doll_Server.cmd'),
         f'AI_Doll_Server_v{VERSION}.tar.gz': ('远程 Linux 服务器', '运行 sudo bash Install_Server.sh，按提示填写域名'),
         PCB_PACKAGE: ('采购和手工焊接主板', '打开新版丝印工程与 BOM；重新下单前核对现有网表不匹配'),
         'AI_Doll_Operit.toolpkg': ('Operit 安卓用户', '在包管理中导入，选择电脑、服务器或仅手机连接，按标题绑定原聊天'),
-        'AI_Doll_Enclosures_103450_20261020.zip': ('3D打印与机械修改', '三个候选：旧板平铺、新板平铺、旧板堆叠；按主板选STL或STEP'),
-        'AI_Doll_Enclosure_Stacked_103450_20261020.zip': ('只需要旧板上下堆叠壳', '保持原长宽46.29×56.45mm，总厚35.2mm；打印底壳、绝缘载架、上盖'),
+        f'AI_Doll_Enclosures_v{VERSION}.zip': ('3D打印与机械修改', '已制板堆叠壳与紧凑板平铺壳；按主板选STL或STEP'),
+        f'AI_Doll_Stacked_Enclosure_v{VERSION}.zip': ('已制板上下堆叠壳', '保持原长宽46.29×56.45mm，总厚35.2mm；打印底壳、绝缘载架、上盖'),
     }
     for item in outputs:
         who, action = purposes[item['file']]
         readme += f"| {item['file']} · {item['bytes']/1048576:.2f} MiB | {who} | {action} |\n"
     readme += '\nOperit 无需为了取得手机工具包下载 Windows 包。服务器管理页可导出连接文件、连接码与临时二维码；仅手机模式默认从设备热点读取，不要求实体标签。原电脑入口继续兼容，完整包内含相同工具包。[统一安装](../docs/integrations/OPERIT_SETUP.md) · [免电脑指南](../docs/integrations/OPERIT_NO_PC.md)。\n'
-    readme += '\nWindows 包内置 Python，无需另装。Linux 小型包不含 Windows Python，由容器准备运行环境。20261016 PCB 包已优化丝印并修正背面文字，电路与原下单文件保持；当前仍有 1 项网表不匹配，重新下单前须核对。[丝印与 3D 核对](../hardware/rev-v2/丝印镜像修正说明_20261016.md)。\n\n'
+    readme += '\nWindows 包内置 Python，无需另装。Linux 小型包不含 Windows Python，由容器准备运行环境。PCB 包使用当前丝印工程并修正背面文字，电路与原下单文件保持；当前仍有 1 项网表不匹配，重新下单前须核对。[丝印与 3D 核对](../hardware/rev-v2/丝印镜像修正说明_20261016.md)。\n\n'
     readme += '[Windows 首次安装](../docs/start/AI_INSTALL.md) · [远程部署](../docs/integrations/REMOTE_SERVER_SETUP.md) · [给 AI 的执行指南](../docs/ai/AI_GUIDE.md) · [全部文档](../docs/README.md)\n\n'
-    readme += f'## 如何校验发布包\n\n使用[本版Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v{VERSION})附带的固定清单；旧版下载使用对应Release清单。\n\n[DELIVERY_MANIFEST.json](DELIVERY_MANIFEST.json) 与 [SHA256SUMS.txt](SHA256SUMS.txt) 记录哈希；ZIP / TAR 内的 MANIFEST.json 记录逐文件校验，ToolPkg 使用 CHECKSUMS.json。Linux 包另有同目录 `.sha256`。\n\n'
+    readme += f'## 如何校验发布包\n\n使用[本版Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v{VERSION})附带的固定清单。\n\n[DELIVERY_MANIFEST.json](DELIVERY_MANIFEST.json) 与 [SHA256SUMS.txt](SHA256SUMS.txt) 记录哈希；ZIP / TAR 内的 MANIFEST.json 记录逐文件校验，ToolPkg 使用 CHECKSUMS.json。Linux 包另有同目录 `.sha256`。\n\n'
     readme += 'Linux安装入口位于本版TAR内和Release附件 `Install_Server.sh`；使用同版安装器，保留原目录、项目名与数据卷。大型文件仅放在Releases，源码目录保留下载链接与校验元数据。\n\n'
     for item in outputs:
         readme += f"- `{item['file']}`：`{item['sha256']}`\n"

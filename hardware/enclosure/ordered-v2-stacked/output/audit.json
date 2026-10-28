@@ -1,5 +1,5 @@
 {
-  "revision": "ORDERED-V2-STACK-P01",
+  "revision": "ORDERED-V2-STACK-P02",
   "units": "mm",
   "dimensionsMm": {
     "width": 46.29,
@@ -69,9 +69,9 @@
       "meshWatertight": true,
       "meshWindingConsistent": true,
       "meshBodies": 1,
-      "volumeMm3": 5585.371618058578,
-      "stepRoundtripVolumeError": 6.366462912410498e-12,
-      "stlRelativeVolumeError": 9.273207770078375e-06
+      "volumeMm3": 5537.0805757593225,
+      "stepRoundtripVolumeError": 6.821210263296962e-11,
+      "stlRelativeVolumeError": 9.139846385739098e-06
     }
   },
   "componentEnvelopeCollisions": [],
@@ -159,14 +159,20 @@
       35.210127,
       47.2750127
     ],
-    "floorTopMm": 30.200000000000003,
+    "floorTopMm": 28.800000000000004,
     "actuatorTipMm": 31.200000000000003,
-    "actuatorAboveLocalFloorMm": 1.0,
+    "actuatorAboveLocalFloorMm": 2.3999999999999986,
     "actuatorBelowOuterTopMm": 4.0,
     "openingMm": [
       10.4,
       5.8
     ],
+    "fingerMouthMm": [
+      15.4,
+      12.4
+    ],
+    "flareBottomMm": 31.6,
+    "moduleClearanceAtFlareMm": 0.7999999999999972,
     "reachPhysicallyTested": false,
     "description": "Recessed finger well, no claim actuator protrudes above the whole roof"
   },
@@ -187,7 +193,10 @@
       "front",
       "back"
     ],
-    "deflectionMm": 0.5000000000000002,
+    "deflectionMm": 0.6500000000000001,
+    "hookEngagementMm": 0.55,
+    "verticalPlayMm": 0.15,
+    "guideClearancePerSideMm": 0.15,
     "elasticTested": false
   },
   "connectorAllowance": {

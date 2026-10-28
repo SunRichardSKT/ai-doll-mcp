@@ -33,7 +33,7 @@ const {source}=require('./firmware_test_assets.cjs');
     const download=await downloadPromise;assert.equal(download.suggestedFilename(),'AI_Doll_Operit_Connection.json');
     const stream=await download.createReadStream(),chunks=[];for await(const chunk of stream)chunks.push(chunk);
     assert.deepEqual(JSON.parse(Buffer.concat(chunks).toString('utf8')),connection);
-    const output=path.join(root,'build/release-2.25');fs.mkdirSync(output,{recursive:true});
+    const output=path.join(root,'build/pairing-portal');fs.mkdirSync(output,{recursive:true});
     await page.screenshot({path:path.join(output,'pairing-portal-mobile.png'),fullPage:true});
     assert.deepEqual(errors,[]);
     console.log('PASS: local browser QR round trip, UTF-8 connection code, JSON download and 390px layout');

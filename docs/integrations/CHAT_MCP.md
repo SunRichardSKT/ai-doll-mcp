@@ -5,8 +5,6 @@
 
 先完成 [Windows 安装](../start/AI_INSTALL.md)与对应客户端连接。ChatGPT 普通 Chat 使用 [Secure MCP Tunnel](SECURE_MCP.md)，本机客户端使用生成的 STDIO 配置。
 
-本页对应2.25.3正式版；使用旧稳定版时先看[稳定版校正版入口](../start/STABLE_2_21.md)。你应已经在原聊天添加 AI Doll 连接。下面三步默认使用已安装的真实传感器，分别验证状态、历史和限时回应；在 AI 确认开始互动后再按传感器。没有传感器时先看下方独立模拟分支。
-
 ## 第一步：确认真的能调用
 
 在已添加 AI Doll 连接的原聊天发送：

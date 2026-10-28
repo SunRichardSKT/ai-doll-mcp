@@ -2,14 +2,13 @@
 <defs><marker id="arrow" markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" orient="auto-start-reverse"><path d="M0,0 L7,3.5 L0,7" fill="#576c60"/></marker></defs>
 <rect width="1040" height="650" rx="22" fill="#f4f5ef"/>
 <g font-family="Segoe UI,Microsoft YaHei,sans-serif" fill="#294536">
-<text x="48" y="48" font-size="14" letter-spacing="2">AI DOLL · STACK P01 · 已制板上下堆叠版</text>
-<text x="48" y="90" font-size="29" font-weight="650">保留原长宽，只增加厚度</text>
+<text x="48" y="48" font-size="14" letter-spacing="2">AI DOLL · STACK P02 · 已制板上下堆叠版</text>
+<text x="48" y="90" font-size="29" font-weight="650">开关口降低，卡扣加紧，只换上盖</text>
 <text x="48" y="121" font-size="15" fill="#677b6c">46.29 × 56.45 × 35.2 mm　·　以下为宽度方向层叠示意，非精密器件剖面</text>
 <!-- Exterior floor, side walls and upper roof. Coordinates use 9 px/mm. -->
 <g fill="#bdc8bb" stroke="#687f6d" stroke-width="1.2">
 <path d="M70,229.4 H86.2 V513.8 H470.41 V229.4 H486.61 V530 H70 Z"/>
-<path d="M70,213.2 H332.9 V229.4 H70 Z M449.9,213.2 H486.61 V229.4 H449.9 Z" fill="#e5eadf"/>
-<path d="M332.9,228 V269 H340 V258.2 H340 V228 Z M442.7,228 V258.2 H433.7 V269 H449.9 V228 Z" fill="#e5eadf"/>
+<path d="M70,213.2 H322.09 V227.6 L340.09,245.6 V270.8 L340.09,281.6 H332.89 V245.6 L314.89,227.6 H70 Z M460.69,213.2 H486.61 V229.4 H467.89 L449.89,245.6 V281.6 H433.69 V270.8 H442.69 V245.6 L460.69,227.6 Z" fill="#e5eadf"/>
 </g>
 <!-- Cell below removable insulating carrier; no pin touches the battery. -->
 <rect x="125.305" y="420.2" width="306" height="90" rx="7" fill="#e9c967" stroke="#b89b40" stroke-width="1.5"/>
@@ -37,9 +36,9 @@
 </g>
 <text x="278" y="180" text-anchor="middle" font-size="14">原宽 46.29 mm</text>
 <text transform="translate(33,374) rotate(-90)" text-anchor="middle" font-size="14">总厚 35.2 mm</text>
-<text x="584" y="231" font-size="18" font-weight="600">下沉开关口</text>
-<text x="584" y="258" font-size="15">拨杆高于局部底面约1 mm</text>
-<text x="584" y="281" font-size="13" fill="#697e6b">不用让拨杆伸出整个外壳最高面</text>
+<text x="584" y="231" font-size="18" font-weight="600">斜面开关口 · 底面降低1.4 mm</text>
+<text x="584" y="258" font-size="15">拨杆高于局部底面约2.4 mm</text>
+<text x="584" y="281" font-size="13" fill="#697e6b">入口15.4 × 12.4 mm；无需拨杆延长件</text>
 <text x="584" y="319" font-size="17" font-weight="600">上层主板</text>
 <text x="584" y="345" font-size="14">针脚最底端至开关顶约15 mm</text>
 <text x="584" y="380" font-size="17" font-weight="600">5 mm底针，下方另留1 mm</text>
@@ -47,6 +46,6 @@
 <text x="584" y="455" font-size="14">载荷经侧轨传到壳壁，不靠电池支撑</text>
 <text x="584" y="497" font-size="17" font-weight="600">电池与托板间隙1.6 mm</text>
 <text x="584" y="523" font-size="14">引线从后端向上穿过载架开口</text>
-<text x="48" y="578" font-size="15" font-weight="600">三件打印：底壳 + 绝缘载架 + 卡扣上盖</text>
-<text x="48" y="605" font-size="13" fill="#697e6b">按用户近似测量生成；电池封边、线材上弯、开关手感和卡扣配合仍需实物试装。未改PCB或电气参数。</text>
+<text x="48" y="578" font-size="15" font-weight="600">已有P01：只重打上盖；底壳、载架、电池仓和总尺寸不变</text>
+<text x="48" y="605" font-size="13" fill="#697e6b">导向单边间隙0.15 mm；卡扣咬合0.55 mm；上下游隙0.15 mm。建议先空壳试扣。2026-10-29</text>
 </g></svg>

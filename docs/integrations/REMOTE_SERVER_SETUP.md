@@ -5,11 +5,9 @@
 
 适用于你自己的 Linux 服务器。首次选择方式可先看 [连接方式](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/start/MCP_TRANSPORT_DECISION.md)。电脑端的 Windows 启动程序和内置 Python 不需要上传到服务器。
 
-本页按 **2.25.3正式版**编写，安装入口、Linux包与Operit手机包从[同一Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.3)下载。新部署和升级均推荐从完整包解压目录运行安装器；同版独立脚本也可下载配套服务包。
+本页按 **0.1.0内测第一版**编写，安装入口、Linux包与Operit手机包从[同一Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.0)下载。新部署和升级均推荐从完整包解压目录运行安装器；同版独立脚本也可下载配套服务包。
 
-[2.25.3更新说明](../reports/RELEASE_2_25_3.md)。从完整包解压目录运行安装器，升级保留原部署目录与数据卷。
-
-上一修订版[2.24.1](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.24.1)按其固定版本教程操作。2.21旧安装器有复制清单缺项，保留与升级边界见[稳定版入口](../start/STABLE_2_21.md)。
+[0.1.0更新说明](../../CHANGELOG.md)。从完整包解压目录运行安装器，升级保留原部署目录与数据卷。
 
 整个流程是：**准备服务器和域名 → 运行安装入口 → 打开管理页面 → 手机连接娃娃 → 将 MCP 地址接入原聊天**。小型包同时包含接收服务和 MCP，原前端与 MCP 可以部署在同一台服务器。
 
@@ -27,13 +25,13 @@ Operit 用户部署后可直接在服务器管理页下载手机工具包与设�
 
 ## 2. 上传并运行发布包
 
-将本机 `delivery/AI_Doll_Server_v2.25.3.tar.gz` 与同目录的 `.sha256` 文件上传到服务器同一目录。在 SSH 终端校验、解压，然后运行**包内**入口：
+将本机 `delivery/AI_Doll_Server_v0.1.0.tar.gz` 与同目录的 `.sha256` 文件上传到服务器同一目录。在 SSH 终端校验、解压，然后运行**包内**入口：
 
 ```bash
-sha256sum -c AI_Doll_Server_v2.25.3.tar.gz.sha256
-mkdir ai-doll-server-2.25.3
-tar -xzf AI_Doll_Server_v2.25.3.tar.gz -C ai-doll-server-2.25.3
-cd ai-doll-server-2.25.3
+sha256sum -c AI_Doll_Server_v0.1.0.tar.gz.sha256
+mkdir ai-doll-server-0.1.0
+tar -xzf AI_Doll_Server_v0.1.0.tar.gz -C ai-doll-server-0.1.0
+cd ai-doll-server-0.1.0
 sudo bash Install_Server.sh
 ```
 
@@ -41,7 +39,7 @@ sudo bash Install_Server.sh
 
 接下来等待环境检查、包内文件检查与安装、启动服务和 HTTPS 验证。无需自行安装 Python、编辑 Docker 配置或申请证书。只有证书和本安装的管理接口都验证通过，才会显示部署成功。
 
-完整解压时保留 `src/`、`tools/`、`clients/`、`delivery/` 和 `deploy/`。也可单独运行本版Release的`Install_Server.sh`，它会下载并校验配套Linux包。旧安装目录的入口先核对目标版本，不把旧脚本下载的旧包当作2.25。
+完整解压时保留 `src/`、`tools/`、`clients/`、`delivery/` 和 `deploy/`。也可单独运行本版Release的`Install_Server.sh`，它会下载并校验配套Linux包。旧安装目录的入口先核对目标版本，不把旧脚本下载的旧包当作0.1.0。
 
 ## 3. 打开管理页面
 
@@ -62,7 +60,7 @@ sudo ai-doll-server link
 ## 4. 用手机连接娃娃
 
 1. 在服务器管理页点击 **生成设备连接配置**，复制生成的配置。
-2. 手机连接娃娃热点，打开固定页 `http://192.168.4.1/`；2.13.1起首次热点最长10分钟，新配网成功后约90秒关闭；需要时运行中长按BOOT约3秒重新开启。在家庭Wi-Fi下通过已配对客户端的设置链接或网页登录访问设备。家庭网络需要 2.4 GHz。
+2. 手机连接娃娃热点，打开固定页 `http://192.168.4.1/`；本版首次热点最长10分钟，新配网成功后约90秒关闭；需要时运行中长按BOOT约3秒重新开启。在家庭Wi-Fi下通过已配对客户端的设置链接或网页登录访问设备。家庭网络需要 2.4 GHz。
 3. 在 **直连服务器** 设置中粘贴配置，填入并保存。
 4. 回到服务器管理页刷新，等待设备实际上传后显示 **在线**。
 
@@ -95,7 +93,7 @@ MCP 和接收服务共用数据库，默认提供 19 个状态、历史与互动
 | 重启服务 | `sudo ai-doll-server restart` |
 | 停止 / 启动 | `sudo ai-doll-server stop` / `sudo ai-doll-server start` |
 | 查看错误日志 | `sudo ai-doll-server logs` |
-| 更新到本地 2.25 候选 | 从新候选包解压目录运行 `sudo bash Install_Server.sh`，复用原目录和项目；不是运行已安装的更新入口 |
+| 更新到本地 0.1.0 内测版 | 从新候选包解压目录运行 `sudo bash Install_Server.sh`，复用原目录和项目；不是运行已安装的更新入口 |
 
 默认目录为 `/opt/ai-doll-mcp`。更新会复用域名、管理连接、设备绑定、持久实例标识和历史。已有自定义目录／项目时必须传入原来的 `--install-dir` 与 `--project`，不另建空数据卷。应用及证书使用持久数据卷；新安装的 Docker 启用开机启动，容器随引擎恢复。已有 Docker 需确认其开机启动设置。不要用 `docker compose down -v` 更新，因为它会删除数据卷。
 
@@ -133,4 +131,4 @@ sudo bash Install_Server.sh --install-dir /原安装绝对目录 --project 原�
 
 其他 Linux 发行版需要先准备 Docker Engine 与 Compose，再运行安装入口。
 
-安装使用 [Docker 官方 Ubuntu](https://docs.docker.com/engine/install/ubuntu/) / [Debian](https://docs.docker.com/engine/install/debian/)软件源和 [Caddy 自动 HTTPS](https://caddyserver.com/docs/automatic-https)。历史版本的隔离 Linux 安装与设备上传证据见 [旧验收范围](../reports/SIMPLE_SETUP_ACCEPTANCE.md)；本版软件与打包检查见 [2.25 候选报告](../reports/RELEASE_2_25_1.md)。这些结果不能替代当前公网服务器、DNS、证书或目标手机验收。
+安装使用 [Docker 官方 Ubuntu](https://docs.docker.com/engine/install/ubuntu/) / [Debian](https://docs.docker.com/engine/install/debian/)软件源和 [Caddy 自动 HTTPS](https://caddyserver.com/docs/automatic-https)。历史版本的隔离 Linux 安装与设备上传证据见 [旧验收范围](../reports/VALIDATION.md)；本版软件与打包检查见 [0.1.0 内测版报告](../../CHANGELOG.md)。这些结果不能替代当前公网服务器、DNS、证书或目标手机验收。

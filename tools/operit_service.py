@@ -183,9 +183,9 @@ def serve():
     with ServiceLease(WORK / 'service.lock'):
         demo = None
         if cfg['mode'] == 'simulation':
-            from operit_demo import DemoBackend
+            from operit_simulator import SimulationBackend
             import companion_mcp
-            demo = DemoBackend(location(cfg).parent)
+            demo = SimulationBackend(location(cfg).parent)
             companion_mcp.call = demo.call
         try:
             _, app, _ = create_private_remote(location(cfg), port=cfg['port'], listen_host=cfg['host'])

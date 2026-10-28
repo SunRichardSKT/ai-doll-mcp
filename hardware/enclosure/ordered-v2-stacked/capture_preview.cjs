@@ -10,7 +10,7 @@ const fs=require('node:fs'),path=require('node:path'),{pathToFileURL}=require('n
   page.on('pageerror',e=>errors.push(String(e)));
   await page.goto(pathToFileURL(path.join(out,'preview.html')).href);
   await page.waitForFunction(()=>window.modelReady===true);
-  for(const [mode,name] of [['exploded','preview.png'],['assembled','assembled.png'],['tray','tray.png'],['lid',null]]){
+  for(const [mode,name] of [['exploded','preview.png'],['assembled','assembled.png'],['tray','tray.png'],['lid','lid.png']]){
    await page.locator(`[data-mode=${mode}]`).click();
    if(name){await page.locator('canvas').screenshot({path:path.join(out,name)});images.push(name);}
   }

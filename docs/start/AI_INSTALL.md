@@ -5,15 +5,13 @@
 
 这条路线适合 Windows 用户。完成后仍在原 AI 聊天中提问，电脑负责保存娃娃的记录。远程服务器用户直接读 [远程部署](../integrations/REMOTE_SERVER_SETUP.md)。
 
-本页按 **2.25.3正式版**说明，使用[本版Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.25.3)的同批次完整包；电脑／服务器与Operit手机包一起升级，新固件2.13.1的租约与限时热点需核对实际开发板能力。
-
-上一修订版[2.24.1](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v2.24.1)保留回退，按其固定版本教程操作；2.21稳定版使用[校正版入口](STABLE_2_21.md)及同一Release的固定校验文件。
+本页按 **0.1.0内测第一版**说明，使用[本版Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.0)的同批次完整包；电脑／服务器与Operit手机包一起升级，新固件0.1.0的租约与限时热点需核对实际开发板能力。
 
 ## 准备好这三样
 
 - 一台 Windows 64 位电脑，能联网。
 - 已烧录并供电的娃娃；空白开发板先按 [一键烧录](QUICK_FLASH.md)。
-- [Windows完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v2.25.3/AI_Doll_Code_v2.25.3.zip)，按本版Release的`SHA256SUMS.txt`校验后完整解压，保留 `python/`、`src/`、`tools/`、`clients/`、`delivery/`。GitHub 的“Download ZIP”是源码，不能替代自带运行环境的完整包。
+- [Windows完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.0/AI_Doll_Code_v0.1.0.zip)，按本版Release的`SHA256SUMS.txt`校验后完整解压，保留 `python/`、`src/`、`tools/`、`clients/`、`delivery/`。GitHub 的“Download ZIP”是源码，不能替代自带运行环境的完整包。
 
 ## 第一步：打开管理中心
 

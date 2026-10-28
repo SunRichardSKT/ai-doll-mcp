@@ -32,7 +32,7 @@ def body_count(mesh):
     return len({root(i) for i in used})
 
 
-def validate():
+def validate(baseline=None):
     p=json.loads((HERE/'parameters.json').read_text(encoding='utf-8'))
     audit=json.loads((OUT/'audit.json').read_text(encoding='utf-8'))
     solids={}; checks={}
@@ -85,6 +85,30 @@ def validate():
     led_path=cq.Solid.makeCylinder(.5,10,cq.Vector(lx,ly,30))
     assert switch_path.intersect(solids['lid']).Volume()<1e-5
     assert led_path.intersect(solids['lid']).Volume()<1e-5
+    # Read back useful hand-access volumes rather than only the switch centerline.
+    # A round 8 mm probe is an access envelope, not a full fingertip model.
+    well=p['switch_well']; roof=audit['heightStackMm']['roofBottom']
+    cx=sx+well['offset_x']; mouth_y=sy+well['mouth_offset_y']
+    mouth_probe=region(dict(x=cx-7,y=mouth_y-5.5,z=roof+.25,width=14,length=11,height=1.5))
+    lower_probe=cq.Solid.makeCylinder(.2,1.0,cq.Vector(
+        sx+well['hole_width']/2+.3,sy,sw['floorTopMm']+.1))
+    finger_probe=cq.Solid.makeCylinder(4,5,cq.Vector(sx,sy,sw['actuatorTipMm']-.15))
+    access={name:shape.intersect(solids['lid']).Volume() for name,shape in
+            [('mouth_14x11mm',mouth_probe),('lowered_floor',lower_probe),('round_8mm',finger_probe)]}
+    assert max(access.values())<1e-5,access
+    legacy=None
+    if baseline is not None:
+        old={name:cq.importers.importStep(str(baseline/(name+'.step'))).val() for name in NAMES}
+        differences={name:old[name].cut(solids[name]).Volume()+solids[name].cut(old[name]).Volume()
+                     for name in ('base','tray')}
+        assert max(differences.values())<1e-5,differences
+        lid_fit={name:old[name].intersect(solids['lid']).Volume() for name in ('base','tray')}
+        assert max(lid_fit.values())<1e-5,lid_fit
+        previous_access={name:shape.intersect(old['lid']).Volume() for name,shape in
+                         [('mouth_14x11mm',mouth_probe),('lowered_floor',lower_probe)]}
+        assert min(previous_access.values())>1e-5,previous_access
+        legacy=dict(baseAndTrayUnchangedMm3=differences,lidIntersectionsMm3=lid_fit,
+                    oldLidAccessObstructionMm3=previous_access,lidOnlyReplacement=True)
     assert not audit['componentEnvelopeCollisions']
     files={n:hashlib.sha256((OUT/n).read_bytes()).hexdigest() for n in
            [*(name+ext for name in NAMES for ext in ('.stl','.step')),'assembly_reference.step']}
@@ -93,6 +117,7 @@ def validate():
                 batteryInsertionMaxCollisionMm3=max(insertion),trayLiftMaxCollisionMm3=max(tray_lift),
                 movementCheck=dict(sampleStepMm=1,rangeMm=[0,36],continuousSweep=False),
                 tailChecks=tail_checks,switchAndLedSightLinesClear=True,files=files,
+                switchAccessIntersectionsMm3=access,legacyP01Compatibility=legacy,
                 physicalFitTested=False,wireBendTested=False,elasticStressTested=False,
                 scope='Exported BRep/STL and rigid vertical access. No real print, pouch tolerance, RF or electrical validation.')
     (OUT/'independent_validation.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
@@ -104,7 +129,7 @@ def package(target, report):
             'render_preview.py','validate_and_package.py','capture_preview.cjs']
     exported=[*(name+ext for name in NAMES for ext in ('.stl','.step')),'assembly_reference.step',
               'audit.json','validation.json','independent_validation.json','meshes.json','preview.html',
-              'preview.png','assembled.png','side.png','tray.png','stack.svg','stack.png','preview_check.json']
+              'preview.png','assembled.png','side.png','tray.png','lid.png','stack.svg','stack.png','preview_check.json']
     files={name:(HERE/name).read_bytes() for name in source}
     files.update({'output/'+name:(OUT/name).read_bytes() for name in exported})
     for name,digest in report['files'].items():
@@ -132,8 +157,9 @@ def package(target, report):
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--validate-only',action='store_true')
-    parser.add_argument('--output',type=Path,default=HERE.parents[2]/'delivery/AI_Doll_Enclosure_Stacked_103450_20261020.zip')
+    parser.add_argument('--baseline',type=Path,help='Optional previous P01 output directory for lid-only compatibility checks')
+    parser.add_argument('--output',type=Path,default=HERE.parents[2]/'delivery/AI_Doll_Stacked_Enclosure_v0.1.0.zip')
     args=parser.parse_args()
-    result=validate()
+    result=validate(args.baseline)
     print(json.dumps(dict(passed=result['passed'],dimensionsMm=result['dimensionsMm'],tailCount=len(result['tailChecks'])),ensure_ascii=False))
     if not args.validate_only:package(args.output,result)

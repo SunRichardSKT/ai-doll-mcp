@@ -7,7 +7,7 @@ const {chromium}=require('playwright');
   const browser=await chromium.launch({headless:true,executablePath:executable});
   const page=await browser.newPage({viewport:{width:1360,height:960}}),errors=[],actions=[];
   page.on('pageerror',e=>errors.push(e.message));
-  const state={environment_ready:true,project:'fixture',version:'2.20.0',paired:false,connection:{},
+  const state={environment_ready:true,project:'fixture',version:'0.1.0',paired:false,connection:{},
     collector:{running:false},secure_config:{profile:'interaction',configured:false},secure:{},
     profile_counts:{status:2,history:9,interaction:19},job:{state:'idle'},
     operit:{configured:false,running:false,addresses:['192.168.1.20']}};

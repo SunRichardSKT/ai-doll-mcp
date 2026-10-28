@@ -19,7 +19,7 @@ static int pressChannel=-1, pressValue=0, lastWifi=-1;
 static constexpr int LED_PIN=8; // Common SuperMini blue LED, active low.
 static bool scanBusy=false;
 static uint32_t scanStartedAt=0;
-static const char* VERSION="doll-lab-2.13.3";
+static const char* VERSION="doll-lab-0.1.0";
 static const char* PROTOCOL="2025-11-25";
 
 static String encode(const JsonDocument &d){String s;serializeJson(d,s);return s;}

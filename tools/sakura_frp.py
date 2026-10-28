@@ -10,10 +10,12 @@ import re
 import subprocess
 import urllib.request
 from urllib.parse import urlsplit
+from _source_path import load
 
 from private_storage import write_json, write_private, private_directory
 
 API = 'https://api.natfrp.com/v4'
+USER_AGENT = 'AI-Doll-MCP/' + load('ai_doll.core.version').VERSION
 
 
 class SakuraError(RuntimeError):
@@ -38,7 +40,7 @@ class SakuraAPI:
         self.opener = urllib.request.build_opener(NoRedirect())
 
     def request(self, path, body=None, text=False):
-        headers = {'User-Agent': 'AI-Doll-MCP/2.13.0'}
+        headers = {'User-Agent': USER_AGENT}
         if self.token:
             headers['Authorization'] = 'Bearer '+self.token
         if body is not None:
@@ -84,7 +86,7 @@ def install_client(folder, api=None):
         partial = folder / 'frpc.download'
         try:
             opener = urllib.request.build_opener(HTTPSRedirect())
-            request = urllib.request.Request(url,headers={'User-Agent':'AI-Doll-MCP/2.13.0'})
+            request = urllib.request.Request(url,headers={'User-Agent':USER_AGENT})
             with opener.open(request,timeout=30) as response, partial.open('wb') as handle:
                 count = 0
                 while chunk := response.read(65536):

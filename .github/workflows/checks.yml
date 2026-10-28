@@ -38,8 +38,8 @@ jobs:
       - name: Build and audit Linux delivery
         run: |
           python -c "from pathlib import Path; from package_companion import server_package; server_package(Path('delivery'))"
-          python tools/audit_delivery.py delivery/AI_Doll_Server_v2.25.3.tar.gz
-          python tools/check_documentation.py --archive delivery/AI_Doll_Server_v2.25.3.tar.gz
+          python tools/audit_delivery.py delivery/AI_Doll_Server_v0.1.0.tar.gz
+          python tools/check_documentation.py --archive delivery/AI_Doll_Server_v0.1.0.tar.gz
   firmware:
     runs-on: ubuntu-latest
     timeout-minutes: 20

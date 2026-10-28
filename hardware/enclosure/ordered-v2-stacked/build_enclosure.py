@@ -27,6 +27,12 @@ def common(a, b):
     return a.intersect(b).Volume()
 
 
+def well_taper(cx, cy, z, width, length, top_z, top_width, top_length, offset_y):
+    """Planar tapered opening; lower outline stays clear of the module."""
+    return (cq.Workplane('XY').workplane(offset=z).center(cx, cy).rect(width, length)
+            .workplane(offset=top_z-z).center(0,offset_y).rect(top_width, top_length).loft(ruled=True).val())
+
+
 def mesh(shape):
     vertices, faces = shape.tessellate(.07, .12)
     return dict(vertices=[[v.x, v.y, v.z] for v in vertices], faces=[list(f) for f in faces])
@@ -128,9 +134,10 @@ def build():
         base = base.cut(box(xx-p['snap_width']/2-.35, yy, window_z,
                             p['snap_width']+.7, wall+.4, 5.8))
     lid = rounded(0, 0, roof, W, H, lt, p['corner_radius'])
-    inset = wall+.25
-    ring = rounded(inset,inset,roof-1.6,W-2*inset,H-2*inset,1.8,1.9)
-    ring = ring.cut(rounded(inset+1,inset+1,roof-1.8,W-2*(inset+1),H-2*(inset+1),2.2,.8))
+    inset = wall+p['lid_guide_clearance']
+    ring_radius=p['corner_radius']-inset
+    ring = rounded(inset,inset,roof-1.6,W-2*inset,H-2*inset,1.8,ring_radius)
+    ring = ring.cut(rounded(inset+1,inset+1,roof-1.8,W-2*(inset+1),H-2*(inset+1),2.2,ring_radius-1))
     for xx, side in clips:
         yy = wall if side == 'front' else H-wall-3
         ring = ring.cut(box(xx-p['snap_width']/2-.6,yy,roof-2,p['snap_width']+1.2,3,3))
@@ -154,7 +161,8 @@ def build():
     snap_shapes = []
     for xx, side in clips:
         inside = wall+p['snap_clearance']
-        thick, hook = p['snap_thickness'], roof-6.75
+        thick = p['snap_thickness']
+        hook = window_z+5.8-p['snap_vertical_clearance']
         pts = [(inside+thick,roof-p['snap_length']), (inside,roof-p['snap_length']),
                (p['snap_tip_inset'],hook-1.5),(p['snap_tip_inset'],hook),
                (inside,hook),(inside,roof+.15),(inside+thick,roof+.15)]
@@ -166,23 +174,41 @@ def build():
         snap_shapes.append(snap)
         lid = lid.fuse(snap)
 
-    # Recessed finger well: actuator tip is 1 mm above its local floor. It is
-    # intentionally recessed from the outer roof; no unmeasured extender fitted.
+    # Lower the floor without moving the PCB. The mouth flares above the module,
+    # so the finger has room while the narrow lower cup retains module clearance.
     sw = comps['SW1']; well = p['switch_well']
     swx, swy = ox+sw['x'], oy+sw['y']
     wx, wy = swx+well['offset_x']-well['outer_width']/2, swy-well['outer_length']/2
     well_floor_top = switch_top-well['actuator_above_well_floor']
     well_bottom = well_floor_top-well['floor_thickness']
-    lid = lid.cut(rounded(wx,wy,well_bottom-.1,well['outer_width'],well['outer_length'],
-                          total_height-well_bottom+1,.7))
-    cup = rounded(wx,wy,well_bottom,well['outer_width'],well['outer_length'],
-                  roof-well_bottom+.2,.7)
-    cup = cup.cut(rounded(wx+well['wall'],wy+well['wall'],well_floor_top,
-                          well['outer_width']-2*well['wall'],well['outer_length']-2*well['wall'],
-                          total_height-well_floor_top+1,.3))
+    cx,cy=swx+well['offset_x'],swy
+    mouth_cy=cy+well['mouth_offset_y']
+    flare_z=switch_top+well['flare_bottom_above_actuator']
+    outer_stem=box(wx,wy,well_bottom,well['outer_width'],well['outer_length'],flare_z-well_bottom+.1)
+    outer_flare=well_taper(cx,cy,flare_z,well['outer_width'],well['outer_length'],
+                            roof+.2,well['mouth_width'],well['mouth_length'],well['mouth_offset_y'])
+    # Cut through the original lid before attaching the hollow well; the top
+    # opening stays inside the old base rim for a lid-only replacement.
+    lid=lid.cut(box(cx-well['mouth_width']/2,mouth_cy-well['mouth_length']/2,well_bottom-.1,
+                    well['mouth_width'],well['mouth_length'],total_height-well_bottom+1))
+    collar=box(cx-well['mouth_width']/2-.15,mouth_cy-well['mouth_length']/2-.15,
+                roof+.1,well['mouth_width']+.3,well['mouth_length']+.3,lt-.1)
+    cup=outer_stem.fuse(outer_flare).fuse(collar)
+    inner_width=well['outer_width']-2*well['wall']
+    inner_length=well['outer_length']-2*well['wall']
+    inner_stem=box(wx+well['wall'],wy+well['wall'],well_floor_top,
+                   inner_width,inner_length,flare_z-well_floor_top+.1)
+    mouth_width=well['mouth_width']-2*well['wall']
+    mouth_length=well['mouth_length']-2*well['wall']
+    inner_flare=well_taper(cx,cy,flare_z,inner_width,inner_length,
+                            roof+.2,mouth_width,mouth_length,well['mouth_offset_y'])
+    mouth=box(cx-mouth_width/2,mouth_cy-mouth_length/2,roof+.1,
+              mouth_width,mouth_length,total_height-roof+1)
+    cup=cup.cut(inner_stem.fuse(inner_flare).fuse(mouth))
     cup = cup.cut(rounded(swx-well['hole_width']/2,swy-well['hole_length']/2,well_bottom-.2,
                           well['hole_width'],well['hole_length'],total_height-well_bottom+1,.4))
     lid = lid.fuse(cup)
+    lid=lid.cut(mouth)
     root_edges = []
     for edge in lid.Edges():
         bb=edge.BoundingBox()
@@ -291,9 +317,13 @@ def build():
                                 actuatorAboveLocalFloorMm=switch_top-well_floor_top,
                                 actuatorBelowOuterTopMm=total_height-switch_top,
                                 openingMm=[well['hole_width'],well['hole_length']],
+                                fingerMouthMm=[mouth_width,mouth_length],flareBottomMm=flare_z,
+                                moduleClearanceAtFlareMm=flare_z-module_top,
                                 reachPhysicallyTested=False,description='Recessed finger well, no claim actuator protrudes above the whole roof'),
                 ledWindow=dict(centerMm=[lx,ly],sizeMm=[led['width'],led['length']],physicalAlignmentTested=False),
-                snaps=dict(count=4,walls=['front','back'],deflectionMm=wall+.1-p['snap_tip_inset'],elasticTested=False),
+                snaps=dict(count=4,walls=['front','back'],deflectionMm=wall+.1-p['snap_tip_inset'],
+                           hookEngagementMm=wall-p['snap_tip_inset'],verticalPlayMm=p['snap_vertical_clearance'],
+                           guideClearancePerSideMm=p['lid_guide_clearance'],elasticTested=False),
                 connectorAllowance=p['connector_allowance'],wireRiser=p['wire_riser'],
                 scope='Exported topology, declared rigid clearances and sampled clip envelope. Not stress, continuous insertion, thermal or RF validation.',
                 pending=['actual pin and switch measurements','battery seam and upward lead bend','connector and wire route above PCB',
