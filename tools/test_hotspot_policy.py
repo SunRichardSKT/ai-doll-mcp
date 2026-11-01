@@ -15,15 +15,15 @@ static String operator+(const String&a,const char*b){return String(std::string(a
 static String operator+(const char*a,const String&b){return String(a+std::string(b));}
 struct IPAddress {int a=0;IPAddress(){} IPAddress(int b,int,int,int):a(b){} bool operator!=(IPAddress b)const{return a!=b.a;}bool operator==(IPAddress b)const{return a==b.a;}};
 static uint32_t clockNow=0;static bool pressed=false;uint32_t millis(){return clockNow;}
-enum{INPUT_PULLUP,LOW,HIGH,WL_CONNECTED=3,WIFI_STA=1,WIFI_AP=2,WIFI_AP_STA=3,ARDUINO_EVENT_WIFI_STA_START=1,ARDUINO_EVENT_WIFI_AP_START=2,ARDUINO_EVENT_WIFI_STA_DISCONNECTED=3,ARDUINO_EVENT_WIFI_AP_STOP=4};
+enum{INPUT_PULLUP,LOW,HIGH,WL_CONNECTED=3,WIFI_OFF=0,WIFI_STA=1,WIFI_AP=2,WIFI_AP_STA=3,ARDUINO_EVENT_WIFI_STA_START=1,ARDUINO_EVENT_WIFI_AP_START=2,ARDUINO_EVENT_WIFI_STA_DISCONNECTED=3,ARDUINO_EVENT_WIFI_AP_STOP=4};
 using wifi_power_t=int;static constexpr int WIFI_POWER_8_5dBm=34,WIFI_POWER_19_5dBm=78;
 using arduino_event_id_t=int;struct arduino_event_info_t {struct {int reason;}wifi_sta_disconnected;};
 void pinMode(int,int){}int digitalRead(int){return pressed?LOW:HIGH;}void setLed(bool){}
 struct {uint64_t getEfuseMac(){return 0x112233445566;}}ESP;
 struct {void end(){}bool begin(const char*){return true;}void addService(const char*,const char*,int){}void addServiceTxt(const char*,const char*,const char*,String){}}MDNS;
-struct Radio {bool online=false,failAP=false,ap=false;int modes=WIFI_STA,starts=0,disconnects=0,joins=0;
+struct Radio {bool online=false,failAP=false,ap=false,noAddress=false;int modes=WIFI_STA,starts=0,disconnects=0,joins=0;
  String currentSSID;String SSID(){return currentSSID;}
- int status(){return online?WL_CONNECTED:0;}IPAddress localIP(){return online?IPAddress(10,0,0,2):IPAddress();}
+ int status(){return online?WL_CONNECTED:0;}IPAddress localIP(){return online&&!noAddress?IPAddress(10,0,0,2):IPAddress();}
  void onEvent(void(*)(int,arduino_event_info_t)){} void setSleep(bool){}void persistent(bool){}void setAutoReconnect(bool){}
  bool mode(int m){modes=m;ap=(m&WIFI_AP)!=0;return true;}bool setTxPower(int){return true;}int getTxPower(){return 34;}
  void disconnect(bool,bool){online=false;disconnects++;}bool softAPConfig(IPAddress,IPAddress,IPAddress){return true;}
@@ -62,12 +62,31 @@ int main(){
  ssid="old-home";WiFi.currentSSID=ssid;WiFi.online=true;WiFi.failAP=false;clockNow=2000000;
  openConfigAP(NetworkMode::NORMAL);setupWindow.joined=false;ssid="wrong-new-home";
  connectPending=true;connectAt=clockNow+500;tick(2000001);
- assert(setupWindow.remaining(clockNow)==599999);
+ assert(setupWindow.remaining(clockNow)==599999);assert(!networkReady());
  tick(2000500);assert(!WiFi.online);tick(2090002);assert(configAP&&setupWindow.active);
  // A late callback for the old target still must not start the grace timer.
  WiFi.online=true;WiFi.currentSSID="old-home";tick(2090003);assert(!setupWindow.joined);
  WiFi.currentSSID=ssid;tick(2090004);assert(setupWindow.remaining(clockNow)==90000);
  tick(2180004);assert(!configAP&&WiFi.online);
+ // Do not interrupt an association in progress; reset only after three failures.
+ WiFi.online=false;ssid="home";clockNow=3000000;networkInit();tick(3000500);joins=WiFi.joins;
+ tick(3030499);assert(WiFi.joins==joins);tick(3030500);assert(WiFi.joins==joins);
+ tick(3032500);assert(WiFi.joins==joins+1);tick(3062500);tick(3067500);
+ tick(3097500);tick(3107500);assert(connectionRecovery.resets==1&&!configAP);
+ WiFi.online=true;tick(3108500);assert(networkMode==NetworkMode::NORMAL&&connectionRecovery.attempts==0);
+ // A radio reset preserves a manually opened AP deadline and saved target.
+ WiFi.online=false;clockNow=4000000;openConfigAP(NetworkMode::SETUP);connectPending=false;
+ uint32_t deadline=setupWindow.deadline;connectionRecovery.offline=true;connectionRecovery.inFlight=false;connectionRecovery.attempts=3;connectionRecovery.since=clockNow-60000;connectionRecovery.next=clockNow;
+ tick(clockNow);assert(configAP&&setupWindow.deadline==deadline&&ssid=="home"&&connectionRecovery.resets==2);
+ // Association without a usable DHCP address is not ready and not advertised.
+ WiFi.online=true;WiFi.noAddress=true;tick(4001000);assert(!networkReady()&&networkMode!=NetworkMode::NORMAL&&!mdnsActive);
+ WiFi.noAddress=false;tick(4002000);assert(networkReady()&&networkMode==NetworkMode::NORMAL);
+ int stableJoins=WiFi.joins;for(uint32_t i=1;i<=1000;i++)tick(4002000+i*1000);assert(WiFi.joins==stableJoins);
+ // A pending retry stays bounded across millis wrap and cancels on success.
+ NetworkRecovery r;r.begin(0xfffff000U);assert(r.poll(uint32_t(0xfffff000U+29999U))==NetworkRecovery::NONE);
+ assert(r.poll(uint32_t(0xfffff000U+30000U))==NetworkRecovery::NONE);
+ assert(r.poll(uint32_t(0xfffff000U+32000U))==NetworkRecovery::CONNECT);r.connected();assert(r.poll(100000)==NetworkRecovery::NONE);
+
 }
 '''
         with tempfile.TemporaryDirectory(prefix='aidoll-hotspot-') as folder:

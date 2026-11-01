@@ -18,7 +18,7 @@ from .version import BRIDGE_VERSION as VERSION
 DEFAULT_QUIET = dict(enabled=False, start='23:00', end='07:00', timezone='Asia/Shanghai')
 DEFAULT_POLICY = dict(merge_ms=300, cooldown_ms=1500, max_age_sec=30,
                       allow_simulation=True, temperature_enabled=False,
-                      temperature_delta_c=1.0, notify_pressure_patterns=False,
+                      temperature_delta_c=1.0, motion_enabled=False, switch_enabled=False, notify_pressure_patterns=False,
                       long_press_ms=1500, tap_max_ms=600, tap_gap_ms=600,
                       simultaneous_ms=300, quiet_hours=DEFAULT_QUIET)
 DEFAULT_FEEDBACK = dict(tone='温柔自然', max_characters=160, language='zh-CN',
@@ -40,7 +40,7 @@ def validated_policy(value):
                       ('tap_gap_ms', 50, 5000), ('simultaneous_ms', 0, 1000)]:
         if type(result[k]) is not int or not lo <= result[k] <= hi:
             raise ValueError(f'{k} outside supported range')
-    for k in ['allow_simulation', 'temperature_enabled', 'notify_pressure_patterns']:
+    for k in ['allow_simulation', 'temperature_enabled', 'motion_enabled', 'switch_enabled', 'notify_pressure_patterns']:
         if type(result[k]) is not bool:
             raise ValueError(k+' must be boolean')
     v = result['temperature_delta_c']
@@ -236,9 +236,9 @@ class EventBridge:
         if event.get('direction', 'input') != 'input':
             return
         kind = event.get('sensor_type', 'pressure')
-        if kind not in ('pressure', 'temperature') or (kind == 'pressure' and event.get('phase') not in ('start','end')):
+        if kind not in ('pressure', 'temperature', 'motion', 'switch') or (kind == 'pressure' and event.get('phase') not in ('start','end')):
             return
-        if kind == 'pressure' and (event.get('quality','ok') != 'ok' or event.get('source') not in ('sensor','simulation')):
+        if event.get('quality','ok') != 'ok' or event.get('source') not in ('sensor','simulation'):
             return
         for sub in self.db.execute('SELECT * FROM bridge_subscriptions WHERE active=1 AND session_id=? AND device_id=?', (session_id, device)).fetchall():
             policy = validated_policy(json.loads(sub['policy']))
@@ -247,6 +247,10 @@ class EventBridge:
             if event.get('source') == 'simulation' and not policy['allow_simulation']:
                 continue
             if quiet_status(policy, now)['active'] or quiet_status(policy, at)['active']:
+                continue
+            if kind == 'motion' and (not policy['motion_enabled'] or event.get('phase') not in ('shake', 'orientation')):
+                continue
+            if kind == 'switch' and (not policy['switch_enabled'] or event.get('phase') != 'close'):
                 continue
             if kind == 'pressure' and event.get('phase') == 'end':
                 if not policy['notify_pressure_patterns']:
@@ -318,9 +322,10 @@ class EventBridge:
             experience = getattr(self.c, 'experience', None)
             if experience:
                 allowed_events = []
+                from .companion_experience import interaction_key
                 for e in payload['data']['events']:
                     seen = self.db.execute('SELECT 1 FROM chat_seen WHERE chat=? AND device=? AND boot=? AND touch=?',
-                                           (row['target_id'],e['device_id'],e.get('boot',''),e.get('touch_id'))).fetchone()
+                                           (row['target_id'],e['device_id'],e.get('boot',''),interaction_key(e))).fetchone()
                     if experience.body(e['channel'],e['device_id'])['feedback_level'] == 'normal' and (not seen or e.get('phase') == 'end'):
                         allowed_events.append(e)
                 if not allowed_events:

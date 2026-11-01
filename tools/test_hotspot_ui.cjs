@@ -12,8 +12,8 @@ const {source}=require('./firmware_test_assets.cjs');
   await page.route('http://192.168.1.23/**',async route=>{
    const req=route.request(),url=new URL(req.url()),p=url.pathname;requests.push({p,token:req.headers()['x-setup-token'],body:req.postData()});
    if(p==='/')return route.fulfill({contentType:'text/html',body:html});
-   const asset={'/channel-editor.js':'tools/channel_editor.js','/ota-manager.js':'tools/ota_manager.js'}[p];
-   if(asset)return route.fulfill({contentType:'application/javascript',body:source(p==='/channel-editor.js'?'channel_editor':'ota_manager')});
+   const asset={'/wifi-feedback.js':'tools/wifi_feedback.js','/channel-editor.js':'tools/channel_editor.js','/ota-manager.js':'tools/ota_manager.js'}[p];
+   if(asset)return route.fulfill({contentType:'application/javascript',body:source(p==='/channel-editor.js'?'channel_editor':p==='/wifi-feedback.js'?'wifi_feedback':'ota_manager')});
    if(p==='/pairing.js')return route.fulfill({contentType:'application/javascript',body:source('pairing')});
    if(req.headers()['x-setup-token']!==token)return route.fulfill({status:401,json:{error:'请从已配对客户端打开设置'}});
    let data={};

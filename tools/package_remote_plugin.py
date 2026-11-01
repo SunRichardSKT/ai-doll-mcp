@@ -25,7 +25,7 @@ def build_package(folder=DEFAULT, output=None):
     private_directory(output.parent)
     manifest={
         '$schema':'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json',
-        'name':'ai-doll-chat','version':'0.1.0',
+        'name':'ai-doll-chat','version':'0.1.1',
         'description':'Private MCP connection for doll history and timed interaction in the current conversation.',
         'author':{'name':'SunRichardSKT'},
         'extensions':{'com.openai':{'interface':{

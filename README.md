@@ -2,9 +2,9 @@
 
 让 AI 接收真实的触摸与按压，回应身体互动，并记录相处中的小动作。
 
-**当前版本：v0.1.0 · 内测第一版**
+**当前版本：v0.1.1 · 内测0.1.1版**
 
-[下载内测版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.0) · [使用教程](docs/README.md) · [更新说明](CHANGELOG.md) · [故障排查](docs/TROUBLESHOOTING.md)
+[下载内测版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.1) · [使用教程](docs/README.md) · [更新说明](CHANGELOG.md) · [故障排查](docs/TROUBLESHOOTING.md)
 
 ## 能做什么
 
@@ -29,16 +29,17 @@
 
 ## 下载哪个文件
 
-所有文件从[内测第一版Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.0)下载。
+所有文件从[内测0.1.1版Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.1)下载。
 
 | 文件 | 用途 |
 | --- | --- |
-| `AI_Doll_Code_v0.1.0.zip` | Windows完整包：管理、MCP、烧录与内置Python |
-| `AI_Doll_Server_v0.1.0.tar.gz` | Linux接收服务、管理页与MCP |
+| `AI_Doll_Code_v0.1.1.zip` | Windows完整包：管理、MCP、烧录与内置Python |
+| `AI_Doll_Firmware_v0.1.1.zip` | 单独固件镜像与升级说明 |
+| `AI_Doll_Server_v0.1.1.tar.gz` | Linux接收服务、管理页与MCP |
 | `AI_Doll_Operit.toolpkg` | Operit手机工具包 |
-| `AI_Doll_PCB_v0.1.0.zip` | 当前主板工程、BOM、制造资料及紧凑板研发参考 |
-| `AI_Doll_Enclosures_v0.1.0.zip` | 当前两种主板对应的外壳模型 |
-| `AI_Doll_Stacked_Enclosure_v0.1.0.zip` | 已制板上下堆叠壳；包含P02加紧上盖 |
+| `AI_Doll_PCB_v0.1.1.zip` | 当前主板工程、BOM、制造资料及紧凑板研发参考 |
+| `AI_Doll_Enclosures_v0.1.1.zip` | 当前两种主板对应的外壳模型 |
+| `AI_Doll_Stacked_Enclosure_v0.1.1.zip` | 已制板上下堆叠壳；包含P02加紧上盖 |
 
 校验使用同一Release附带的`SHA256SUMS.txt`。GitHub“Download ZIP”是源码，不含Windows运行环境。
 
@@ -49,11 +50,13 @@
 3. 按所选手机／电脑／服务器教程完成配对，确认设备在线。
 4. 设置已安装的传感器部位，选择聊天，按需开启触摸主动回应。
 
-设备正常重启不开配网热点；运行中长按BOOT约3秒可重新开窗。电脑管理中心为`http://127.0.0.1:8769/`，仅在运行软件的电脑打开。
+扫描与连接时显示等待进度、重试建议及家庭IP；保存密码不等于联网成功。设备正常重启不开配网热点；运行中长按BOOT约3秒可重新开窗。电脑管理中心为`http://127.0.0.1:8769/`，仅在运行软件的电脑打开。
 
 ## 硬件与外壳
 
 [采购与主板资料](hardware/rev-v2/README.md) · [接线](docs/daily/SENSOR_CHANNELS.md) · [压力校准](docs/daily/CALIBRATION_AND_DAILY_MODE.md) · [外壳选择](hardware/enclosure/README.md)
+
+[现板扩展设计](hardware/expansion/current-board/README.md)保留接线与配件参考。0.1.1固件聚焦压力与干接点输入，已移除温度、动作、马达和外接灯驱动；板载状态灯保留。旧扩展配置隔离保留，原压力校准和历史不清空。
 
 已制板堆叠壳保持46.29 × 56.45 × 35.2 mm，使用103450电池仓。P02扩大、降低电源开关凹槽并加紧卡扣，已有底壳只需换上盖。
 

@@ -75,7 +75,19 @@ def build(target, stacked_target=None):
     for line in files[STACKED+'/SHA256SUMS.txt'].decode('utf-8').splitlines():
         digest,relative=line.split(None,1)
         assert hashlib.sha256(files[STACKED+'/'+relative.strip()]).hexdigest()==digest, relative
-    write_archive(target, files, version='0.1.0', physical_fit_tested=False)
+    # V2.2 uses its own PCB reference, bottom-component clearance and switch access.
+    v22='v22-stacked'
+    current={v22+'/'+name:(HERE/v22/name).read_bytes() for name in STACKED_SOURCE}
+    current.update({v22+'/output/'+name:(HERE/v22/'output'/name).read_bytes() for name in STACKED_OUTPUT})
+    report=json.loads(current[v22+'/output/independent_validation.json'])
+    assert report['passed'], 'V2.2 stacked model validation failed'
+    for name,digest in report['files'].items():
+        assert hashlib.sha256(current[v22+'/output/'+name]).hexdigest()==digest,name
+    for line in current[v22+'/SHA256SUMS.txt'].decode('utf-8').splitlines():
+        digest,name=line.split(None,1)
+        assert hashlib.sha256(current[v22+'/'+name.strip()]).hexdigest()==digest,name
+    files.update(current)
+    write_archive(target, files, version='0.1.1', physical_fit_tested=False)
     if stacked_target is not None:
         prefix=STACKED+'/'
         standalone={name[len(prefix):]:raw for name,raw in files.items() if name.startswith(prefix)}
@@ -84,7 +96,7 @@ def build(target, stacked_target=None):
 
 if __name__ == '__main__':
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--output',type=Path,default=ROOT/'delivery/AI_Doll_Enclosures_v0.1.0.zip')
-    parser.add_argument('--stacked-output',type=Path,default=ROOT/'delivery/AI_Doll_Stacked_Enclosure_v0.1.0.zip')
+    parser.add_argument('--output',type=Path,default=ROOT/'delivery/AI_Doll_Enclosures_v0.1.1.zip')
+    parser.add_argument('--stacked-output',type=Path,default=ROOT/'delivery/AI_Doll_Stacked_Enclosure_v0.1.1.zip')
     args=parser.parse_args()
     build(args.output, args.stacked_output)

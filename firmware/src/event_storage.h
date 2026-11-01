@@ -104,11 +104,10 @@ static void __attribute__((noinline)) eventStorageInit(){
  eventStorageEpoch=prefs.getString("ev_epoch","");
  File directory=LittleFS.open("/");File file=directory.openNextFile();uint64_t highest=0;
  while(file){
-  String path=file.path();unsigned long long parsed=0;char canonical[48];
-  if(sscanf(path.c_str(),"/doll-event-%16llx.json",&parsed)==1){
+  String path=file.path();uint64_t parsed=0;
+  if(eventFileId(path.c_str(),parsed)){
    uint64_t id=parsed;
-   snprintf(canonical,sizeof(canonical),"/doll-event-%016llx.json",(unsigned long long)id);
-   if(path==canonical&&id>0&&id<=EVENT_ID_MAX){
+   if(id>0&&id<=EVENT_ID_MAX){
     file.close();JsonDocument record,payload;
     if(loadStoredEvent(id,record,payload)&&(eventStorageEpoch.isEmpty()||record["storage_epoch"].as<String>()==eventStorageEpoch)){
      if(eventStorageEpoch.isEmpty())eventStorageEpoch=record["storage_epoch"].as<String>();

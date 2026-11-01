@@ -14,12 +14,12 @@ static String apName, deviceName, apPass, token, ssid, password, serialLine;
 static bool mcpEnabled=true, led=false, connectPending=false;
 static bool adminAuthEnabled=false, adminPasswordSet=false;
 static String adminUser="admin";
-static uint32_t connectAt=0, lastAttempt=0, pressUntil=0;
-static int pressChannel=-1, pressValue=0, lastWifi=-1;
+static uint32_t connectAt=0;
+static int lastWifi=-1;
 static constexpr int LED_PIN=8; // Common SuperMini blue LED, active low.
 static bool scanBusy=false;
 static uint32_t scanStartedAt=0;
-static const char* VERSION="doll-lab-0.1.0";
+static const char* VERSION="doll-lab-0.1.1";
 static const char* PROTOCOL="2025-11-25";
 
 static String encode(const JsonDocument &d){String s;serializeJson(d,s);return s;}
@@ -38,16 +38,20 @@ static void sendJson(int code,const JsonDocument &d);
 static void remoteStatus(JsonObject out);
 static void status(JsonObject o){
  o["network_mode"]=networkModeName();o["config_ap_open"]=configAP;o["setup_window_supported"]=true;o["setup_remaining_sec"]=(setupWindow.remaining(millis())+999)/1000;o["setup_password_required"]=!setupAPPassword.isEmpty();o["setup_button_gpio"]=SETUP_BUTTON_PIN;
+ if(networkReady())o["wifi_rssi_dbm"]=WiFi.RSSI();else o["wifi_rssi_dbm"]=nullptr;
  o["wifi_radio_mode"]=(int)WiFi.getMode();o["ap_actual_ssid"]=WiFi.softAPSSID();o["ap_mac"]=WiFi.softAPmacAddress();
  o["ap_start_error"]=apStartError;o["ap_start_attempts"]=apStartAttempts;
  o["wifi_last_event"]=(int)lastRadioEvent;o["wifi_disconnect_reason"]=(int)lastDisconnectReason;
+ o["network_ready"]=networkReady();o["wifi_retry_attempts"]=connectionRecovery.attempts;o["wifi_radio_restarts"]=connectionRecovery.resets;o["wifi_retry_in_ms"]=connectionRecovery.waitMs(millis());o["network_revision"]=2;
  o["ap_radio_started"]=(bool)apRadioStarted;o["wifi_channel"]=WiFi.channel();o["tx_power_quarter_dbm"]=(int)WiFi.getTxPower();
  o["reset_reason"]=(int)esp_reset_reason();
  o["boot_id"]=touchBoot;o["event_cursor"]=touchSeq;
  o["firmware"]=VERSION;o["device_id"]=apName;o["uptime_ms"]=millis();o["free_heap"]=ESP.getFreeHeap();
+ o["minimum_free_heap"]=ESP.getMinFreeHeap();o["largest_free_block"]=ESP.getMaxAllocHeap();o["retired_channel_count"]=retiredChannelCount;
+ o["feature_set"]="pressure-switch-v1";
  o["flash_id"]=prefs.getString("flash_id","");o["factory_profile"]=prefs.getString("profile","legacy");
  o["configuration_url"]="http://192.168.4.1/";o["configuration_hotspot"]=deviceName;o["device_name"]=deviceName;
- o["wifi_connected"]=WiFi.status()==WL_CONNECTED;o["wifi_status"]=(int)WiFi.status();o["ssid"]=ssid;
+ o["wifi_connected"]=networkReady();o["wifi_associated"]=WiFi.status()==WL_CONNECTED;o["wifi_status"]=(int)WiFi.status();o["ssid"]=ssid;
  o["ip"]=WiFi.localIP().toString();o["ap_ip"]=WiFi.softAPIP().toString();o["ap_ssid"]=deviceName;
  o["hostname"]=deviceHostname()+".local";o["mdns_active"]=mdnsActive;
  o["mcp_enabled"]=mcpEnabled;o["mcp_path"]="/mcp";o["protocol_version"]=PROTOCOL;
@@ -57,6 +61,8 @@ static void status(JsonObject o){
  remoteStatus(o["remote_server"].to<JsonObject>());
  otaStatus(o["ota"].to<JsonObject>());
  o["led_on"]=led;o["led_gpio_level"]=digitalRead(LED_PIN);o["sensor_mode"]=inputModeSummary();o["physical_inputs_enabled"]=sensorEnabled;o["port_state_model"]="per_port_v1";o["sensor_count"]=channelCount();o["max_channels"]=MAX_CHANNELS;o["physical_outputs_enabled"]=outputEnabled;
+ // Legacy status is derived from the event state, never a second release timer.
+ int pressChannel=activeSimulatedPressure(),pressValue=pressChannel<0?0:touches[pressChannel].raw;
  o["pressed_channel"]=pressChannel;o["pressure"]=pressValue;
  o["reaction"]=pressValue>0?"模拟按压已记录，动作含义由 AI 判断。":"安静等待触摸";
 }
@@ -96,7 +102,7 @@ static bool provision(JsonVariantConst p,String &error){
  if(s.length()<1||s.length()>32||w.length()>63||(w.length()>0&&w.length()<8)){error="SSID 1..32 bytes; password empty or 8..63 bytes";return false;}
  if(setupWindow.active)setupWindow.joined=false;
  ssid=s;password=w;prefs.putString("ssid",ssid);prefs.putString("pass",password);
- connectPending=true;connectAt=millis()+500;return true;
+ connectionRecovery=NetworkRecovery();connectPending=true;connectAt=millis()+500;return true;
 }
 static void rpcError(JsonDocument &out,int code,const char* msg){out.remove("result");out["error"]["code"]=code;out["error"]["message"]=msg;}
 static void resultText(JsonDocument &out,const JsonDocument &data,bool error=false){
@@ -119,7 +125,7 @@ static JsonDocument rpc(const JsonDocument &in){
    rpcError(out,-32602,"Upgrade in progress; channel changes and simulation paused");return out;
   }
   if(name=="get_channel_capabilities"){channelCapabilities(data.to<JsonObject>());}
-  else if(name=="scan_input_devices"){String error;if(!scanInputDevices(a,data.to<JsonObject>(),error)){rpcError(out,-32602,error.c_str());return out;}}
+
   else if(name=="get_channel_config"){encodeChannels(data.to<JsonObject>());}
   else if(name=="set_channel_state"){String error;if(!setChannelState(a,error)){rpcError(out,-32602,error.c_str());return out;}encodeChannels(data.to<JsonObject>());}
   else if(name=="set_channel_config"){String error;if(!saveChannels(a,error)){rpcError(out,-32602,error.c_str());return out;}encodeChannels(data.to<JsonObject>());}
@@ -132,8 +138,7 @@ static JsonDocument rpc(const JsonDocument &in){
   else if(name=="apply_pressure_calibration"){String error;if(!applyCalibration(error)){rpcError(out,-32602,error.c_str());return out;}calibrationStatus(data.to<JsonObject>());}
   else if(name=="cancel_pressure_calibration"){calibration.engaged=false;calibration.capturing=false;calibrationStatus(data.to<JsonObject>());}
   else if(name=="simulate_channel_input"){String error;if(!simulateInput(a,error)){rpcError(out,-32602,error.c_str());return out;}readChannels(data.to<JsonObject>());}
-  else if(name=="set_output_enabled"){String error;if(!armOutputs(a,error)){rpcError(out,-32602,error.c_str());return out;}readChannels(data.to<JsonObject>());}
-  else if(name=="set_vibration"){String error;if(!vibrate(a,error)){rpcError(out,-32602,error.c_str());return out;}readChannels(data.to<JsonObject>());}
+  else if(name=="set_output_enabled"||name=="set_vibration"||name=="set_light"||name=="scan_input_devices"){rpcError(out,-32601,"Temperature, motion and physical outputs are removed from this firmware");return out;}
   else if(name=="get_sensor_config"){sensorConfig(data.to<JsonObject>());}
   else if(name=="set_sensor_config"){String error;if(!setSensors(a,error)){rpcError(out,-32602,error.c_str());return out;}sensorConfig(data.to<JsonObject>());}
   else if(name=="get_body_map"){bodyMap(data.to<JsonObject>());}
@@ -157,7 +162,7 @@ static JsonDocument rpc(const JsonDocument &in){
    int ch=a["channel"]|-1;
    if(!a["channel"].is<int>()||!a["value"].is<int>()||!validChannel(ch)||channels[ch].kind!=DeviceKind::PRESSURE){rpcError(out,-32602,"Choose an enabled pressure channel; value integer 0..4095");return out;}
    String error;if(!simulateInput(a,error)){rpcError(out,-32602,error.c_str());return out;}
-   status(data.to<JsonObject>());JsonDocument event;event["event"]="simulated_press";event["channel"]=pressChannel;event["value"]=pressValue;event["reaction"]=data["reaction"];serialJson(event);
+   status(data.to<JsonObject>());
   }else{rpcError(out,-32602,"Unknown tool");return out;}
   resultText(out,data);
  }else{rpcError(out,-32601,"Method not found");}
@@ -177,6 +182,8 @@ static bool admin(){
 static bool originOK(){String o=web.header("Origin");return o.isEmpty()||o=="http://"+WiFi.softAPIP().toString()||o=="http://"+deviceHostname()+".local"||(WiFi.status()==WL_CONNECTED&&o=="http://"+WiFi.localIP().toString());}
 static void sendJson(int code,const JsonDocument &d){web.sendHeader("Cache-Control","no-store");web.send(code,"application/json; charset=utf-8",encode(d));}
 #include "device_page_asset.h"
+#include "setup_page_asset.h"
+#include "wifi_feedback_asset.h"
 #include "channel_editor_asset.h"
 #include "ota_manager_asset.h"
 #include "pairing_asset.h"
@@ -199,7 +206,6 @@ static void serialCommand(const String &line){
   if(in["enabled"].is<bool>()&&!in["enabled"].as<bool>())closeConfigAP();else openConfigAP(NetworkMode::SETUP);
   out["ok"]=true;out["setup_remaining_sec"]=(setupWindow.remaining(millis())+999)/1000;
  }
- else if(cmd=="radio_test"){String error;if(!radioTest(in.as<JsonVariantConst>(),out.to<JsonObject>(),error))out["error"]=error;}
  else if(cmd=="scan")scanWifi(out.to<JsonObject>(),in["start"]|false);
  else if(cmd=="setup"){out["ap_ssid"]=deviceName;out["device_name"]=deviceName;out["ap_password"]=apPass;out["admin_user"]=adminUser;out["auth_enabled"]=adminAuthEnabled;out["mcp_token"]=token;}
  else if(cmd=="remote_config"){String error;out["ok"]=remoteSave(in.as<JsonVariantConst>(),error);if(error.length())out["error"]=error;}
@@ -251,7 +257,13 @@ void setup(){
  adminAuthEnabled=prefs.getBool("admin_auth",false);adminPasswordSet=prefs.getBool("admin_set",false);adminUser=prefs.getString("admin_user","admin");
  eventStorageInit();networkInit();remoteInit();
  const char* headers[]={"Authorization","Origin","X-Setup-Token","MCP-Protocol-Version"};web.collectHeaders(headers,4);
- web.on("/",HTTP_GET,[]{{web.sendHeader("Content-Encoding","gzip");web.send_P(200,"text/html; charset=utf-8",(const char*)DEVICE_PAGE_GZIP,sizeof(DEVICE_PAGE_GZIP));}});
+ auto fullPage=[](){web.sendHeader("Content-Encoding","gzip");web.send_P(200,"text/html; charset=utf-8",(const char*)DEVICE_PAGE_GZIP,sizeof(DEVICE_PAGE_GZIP));};
+ auto setupPage=[](){web.sendHeader("Content-Encoding","gzip");web.send_P(200,"text/html; charset=utf-8",(const char*)SETUP_PAGE_GZIP,sizeof(SETUP_PAGE_GZIP));};
+ web.on("/",HTTP_GET,[fullPage](){if(configAP&&web.client().localIP()==WiFi.softAPIP()){web.sendHeader("Location","http://"+WiFi.softAPIP().toString()+"/setup");web.send(302,"text/plain","");}else fullPage();});
+ web.on("/setup",HTTP_GET,setupPage);web.on("/settings",HTTP_GET,fullPage);
+ auto captive=[](){web.sendHeader("Location","http://"+WiFi.softAPIP().toString()+"/setup");web.send(302,"text/plain","");};
+ for(const char* probe:{"/hotspot-detect.html","/library/test/success.html","/generate_204","/connecttest.txt"})web.on(probe,HTTP_GET,[captive](){if(configAP&&web.client().localIP()==WiFi.softAPIP())captive();else web.send(404,"text/plain","Not found");});
+ web.on("/wifi-feedback.js",HTTP_GET,[]{web.sendHeader("Content-Encoding","gzip");web.send_P(200,"application/javascript; charset=utf-8",(const char*)WIFI_FEEDBACK_GZIP,sizeof(WIFI_FEEDBACK_GZIP));});
  web.on("/channel-editor.js",HTTP_GET,[]{{web.sendHeader("Content-Encoding","gzip");web.send_P(200,"application/javascript; charset=utf-8",(const char*)CHANNEL_EDITOR_GZIP,sizeof(CHANNEL_EDITOR_GZIP));}});
  web.on("/ota-manager.js",HTTP_GET,[]{{web.sendHeader("Content-Encoding","gzip");web.send_P(200,"application/javascript; charset=utf-8",(const char*)OTA_MANAGER_GZIP,sizeof(OTA_MANAGER_GZIP));}});
  web.on("/pairing.js",HTTP_GET,[]{{web.sendHeader("Content-Encoding","gzip");web.send_P(200,"application/javascript; charset=utf-8",(const char*)PAIRING_GZIP,sizeof(PAIRING_GZIP));}});
@@ -334,6 +346,5 @@ void loop(){
  discoveryTick();
  remoteTick();
  int state=WiFi.status();if(state!=lastWifi){lastWifi=state;JsonDocument d;d["event"]="wifi";d["status"]=state;d["ip"]=WiFi.localIP().toString();serialJson(d);}
- if(pressChannel>=0&&(int32_t)(millis()-pressUntil)>=0){pressChannel=-1;pressValue=0;Serial.println("{\"event\":\"simulated_release\"}");}
  delay(1);
 }

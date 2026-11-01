@@ -1,0 +1,17 @@
+﻿转接脚,信号,主板焊盘,模块标识,用途,设计状态,约束
+1,GND,U1.15,GND,公共地,default,与所有扩展分支共地
+2,SYS5V,U1.16 / SW1.2,5V,扩展供电,default,开关后；USB维护时仍可能供电
+3,TEMP_DQ,U1.10,GPIO1,DS18B20数据,default,与gpio_adc互斥；1～2探头共享
+4,I2C_SDA,U1.2 / TP5,GPIO6,LIS3DH数据,software_candidate,与GPIO6 PWM互斥
+5,I2C_SCL,U1.3,GPIO7,LIS3DH时钟,software_candidate,与GPIO7 PWM互斥
+6,MOTOR_PWM,U1.6,GPIO10,ERM驱动输入,default,不能直接接马达
+7,LIGHT_PWM,U1.7,GPIO20,单色LED,software_candidate,与UART RX互斥
+8,SWITCH_IN,U1.8,GPIO21,干接点输入,software_candidate,与UART TX互斥；串联1kΩ
+,ADC_IN,U1.9,GPIO0,八路共用ADC,reserved,不得占用；经R17连接U2.3
+,MUX_S0,U1.12,GPIO3,4051选择,reserved,保留八路压力
+,MUX_S1,U1.13,GPIO4,4051选择,reserved,保留八路压力
+,MUX_S2,U1.1,GPIO5,4051选择,reserved,保留八路压力
+,NETWORK_LED,U1.4,GPIO8,原板状态灯,reserved,不与扩展灯混用
+,BOOT,U1.5,GPIO9,原板BOOT,reserved,保留配网按键
+,STRAP,U1.11,GPIO2,启动绑带脚,unused,不纳入默认扩展
+,ORIGINAL_3V3,U1.14,3V3,原板逻辑电源,reserved,不作为马达电源；不与扩展稳压输出并联

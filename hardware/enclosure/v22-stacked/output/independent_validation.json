@@ -1,0 +1,109 @@
+{
+  "passed": true,
+  "revision": "V22-STACK-P03",
+  "dimensionsMm": [
+    46.2900002,
+    56.450000200000005,
+    33.00000010000001
+  ],
+  "checks": {
+    "base": {
+      "validSingleStep": true,
+      "watertightSingleStl": true,
+      "relativeVolumeError": 3.798756905513648e-05
+    },
+    "tray": {
+      "validSingleStep": true,
+      "watertightSingleStl": true,
+      "relativeVolumeError": 1.1426277266143465e-06
+    },
+    "lid": {
+      "validSingleStep": true,
+      "watertightSingleStl": true,
+      "relativeVolumeError": 9.258570839386348e-06
+    }
+  },
+  "files": {
+    "base.stl": "eadd9f4f700e9b6ae0f2a3e3fb702b3a241e6220da98e90cd311dc74eeef5490",
+    "base.step": "8cd5083e2fff3095433f1c860cdd87efebefdd4c6e810c1c525fc6bff45c5d17",
+    "tray.stl": "f9603582746cabf977a4c0c5b32e3cb9b2abe835978e0f2fbdbf416c1d157e2c",
+    "tray.step": "5d9f9fc3ade2a196080f4099f96b138923bac82868bc4e9ce60b4b94d076d2c2",
+    "lid.stl": "50a0ee689588e1d3362d77c462b98cb5cf61a5b2e791aaf6422a26a5eee298d8",
+    "lid.step": "00caf780d39e0900b2c9d3101822b274894dad7802868e1e31412419fc3beb19",
+    "assembly_reference.step": "5da7e085e21f9a1b241b97507ef9b06ab345ec3d9fd852e45e7a8b2991f4493a"
+  },
+  "partIntersectionsMm3": {
+    "base/tray": 0.0,
+    "base/lid": 0.0,
+    "tray/lid": 0.0
+  },
+  "reservedIntersectionsMm3": {
+    "battery": {
+      "base": 0.0,
+      "tray": 0.0,
+      "lid": 0.0
+    },
+    "battery_reserved": {
+      "base": 0.0,
+      "tray": 0.0,
+      "lid": 0.0
+    },
+    "connector_allowance": {
+      "base": 0.0,
+      "tray": 0.0,
+      "lid": 0.0
+    },
+    "wire_riser": {
+      "base": 0.0,
+      "tray": 0.0,
+      "lid": 0.0
+    }
+  },
+  "batteryInsertionMaxCollisionMm3": 0.0,
+  "trayLiftMaxCollisionMm3": 0.0,
+  "movementSampleStepMm": 1,
+  "bottomComponentChecks": [
+    "R1",
+    "R2",
+    "R3",
+    "R4",
+    "R5",
+    "R6",
+    "R7",
+    "R8",
+    "R9",
+    "R10",
+    "R11",
+    "R12",
+    "R13",
+    "R14",
+    "R15",
+    "R16",
+    "R17",
+    "R18",
+    "R19",
+    "R20",
+    "U2",
+    "C1",
+    "C2",
+    "C3",
+    "C4",
+    "C5",
+    "C6",
+    "C7",
+    "C8",
+    "C9",
+    "C10"
+  ],
+  "switchAndLedAccessIntersectionsMm3": {
+    "mouth_14x11mm": 0.0,
+    "finger_8mm": 0.0,
+    "led_sightline": 0.0
+  },
+  "frontSwitchAccessIntersectionsMm3": {
+    "base": 0.0,
+    "lid": 0.0
+  },
+  "physicalFitTested": false,
+  "scope": "Exported BRep/STL, rigid clearances and sampled insertion. No elastic, thermal, RF or real-print validation."
+}

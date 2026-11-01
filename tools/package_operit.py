@@ -11,7 +11,7 @@ from _source_path import load
 ROOT = Path(__file__).resolve().parents[1]
 VERSION = load('ai_doll.core.version').VERSION
 FILES = ('manifest.json', 'main.js', 'core/settings.js', 'core/workflows.js',
-         'core/interaction.js', 'core/probe.js', 'core/mcp.js', 'core/device.js', 'core/controls.js',
+         'core/interaction.js', 'core/input_events.js', 'core/probe.js', 'core/mcp.js', 'core/device.js', 'core/controls.js',
          'core/archive.js', 'core/recovery.js', 'core/collector.js', 'core/pairing.js', 'core/qr.js',
          'packages/companion.js', 'ui/settings.ui.js', 'vendor/jsQR.js', 'vendor/qrcodegen.js',
          'vendor/jsQR.LICENSE', 'vendor/qrcodegen.LICENSE', 'vendor/qrcodegen.ts', 'vendor/SOURCES.json')

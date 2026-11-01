@@ -38,7 +38,7 @@ async def exercise(client):
     await call('update_companion_preferences',{'changes':{'persona_source':'doll','doll_persona':'SDK保存的角色'}})
     assert (await call('get_chat_context',{'chat_id':'sdk-chat'}))['persona_priority']=='saved_doll'
     if 'set_channel_state' in tools:
-        assert len(tools)==52
+        assert len(tools)==53
         assert tools['set_channel_state'].annotations.readOnlyHint is False
         result=await call('set_channel_state',{'channel':0,'mode':'off'})
         assert result['channels'][0]['mode']=='off'

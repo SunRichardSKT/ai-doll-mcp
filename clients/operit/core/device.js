@@ -1,6 +1,6 @@
 // Phone-only adapter. Port writes are explicit user actions using the firmware's
 // local patch operation; polling never changes calibration or outputs.
-const store=require('./settings.js'),mcp=require('./mcp.js');
+const store=require('./settings.js'),mcp=require('./mcp.js'),inputEvents=require('./input_events.js');
 const adapters=new Map(),recovery=require('./recovery.js');
 function now(){return Date.now()/1000;}
 function localHost(input) {
@@ -98,7 +98,7 @@ async function connect(c) {
     }
   };
   const defaults={chat_integration_enabled:true,proactive_enabled:false,allow_simulation:false,persona_source:'chat',doll_persona:'',
-    tone:'温柔自然',max_characters:160,merge_ms:300,cooldown_ms:1500,muted:false};
+    tone:'温柔自然',max_characters:160,merge_ms:300,cooldown_ms:1500,muted:false,motion_enabled:false,switch_enabled:false,temperature_enabled:false,temperature_delta_c:1};
   const prefs=async()=>({...defaults,...await read('preferences',{})});
   async function archive(){return await durable.index();}
   async function session(){const s=await read('session');return s&&!s.ended&&s.deadline>now()?s:null;}
@@ -245,14 +245,26 @@ async function connect(c) {
     const base={chat_id:args.chat_id,context_protocol:'leased-batch-v1',preferences:p,persona:p.doll_persona||'',persona_priority:p.persona_source==='doll'?'saved_doll':'current_chat',feedback:{tone:p.tone,max_characters:p.max_characters,language:'zh-CN'},
       events:[],updates:[],receipt_id:null,next_cursor:after,last_sync:a.last_sync,history_source:'android_local',channels:config.channels,
       proactive_delivery_allowed:!!(p.proactive_enabled&&p.chat_integration_enabled&&!p.muted)};
-    base.response_policy={merge_ms:p.merge_ms,cooldown_ms:p.cooldown_ms};
+    base.response_policy={merge_ms:p.merge_ms,cooldown_ms:p.cooldown_ms,motion_enabled:p.motion_enabled,switch_enabled:p.switch_enabled,temperature_enabled:p.temperature_enabled};
     if(a.delivery_recovery_required)return {...base,proactive_delivery_allowed:false,delivery_recovery_required:true};
     if(!p.chat_integration_enabled||p.muted)return base;
-    const selected=a.events.filter(e=>e.id>after&&(args.through==null||e.id<=args.through)&&(!args.session_id||e.session_id===args.session_id)&&e.phase==='start'&&e.sensor_type==='pressure'&&e.direction==='input'&&
+    const baselines=new Map(),temperatureAllowed=e=>{
+      if(e.sensor_type!=='temperature')return true;
+      const acknowledged=[...a.seen].reverse().find(x=>x.chat_id===args.chat_id&&x.sensor_type==='temperature'&&x.channel===e.channel&&x.source===e.source&&Number.isFinite(x.value));
+      if(acknowledged&&e.id<=acknowledged.id)return false;
+      const key=e.channel+':'+e.source;
+      if(!baselines.has(key)){
+        const first=a.events.find(x=>x.boot===e.boot&&x.channel===e.channel&&x.source===e.source&&x.sensor_type==='temperature'&&x.quality==='ok'&&Number.isFinite(x.value));
+        baselines.set(key,acknowledged?.value??first?.value??e.value);
+      }
+      if(Math.abs(e.value-baselines.get(key))<p.temperature_delta_c)return false;
+      baselines.set(key,e.value);return true;
+    };
+    const selected=a.events.filter(e=>e.id>after&&(args.through==null||e.id<=args.through)&&(!args.session_id||e.session_id===args.session_id)&&inputEvents.phase(e,p)&&e.direction==='input'&&
       e.quality==='ok'&&['sensor','simulation'].includes(e.source)&&(e.source!=='simulation'||p.allow_simulation)&&
-      e.delivery_quality==='live'&&sourceAllowed(e)&&e.touch_id&&e.at<=now()+2&&now()-e.at<=30&&
-      !a.seen.some(x=>x.chat_id===args.chat_id&&x.boot===e.boot&&(x.touch_id===e.touch_id||
-        (!args.session_id&&e.at>=x.at&&e.at-x.at<=Math.max(p.cooldown_ms,p.merge_ms)/1000)))).slice(0,limit)
+      e.delivery_quality==='live'&&sourceAllowed(e)&&inputEvents.key(e)&&e.at<=now()+2&&now()-e.at<=30&&
+      !a.seen.some(x=>x.chat_id===args.chat_id&&x.boot===e.boot&&((x.interaction_key||x.touch_id)===inputEvents.key(e)||
+        (!args.session_id&&e.at>=x.at&&e.at-x.at<=Math.max(p.cooldown_ms,p.merge_ms)/1000)))).filter(temperatureAllowed).slice(0,limit)
       .map(e=>({...e,body_preferences:{feedback_level:'normal',aliases:[],interaction_hint:''}}));
     if(!selected.length)return base;
     const ids=selected.map(e=>e.event_id).join('|');
@@ -291,9 +303,12 @@ async function connect(c) {
     if(name==='query_device_history')return await durable.query(args);
     if(name==='get_chat_context')return await context(args);
     if(name==='update_companion_preferences'){
-      const changes=args.changes||{},keys=['chat_integration_enabled','proactive_enabled','allow_simulation','muted','persona_source','doll_persona'];
-      if(Object.keys(changes).some(k=>!keys.includes(k)||(!['persona_source','doll_persona'].includes(k)&&typeof changes[k]!=='boolean')))
+      const changes={...args.changes};
+      if(changes.policy){if(Object.keys(changes.policy).some(k=>!['motion_enabled','switch_enabled','temperature_enabled','temperature_delta_c'].includes(k)))throw Error('手机直连的扩展规则支持温度、动作和开关。');Object.assign(changes,changes.policy);delete changes.policy;}
+      const keys=['chat_integration_enabled','proactive_enabled','allow_simulation','muted','persona_source','doll_persona','motion_enabled','switch_enabled','temperature_enabled','temperature_delta_c'];
+      if(Object.keys(changes).some(k=>!keys.includes(k)||(!['persona_source','doll_persona','temperature_delta_c'].includes(k)&&typeof changes[k]!=='boolean')))
         throw Error('不支持的陪伴设置。');
+      if(changes.temperature_delta_c!==undefined&&(!Number.isFinite(changes.temperature_delta_c)||changes.temperature_delta_c<.1||changes.temperature_delta_c>30))throw Error('温度变化门限应为0.1～30℃。');
       if(changes.persona_source!==undefined&&!['chat','doll'].includes(changes.persona_source))throw Error('请选择当前聊天或娃娃人设。');
       if(changes.doll_persona!==undefined&&(typeof changes.doll_persona!=='string'||changes.doll_persona.length>4000))throw Error('娃娃人设最多4000字。');
       const p={...await prefs(),...changes};await write('preferences',p);return {updated:true,preferences:p};
@@ -324,7 +339,7 @@ async function connect(c) {
       return await durable.updateIndex(a=>{
       const r=a.receipts.find(x=>x.id===args.receipt_id&&x.chat_id===args.chat_id);
       if(!r)throw Error('回执不属于当前聊天或不存在。');
-      if(!r.acked){r.acked=true;for(const e of r.events)a.seen.push({chat_id:args.chat_id,boot:e.boot,touch_id:e.touch_id,at:e.at});
+      if(!r.acked){r.acked=true;for(const e of r.events)a.seen.push({chat_id:args.chat_id,boot:e.boot,touch_id:e.touch_id,interaction_key:inputEvents.key(e),id:e.id,at:e.at,sensor_type:e.sensor_type,channel:e.channel,value:e.value,source:e.source});
         a.seen=a.seen.slice(-2000);a.receipts=[...a.receipts.filter(x=>!x.acked),...a.receipts.filter(x=>x.acked).slice(-2000)];}
       // An acknowledged receipt only needs its identity for idempotent retries.
       // Full records already live in the archive; pending sends retain theirs.

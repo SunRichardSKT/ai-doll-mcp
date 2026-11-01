@@ -14,8 +14,12 @@ from _source_path import load
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 VERSION = load('ai_doll.core.version').VERSION
 TOOLS = (
+    'wifi_feedback.js',
+    'test_wifi_feedback.cjs',
     'firmware_test_assets.cjs',
     'test_firmware_tools.py',
+    'test_firmware_compat.py',
+    'test_setup_page.cjs',
     'qrcodegen_minify.json',
     'vendor/rjsmin.py',
     'vendor/rjsmin.LICENSE',
@@ -134,7 +138,8 @@ TOOLS = (
     'test_device_contention.py',
     'package_chatgpt_plugin.py',
     'launch_companion_mcp.ps1',
-    'test_digital_temperature.cpp',
+    'test_expansion.py',
+    'test_expansion_ui.cjs',
     'test_digital_mcp.py',
     'test_digital_ui.cjs',
     'test_digital_device.py',
@@ -232,12 +237,16 @@ DOCS = (
     'integrations/SECURE_MCP.md',
     'integrations/SERVER_QUICKSTART.md',
     'reports/VALIDATION.md',
+    'reports/FIRMWARE_NETWORK.md',
+    'reports/FIRMWARE_TRIM.md',
+    'reports/FIRMWARE_INPUTS.md',
+    'reports/WIFI_FEEDBACK.md',
     'start/AI_INSTALL.md',
     'start/FACTORY_SETTINGS.md',
     'start/MCP_TRANSPORT_DECISION.md',
     'start/QUICK_FLASH.md',
 )
-SOURCE = ('device_tools.json', 'remote_uplink.h', 'digital_temperature.h', 'ota_update.h', 'event_storage.h', 'event_integrity.h', 'lab_main.cpp', 'device_page.h', 'touch_events.h', 'network_state.h', 'network_policy.h',
+SOURCE = ('device_tools.json', 'remote_uplink.h', 'expansion_inputs.h', 'ota_update.h', 'event_storage.h', 'event_integrity.h', 'lab_main.cpp', 'device_page.h', 'setup_page.h', 'touch_events.h', 'network_state.h', 'network_policy.h',
           'channel_devices.h', 'channel_rpc.h', 'pressure_calibration.h', 'device_discovery.h', 'archive_lease.h')
 PREBUILT = ('firmware.bin', 'bootloader.bin', 'partitions.bin', 'boot_app0.bin', 'FLASH_MANIFEST.json', 'README.md')
 SHARED_SOURCE = ('src/ai_doll/__init__.py', 'src/ai_doll/core/__init__.py', 'src/ai_doll/core/version.py',
@@ -250,7 +259,7 @@ PCB_FILES = (
 )
 PCB_PACKAGE = f'AI_Doll_PCB_v{VERSION}.zip'
 CODE_README = (ROOT/'README.md').read_bytes().decode('utf-8')
-PCB_README = '# AI Doll PCB · 内测第一版\n\n当前实物主板为34.29 × 44.45 mm双层通孔板，使用ESP32-C3 SuperMini、74HC4051和八路板外FSR。\n\n- [主板与采购说明](hardware/rev-v2/README.md)\n- [当前原生工程](hardware/rev-v2/AI_Doll_V2_丝印镜像修正_20261016.epro2)\n- [采购BOM](hardware/rev-v2/AI_Doll_V2_标准化采购BOM_20261003.csv)\n- [板外器件与测试点](hardware/rev-v2/AI_Doll_V2_板外器件与测试点_20261003.csv)\n- [在用制造资料](hardware/rev-v2/ordered-gerber-20260920/已下单PCB封装核对.md)\n- [紧凑贴片板研发参考](hardware/rev-v2/candidates/pcb-v22-routed-20261017/README.md)\n\nJ9要求5V输入，主板不包含锂电池充电、升压或保护电路。紧凑贴片板手焊焊盘和制造适配仍需确认，不直接用于下单。\n\n[接线教程](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/daily/SENSOR_CHANNELS.md) · [外壳选择](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/README.md)\n'
+PCB_README = '# AI Doll PCB · 内测0.1.1版\n\n当前实物主板为34.29 × 44.45 mm双层通孔板，使用ESP32-C3 SuperMini、74HC4051和八路板外FSR。\n\n- [主板与采购说明](hardware/rev-v2/README.md)\n- [当前原生工程](hardware/rev-v2/AI_Doll_V2_丝印镜像修正_20261016.epro2)\n- [采购BOM](hardware/rev-v2/AI_Doll_V2_标准化采购BOM_20261003.csv)\n- [板外器件与测试点](hardware/rev-v2/AI_Doll_V2_板外器件与测试点_20261003.csv)\n- [在用制造资料](hardware/rev-v2/ordered-gerber-20260920/已下单PCB封装核对.md)\n- [紧凑贴片板研发参考](hardware/rev-v2/candidates/pcb-v22-routed-20261017/README.md)\n\nJ9要求5V输入，主板不包含锂电池充电、升压或保护电路。紧凑贴片板手焊焊盘和制造适配仍需确认，不直接用于下单。\n\n[接线教程](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/daily/SENSOR_CHANNELS.md) · [外壳选择](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/README.md)\n'
 
 
 def link_unbundled_docs(contents):
@@ -312,7 +321,7 @@ def package(output, files, readme, version):
             'sha256': hashlib.sha256(output.read_bytes()).hexdigest()}
 
 
-def server_package(delivery):
+def server_package(delivery, operit_package=None):
     """Small Linux payload: no Windows runtime, firmware images or PCB."""
     names = ['Install_Server.sh', 'LICENSE', 'requirements-server.txt', 'docs/integrations/REMOTE_SERVER_SETUP.md', 'CHANGELOG.md', 'docs/daily/NATURAL_COMPANION.md']
     names += ['deploy/direct-server/'+name for name in ('Dockerfile','Dockerfile.dockerignore','compose.yml','compose.backend.yml','Caddyfile','.env.example')]
@@ -321,8 +330,9 @@ def server_package(delivery):
         'history_management.py','private_storage.py','direct_server.html','direct_server.js','pairing_connection.js',
         'bridge_client.js','conversation_queue.js','channel_editor.js','history_manager.js',
         'console_embed.js','companion.html','companion_experience.py','companion_experience.js')]
-    names += list(SHARED_SOURCE) + ['tools/_source_path.py', 'delivery/AI_Doll_Operit.toolpkg', 'docs/integrations/OPERIT_NO_PC.md', 'docs/integrations/OPERIT_SETUP.md']
+    names += list(SHARED_SOURCE) + ['tools/_source_path.py', 'docs/integrations/OPERIT_NO_PC.md', 'docs/integrations/OPERIT_SETUP.md']
     contents = {name:(ROOT/name).read_bytes() for name in names}
+    contents['delivery/AI_Doll_Operit.toolpkg']=(operit_package or ROOT/'delivery/AI_Doll_Operit.toolpkg').read_bytes()
     if b'\r' in contents['Install_Server.sh']:
         raise ValueError('Linux installer must use LF line endings; save Install_Server.sh with LF before packaging')
     vendor = ROOT/'clients/operit/vendor'
@@ -336,7 +346,7 @@ def server_package(delivery):
         '[本版说明](../CHANGELOG.md) · [AI使用说明书](ai/AI_GUIDE.md) · [检查记录](reports/VALIDATION.md)\n\n'
         '[完整教程目录](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/README.md)\n').encode()
     contents['README.md'] = ('# AI Doll Linux 服务包\n\n'
-        f'{VERSION} · 内测第一版；从解压目录运行安装入口，保留原部署数据。\n\n'
+        f'{VERSION} · 内测0.1.1版；从解压目录运行安装入口，保留原部署数据。\n\n'
         '准备 Ubuntu / Debian 服务器，将域名解析到它，并放行 TCP 80 / 443。\n\n'
         '上传并解压此包，在解压目录运行：\n\n'
         '```bash\nsudo bash Install_Server.sh\n```\n\n'
@@ -389,9 +399,13 @@ def main():
     files += [ROOT/'docs'/name for name in DOCS]
     files += sorted((ROOT/'docs/images').glob('*.png'))
     files += [ROOT/'templates'/name for name in ('chatgpt-mcp-config.json','README.md','host-event.example.json','openclaw-hook.example.json')]
+    files += [p for p in (ROOT/'hardware/expansion/current-board').iterdir() if p.is_file()]
     files += [ROOT/'firmware/src'/name for name in SOURCE]
     files += [ROOT/'firmware/prebuilt'/name for name in PREBUILT]
     outputs = [package(delivery/f'AI_Doll_Code_v{VERSION}.zip', files, CODE_README, f'doll-bridge-{VERSION}')]
+    firmware_readme = f'# AI Doll 固件 · 内测{VERSION}\n\n配套设备程序；普通Windows用户可直接下载完整包运行Flash_ESP32.cmd。\n\n[镜像与地址](firmware/prebuilt/README.md) · [OTA升级](docs/daily/OTA_UPDATE.md)\n\n仅支持压力和干接点；板载状态灯、网络、历史及OTA保留。温度、动作和外接输出已移除，旧扩展配置隔离保存。升级保留校准与历史，不执行全片擦除。\n'
+    firmware_files = [ROOT/'firmware/prebuilt'/name for name in PREBUILT] + [ROOT/'LICENSE', ROOT/'docs/daily/OTA_UPDATE.md']
+    outputs.append(package(delivery/f'AI_Doll_Firmware_v{VERSION}.zip', firmware_files, firmware_readme, f'doll-lab-{VERSION}'))
     hardware = ROOT/'hardware/rev-v2'
     if hardware.exists():
         pcb = [hardware/name for name in PCB_FILES]
@@ -418,9 +432,10 @@ def main():
         checksums[name] = hashlib.sha256((delivery/name).read_bytes()).hexdigest()
     checksums['Install_Server.sh'] = hashlib.sha256((ROOT/'Install_Server.sh').read_bytes()).hexdigest()
     (delivery/'SHA256SUMS.txt').write_text(''.join(digest+'  '+name+'\n' for name,digest in sorted(checksums.items())), encoding='ascii',newline='\n')
-    readme = f'# 下载与交付文件\n\n**{VERSION} · 内测第一版 / 固件0.1.0**，更新于2026-10-29。[下载本版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v{VERSION})。\n\n新增可自定义的触摸回应提示词，改善连续触摸排队、连接状态与手机历史。电脑／服务器与手机包同版更新，保留原数据。Windows完整包内置Python，无需另装。\n\n'
+    readme = f'# 下载与交付文件\n\n**{VERSION} · 内测0.1.1版 / 固件0.1.1**，更新于2026-11-02。[下载本版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v{VERSION})。\n\n增加Wi-Fi扫描与连接提示、网络恢复，并精简温度、动作及外接物理输出驱动，保留压力、干接点与历史。电脑／服务器与手机包同版更新，保留原数据。Windows完整包内置Python，无需另装。\n\n'
     readme += '## 应该下载哪个\n\n| 包 | 适合谁 | 解压后做什么 |\n| --- | --- | --- |\n'
     purposes = {
+        f'AI_Doll_Firmware_v{VERSION}.zip': ('已有软件／仅升级开发板', '按固件说明使用OTA应用镜像或配套烧录工具，不全片擦除'),
         f'AI_Doll_Code_v{VERSION}.zip': ('Windows 用户 / 软件开发者', '普通 Chat 双击 AI_Doll.cmd；自建应用本机接收双击 AI_Doll_Server.cmd'),
         f'AI_Doll_Server_v{VERSION}.tar.gz': ('远程 Linux 服务器', '运行 sudo bash Install_Server.sh，按提示填写域名'),
         PCB_PACKAGE: ('采购和手工焊接主板', '打开新版丝印工程与 BOM；重新下单前核对现有网表不匹配'),

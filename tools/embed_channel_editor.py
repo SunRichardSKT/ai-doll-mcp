@@ -26,8 +26,8 @@ def minifier(root):
 
 def asset_source(root,name):
     compact=minifier(root)
-    if name=='device_page':
-        html=(root/'firmware/src/device_page.h').read_text(encoding='utf-8').split('R"HTML(',1)[1].split(')HTML"',1)[0]
+    if name in ('device_page','setup_page'):
+        html=(root/f'firmware/src/{name}.h').read_text(encoding='utf-8').split('R"HTML(',1)[1].split(')HTML"',1)[0]
         return re.sub(r'<script>(.*?)</script>',lambda m:'<script>'+compact(m[1],keep_bang_comments=True)+'</script>',html,flags=re.S).encode('utf-8')
     if name=='pairing':
         # Preserve the complete MIT notice even when ordinary comments are removed.
@@ -58,10 +58,10 @@ def write_header(target,symbol,data,origin):
 
 def build_assets(root):
     build_tool_catalog(root)
-    for name, symbol in (('channel_editor','CHANNEL_EDITOR_GZIP'), ('ota_manager','OTA_MANAGER_GZIP'), ('device_page','DEVICE_PAGE_GZIP'), ('pairing','PAIRING_GZIP')):
+    for name, symbol in (('wifi_feedback','WIFI_FEEDBACK_GZIP'), ('channel_editor','CHANNEL_EDITOR_GZIP'), ('ota_manager','OTA_MANAGER_GZIP'), ('device_page','DEVICE_PAGE_GZIP'), ('setup_page','SETUP_PAGE_GZIP'), ('pairing','PAIRING_GZIP')):
         source=asset_source(root,name)
         data=gzip_asset(source)
-        origin='firmware/src/device_page.h' if name=='device_page' else 'tools/pairing_connection.js and bundled qrcodegen' if name=='pairing' else f'tools/{name}.js'
+        origin=f'firmware/src/{name}.h' if name in ('device_page','setup_page') else 'tools/pairing_connection.js and bundled qrcodegen' if name=='pairing' else f'tools/{name}.js'
         target=root/'firmware/src'/f'{name}_asset.h'
         write_header(target,symbol,data,origin)
 

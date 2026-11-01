@@ -1,0 +1,511 @@
+{
+  "status": "source-only",
+  "scope": "Wiring reference for the bottom-centre-switch board; not a production PCB design",
+  "source_observed_date": "2026-10-17",
+  "design_date": "2026-10-30",
+  "source_sha256": "7869153526848e43f7df05571ae48ab92ef62eea98d1d173365ce32f588637d6",
+  "historical_source": "hardware/rev-v2/candidates/pcb-v22-routed-20261017/audit.json",
+  "units": "mil",
+  "width": 1350,
+  "height": 1750,
+  "top_view": "antenna up, USB down, SW1 bottom centre",
+  "components": [
+    {
+      "ref": "U1",
+      "x": 674.8400000000001,
+      "y": 1255.267,
+      "bbox": {
+        "minX": 314.84000000000003,
+        "minY": 772.45,
+        "maxX": 1035.1600000000003,
+        "maxY": 1737.5500000000002
+      },
+      "pads": [
+        {
+          "padNumber": "1",
+          "net": "S2",
+          "x": 989.8,
+          "y": 905.3,
+          "width": 82.80000000000001,
+          "height": 70.90000000000002,
+          "role": "GPIO5 / MUX S2"
+        },
+        {
+          "padNumber": "2",
+          "net": "GPIO6_SPARE",
+          "x": 989.8,
+          "y": 1005.3,
+          "width": 82.80000000000001,
+          "height": 70.90000000000002,
+          "role": "GPIO6 / I2C SDA"
+        },
+        {
+          "padNumber": "3",
+          "net": "",
+          "x": 989.8,
+          "y": 1105.3,
+          "width": 82.80000000000001,
+          "height": 70.90000000000002,
+          "role": "GPIO7 / I2C SCL"
+        },
+        {
+          "padNumber": "4",
+          "net": "",
+          "x": 989.8,
+          "y": 1205.3,
+          "width": 82.80000000000001,
+          "height": 70.90000000000002,
+          "role": "GPIO8 / network LED"
+        },
+        {
+          "padNumber": "5",
+          "net": "",
+          "x": 989.8,
+          "y": 1305.3,
+          "width": 82.80000000000001,
+          "height": 70.90000000000002,
+          "role": "GPIO9 / BOOT"
+        },
+        {
+          "padNumber": "6",
+          "net": "",
+          "x": 989.8,
+          "y": 1405.3,
+          "width": 82.80000000000001,
+          "height": 70.90000000000002,
+          "role": "GPIO10 / motor PWM"
+        },
+        {
+          "padNumber": "7",
+          "net": "",
+          "x": 989.8,
+          "y": 1505.3,
+          "width": 82.80000000000001,
+          "height": 70.90000000000002,
+          "role": "GPIO20 / light PWM"
+        },
+        {
+          "padNumber": "8",
+          "net": "",
+          "x": 989.8,
+          "y": 1605.3,
+          "width": 82.80000000000001,
+          "height": 70.90000000000002,
+          "role": "GPIO21 / switch input"
+        },
+        {
+          "padNumber": "9",
+          "net": "ADC_IN",
+          "x": 359.8,
+          "y": 1605.3,
+          "width": 82.80000000000001,
+          "height": 70.90000000000002,
+          "role": "GPIO0 / ADC"
+        },
+        {
+          "padNumber": "10",
+          "net": "",
+          "x": 359.8,
+          "y": 1505.3,
+          "width": 82.80000000000001,
+          "height": 70.90000000000002,
+          "role": "GPIO1 / DS18B20"
+        },
+        {
+          "padNumber": "11",
+          "net": "",
+          "x": 359.8,
+          "y": 1405.3,
+          "width": 82.80000000000001,
+          "height": 70.90000000000002,
+          "role": "GPIO2 / strap; unused"
+        },
+        {
+          "padNumber": "12",
+          "net": "S0",
+          "x": 359.8,
+          "y": 1305.3,
+          "width": 82.80000000000001,
+          "height": 70.90000000000002,
+          "role": "GPIO3 / MUX S0"
+        },
+        {
+          "padNumber": "13",
+          "net": "S1",
+          "x": 359.8,
+          "y": 1205.3,
+          "width": 82.80000000000001,
+          "height": 70.90000000000002,
+          "role": "GPIO4 / MUX S1"
+        },
+        {
+          "padNumber": "14",
+          "net": "3V3",
+          "x": 359.8,
+          "y": 1105.3,
+          "width": 82.80000000000001,
+          "height": 70.90000000000002,
+          "role": "3V3 / original supply"
+        },
+        {
+          "padNumber": "15",
+          "net": "GND",
+          "x": 359.8,
+          "y": 1005.3,
+          "width": 82.80000000000001,
+          "height": 70.90000000000002,
+          "role": "GND"
+        },
+        {
+          "padNumber": "16",
+          "net": "SYS5V",
+          "x": 359.8,
+          "y": 905.3,
+          "width": 82.80000000000001,
+          "height": 70.90000000000002,
+          "role": "SYS5V"
+        }
+      ]
+    },
+    {
+      "ref": "SW1",
+      "x": 675.005,
+      "y": 135.0005,
+      "bbox": {
+        "minX": 500,
+        "minY": 61.10249999999999,
+        "maxX": 850,
+        "maxY": 208.89749999999998
+      },
+      "pads": [
+        {
+          "padNumber": "1",
+          "net": "",
+          "x": 576.6,
+          "y": 135,
+          "width": 60,
+          "height": 60
+        },
+        {
+          "padNumber": "2",
+          "net": "SYS5V",
+          "x": 675,
+          "y": 135,
+          "width": 60,
+          "height": 60
+        },
+        {
+          "padNumber": "3",
+          "net": "PWR5V_RAW",
+          "x": 773.4,
+          "y": 135,
+          "width": 60,
+          "height": 60
+        }
+      ]
+    },
+    {
+      "ref": "J9",
+      "x": 675,
+      "y": 290,
+      "bbox": {
+        "minX": 570,
+        "minY": 235,
+        "maxX": 780,
+        "maxY": 345
+      },
+      "pads": [
+        {
+          "padNumber": "2",
+          "net": "PWR5V_RAW",
+          "x": 725,
+          "y": 290,
+          "width": 70.9,
+          "height": 70.9
+        },
+        {
+          "padNumber": "1",
+          "net": "GND",
+          "x": 625,
+          "y": 290,
+          "width": 70.9,
+          "height": 70.9
+        }
+      ]
+    },
+    {
+      "ref": "J1",
+      "x": 90,
+      "y": 1000,
+      "bbox": {
+        "minX": 34.99999999999999,
+        "minY": 895,
+        "maxX": 145,
+        "maxY": 1105
+      },
+      "pads": [
+        {
+          "padNumber": "2",
+          "net": "CH0",
+          "x": 90,
+          "y": 1050,
+          "width": 70.9,
+          "height": 70.9
+        },
+        {
+          "padNumber": "1",
+          "net": "EXC0",
+          "x": 90,
+          "y": 950,
+          "width": 70.9,
+          "height": 70.9
+        }
+      ]
+    },
+    {
+      "ref": "J2",
+      "x": 90,
+      "y": 780,
+      "bbox": {
+        "minX": 34.99999999999999,
+        "minY": 675,
+        "maxX": 145,
+        "maxY": 885
+      },
+      "pads": [
+        {
+          "padNumber": "2",
+          "net": "CH1",
+          "x": 90,
+          "y": 830,
+          "width": 70.9,
+          "height": 70.9
+        },
+        {
+          "padNumber": "1",
+          "net": "EXC1",
+          "x": 90,
+          "y": 730,
+          "width": 70.9,
+          "height": 70.9
+        }
+      ]
+    },
+    {
+      "ref": "J3",
+      "x": 90,
+      "y": 560,
+      "bbox": {
+        "minX": 34.99999999999999,
+        "minY": 455,
+        "maxX": 145,
+        "maxY": 665
+      },
+      "pads": [
+        {
+          "padNumber": "2",
+          "net": "CH2",
+          "x": 90,
+          "y": 610,
+          "width": 70.9,
+          "height": 70.9
+        },
+        {
+          "padNumber": "1",
+          "net": "EXC2",
+          "x": 90,
+          "y": 510,
+          "width": 70.9,
+          "height": 70.9
+        }
+      ]
+    },
+    {
+      "ref": "J4",
+      "x": 90,
+      "y": 340,
+      "bbox": {
+        "minX": 34.99999999999999,
+        "minY": 235,
+        "maxX": 145,
+        "maxY": 445
+      },
+      "pads": [
+        {
+          "padNumber": "2",
+          "net": "CH3",
+          "x": 90,
+          "y": 390,
+          "width": 70.9,
+          "height": 70.9
+        },
+        {
+          "padNumber": "1",
+          "net": "EXC3",
+          "x": 90,
+          "y": 290,
+          "width": 70.9,
+          "height": 70.9
+        }
+      ]
+    },
+    {
+      "ref": "J5",
+      "x": 1260,
+      "y": 1000,
+      "bbox": {
+        "minX": 1205,
+        "minY": 895,
+        "maxX": 1315,
+        "maxY": 1105
+      },
+      "pads": [
+        {
+          "padNumber": "2",
+          "net": "CH4",
+          "x": 1260,
+          "y": 1050,
+          "width": 70.9,
+          "height": 70.9
+        },
+        {
+          "padNumber": "1",
+          "net": "EXC4",
+          "x": 1260,
+          "y": 950,
+          "width": 70.9,
+          "height": 70.9
+        }
+      ]
+    },
+    {
+      "ref": "J6",
+      "x": 1260,
+      "y": 780,
+      "bbox": {
+        "minX": 1205,
+        "minY": 675,
+        "maxX": 1315,
+        "maxY": 885
+      },
+      "pads": [
+        {
+          "padNumber": "2",
+          "net": "CH5",
+          "x": 1260,
+          "y": 830,
+          "width": 70.9,
+          "height": 70.9
+        },
+        {
+          "padNumber": "1",
+          "net": "EXC5",
+          "x": 1260,
+          "y": 730,
+          "width": 70.9,
+          "height": 70.9
+        }
+      ]
+    },
+    {
+      "ref": "J7",
+      "x": 1260,
+      "y": 560,
+      "bbox": {
+        "minX": 1205,
+        "minY": 455,
+        "maxX": 1315,
+        "maxY": 665
+      },
+      "pads": [
+        {
+          "padNumber": "2",
+          "net": "CH6",
+          "x": 1260,
+          "y": 610,
+          "width": 70.9,
+          "height": 70.9
+        },
+        {
+          "padNumber": "1",
+          "net": "EXC6",
+          "x": 1260,
+          "y": 510,
+          "width": 70.9,
+          "height": 70.9
+        }
+      ]
+    },
+    {
+      "ref": "J8",
+      "x": 1260,
+      "y": 340,
+      "bbox": {
+        "minX": 1205,
+        "minY": 235,
+        "maxX": 1315,
+        "maxY": 445
+      },
+      "pads": [
+        {
+          "padNumber": "2",
+          "net": "CH7",
+          "x": 1260,
+          "y": 390,
+          "width": 70.9,
+          "height": 70.9
+        },
+        {
+          "padNumber": "1",
+          "net": "EXC7",
+          "x": 1260,
+          "y": 290,
+          "width": 70.9,
+          "height": 70.9
+        }
+      ]
+    },
+    {
+      "ref": "TP4",
+      "x": 175,
+      "y": 1460,
+      "bbox": {
+        "minX": 135.6299,
+        "minY": 1420.6299000000001,
+        "maxX": 214.3701,
+        "maxY": 1499.3700999999999
+      },
+      "pads": [
+        {
+          "padNumber": "1",
+          "net": "ADC_IN",
+          "x": 175,
+          "y": 1460,
+          "width": 78.7,
+          "height": 78.7
+        }
+      ]
+    },
+    {
+      "ref": "TP5",
+      "x": 1175,
+      "y": 1410,
+      "bbox": {
+        "minX": 1135.6299,
+        "minY": 1370.6299000000001,
+        "maxX": 1214.3701,
+        "maxY": 1449.3700999999999
+      },
+      "pads": [
+        {
+          "padNumber": "1",
+          "net": "GPIO6_SPARE",
+          "x": 1175,
+          "y": 1410,
+          "width": 78.7,
+          "height": 78.7
+        }
+      ]
+    }
+  ]
+}

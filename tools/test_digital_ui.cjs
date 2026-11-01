@@ -18,6 +18,7 @@ const fs=require('fs'),path=require('path');const {chromium}=require('playwright
    channelDraft=[{channel:0,name:'头部',type:'pressure',driver:'mux_adc',mux_port:0,enabled:true,options:{press_threshold:1200,release_threshold:800}},
     {channel:8,name:'腹部温度',type:'temperature',driver:'simulation',enabled:true,options:{}}];renderChannelEditor();$('channel').onchange=inputTypeChanged;
   });
+  await page.evaluate(()=>{$('driver8').closest('details').open=true;});
   await page.selectOption('#driver8','ds18b20');
   if(await page.inputValue('#binding8')!=='1')throw Error('Digital pin default');
   const options=JSON.parse(await page.inputValue('#options8'));if(options.model!=='ds18b20'||options.r0_ohm!==undefined)throw Error('Digital options not separated from NTC');
@@ -28,6 +29,7 @@ const fs=require('fs'),path=require('path');const {chromium}=require('playwright
   const saved=await page.evaluate(()=>requests.find(r=>r.name==='set_channel_config').args.channels);
   if(saved[1].rom!=='280102030405069e'||saved[1].driver!=='ds18b20'||saved[0].options.press_threshold!==1200)throw Error('ROM round trip or pressure parameters changed');
   await page.selectOption('#channel','8');if(await page.getAttribute('#pressure','min')!=='-55')throw Error('Digital model range');
+  await page.evaluate(()=>{$('driver8').closest('details').open=true;});
   await page.selectOption('#driver8','gpio_adc');
   const draft=await page.evaluate(()=>readChannelDraft());if(draft[1].rom!==undefined||draft[1].options.model==='ds18b20')throw Error('Stale ROM/model survives driver change');
   await page.selectOption('#driver8','ds18b20');

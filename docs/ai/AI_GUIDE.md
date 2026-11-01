@@ -1,6 +1,6 @@
 # 给AI的安装与使用说明书
 
-> 当前版本：v0.1.0 · 内测第一版。[使用教程](../README.md) · [本版说明](../../CHANGELOG.md)
+> 当前版本：v0.1.1 · 内测0.1.1版。[使用教程](../README.md) · [本版说明](../../CHANGELOG.md)
 
 ## 1. 先选实际通路
 
@@ -18,7 +18,7 @@
 
 ## 2. 下载与保留数据
 
-使用[v0.1.0 Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.0)的同批次完整包及固定`SHA256SUMS.txt`。Windows包自带Python，不先要求普通用户安装系统Python。Linux包包含设备接收服务和MCP，不需要上传Windows运行环境。
+使用[v0.1.1 Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.1)的同批次完整包及固定`SHA256SUMS.txt`。Windows包自带Python，不先要求普通用户安装系统Python。Linux包包含设备接收服务和MCP，不需要上传Windows运行环境。
 
 保留个人历史、校准、聊天绑定、插件数据目录和服务器数据卷。版本重新编号不会自动给实体设备升级；以实际返回版本为准。不因文档更新、改名或重新配对自动恢复出厂。
 
@@ -36,7 +36,7 @@ USB烧录使用`Flash_ESP32.cmd`或标准烧录脚本，每次保存新设备名
 
 ## 4. 工具和日常回应
 
-以当前schema为准。[工具目录](../developers/MCP_TOOLS.md)：STDIO为52个，HTTP的status／history／interaction为2／9／19个，设备`/mcp`为30个。写入能力不放入只读配置。
+以当前schema为准。0.1.1的STDIO为53个、设备公开目录23个；HTTP status/history/interaction为2/9/19。STDIO包含支持旧设备的工具，不代表本版固件可驱动温度、动作或执行器。写入能力不放入只读配置。
 
 日常用`get_chat_context`取得当前聊天近期未处理互动，顺着话题回应；生成后按`receipt_id`确认。读取不等于消费，客户端确认也不等于宿主已验证消息展示。不在日常回复里主动展示ADC、编号、轮询或倒计时。
 
@@ -70,6 +70,26 @@ Operit“设置 → 人设与反馈”可自定义触摸回应提示词。手机
 
 不主动启用物理输出。删除历史先读具体预览并取得对该范围的明确授权；OTA、格式化、全片擦除不能由触摸文本触发。
 
+用户说“开关居中靠下的新PCB”时，参考[现板扩展设计](../../hardware/expansion/current-board/README.md)，不套用旧板位置。本版固件`feature_set=pressure-switch-v1`仅提供压力及干接点GPIO21，原生公开23工具、STDIO53工具；温度、LIS3DH和马达/外接灯已移除。旧扩展配置隔离保留，不执行。历史、校准及身份不清空。原版Release和之前扩展候选能力不同，以设备实际返回为准。
+
+硬件排查先核对实际网络：U2第3脚经R17（1kΩ）到GPIO0，正常可能不触发蜂鸣；ADC对地持续近零才按短路排查。C9拆下后短路解除只能定位到该电容或附近焊接，不能直接宣称MCU损坏或八路已恢复；正式装配恢复原1nF电容并做实测。
+
 安装完成分别说明文件、当前设备、实际工具调用和目标聊天结果。检查使用已声明并安装的MCP SDK，不向导入路径插入`.tools/`旧轮子。发布前核对镜像、完整包、文档链接与密钥排除；用户配置、数据库、日志和本机生成素材不公开。
 
 [开发与构建](../developers/DEVELOPER_GUIDE.md) · [故障排查](../TROUBLESHOOTING.md) · [当前检查范围](../reports/VALIDATION.md)
+
+## 网络优化候选
+
+本版原生状态含`network_revision=2`，普通Chat过滤接口可能不显示；不能仅凭版本0.1.1或缺少过滤字段认定是否升级。热点首页转向`/setup`简洁配网，完整设置保留在`/settings`。长按BOOT后热点开放时蓝灯快闪，联网且热点关闭时常亮。用户需在系统设置切换家庭Wi-Fi，再打开保存的带配对信息入口，不承诺手机自动切网。
+
+恢复按单次30秒等待及退避执行，必要时重新初始化Wi-Fi；不清配网、校准或历史，不自动开常驻热点。先区分设备未联网、IP变化、页面切网失联和401/403权限问题；不把接口故障统一归因于供电或要求重刷。蓝牙WiFiProv方案本轮测量超过OTA槽，未加入交付。详见[空间和网络报告](../reports/FIRMWARE_NETWORK.md)。
+
+精简候选不再公开列出 `get_sensor_config`、`set_sensor_config`、`get_operating_mode`、`set_operating_mode`，但保留直接调用兼容；新流程使用逐端口状态、`read_channel_values` 和校准接口。模拟仍仅限明确设为模拟的端口；释放与事件记录共用计时。旧无线调参串口命令 `radio_test` 已移除，正常网络诊断与 BOOT 配网保留。
+
+0.1.1固件的保留功能和空间见[固件精简说明](../reports/FIRMWARE_TRIM.md)。版本基线及network_revision未变，核对实际目录和镜像清单哈希；不能仅看0.1.1字符串判断是否升级。
+
+## 当前压力/开关固件
+
+0.1.1固件`feature_set=pressure-switch-v1`只支持压力和干接点；公开23设备工具，STDIO53项是兼容旧设备的宿主目录，不代表当前板能执行所有驱动。上文current-board-expansion-v1为较早候选的能力记录，不适用于本候选。温度、动作、马达和外接灯已移除，不能再建议调用扫描/输出命令；板载指示灯、网络、历史和OTA保留。旧扩展配置隔离，不作为有效安装通道；详见[当前固件说明](../reports/FIRMWARE_INPUTS.md)。
+
+设备配网页已增加扫描/连接等待、30秒后的排查建议及只读“检查连接状态”。保存成功不等于联网，切网失联保留入口；详见[Wi-Fi提示说明](../reports/WIFI_FEEDBACK.md)。

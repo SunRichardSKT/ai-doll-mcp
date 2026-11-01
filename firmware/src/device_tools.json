@@ -1,38 +1,5 @@
 [
   {
-    "name": "get_sensor_config",
-    "description": "Read physical 74HC4051 acquisition mode, raw readings and thresholds.",
-    "inputSchema": {
-      "type": "object",
-      "properties": {},
-      "additionalProperties": false
-    }
-  },
-  {
-    "name": "set_sensor_config",
-    "description": "Legacy temporary physical-input override for assembled hardware. Prefer set_channel_state for persistent port modes; reboot follows saved input policy. GPIO ADC=0, S0/S1/S2=3/4/5.",
-    "inputSchema": {
-      "type": "object",
-      "properties": {
-        "enabled": {
-          "type": "boolean"
-        },
-        "press_threshold": {
-          "type": "integer"
-        },
-        "release_threshold": {
-          "type": "integer"
-        }
-      },
-      "additionalProperties": false,
-      "required": [
-        "enabled",
-        "press_threshold",
-        "release_threshold"
-      ]
-    }
-  },
-  {
     "name": "get_body_map",
     "description": "Read user-defined sensor body names from device.",
     "inputSchema": {
@@ -150,7 +117,7 @@
   },
   {
     "name": "get_channel_capabilities",
-    "description": "Discover installed input/output types, drivers, free GPIOs and physical limits before configuring.",
+    "description": "Read pressure/switch input drivers, port modes and GPIO limits. This firmware has no temperature, motion or actuator drivers.",
     "inputSchema": {
       "type": "object",
       "properties": {},
@@ -221,38 +188,6 @@
     }
   },
   {
-    "name": "get_operating_mode",
-    "description": "Read saved manual/daily startup mode and current input/output state. Outputs never resume after reboot.",
-    "inputSchema": {
-      "type": "object",
-      "properties": {},
-      "additionalProperties": false
-    }
-  },
-  {
-    "name": "set_operating_mode",
-    "description": "Legacy saved input startup policy: daily requires assembled sensors; manual pauses inputs. Both stop outputs. Configs with explicit port modes resume connected inputs; configs without modes pause inputs. Prefer set_channel_state.",
-    "inputSchema": {
-      "type": "object",
-      "properties": {
-        "mode": {
-          "type": "string",
-          "enum": [
-            "manual",
-            "daily"
-          ]
-        },
-        "hardware_confirmed": {
-          "type": "boolean"
-        }
-      },
-      "additionalProperties": false,
-      "required": [
-        "mode"
-      ]
-    }
-  },
-  {
     "name": "capture_pressure_calibration",
     "description": "Capture real pressure only: stage 0 idle, 1 light, 2 strong. Suppress selected channel touch events during calibration; capture nonblocking, expires after 60s inactivity. No automatic save.",
     "inputSchema": {
@@ -310,7 +245,7 @@
   },
   {
     "name": "set_channel_config",
-    "description": "Replace all 1..16 channels, preserving historical labels/types. Explicit modes resume connected inputs; legacy configs without modes pause inputs. Both disable physical outputs. Prefer set_channel_state for one port.",
+    "description": "Replace pressure/switch channel configuration; explicit modes resume connected inputs. Preserve calibration and retired settings. Prefer set_channel_state for one port.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -339,8 +274,7 @@
                 "type": "string",
                 "enum": [
                   "pressure",
-                  "temperature",
-                  "vibration"
+                  "switch"
                 ]
               },
               "mode": {
@@ -357,7 +291,7 @@
                   "simulation",
                   "mux_adc",
                   "gpio_adc",
-                  "gpio_pwm"
+                  "gpio_switch"
                 ]
               },
               "enabled": {
@@ -366,8 +300,7 @@
               "direction": {
                 "type": "string",
                 "enum": [
-                  "input",
-                  "output"
+                  "input"
                 ]
               },
               "mux_port": {
@@ -380,10 +313,6 @@
               },
               "options": {
                 "type": "object"
-              },
-              "rom": {
-                "type": "string",
-                "pattern": "^[a-fA-F0-9]{16}$"
               }
             },
             "required": [
@@ -403,7 +332,7 @@
   },
   {
     "name": "simulate_channel_input",
-    "description": "Inject pressure adc_raw (0 releases) or temperature degC/-40..125. millivolt temperature mode exercises NTC conversion/fault detection. Not a physical reading.",
+    "description": "Simulate an enabled pressure or dry-contact input configured in simulation mode; never drives physical outputs.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -416,88 +345,17 @@
           "type": "number"
         },
         "unit": {
-          "type": "string"
+          "type": "string",
+          "enum": [
+            "adc_raw",
+            "boolean"
+          ]
         }
       },
       "additionalProperties": false,
       "required": [
         "channel",
         "value"
-      ]
-    }
-  },
-  {
-    "name": "scan_input_devices",
-    "description": "Read DS18B20 ROMs on GPIO1. Physical sampling must be disabled and GPIO1 cannot belong to ADC. No channel assignment or output activation.",
-    "inputSchema": {
-      "type": "object",
-      "properties": {
-        "driver": {
-          "type": "string",
-          "enum": [
-            "ds18b20"
-          ]
-        },
-        "gpio": {
-          "type": "integer",
-          "enum": [
-            1
-          ]
-        }
-      },
-      "additionalProperties": false,
-      "required": [
-        "driver",
-        "gpio"
-      ]
-    }
-  },
-  {
-    "name": "set_output_enabled",
-    "description": "Enable physical PWM only after user confirms external motor driver. Disabled on reboot/config changes. false stops all outputs. Simulation does not require arming.",
-    "inputSchema": {
-      "type": "object",
-      "properties": {
-        "enabled": {
-          "type": "boolean"
-        },
-        "external_driver_confirmed": {
-          "type": "boolean"
-        }
-      },
-      "additionalProperties": false,
-      "required": [
-        "enabled"
-      ]
-    }
-  },
-  {
-    "name": "set_vibration",
-    "description": "Command an enabled vibration output 0..100 percent for 1..5000 ms, automatically stops; intensity=0 stops immediately. Never evidence of motor movement or touch.",
-    "inputSchema": {
-      "type": "object",
-      "properties": {
-        "channel": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 15
-        },
-        "intensity": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 100
-        },
-        "duration_ms": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 5000
-        }
-      },
-      "additionalProperties": false,
-      "required": [
-        "channel",
-        "intensity",
-        "duration_ms"
       ]
     }
   },

@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1180" viewBox="0 0 1600 1180">
+<rect width="1600" height="1180" fill="#f1f5f9"/>
+<style>text{font-family:"Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#0f172a} .sub{fill:#475569} .tiny{font-size:15px} .small{font-size:18px}</style>
+<text x="42" y="58" font-size="36" font-weight="700">现板内测扩展 · 接线参考</text>
+<text x="42" y="97" font-size="21" style="fill:#475569">适用：开关居中靠下的贴片版｜八路压力保持原样｜不切主板走线</text>
+<rect x="30" y="130" width="540" height="830" rx="15" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+<text x="58" y="171" font-size="24" font-weight="700">主板正面 · 天线上 / USB朝下</text>
+<rect x="92.0" y="208.0" width="405.0" height="525.0" rx="12" fill="#e0f2fe" stroke="#0369a1" stroke-width="1.5"/>
+<rect x="186.452" y="211.73499999999996" width="216.0960000000001" height="289.53000000000003" rx="5" fill="#e2e8f0" stroke="#64748b" stroke-width="1.5"/>
+<text x="295" y="245" font-size="19" style="fill:#475569" text-anchor="middle">ANT</text>
+<text x="295" y="499" font-size="19" style="fill:#475569" text-anchor="middle">USB ↓</text>
+<rect x="378.94" y="453.40999999999997" width="20" height="16" rx="2" fill="#64748b" stroke="#ffffff" stroke-width="1.5"/>
+<text x="371.94" y="466.40999999999997" font-size="15" style="fill:#64748b" text-anchor="end">GPIO5</text>
+<rect x="378.94" y="423.40999999999997" width="20" height="16" rx="2" fill="#2563eb" stroke="#ffffff" stroke-width="1.5"/>
+<text x="371.94" y="436.40999999999997" font-size="15" style="fill:#2563eb" text-anchor="end">GPIO6</text>
+<rect x="378.94" y="393.40999999999997" width="20" height="16" rx="2" fill="#0891b2" stroke="#ffffff" stroke-width="1.5"/>
+<text x="371.94" y="406.40999999999997" font-size="15" style="fill:#0891b2" text-anchor="end">GPIO7</text>
+<rect x="378.94" y="363.40999999999997" width="20" height="16" rx="2" fill="#64748b" stroke="#ffffff" stroke-width="1.5"/>
+<text x="371.94" y="376.40999999999997" font-size="15" style="fill:#64748b" text-anchor="end">GPIO8</text>
+<rect x="378.94" y="333.40999999999997" width="20" height="16" rx="2" fill="#64748b" stroke="#ffffff" stroke-width="1.5"/>
+<text x="371.94" y="346.40999999999997" font-size="15" style="fill:#64748b" text-anchor="end">GPIO9</text>
+<rect x="378.94" y="303.41" width="20" height="16" rx="2" fill="#7c3aed" stroke="#ffffff" stroke-width="1.5"/>
+<text x="371.94" y="316.41" font-size="15" style="fill:#7c3aed" text-anchor="end">GPIO10</text>
+<rect x="378.94" y="273.41" width="20" height="16" rx="2" fill="#be185d" stroke="#ffffff" stroke-width="1.5"/>
+<text x="371.94" y="286.41" font-size="15" style="fill:#be185d" text-anchor="end">GPIO20</text>
+<rect x="378.94" y="243.41000000000003" width="20" height="16" rx="2" fill="#15803d" stroke="#ffffff" stroke-width="1.5"/>
+<text x="371.94" y="256.41" font-size="15" style="fill:#15803d" text-anchor="end">GPIO21</text>
+<rect x="189.94" y="243.41000000000003" width="20" height="16" rx="2" fill="#64748b" stroke="#ffffff" stroke-width="1.5"/>
+<text x="216.94" y="256.41" font-size="15" style="fill:#64748b" text-anchor="start">GPIO0</text>
+<rect x="189.94" y="273.41" width="20" height="16" rx="2" fill="#b45309" stroke="#ffffff" stroke-width="1.5"/>
+<text x="216.94" y="286.41" font-size="15" style="fill:#b45309" text-anchor="start">GPIO1</text>
+<rect x="189.94" y="303.41" width="20" height="16" rx="2" fill="#64748b" stroke="#ffffff" stroke-width="1.5"/>
+<text x="216.94" y="316.41" font-size="15" style="fill:#64748b" text-anchor="start">GPIO2</text>
+<rect x="189.94" y="333.40999999999997" width="20" height="16" rx="2" fill="#64748b" stroke="#ffffff" stroke-width="1.5"/>
+<text x="216.94" y="346.40999999999997" font-size="15" style="fill:#64748b" text-anchor="start">GPIO3</text>
+<rect x="189.94" y="363.40999999999997" width="20" height="16" rx="2" fill="#64748b" stroke="#ffffff" stroke-width="1.5"/>
+<text x="216.94" y="376.40999999999997" font-size="15" style="fill:#64748b" text-anchor="start">GPIO4</text>
+<rect x="189.94" y="393.40999999999997" width="20" height="16" rx="2" fill="#64748b" stroke="#ffffff" stroke-width="1.5"/>
+<text x="216.94" y="406.40999999999997" font-size="15" style="fill:#64748b" text-anchor="start">3V3</text>
+<rect x="189.94" y="423.40999999999997" width="20" height="16" rx="2" fill="#475569" stroke="#ffffff" stroke-width="1.5"/>
+<text x="216.94" y="436.40999999999997" font-size="15" style="fill:#475569" text-anchor="start">GND</text>
+<rect x="189.94" y="453.40999999999997" width="20" height="16" rx="2" fill="#d97706" stroke="#ffffff" stroke-width="1.5"/>
+<text x="216.94" y="466.40999999999997" font-size="15" style="fill:#d97706" text-anchor="start">SYS5V</text>
+<circle cx="119.0" cy="418.0" r="8" fill="#94a3b8" stroke="#fff"/>
+<circle cx="119.0" cy="448.0" r="8" fill="#94a3b8" stroke="#fff"/>
+<text x="101.0" y="439.0" font-size="15" style="fill:#475569" text-anchor="end">J1</text>
+<circle cx="119.0" cy="484.0" r="8" fill="#94a3b8" stroke="#fff"/>
+<circle cx="119.0" cy="514.0" r="8" fill="#94a3b8" stroke="#fff"/>
+<text x="101.0" y="505.0" font-size="15" style="fill:#475569" text-anchor="end">J2</text>
+<circle cx="119.0" cy="550.0" r="8" fill="#94a3b8" stroke="#fff"/>
+<circle cx="119.0" cy="580.0" r="8" fill="#94a3b8" stroke="#fff"/>
+<text x="101.0" y="571.0" font-size="15" style="fill:#475569" text-anchor="end">J3</text>
+<circle cx="119.0" cy="616.0" r="8" fill="#94a3b8" stroke="#fff"/>
+<circle cx="119.0" cy="646.0" r="8" fill="#94a3b8" stroke="#fff"/>
+<text x="101.0" y="637.0" font-size="15" style="fill:#475569" text-anchor="end">J4</text>
+<circle cx="470.0" cy="418.0" r="8" fill="#94a3b8" stroke="#fff"/>
+<circle cx="470.0" cy="448.0" r="8" fill="#94a3b8" stroke="#fff"/>
+<text x="488.0" y="439.0" font-size="15" style="fill:#475569" text-anchor="start">J5</text>
+<circle cx="470.0" cy="484.0" r="8" fill="#94a3b8" stroke="#fff"/>
+<circle cx="470.0" cy="514.0" r="8" fill="#94a3b8" stroke="#fff"/>
+<text x="488.0" y="505.0" font-size="15" style="fill:#475569" text-anchor="start">J6</text>
+<circle cx="470.0" cy="550.0" r="8" fill="#94a3b8" stroke="#fff"/>
+<circle cx="470.0" cy="580.0" r="8" fill="#94a3b8" stroke="#fff"/>
+<text x="488.0" y="571.0" font-size="15" style="fill:#475569" text-anchor="start">J7</text>
+<circle cx="470.0" cy="616.0" r="8" fill="#94a3b8" stroke="#fff"/>
+<circle cx="470.0" cy="646.0" r="8" fill="#94a3b8" stroke="#fff"/>
+<text x="488.0" y="637.0" font-size="15" style="fill:#475569" text-anchor="start">J8</text>
+<rect x="242.0" y="670.3" width="105.0" height="44.4" rx="5" fill="#cbd5e1" stroke="#475569" stroke-width="1.5"/>
+<text x="295" y="698.3" font-size="18" font-weight="700" text-anchor="middle">SW1</text>
+<circle cx="264.98" cy="692.5" r="5" fill="#475569"/>
+<circle cx="294.5" cy="692.5" r="5" fill="#475569"/>
+<circle cx="324.02" cy="692.5" r="5" fill="#475569"/>
+<text x="59" y="789" font-size="19" font-weight="700">以模块自身丝印和封装脚号双重核对</text>
+<text x="59" y="827" font-size="18" style="fill:#475569">灰色焊点与八路压力保持原用途。</text>
+<text x="59" y="862" font-size="18" style="fill:#475569">背面观察需翻转，不能直接照搬此图。</text>
+<text x="59" y="901" font-size="18" style="fill:#475569">SW1中脚与模块5V同属SYS5V。</text>
+<rect x="640" y="190" width="310" height="500" rx="15" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+<text x="667" y="228" font-size="24" font-weight="700">新增8P转接线束</text>
+<circle cx="172.94" cy="431.40999999999997" r="10" fill="#475569"/>
+<text x="172.94" y="435.40999999999997" font-size="12" style="fill:#ffffff" font-weight="700" text-anchor="middle">1</text>
+<circle cx="657" cy="274" r="7" fill="#475569"/>
+<text x="677" y="280" font-size="19" style="fill:#475569" font-weight="700">1  GND</text>
+<circle cx="172.94" cy="461.40999999999997" r="10" fill="#d97706"/>
+<text x="172.94" y="465.40999999999997" font-size="12" style="fill:#ffffff" font-weight="700" text-anchor="middle">2</text>
+<circle cx="657" cy="324" r="7" fill="#d97706"/>
+<text x="677" y="330" font-size="19" style="fill:#d97706" font-weight="700">2  SYS5V</text>
+<circle cx="172.94" cy="281.41" r="10" fill="#b45309"/>
+<text x="172.94" y="285.41" font-size="12" style="fill:#ffffff" font-weight="700" text-anchor="middle">3</text>
+<circle cx="657" cy="374" r="7" fill="#b45309"/>
+<text x="677" y="380" font-size="19" style="fill:#b45309" font-weight="700">3  TEMP · GPIO1</text>
+<circle cx="415.94" cy="431.40999999999997" r="10" fill="#2563eb"/>
+<text x="415.94" y="435.40999999999997" font-size="12" style="fill:#ffffff" font-weight="700" text-anchor="middle">4</text>
+<circle cx="657" cy="424" r="7" fill="#2563eb"/>
+<text x="677" y="430" font-size="19" style="fill:#2563eb" font-weight="700">4  SDA · GPIO6</text>
+<circle cx="415.94" cy="401.40999999999997" r="10" fill="#0891b2"/>
+<text x="415.94" y="405.40999999999997" font-size="12" style="fill:#ffffff" font-weight="700" text-anchor="middle">5</text>
+<circle cx="657" cy="474" r="7" fill="#0891b2"/>
+<text x="677" y="480" font-size="19" style="fill:#0891b2" font-weight="700">5  SCL · GPIO7</text>
+<circle cx="415.94" cy="311.41" r="10" fill="#7c3aed"/>
+<text x="415.94" y="315.41" font-size="12" style="fill:#ffffff" font-weight="700" text-anchor="middle">6</text>
+<circle cx="657" cy="524" r="7" fill="#7c3aed"/>
+<text x="677" y="530" font-size="19" style="fill:#7c3aed" font-weight="700">6  VIB · GPIO10</text>
+<circle cx="415.94" cy="281.41" r="10" fill="#be185d"/>
+<text x="415.94" y="285.41" font-size="12" style="fill:#ffffff" font-weight="700" text-anchor="middle">7</text>
+<circle cx="657" cy="574" r="7" fill="#be185d"/>
+<text x="677" y="580" font-size="19" style="fill:#be185d" font-weight="700">7  LIGHT · GPIO20</text>
+<circle cx="415.94" cy="251.41000000000003" r="10" fill="#15803d"/>
+<text x="415.94" y="255.41000000000003" font-size="12" style="fill:#ffffff" font-weight="700" text-anchor="middle">8</text>
+<circle cx="657" cy="624" r="7" fill="#15803d"/>
+<text x="677" y="630" font-size="19" style="fill:#15803d" font-weight="700">8  SWITCH · GPIO21</text>
+<text x="663" y="660" font-size="16" style="fill:#475569">按编号一一连接；不是原板插座</text>
+<rect x="1000" y="190" width="560" height="108" rx="15" fill="#ffffff" stroke="#d97706" stroke-width="1.5"/>
+<text x="1024" y="230" font-size="23" style="fill:#d97706" font-weight="700">两路独立稳压 / 公共地</text>
+<text x="1024" y="267" font-size="17" style="fill:#475569">SYS5V → 3V3_LOGIC；SYS5V → 3V3_MOTOR</text>
+<rect x="1000" y="322" width="560" height="108" rx="15" fill="#ffffff" stroke="#b45309" stroke-width="1.5"/>
+<text x="1024" y="362" font-size="23" style="fill:#b45309" font-weight="700">温度 · 1～2只 DS18B20</text>
+<text x="1024" y="399" font-size="17" style="fill:#475569">3V3_LOGIC / GND / GPIO1，数据线上拉4.7kΩ</text>
+<rect x="1000" y="454" width="560" height="108" rx="15" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+<text x="1024" y="494" font-size="23" style="fill:#2563eb" font-weight="700">姿态变化 · LIS3DH</text>
+<text x="1024" y="531" font-size="17" style="fill:#475569">3V3_LOGIC / GND / GPIO6 SDA / GPIO7 SCL</text>
+<rect x="1000" y="586" width="560" height="108" rx="15" fill="#ffffff" stroke="#7c3aed" stroke-width="1.5"/>
+<text x="1024" y="626" font-size="23" style="fill:#7c3aed" font-weight="700">振动 · ERM马达与驱动</text>
+<text x="1024" y="663" font-size="17" style="fill:#475569">GPIO10 → MOSFET；马达使用匹配的独立电源</text>
+<rect x="1000" y="718" width="560" height="108" rx="15" fill="#ffffff" stroke="#be185d" stroke-width="1.5"/>
+<text x="1024" y="758" font-size="23" style="fill:#be185d" font-weight="700">灯效 · 单颗低电流LED</text>
+<text x="1024" y="795" font-size="17" style="fill:#475569">GPIO20 → 1kΩ → LED → GND</text>
+<rect x="1000" y="850" width="560" height="108" rx="15" fill="#ffffff" stroke="#15803d" stroke-width="1.5"/>
+<text x="1024" y="890" font-size="23" style="fill:#15803d" font-weight="700">开关 · 一个无源干接点</text>
+<text x="1024" y="927" font-size="17" style="fill:#475569">GPIO21，上拉10kΩ；串联1kΩ，滤波100nF</text>
+<rect x="640" y="718" width="310" height="240" rx="15" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
+<text x="662" y="757" font-size="23" style="fill:#9a3412" font-weight="700">装配边界</text>
+<text x="662" y="798" font-size="16" style="fill:#9a3412">马达不接FSR口或GPIO电源</text>
+<text x="662" y="828" font-size="16" style="fill:#9a3412">两个稳压输出不互相并联</text>
+<text x="662" y="858" font-size="16" style="fill:#9a3412">GPIO20/21与UART互斥</text>
+<text x="662" y="888" font-size="16" style="fill:#9a3412">扩展不挤入原电池仓</text>
+<text x="662" y="918" font-size="16" style="fill:#9a3412">需扩展候选软件，逐项接线核对</text>
+<text x="42" y="1010" font-size="19" style="fill:#475569">仅为接线设计示意：按2026-10-17原生回读焊盘坐标绘制；未修改原PCB，不是制造图。</text>
+<text x="42" y="1050" font-size="19" style="fill:#475569">扩展候选支持温度、姿态、振动、灯和开关；需同批软件，新增模块逐项接线验收。</text>
+<text x="42" y="1090" font-size="19" style="fill:#475569">电源先断开再接线；正式装配保留原C9（1nF）及R17（1kΩ）；交叉线没有连接点时不相连。</text>
+<text x="42" y="1132" font-size="18" style="fill:#64748b">完整电路、器件规格、软件边界和安装步骤：同目录README / WIRING / SOFTWARE / ACCEPTANCE。</text>
+</svg>

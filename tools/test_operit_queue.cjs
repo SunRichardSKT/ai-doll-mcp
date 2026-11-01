@@ -3,7 +3,7 @@ const assert=require('node:assert/strict'),path=require('node:path');
 const {fixture}=require('./operit_test_host.cjs');
 let finished=false;
 process.on('beforeExit',()=>{if(!finished){console.error('FAIL unresolved queue test');process.exitCode=1;}});
-async function scenario({delay=45,duration=70,wait=0,disable=false,stop=false,ackFailure=false,continuous=false,mixedPorts=false,replyPrompt,updatedReplyPrompt}={}){
+async function scenario({delay=45,duration=70,wait=0,disable=false,stop=false,ackFailure=false,continuous=false,mixedPorts=false,replyPrompt,updatedReplyPrompt,inputKind='pressure'}={}){
  let f,session,resolveFirst,started,reads=0,active=0,maxActive=0,emitted=0,firstSendAt;
  const events=[],acks=[],sends=[],captured=[],times=mixedPorts?[0,2,2,2,2,2]:[0,2,2.2,2.4,2.6,2.8];
  const prefs={proactive_enabled:true,chat_integration_enabled:true};
@@ -13,13 +13,13 @@ async function scenario({delay=45,duration=70,wait=0,disable=false,stop=false,ac
   if(name==='start_interaction'){started=now;session={id:'queue-session',chat_id:a.chat_id,started:now,deadline:now+a.duration_sec};return session;}
   if(name==='end_interaction'){session=null;return {ended:true};}
   if(name==='get_chat_context'){
-   const selected=a.session_id?events.filter(e=>e.phase==='start'&&e.id>a.after&&e.id<=a.through):[];
+   const selected=a.session_id?events.filter(e=>['start','shake','close','sample'].includes(e.phase)&&e.id>a.after&&e.id<=a.through):[];
    if(selected.length)captured.push(...selected.map(e=>e.event_id));
    return {context_protocol:'leased-batch-v1',preferences:prefs,proactive_delivery_allowed:!disable||firstSendAt===undefined||now-firstSendAt<delay,
     channels:[{channel:0,mode:mixedPorts&&firstSendAt!==undefined&&now-firstSendAt>=delay?'off':'connected',feedback_level:'normal'},
      {channel:1,mode:'connected',feedback_level:'normal'}],events:selected,
     receipt_id:selected.length?'r'+selected.map(e=>e.id).join('_'):null,
-    expires_at:selected.length?selected[0].at+30:null,persona:'',feedback:{}};
+    response_policy:{motion_enabled:true,switch_enabled:true,temperature_enabled:true},expires_at:selected.length?selected[0].at+30:null,persona:'',feedback:{}};
   }
   if(name==='get_interaction_device_events'){
    reads++;if(reads>1)f.advance(100);
@@ -28,7 +28,8 @@ async function scenario({delay=45,duration=70,wait=0,disable=false,stop=false,ac
     const e={id:events.length+1,event_id:'e'+(events.length+1),session_id:session.id,channel:mixedPorts?emitted%2:0,touch_id:'t'+emitted,
      boot:'boot',phase:'start',sensor_type:'pressure',direction:'input',quality:'ok',source:'sensor',at:started+times[emitted],
      body_preferences:{feedback_level:'normal'}};
-    events.push(e,{...e,id:e.id+1,event_id:'e'+(e.id+1),phase:'end',duration_ms:50});emitted++;
+    if(inputKind!=='pressure'){delete e.touch_id;e.sensor_type=inputKind;e.phase=inputKind==='motion'?'shake':inputKind==='switch'?'close':'sample';e.value=inputKind==='temperature'?25+emitted:1;e.unit=inputKind==='temperature'?'degC':inputKind==='switch'?'boolean':'g';}
+    events.push(e,{...e,id:e.id+1,event_id:'e'+(e.id+1),phase:inputKind==='pressure'?'end':'update',duration_ms:50});emitted++;
    }
    if(resolveFirst&&t-firstSendAt>=delay){
     const journal=JSON.parse(f.disk.get('/managed/queue.json'));
@@ -58,6 +59,7 @@ async function scenario({delay=45,duration=70,wait=0,disable=false,stop=false,ac
 }
 (async()=>{
  const q=await scenario();assert.ifError(q.error);
+ for(const inputKind of ['motion','switch','temperature']){const typed=await scenario({inputKind});assert.ifError(typed.error);assert.equal(typed.sends.length,2);assert.equal(typed.maxActive,1);const later=JSON.parse(typed.sends[1].text.split('\n').pop());assert.equal(later.events.length,5);assert.ok(later.events.every(e=>e.sensor_type===inputKind));}
  assert.equal(q.sends.length,2);assert.equal(q.maxActive,1);
  const first=JSON.parse(q.sends[0].text.split('\n').pop()),second=JSON.parse(q.sends[1].text.split('\n').pop());
  assert.equal(first.touch_count,1);assert.equal(second.touch_count,5);

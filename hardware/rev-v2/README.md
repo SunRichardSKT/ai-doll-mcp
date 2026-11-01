@@ -18,6 +18,8 @@
 
 ## 紧凑贴片主板
 
-[当前布线工程与说明](candidates/pcb-v22-routed-20261017/README.md)保留最新紧凑方案。SuperMini手焊焊盘、底面元件与USB净空仍需适配确认，不能直接按研发工程下单；对应[平铺外壳](../enclosure/v22-prototype/README.md)。
+[开关居中靠下现板的扩展设计](../expansion/current-board/README.md)单独维护接线、配件及软件交付边界，保留原八路压力。它不改变下述历史工程的制造核对状态，也不把扩展设计标为已实测。
+
+[当前布线工程与说明](candidates/pcb-v22-routed-20261017/README.md)保留最新紧凑方案。SuperMini手焊焊盘、底面元件与USB净空仍需适配确认，不能直接按研发工程下单；推荐[紧凑堆叠外壳P03](../enclosure/v22-stacked/README.md)，也保留[低矮平铺外壳](../enclosure/v22-prototype/README.md)。
 
 `verification/`保留当前丝印核对、DRC与元器件资料。早期装配草案、未布线布局、前版原生工程和重复预览已清理。实际接线和校准按当前硬件操作，不因软件版本统一修改电气参数。

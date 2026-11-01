@@ -28,7 +28,7 @@ DEVICE_READS = {'get_channel_config': 'channels', 'get_channel_capabilities': 'c
                 'get_pressure_calibration': 'calibration', 'get_sensor_config': 'sensors'}
 DEVICE_COMMANDS = {'set_channel_config', 'set_channel_state', 'set_body_map', 'simulate_channel_input',
                    'doll_simulate_press', 'set_input_enabled', 'set_output_enabled',
-                   'set_vibration', 'set_operating_mode', 'doll_set_led',
+                   'set_vibration', 'set_light', 'set_operating_mode', 'doll_set_led',
                    'capture_pressure_calibration', 'get_pressure_calibration',
                    'apply_pressure_calibration', 'cancel_pressure_calibration',
                    'scan_input_devices', 'get_sensor_config', 'set_sensor_config'}

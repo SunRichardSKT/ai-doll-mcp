@@ -231,6 +231,7 @@ class ChannelConfig(BaseModel):
     mux_port: int | None = Field(default=None, ge=0, le=7, strict=True)
     gpio: int | None = Field(default=None, ge=0, le=21, strict=True)
     rom: str | None = Field(default=None, pattern=r'^[a-fA-F0-9]{16}$', strict=True)
+    address: Literal[24, 25] | None = None
     options: dict = Field(default_factory=dict)
 
 
@@ -241,6 +242,8 @@ def set_channel_config(channels: list[ChannelConfig], schema_version: int = 1) -
     vibration: output using simulation or gpio_pwm(GPIO6/7/10 unique), requires external motor driver.
     Temperature preset NTC10k B3950, options r0_ohm/beta_kelvin/pull_down_ohm/series_ohm/supply_mv/offset_c/sample_ms/report_ms.
     DS18B20 digital temperature uses driver=ds18b20, GPIO1 plus a CRC-valid scanned ROM, external 3.3V power. Multiple unique ROMs share GPIO1; ADC1 cannot. Options model=ds18b20, offset_c/sample_ms/report_ms.
+    motion: lis3dh on GPIO6/7 with address=24 or25, options upright_axis/shake_threshold_g/cooldown_ms/sample_ms. Cannot share PWM6/7.
+    light: gpio_pwm GPIO20 with series current limiting. switch: gpio_switch GPIO21 with external pull-up, options active_low/debounce_ms. These pins cannot also be UART.
     Existing V2 MUX branch has 4.7k series and 10k pull-down. pressure options press_threshold/release_threshold.
     All explicit per-port modes resume declared connected inputs; legacy configs without modes pause inputs. Both stop physical outputs. Unknown types/drivers are rejected.
     """
@@ -309,25 +312,43 @@ def cancel_pressure_calibration() -> dict:
 
 
 @mcp.tool()
-def simulate_channel_input(channel: int, value: float, unit: str | None = None) -> dict:
+def simulate_channel_input(channel: int, value: float, unit: str | None = None,
+                           motion_event: Literal['shake', 'orientation'] | None = None) -> dict:
     """Simulate an enabled input: pressure integer 0..4095 adc_raw; temperature -40..125 degC.
-    Optional millivolt mode runs NTC conversion and fault reporting. Cannot inject into vibration outputs or physically enabled bindings.
+    Optional millivolt mode runs NTC conversion and fault reporting. Motion uses g and motion_event=shake/orientation; switch uses boolean 0/1.
+    Cannot inject into outputs or physically enabled bindings.
     """
     args={'channel': channel, 'value': value}
     if unit is not None: args['unit']=unit
+    if motion_event is not None: args['motion_event']=motion_event
     return call('simulate_channel_input', args)
 
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False))
 def set_output_enabled(enabled: bool, external_driver_confirmed: bool = False) -> dict:
     """Arm physical PWM only if user confirms external motor driver, never direct MCU/4051 drive. false stops all outputs; reboot/config changes disable. Simulation needs no arming."""
     return call('set_output_enabled', {'enabled': enabled, 'external_driver_confirmed': external_driver_confirmed})
 
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False))
 def set_vibration(channel: int, intensity: int, duration_ms: int = 500) -> dict:
     """Command configured vibration output: intensity 0..100%, duration 1..5000ms; auto-off, 0 stops immediately. A command is not measured motor feedback. Choose simulation until a driver is wired."""
     return call('set_vibration', {'channel': channel, 'intensity': intensity, 'duration_ms': duration_ms})
+
+
+@mcp.tool(annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False))
+def set_light(channel: int = Field(ge=0, le=15, strict=True),
+              brightness: int = Field(ge=0, le=100, strict=True),
+              pattern: Literal['steady', 'breathe', 'blink'] = 'steady',
+              duration_ms: int = Field(default=0, ge=0, le=300000, strict=True),
+              period_ms: int = Field(default=2000, ge=200, le=10000, strict=True)) -> dict:
+    """Command a configured single LED on GPIO20; current-limiting resistor required.
+    brightness=0 stops, duration_ms=0 stays on until stopped. Physical outputs must
+    be explicitly enabled. Config changes and reboot stop outputs. Commanded state
+    is not measured optical feedback; never use this as an input interaction.
+    """
+    return call('set_light', dict(channel=channel, brightness=brightness, pattern=pattern,
+                                 duration_ms=duration_ms, period_ms=period_ms))
 
 
 @mcp.tool()

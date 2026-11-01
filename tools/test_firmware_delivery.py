@@ -43,5 +43,21 @@ class FirmwareDeliveryTests(unittest.TestCase):
             table.write_bytes(raw);self.update_hash(root, 'partitions.bin')
             with self.assertRaisesRegex(ValueError, 'Partition layout'):check(root)
 
+    def test_candidate_cannot_ship_manifest_without_matching_feature_set(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary);self.prepare(root)
+            path=root/'firmware/prebuilt/FLASH_MANIFEST.json'
+            manifest=json.loads(path.read_text(encoding='utf-8'));manifest.pop('feature_set',None)
+            path.write_text(json.dumps(manifest),encoding='utf-8')
+            with self.assertRaisesRegex(ValueError,'Expansion source'):check(root)
+
+    def test_network_candidate_requires_matching_revision(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary);self.prepare(root)
+            path=root/'firmware/prebuilt/FLASH_MANIFEST.json'
+            manifest=json.loads(path.read_text(encoding='utf-8'));manifest.pop('network_revision',None)
+            path.write_text(json.dumps(manifest),encoding='utf-8')
+            with self.assertRaisesRegex(ValueError,'Network revision'):check(root)
+
 
 if __name__=='__main__':unittest.main()

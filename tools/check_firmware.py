@@ -19,6 +19,12 @@ def check(root=ROOT):
     image = (folder/'firmware.bin').read_bytes()
     if manifest['firmware'] != version or version.encode() not in image:
         raise ValueError('Source, image and manifest versions differ; rebuild and export first')
+    variant = re.search(r'o\["feature_set"\]="([^"]+)"', source)
+    if variant and (manifest.get('feature_set') != variant[1] or variant[1].encode() not in image):
+        raise ValueError('Expansion source, image and manifest differ; rebuild and export first')
+    revision = re.search(r'o\["network_revision"\]=(\d+)', source)
+    if revision and (manifest.get('network_revision') != int(revision[1]) or b'network_revision' not in image):
+        raise ValueError('Network revision differs; rebuild and export first')
     entries = {}
     table = (folder/'partitions.bin').read_bytes()
     for offset in range(0, len(table), 32):

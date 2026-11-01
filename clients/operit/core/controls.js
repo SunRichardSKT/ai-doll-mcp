@@ -23,14 +23,14 @@ async function panel() {
   const result={overview,channels:(config.channels||[]).map(c=>({...c,mode:mode(c)})),
     port_writes:config.port_state_model==='per_port_v1',presence_source:'saved_installation_config',
     electrical_presence_detection:false,preferences:overview.preferences||{},persona:overview.preferences?.doll_persona||persona.persona||'',
-    settings_entries:entries,hotspot:entry.hotspot||{url:'http://192.168.4.1/',access:'仅连接设备热点时使用。'},checked_at:Date.now()};
+    input_policy:overview.input_policy||overview.preferences||{},settings_entries:entries,hotspot:entry.hotspot||{url:'http://192.168.4.1/',access:'仅连接设备热点时使用。'},checked_at:Date.now()};
   await store.write('panel_'+cfg.binding+'.json',result);return result;
 }
 async function refreshOverview(cfg,cached={}){
   const call=await interaction.connect(cfg.connection.mcp_url,cfg.connection);
   const overview=await call('get_device_overview');
   const result={...cached,overview,preferences:overview.preferences||cached.preferences||{},
-    channels:(overview.channels||cached.channels||[]).map(c=>({...c,mode:mode(c)})),
+    channels:(overview.channels||cached.channels||[]).map(c=>({...c,mode:mode(c)})),input_policy:overview.input_policy||overview.preferences||{},
     persona:overview.preferences?.doll_persona??cached.persona??'',checked_at:Date.now(),connection_error:null};
   await store.write('panel_'+cfg.binding+'.json',result);return result;
 }
@@ -80,3 +80,9 @@ async function testSensor() {
 exports.panel=panel;exports.updatePort=updatePort;exports.persona=persona;exports.diagnostics=diagnostics;
 exports.testSensor=testSensor;
 exports.refreshOverview=refreshOverview;
+exports.sensorRules=async p=>{
+ const policy={};for(const k of ['motion_enabled','switch_enabled','temperature_enabled'])if(p[k]!==undefined){if(typeof p[k]!=='boolean')throw Error('请选择只记录或允许回复。');policy[k]=p[k];}
+ if(p.temperature_delta_c!==undefined){if(!Number.isFinite(p.temperature_delta_c)||p.temperature_delta_c<.1||p.temperature_delta_c>30)throw Error('温度变化门限应为0.1～30℃。');policy.temperature_delta_c=p.temperature_delta_c;}
+ if(!Object.keys(policy).length)throw Error('请选择要修改的扩展回复规则。');
+ const {call}=await tool();await call('update_companion_preferences',{changes:{policy}});return {saved:true,policy};
+};

@@ -1,34 +1,15 @@
 #pragma once
 #include <esp_timer.h>
-#include <OneWire.h>
 #include "pressure_calibration.h"
-static bool sensorEnabled=false;
-static bool resumeInputs=false;
+#include "expansion_inputs.h"
+static bool sensorEnabled=false,resumeInputs=false;
 static int sensorOn=1200,sensorOff=800;
 #include "channel_devices.h"
-static OneWire digitalWire;
-static DigitalTemperatureCycle digitalCycles[MAX_CHANNELS];
-static bool digitalReady=false;
-static void stopDigitalInputs(){
- for(auto &cycle:digitalCycles)cycle.reset();
- if(digitalReady){digitalWire.depower();pinMode(1,INPUT);digitalReady=false;}
-}
-static bool scanInputDevices(JsonVariantConst args,JsonObject out,String &error){
- if(args["driver"]!="ds18b20"||!args["gpio"].is<int>()||args["gpio"].as<int>()!=1){error="Installed scan driver: ds18b20 on GPIO1";return false;}
- if(sensorEnabled){error="Disable physical sampling before scanning the digital bus";return false;}
- for(const auto &c:channels)if(c.configured&&c.driver==ChannelDriver::GPIO_ADC&&c.gpio==1){error="GPIO1 is reserved by an ADC channel; remove that binding before scanning";return false;}
- digitalWire.begin(1);digitalWire.reset_search();uint8_t rom[8];int searched=0,invalid=0,other=0;
- JsonArray devices=out["devices"].to<JsonArray>();
- while(searched<32&&digitalWire.search(rom)){
-  searched++;if(ds18Crc(rom,7)!=rom[7]){invalid++;continue;}if(rom[0]!=0x28){other++;continue;}
-  JsonObject found=devices.add<JsonObject>();found["rom"]=digitalRomName(rom);found["driver"]="ds18b20";found["gpio"]=1;
- }
- digitalWire.reset_search();digitalWire.depower();pinMode(1,INPUT);
- out["driver"]="ds18b20";out["gpio"]=1;out["invalid_roms"]=invalid;out["unsupported_families"]=other;out["truncated"]=searched>=32;
- out["quality"]=devices.size()?"ok":"no_device_found";out["physical_sampling_enabled"]=false;
- return true;
-}
-
+static ContactInput contacts[MAX_CHANNELS];
+static void refreshExpansionInputs(){for(const auto &c:channels)if(c.configured&&c.driver==ChannelDriver::GPIO_SWITCH)pinMode(c.gpio,INPUT);}
+static void stopDigitalInputs(){for(auto &c:contacts)c=ContactInput();}
+static void disarmOutputs(){} // Compatibility hook used by OTA; this build has no outputs.
+static void initOutputPins(){}
 static String touchBoot;
 static uint32_t touchSeq=0;
 static constexpr int TOUCH_CAP=128;
@@ -61,21 +42,12 @@ struct PressureCalibration {
  void reset(){channel=-1;stage=-1;engaged=false;capturing=false;applied=false;deadline=expires=0;error="";for(auto &s:stages)s.reset();}
 };
 static PressureCalibration calibration;
-struct OutputState {
- bool active=false,physical=false;
- volatile bool expired=false;
- int intensity=0,pwm=-1;
- uint64_t started=0,deadline=0;
- esp_timer_handle_t timer=nullptr;
- String body,driver;
-};
-static OutputState outputs[MAX_CHANNELS];
 static uint64_t touchNow(){return esp_timer_get_time()/1000ULL;}
 static void encodeTouchRecord(JsonObject e,const TouchRecord &r,const String &boot){
  e["seq"]=r.seq;e["event_id"]=boot+"-"+String(r.seq);
  if(r.kind==DeviceKind::PRESSURE)e["touch_id"]=boot+"-"+String(r.touch);
  e["uptime_ms"]=r.at;e["phase"]=r.phase;e["channel"]=r.channel;e["body_part"]=r.body;
- e["sensor_type"]=kindName(r.kind);e["direction"]=r.kind==DeviceKind::VIBRATION?"output":"input";
+ e["sensor_type"]=kindName(r.kind);e["direction"]=outputKind(r.kind)?"output":"input";
  e["driver"]=r.driver;e["unit"]=unitName(r.kind);e["quality"]=r.quality;
  if(r.valid)e["value"]=r.value;else e["value"]=nullptr;
  if(r.mv>=0)e["adc_mv"]=r.mv;else e["adc_mv"]=nullptr;
@@ -102,25 +74,15 @@ static void touchInject(int ch,int value,bool simulated=true){
  s.active=true;s.started=touchNow();s.deadline=s.started+5000;s.raw=value;s.peak=value;
  s.body=channels[ch].name;s.driver=driverName(channels[ch].driver);s.simulated=simulated;s.id=touchSeq+1;touchEmit(ch,false);
 }
-static void motorDeadline(void* argument){
- auto *s=static_cast<OutputState*>(argument);
- // Runs in ESP timer task: stop PWM even if a slow HTTP client blocks the main loop.
- if(s->pwm>=0)ledcWrite(s->pwm,0);
- s->expired=true;
-}
-static void stopOutput(int ch,bool record=true){
- auto &s=outputs[ch];if(s.timer)esp_timer_stop(s.timer);
- if(s.physical&&s.pwm>=0)ledcWrite(s.pwm,0);
- if(s.active&&record){auto &r=newRecord(ch,"stop");r.body=s.body;r.driver=s.driver;r.source=s.physical?"actuator":"simulation";r.duration=r.at-s.started;r.value=0;persistTouchRecord(r);}
- s.active=false;s.intensity=0;s.expired=false;
- auto &v=readings[ch];v.value=0;v.valid=true;v.sampled=true;v.at=touchNow();v.source=s.physical?"actuator":"simulation";
-}
-static void disarmOutputs(){for(int ch=0;ch<MAX_CHANNELS;ch++)if(outputs[ch].active)stopOutput(ch);outputEnabled=false;}
-static void initOutputPins(){
+// Compatibility status reads the same simulated press state as event consumers.
+static int activeSimulatedPressure(){
+ int selected=-1;
  for(int ch=0;ch<MAX_CHANNELS;ch++){
-  auto &c=channels[ch];auto &s=outputs[ch];s.pwm=-1;s.physical=false;
-  if(c.configured&&c.driver==ChannelDriver::GPIO_PWM){pinMode(c.gpio,OUTPUT);digitalWrite(c.gpio,LOW);s.pwm=c.gpio==6?0:c.gpio==7?1:2;}
+  const auto &s=touches[ch];
+  if(!s.active||!s.simulated||channels[ch].kind!=DeviceKind::PRESSURE)continue;
+  if(selected<0||(int32_t)(s.id-touches[selected].id)>0)selected=ch;
  }
+ return selected;
 }
 static void applyInputEnabled(bool enabled){
  stopDigitalInputs();
@@ -128,11 +90,11 @@ static void applyInputEnabled(bool enabled){
  sensorEnabled=enabled;
  if(enabled){pinMode(3,OUTPUT);pinMode(4,OUTPUT);pinMode(5,OUTPUT);analogReadResolution(12);analogSetPinAttenuation(0,ADC_11db);analogSetPinAttenuation(1,ADC_11db);}
  else{pinMode(3,INPUT);pinMode(4,INPUT);pinMode(5,INPUT);calibration.engaged=false;calibration.capturing=false;}
- if(enabled)for(const auto &c:channels)if(physicalChannel(c)&&c.driver==ChannelDriver::DS18B20){digitalWire.begin(1);digitalReady=true;break;}
+ refreshExpansionInputs();
 }
 static bool persistChannels(const ChannelConfig *next,String &error,bool restore=resumeInputs){
  JsonDocument d;encodeChannels(d.to<JsonObject>(),next);
- d["resume_inputs"]=restore;
+ d["resume_inputs"]=restore;d["retired_channels"]=serialized(retiredChannels);
  String payload=encode(d);
  // NVS strings are limited to 4000 bytes; expanded configurations use an atomic blob.
  if(prefs.putBytes("chcfg_blob",payload.c_str(),payload.length())!=payload.length()){error="Unable to save channel configuration";return false;}return true;
@@ -145,16 +107,15 @@ static __attribute__((noinline)) bool saveChannels(JsonVariantConst a,String &er
  if(!persistChannels(next,error,resume))return false;
  // Close events with their old names/types before applying new configuration.
  for(int i=0;i<MAX_CHANNELS;i++)if(touches[i].active)touchInject(i,0);
- disarmOutputs();stopDigitalInputs();sensorEnabled=false;resumeInputs=false;calibration.reset();pressChannel=-1;pressValue=0;
+ disarmOutputs();stopDigitalInputs();sensorEnabled=false;resumeInputs=false;calibration.reset();
  for(int i=0;i<MAX_CHANNELS;i++){
-  if(channels[i].configured&&channels[i].driver==ChannelDriver::GPIO_PWM){ledcDetachPin(channels[i].gpio);pinMode(channels[i].gpio,INPUT);}
   channels[i]=next[i];readings[i]=ChannelReading();sensorRaw[i]=0;sensorDebounce[i]=0;
  }
  pinMode(3,INPUT);pinMode(4,INPUT);pinMode(5,INPUT);initOutputPins();resumeInputs=resume;if(resume)applyInputEnabled(true);return true;
 }
 static __attribute__((noinline)) bool setChannelState(JsonVariantConst a,String &error){
  if(!a["channel"].is<int>()){error="channel integer required";return false;}
- int ch=a["channel"];if(ch<0||ch>=MAX_CHANNELS||!channels[ch].configured||channels[ch].kind==DeviceKind::VIBRATION){error="Choose a configured input channel";return false;}
+ int ch=a["channel"];if(ch<0||ch>=MAX_CHANNELS||!channels[ch].configured||outputKind(channels[ch].kind)){error="Choose a configured input channel";return false;}
  if(calibration.engaged){error="Finish or cancel calibration before changing ports";return false;}
  ChannelConfig next[MAX_CHANNELS];for(int i=0;i<MAX_CHANNELS;i++)next[i]=channels[i];
  if(!a["name"].isNull()){
@@ -174,9 +135,9 @@ static __attribute__((noinline)) bool setChannelState(JsonVariantConst a,String 
  // End only this port's old event before changing its label/source. Other
  // channels, calibration thresholds and GPIO bindings remain intact.
  if(changed&&touches[ch].active)touchInject(ch,0);
- channels[ch]=next[ch];if(changed){readings[ch]=ChannelReading();sensorDebounce[ch]=0;}resumeInputs=resume;
+ channels[ch]=next[ch];if(changed){readings[ch]=ChannelReading();sensorDebounce[ch]=0;contacts[ch]=ContactInput();}resumeInputs=resume;
  if(modeRequested&&sensorEnabled!=resume)applyInputEnabled(resume);
- else if(changed&&channels[ch].driver==ChannelDriver::DS18B20){stopDigitalInputs();if(resume)for(const auto &c:channels)if(physicalChannel(c)&&c.driver==ChannelDriver::DS18B20){digitalWire.begin(1);digitalReady=true;break;}}
+ refreshExpansionInputs();
  return true;
 }
 static void touchInit(){
@@ -186,7 +147,9 @@ static void touchInit(){
  size_t bytes=prefs.isKey("chcfg_blob")?prefs.getBytesLength("chcfg_blob"):0;
  if(bytes&&bytes<=16384){char* data=(char*)malloc(bytes+1);if(data){if(prefs.getBytes("chcfg_blob",data,bytes)==bytes){data[bytes]=0;saved=String(data);}free(data);}}
  if(!deserializeJson(stored,saved)&&stored["channels"].is<JsonArray>()){
-  ChannelConfig next[MAX_CHANNELS];String error;if(parseChannels(stored.as<JsonVariantConst>(),next,error)){
+  retireUnsupportedChannels(stored);
+  JsonDocument retired;deserializeJson(retired,retiredChannels);for(JsonVariantConst row:retired.as<JsonArrayConst>())if(row["driver"]=="gpio_pwm"){int pin=row["gpio"]|-1;if(pin==6||pin==7||pin==10||pin==20){digitalWrite(pin,LOW);pinMode(pin,OUTPUT);}}
+  ChannelConfig next[MAX_CHANNELS];String error;if(stored["channels"].size()==0||parseChannels(stored.as<JsonVariantConst>(),next,error)){
    for(int i=0;i<MAX_CHANNELS;i++)channels[i]=next[i];
    resumeInputs=stored["resume_inputs"].is<bool>()&&stored["resume_inputs"].as<bool>();
   }
@@ -222,71 +185,35 @@ static void readChannels(JsonObject out){
  out["physical_inputs_enabled"]=sensorEnabled;out["physical_outputs_enabled"]=outputEnabled;
  JsonArray a=out["values"].to<JsonArray>();uint64_t now=touchNow();
  for(int ch=0;ch<MAX_CHANNELS;ch++)if(channels[ch].configured){
-  auto &c=channels[ch];auto &s=readings[ch];JsonObject p=a.add<JsonObject>();p["channel"]=ch;p["name"]=c.name;p["type"]=kindName(c.kind);p["direction"]=c.kind==DeviceKind::VIBRATION?"output":"input";p["driver"]=driverName(c.driver);p["mode"]=channelMode(c);p["unit"]=unitName(c.kind);p["source"]=s.source;p["uptime_ms"]=s.at;
+  auto &c=channels[ch];auto &s=readings[ch];JsonObject p=a.add<JsonObject>();p["channel"]=ch;p["name"]=c.name;p["type"]=kindName(c.kind);p["direction"]=outputKind(c.kind)?"output":"input";p["driver"]=driverName(c.driver);p["mode"]=channelMode(c);p["unit"]=unitName(c.kind);p["source"]=s.source;p["uptime_ms"]=s.at;
   String quality=!c.enabled?"disabled":!s.sampled?"not_sampled":(s.source=="sensor"&&!sensorEnabled)?"inputs_disabled":!s.valid?s.fault:((s.source=="sensor"&&now-s.at>max(5000,c.sampleMs*3))?"stale":"ok");p["quality"]=quality;
   if(quality=="ok")p["value"]=s.value;else p["value"]=nullptr;
-  p["raw"]=s.raw;if(s.mv>=0)p["adc_mv"]=s.mv;else p["adc_mv"]=nullptr;if(c.kind==DeviceKind::VIBRATION){p["active"]=outputs[ch].active;p["feedback"]="commanded_state_only";}
+  p["raw"]=s.raw;if(s.mv>=0)p["adc_mv"]=s.mv;else p["adc_mv"]=nullptr;
+  if(c.kind==DeviceKind::SWITCH)p["active"]=s.value>=0.5f;
   if(c.kind==DeviceKind::PRESSURE){p["active"]=touches[ch].active;p["press_threshold"]=c.on;p["release_threshold"]=c.off;p["calibrating"]=calibration.engaged&&calibration.channel==ch;}
  }
 }
-static bool ntcValue(int ch,float mv,float &celsius,String &fault){
- const auto &c=channels[ch];if(mv<=10||mv>=c.vcc-10){fault="adc_out_of_range";return false;}
- float resistance=c.pullDown*(c.vcc/mv-1)-c.series;
- if(resistance<=0){fault="invalid_ntc_resistance";return false;}
- celsius=1/(1/298.15f+logf(resistance/c.r0)/c.beta)-273.15f+c.offset;
- if(!isfinite(celsius)||celsius< -40||celsius>125){fault="temperature_out_of_range";return false;}return true;
-}
-static void temperatureRecord(int ch,float value,bool valid,const String &source,const String &fault=""){
- auto &s=readings[ch];bool unchangedQuality=s.sampled&&s.valid==valid&&s.fault==fault&&s.source==source;s.sampled=true;s.valid=valid;s.value=value;s.at=touchNow();s.source=source;s.fault=fault;
- if(source=="sensor"&&unchangedQuality&&s.lastReport&&s.at-s.lastReport<(uint64_t)channels[ch].reportMs&&(valid?fabsf(value-s.reported)<0.2f:true))return;
- auto &r=newRecord(ch,"sample");r.value=value;r.valid=valid;r.source=source;r.quality=valid?"ok":fault;r.raw=s.raw;r.mv=s.mv;
+static void expansionRecord(int ch,const String &phase,float value,const String &source,bool valid=true,const String &fault=""){
+ auto &v=readings[ch];v.sampled=true;v.valid=valid;v.value=value;v.at=touchNow();v.source=source;v.fault=fault;
+ auto &r=newRecord(ch,phase);r.value=value;r.valid=valid;r.source=source;r.quality=valid?"ok":fault;
  persistTouchRecord(r);
- s.lastReport=s.at;s.reported=value;
 }
 static bool simulateInput(JsonVariantConst a,String &error){
  if(!a["channel"].is<int>()||!a["value"].is<float>()){error="channel and numeric value required";return false;}
  int ch=a["channel"];float value=a["value"];
- if(!validChannel(ch)||channels[ch].kind==DeviceKind::VIBRATION){error="Choose an enabled input channel";return false;}
+ if(!validChannel(ch)||outputKind(channels[ch].kind)){error="Choose an enabled input channel";return false;}
  if(!channels[ch].simulate&&channels[ch].driver!=ChannelDriver::SIMULATION){error="Set this port to simulation before injecting; other physical ports may keep sampling";return false;}
  if(!isfinite(value)){error="Finite value required";return false;}
  if(!a["unit"].isNull()&&!a["unit"].is<String>()){error="unit must be a string";return false;}
  String unit=a["unit"].is<String>()?a["unit"].as<String>():String(unitName(channels[ch].kind));
  if(channels[ch].kind==DeviceKind::PRESSURE){
   if(unit!="adc_raw"||value<0||value>4095||floorf(value)!=value){error="Pressure: adc_raw integer 0..4095";return false;}
-  touchInject(ch,(int)value);pressValue=value;pressChannel=value?ch:-1;pressUntil=millis()+5000;
- }else if(unit=="degC"){
-  if(value<(channels[ch].driver==ChannelDriver::DS18B20?-55:-40)||value>125){error="Temperature outside installed model range";return false;}readings[ch].mv=-1;readings[ch].raw=0;temperatureRecord(ch,value,true,"simulation");
- }else if(unit=="millivolt"){
-  if(channels[ch].driver==ChannelDriver::DS18B20){error="Digital temperature has no millivolt conversion";return false;}
-  if(value<0||value>channels[ch].vcc){error="millivolt must be 0..supply_mv";return false;}String fault;float temp=0;readings[ch].mv=lroundf(value);bool valid=ntcValue(ch,value,temp,fault);temperatureRecord(ch,temp,valid,"simulation",fault);
- }else{error="Temperature unit: degC or millivolt";return false;}
+  touchInject(ch,(int)value);
+ }else if(channels[ch].kind==DeviceKind::SWITCH){
+  if(unit!="boolean"||(value!=0&&value!=1)){error="Switch: boolean value 0 or1";return false;}
+  expansionRecord(ch,value?"close":"open",value,"simulation");
+ }else{error="Only pressure and switch simulation are supported";return false;}
  return true;
-}
-static bool armOutputs(JsonVariantConst a,String &error){
- if(!a["enabled"].is<bool>()){error="enabled boolean required";return false;}
- if(!a["enabled"].as<bool>()){disarmOutputs();return true;}
- if(calibration.engaged){error="Finish or cancel calibration before enabling physical outputs";return false;}
- if(!a["external_driver_confirmed"].is<bool>()||!a["external_driver_confirmed"].as<bool>()){error="Confirm an external motor driver before enabling physical outputs";return false;}
- if(outputEnabled)return true;
- for(int ch=0;ch<MAX_CHANNELS;ch++)if(channels[ch].configured&&channels[ch].enabled&&!channels[ch].simulate&&channels[ch].driver==ChannelDriver::GPIO_PWM){
-  int pwm=outputs[ch].pwm;if(!ledcSetup(pwm,200,8)){error="PWM setup failed";disarmOutputs();return false;}ledcAttachPin(channels[ch].gpio,pwm);ledcWrite(pwm,0);
- }
- outputEnabled=true;return true;
-}
-static bool vibrate(JsonVariantConst a,String &error){
- if(!a["channel"].is<int>()||!a["intensity"].is<int>()||!a["duration_ms"].is<int>()){error="channel/intensity/duration_ms integers required";return false;}
- int ch=a["channel"],intensity=a["intensity"],duration=a["duration_ms"];
- if(!validChannel(ch)||channels[ch].kind!=DeviceKind::VIBRATION||intensity<0||intensity>100||duration<1||duration>5000){error="Enabled vibration channel; intensity 0..100, duration 1..5000 ms";return false;}
- bool physical=channels[ch].driver==ChannelDriver::GPIO_PWM&&!channels[ch].simulate;
- if(physical&&intensity&&calibration.engaged){error="Physical vibration is disabled during calibration";return false;}
- if(physical&&!outputEnabled&&intensity){error="Physical outputs are disabled; confirm external driver and enable first";return false;}
- stopOutput(ch);auto &s=outputs[ch];s.physical=physical;
- if(!intensity)return true;
- if(physical&&!s.timer){esp_timer_create_args_t args={};args.callback=motorDeadline;args.arg=&s;args.name="doll-motor";if(esp_timer_create(&args,&s.timer)!=ESP_OK){error="Output timer unavailable";return false;}}
- s.started=touchNow();s.deadline=s.started+duration;s.intensity=intensity;s.active=true;s.expired=false;s.body=channels[ch].name;s.driver=driverName(channels[ch].driver);
- if(physical){ledcWrite(s.pwm,lroundf(intensity*255.0f/100));if(esp_timer_start_once(s.timer,duration*1000ULL)!=ESP_OK){stopOutput(ch,false);error="Output timer failed";return false;}}
- auto &v=readings[ch];v.sampled=true;v.valid=true;v.at=s.started;v.value=intensity;v.source=physical?"actuator":"simulation";
- auto &r=newRecord(ch,"output");r.value=intensity;r.source=v.source;r.duration=duration;persistTouchRecord(r);return true;
 }
 static void sensorConfig(JsonObject out){
  out["enabled"]=sensorEnabled;out["press_threshold"]=sensorOn;out["release_threshold"]=sensorOff;out["adc_gpio"]=0;out["mux_select_gpio"]="3,4,5";
@@ -313,7 +240,7 @@ static bool setOperatingMode(JsonVariantConst a,String &error){
  if(!a["mode"].is<String>()||(a["mode"]!="daily"&&a["mode"]!="manual")){error="mode must be daily or manual";return false;}
  bool daily=a["mode"]=="daily";
  if(daily&&(!a["hardware_confirmed"].is<bool>()||!a["hardware_confirmed"].as<bool>())){error="Confirm assembled sensor hardware before daily mode";return false;}
- if(daily){bool physical=false;for(auto &c:channels)if(c.configured&&c.enabled&&c.kind!=DeviceKind::VIBRATION&&c.driver!=ChannelDriver::SIMULATION)physical=true;
+ if(daily){bool physical=false;for(auto &c:channels)if(c.configured&&c.enabled&&!outputKind(c.kind)&&c.driver!=ChannelDriver::SIMULATION)physical=true;
   if(!physical){error="Daily mode requires an enabled physical input";return false;}}
  if(!persistChannels(channels,error,daily))return false;
  resumeInputs=daily;disarmOutputs();applyInputEnabled(daily);return true;
@@ -356,33 +283,21 @@ static void touchTick(){
  if(calibration.engaged&&now>=calibration.expires){calibration.engaged=false;calibration.capturing=false;calibration.error="Calibration expired; start again";}
  for(int ch=0;ch<MAX_CHANNELS;ch++){
   if(touches[ch].active&&touches[ch].simulated&&now>=touches[ch].deadline)touchInject(ch,0);
-  if(outputs[ch].active&&(outputs[ch].expired||now>=outputs[ch].deadline))stopOutput(ch);
+
  }
  static uint64_t sampled=0;if(!sensorEnabled||now-sampled<20)return;sampled=now;
  for(int ch=0;ch<MAX_CHANNELS;ch++){
   auto &c=channels[ch];auto &v=readings[ch];
   if(!physicalChannel(c))continue;
-  if(c.driver==ChannelDriver::DS18B20){
-   DigitalTemperature sample;
-   bool wasPending=digitalCycles[ch].pending;
-   bool ready=digitalReady&&digitalCycles[ch].tick(digitalWire,c.rom,touchNow(),c.sampleMs,c.offset,sample);
-   // Start the wait after the actual command, including bus transmission time.
-   if(!wasPending&&digitalCycles[ch].pending)digitalCycles[ch].started=touchNow();
-   if(ready){
-    v.raw=sample.raw;v.mv=-1;v.lastSample=now;sensorRaw[ch]=sample.raw;
-    temperatureRecord(ch,sample.celsius,sample.valid,"sensor",sample.fault);
-   }
+  if(c.driver==ChannelDriver::GPIO_SWITCH){
+   bool value=(digitalRead(c.gpio)==LOW)==c.activeLow;bool initial=!contacts[ch].ready;
+   bool changed=contacts[ch].sample(value,now,c.debounceMs);v.raw=digitalRead(c.gpio);v.value=contacts[ch].active;v.sampled=true;v.valid=true;v.source="sensor";v.fault="";v.at=now;
+   if(changed||initial)expansionRecord(ch,initial?"sample":contacts[ch].active?"close":"open",v.value,"sensor");
    continue;
   }
-  if(c.kind==DeviceKind::TEMPERATURE&&now-v.lastSample<(uint64_t)c.sampleMs)continue;
-  v.lastSample=now;
   int gpio=c.driver==ChannelDriver::MUX_ADC?0:c.gpio;
   if(c.driver==ChannelDriver::MUX_ADC){digitalWrite(3,c.mux&1);digitalWrite(4,(c.mux>>1)&1);digitalWrite(5,(c.mux>>2)&1);delayMicroseconds(500);}
   analogRead(gpio);int sum=0;for(int j=0;j<4;j++)sum+=analogRead(gpio);int raw=sum/4;sensorRaw[ch]=raw;v.raw=raw;
-  if(c.kind==DeviceKind::TEMPERATURE){
-   uint32_t mv=0;for(int j=0;j<4;j++)mv+=analogReadMilliVolts(gpio);v.mv=mv/4;
-   float value=0;String fault;bool valid=ntcValue(ch,v.mv,value,fault);if(raw<=5||raw>=4090){valid=false;fault="adc_saturated";}temperatureRecord(ch,value,valid,"sensor",fault);continue;
-  }
   v.sampled=true;v.valid=true;v.value=raw;v.at=now;v.source="sensor";
   if(calibration.engaged&&calibration.channel==ch){if(calibration.capturing)calibration.stages[calibration.stage].add(raw);sensorDebounce[ch]=0;continue;}
   TouchState &s=touches[ch];bool transition=s.active?raw<=c.off:raw>=c.on;if(s.active){s.raw=raw;s.peak=max(s.peak,raw);}

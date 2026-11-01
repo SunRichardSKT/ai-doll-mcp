@@ -1,36 +1,344 @@
 /* METADATA
 {
-  "name":"ai_doll_companion",
-  "enabledByDefault":true,
-  "version":"0.1.0",
-  "description":"AI Doll 统一入口。配置与启动请使用工具箱的 AI Doll 面板；不从目标聊天递归等待或发送。",
-  "category":"NETWORK",
-  "tools":[
-    {"name":"update_computer_address","description":"用户修改电脑局域网 IP，检查后保存，保留聊天和发送记录。","parameters":[{"name":"host","type":"string","required":true,"description":"电脑当前局域网 IPv4"}]},
-    {"name":"status","description":"查看连接、聊天绑定和后台任务状态；refresh时只读检查连接，不发送消息。","parameters":[{"name":"refresh","type":"boolean","required":false,"description":"是否刷新设备在线状态；省略时读取本机缓存"}]},
-    {"name":"get_panel","description":"读取设置面板所需的端口、部位、人设与可访问设置入口，不发送消息。","parameters":[]},
-    {"name":"update_port","description":"用户明确修改一个输入端口的关闭／模拟／已接入状态或部位，不修改阈值和其他端口。","parameters":[{"name":"channel","type":"number","required":true,"description":"已配置的输入端口编号，0到15"},{"name":"mode","type":"string","required":false,"description":"端口状态：off关闭、simulation模拟、connected已接入；省略时保留"},{"name":"name","type":"string","required":false,"description":"该端口对应的部位名称；省略时保留"}]},
-    {"name":"set_persona_source","description":"用户选择当前聊天或娃娃人设；只影响身体互动反馈。","parameters":[{"name":"source","type":"string","required":true,"description":"人设来源：chat跟随原聊天，doll使用保存的娃娃人设"},{"name":"text","type":"string","required":false,"description":"用户设置的娃娃人设文本，最多4000字；省略时保留"}]},
-    {"name":"diagnostics","description":"开发者只读诊断，不模拟事件或发送消息。","parameters":[]},
-    {"name":"test_sensor","description":"用户点按测试后等待10秒真实按压，只读，不发送聊天或修改阈值。","parameters":[]},
-    {"name":"setup","description":"设置面板导入连接文件，一次保存。","parameters":[{"name":"connection_file","type":"string","required":false,"description":"系统选择器提供的本地文件"},{"name":"connection_json","type":"string","required":false,"description":"管理中心导出的连接 JSON"}]},
-    {"name":"read_hotspot_pairing","description":"读取当前设备热点的配对草稿，不改现有连接，不返回凭据。","parameters":[]},
-    {"name":"finish_pairing","description":"切回家庭网络后核对热点草稿并提交连接。","parameters":[{"name":"candidate_id","type":"string","required":true,"description":"热点读取返回的草稿编号"}]},
-    {"name":"import_connection_code","description":"导入设备或服务器连接码，验证成功后才保存。","parameters":[{"name":"connection_code","type":"string","required":true,"description":"连接码或JSON文本"}]},
-    {"name":"set_record_sync","description":"设置手机自动同步记录；独立于触摸主动回复。","parameters":[{"name":"enabled","type":"boolean","required":true,"description":"是否在Operit任务运行时同步设备缓存"}]},
-    {"name":"sync_now","description":"请求同步记录，不发送聊天；已有采集任务时复用。","parameters":[]},
-    {"name":"list_chats","description":"列出已有聊天，让用户按标题选择绑定。","parameters":[]},
-    {"name":"view_history","description":"读取互动记录页面，支持按日期和游标翻页，不发送消息。","parameters":[{"name":"date","type":"string","required":false,"description":"可选本地日期YYYY-MM-DD；省略为近期记录"},{"name":"after","type":"number","required":false,"description":"上一页next_cursor，首次0"},{"name":"limit","type":"number","required":false,"description":"每页1到100条，默认50"}]},
-    {"name":"setup_device","description":"在面板连接家庭网络的设备，仅安卓手机模式，不更改采样或校准。","parameters":[{"name":"host","type":"string","required":true,"description":"设备家庭局域网 IP 或固件显示的固定 .local 连接名"},{"name":"token","type":"string","required":false,"description":"可选设备 MCP 令牌"}]},
-    {"name":"set_experience","description":"设置陪伴方式、合并等待与触摸回应提示词；连接和聊天已保存即可开启，无需发送测试。","parameters":[{"name":"enabled","type":"boolean","required":false,"description":"主动回应和聊天融入"},{"name":"duration_sec","type":"number","required":false,"description":"限时60或900秒"},{"name":"continuous","type":"boolean","required":false,"description":"是否常开"},{"name":"response_wait_sec","type":"number","required":false,"description":"停止按压后等待0到30秒合并回应；0立即触发，默认1"},{"name":"reply_prompt","type":"string","required":false,"description":"用户自定义的触摸回应方式，最多4000字；空白恢复默认，省略保留"}]},
-    {"name":"bind_chat","description":"仅在用户选择聊天标题后保存绑定。","parameters":[{"name":"chat_id","type":"string","required":true,"description":"设置页用户选中的聊天"}]},
-    {"name":"check_connection","description":"一键检查文件、已有聊天与真实 MCP 工具发现，不发送消息。","parameters":[]},
-    {"name":"import_legacy_state","description":"升级时由用户选择旧发送记录；核对原聊天与连接后导入，不删除旧文件。","parameters":[{"name":"legacy_file","type":"string","required":true,"description":"系统文件选择器提供的旧 JSON 文件"}]},
-    {"name":"schedule","description":"仅设置面板的用户按钮使用，安排独立有限后台任务并立即返回；禁止从 AI 工具轮启动。","parameters":[{"name":"kind","type":"string","required":true,"description":"probe、interaction 或 sync"}]},
-    {"name":"stop","description":"停止本插件任务，保留尚未确认的发送记录。","parameters":[]},
-    {"name":"confirm_probe","description":"用户在原聊天看到自检输入和回复后确认；仅记录用户确认，不冒充宿主显示证明。","parameters":[]},
-    {"name":"recover","description":"用户核对原聊天后恢复，不立即生成新回复。","parameters":[{"name":"decision","type":"string","required":true,"description":"delivered、not_sent 或 discard"}]},
-    {"name":"run_task","description":"内部工作流节点；需要匹配已保存的短期任务，不接受聊天地址等手工参数。","parameters":[{"name":"job_id","type":"string","required":true,"description":"内部任务编号"}]}
+  "name": "ai_doll_companion",
+  "enabledByDefault": true,
+  "version": "0.1.1",
+  "description": "AI Doll 统一入口。配置与启动请使用工具箱的 AI Doll 面板；不从目标聊天递归等待或发送。",
+  "category": "NETWORK",
+  "tools": [
+    {
+      "name": "update_computer_address",
+      "description": "用户修改电脑局域网 IP，检查后保存，保留聊天和发送记录。",
+      "parameters": [
+        {
+          "name": "host",
+          "type": "string",
+          "required": true,
+          "description": "电脑当前局域网 IPv4"
+        }
+      ]
+    },
+    {
+      "name": "status",
+      "description": "查看连接、聊天绑定和后台任务状态；refresh时只读检查连接，不发送消息。",
+      "parameters": [
+        {
+          "name": "refresh",
+          "type": "boolean",
+          "required": false,
+          "description": "是否刷新设备在线状态；省略时读取本机缓存"
+        }
+      ]
+    },
+    {
+      "name": "get_panel",
+      "description": "读取设置面板所需的端口、部位、人设与可访问设置入口，不发送消息。",
+      "parameters": []
+    },
+    {
+      "name": "update_port",
+      "description": "用户明确修改一个输入端口的关闭／模拟／已接入状态或部位，不修改阈值和其他端口。",
+      "parameters": [
+        {
+          "name": "channel",
+          "type": "number",
+          "required": true,
+          "description": "已配置的输入端口编号，0到15"
+        },
+        {
+          "name": "mode",
+          "type": "string",
+          "required": false,
+          "description": "端口状态：off关闭、simulation模拟、connected已接入；省略时保留"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "description": "该端口对应的部位名称；省略时保留"
+        }
+      ]
+    },
+    {
+      "name": "set_persona_source",
+      "description": "用户选择当前聊天或娃娃人设；只影响身体互动反馈。",
+      "parameters": [
+        {
+          "name": "source",
+          "type": "string",
+          "required": true,
+          "description": "人设来源：chat跟随原聊天，doll使用保存的娃娃人设"
+        },
+        {
+          "name": "text",
+          "type": "string",
+          "required": false,
+          "description": "用户设置的娃娃人设文本，最多4000字；省略时保留"
+        }
+      ]
+    },
+    {
+      "name": "diagnostics",
+      "description": "开发者只读诊断，不模拟事件或发送消息。",
+      "parameters": []
+    },
+    {
+      "name": "test_sensor",
+      "description": "用户点按测试后等待10秒真实按压，只读，不发送聊天或修改阈值。",
+      "parameters": []
+    },
+    {
+      "name": "setup",
+      "description": "设置面板导入连接文件，一次保存。",
+      "parameters": [
+        {
+          "name": "connection_file",
+          "type": "string",
+          "required": false,
+          "description": "系统选择器提供的本地文件"
+        },
+        {
+          "name": "connection_json",
+          "type": "string",
+          "required": false,
+          "description": "管理中心导出的连接 JSON"
+        }
+      ]
+    },
+    {
+      "name": "read_hotspot_pairing",
+      "description": "读取当前设备热点的配对草稿，不改现有连接，不返回凭据。",
+      "parameters": []
+    },
+    {
+      "name": "finish_pairing",
+      "description": "切回家庭网络后核对热点草稿并提交连接。",
+      "parameters": [
+        {
+          "name": "candidate_id",
+          "type": "string",
+          "required": true,
+          "description": "热点读取返回的草稿编号"
+        }
+      ]
+    },
+    {
+      "name": "import_connection_code",
+      "description": "导入设备或服务器连接码，验证成功后才保存。",
+      "parameters": [
+        {
+          "name": "connection_code",
+          "type": "string",
+          "required": true,
+          "description": "连接码或JSON文本"
+        }
+      ]
+    },
+    {
+      "name": "set_record_sync",
+      "description": "设置手机自动同步记录；独立于触摸主动回复。",
+      "parameters": [
+        {
+          "name": "enabled",
+          "type": "boolean",
+          "required": true,
+          "description": "是否在Operit任务运行时同步设备缓存"
+        }
+      ]
+    },
+    {
+      "name": "sync_now",
+      "description": "请求同步记录，不发送聊天；已有采集任务时复用。",
+      "parameters": []
+    },
+    {
+      "name": "list_chats",
+      "description": "列出已有聊天，让用户按标题选择绑定。",
+      "parameters": []
+    },
+    {
+      "name": "view_history",
+      "description": "读取互动记录页面，支持按日期和游标翻页，不发送消息。",
+      "parameters": [
+        {
+          "name": "date",
+          "type": "string",
+          "required": false,
+          "description": "可选本地日期YYYY-MM-DD；省略为近期记录"
+        },
+        {
+          "name": "after",
+          "type": "number",
+          "required": false,
+          "description": "上一页next_cursor，首次0"
+        },
+        {
+          "name": "limit",
+          "type": "number",
+          "required": false,
+          "description": "每页1到100条，默认50"
+        }
+      ]
+    },
+    {
+      "name": "setup_device",
+      "description": "在面板连接家庭网络的设备，仅安卓手机模式，不更改采样或校准。",
+      "parameters": [
+        {
+          "name": "host",
+          "type": "string",
+          "required": true,
+          "description": "设备家庭局域网 IP 或固件显示的固定 .local 连接名"
+        },
+        {
+          "name": "token",
+          "type": "string",
+          "required": false,
+          "description": "可选设备 MCP 令牌"
+        }
+      ]
+    },
+    {
+      "name": "set_experience",
+      "description": "设置陪伴方式、合并等待与触摸回应提示词；连接和聊天已保存即可开启，无需发送测试。",
+      "parameters": [
+        {
+          "name": "enabled",
+          "type": "boolean",
+          "required": false,
+          "description": "主动回应和聊天融入"
+        },
+        {
+          "name": "duration_sec",
+          "type": "number",
+          "required": false,
+          "description": "限时60或900秒"
+        },
+        {
+          "name": "continuous",
+          "type": "boolean",
+          "required": false,
+          "description": "是否常开"
+        },
+        {
+          "name": "response_wait_sec",
+          "type": "number",
+          "required": false,
+          "description": "停止按压后等待0到30秒合并回应；0立即触发，默认1"
+        },
+        {
+          "name": "reply_prompt",
+          "type": "string",
+          "required": false,
+          "description": "用户自定义的触摸回应方式，最多4000字；空白恢复默认，省略保留"
+        }
+      ]
+    },
+    {
+      "name": "bind_chat",
+      "description": "仅在用户选择聊天标题后保存绑定。",
+      "parameters": [
+        {
+          "name": "chat_id",
+          "type": "string",
+          "required": true,
+          "description": "设置页用户选中的聊天"
+        }
+      ]
+    },
+    {
+      "name": "check_connection",
+      "description": "一键检查文件、已有聊天与真实 MCP 工具发现，不发送消息。",
+      "parameters": []
+    },
+    {
+      "name": "import_legacy_state",
+      "description": "升级时由用户选择旧发送记录；核对原聊天与连接后导入，不删除旧文件。",
+      "parameters": [
+        {
+          "name": "legacy_file",
+          "type": "string",
+          "required": true,
+          "description": "系统文件选择器提供的旧 JSON 文件"
+        }
+      ]
+    },
+    {
+      "name": "schedule",
+      "description": "仅设置面板的用户按钮使用，安排独立有限后台任务并立即返回；禁止从 AI 工具轮启动。",
+      "parameters": [
+        {
+          "name": "kind",
+          "type": "string",
+          "required": true,
+          "description": "probe、interaction 或 sync"
+        }
+      ]
+    },
+    {
+      "name": "set_sensor_rules",
+      "description": "扩展默认只记录；允许温度变化、动作或开关闭合进入原聊天队列。",
+      "parameters": [
+        {
+          "name": "motion_enabled",
+          "type": "boolean",
+          "required": false,
+          "description": "允许朝向变化与摇晃回复"
+        },
+        {
+          "name": "switch_enabled",
+          "type": "boolean",
+          "required": false,
+          "description": "允许开关闭合回复；打开不重复回应"
+        },
+        {
+          "name": "temperature_enabled",
+          "type": "boolean",
+          "required": false,
+          "description": "允许达到变化门限的温度回复"
+        },
+        {
+          "name": "temperature_delta_c",
+          "type": "number",
+          "required": false,
+          "description": "温度变化门限0.1～30℃，默认1℃"
+        }
+      ]
+    },
+    {
+      "name": "stop",
+      "description": "停止本插件任务，保留尚未确认的发送记录。",
+      "parameters": []
+    },
+    {
+      "name": "confirm_probe",
+      "description": "用户在原聊天看到自检输入和回复后确认；仅记录用户确认，不冒充宿主显示证明。",
+      "parameters": []
+    },
+    {
+      "name": "recover",
+      "description": "用户核对原聊天后恢复，不立即生成新回复。",
+      "parameters": [
+        {
+          "name": "decision",
+          "type": "string",
+          "required": true,
+          "description": "delivered、not_sent 或 discard"
+        }
+      ]
+    },
+    {
+      "name": "run_task",
+      "description": "内部工作流节点；需要匹配已保存的短期任务，不接受聊天地址等手工参数。",
+      "parameters": [
+        {
+          "name": "job_id",
+          "type": "string",
+          "required": true,
+          "description": "内部任务编号"
+        }
+      ]
+    }
   ]
 }
 */
@@ -433,5 +741,5 @@ async function recover(p) {
 // Return each promise to Operit's caller. Its ambient complete callback can
 // belong to an overlapping UI/worker call when an awaited operation ends.
 for (const [name,fn] of Object.entries({status,setup,setup_device,read_hotspot_pairing,finish_pairing,import_connection_code,set_record_sync,sync_now,update_computer_address,set_experience,view_history,list_chats,bind_chat,check_connection,schedule,
-  get_panel:controls.panel,update_port:controls.updatePort,set_persona_source:controls.persona,diagnostics:controls.diagnostics,test_sensor:controls.testSensor,
+  get_panel:controls.panel,update_port:controls.updatePort,set_persona_source:controls.persona,diagnostics:controls.diagnostics,test_sensor:controls.testSensor,set_sensor_rules:controls.sensorRules,
   stop,confirm_probe,recover,run_task,import_legacy_state})) exports[name]=async(p={})=>fn(p);

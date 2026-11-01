@@ -133,9 +133,9 @@ static void remoteSnapshotTool(JsonObject snapshot,const char *field,const char 
 }
 static bool remoteCommandAllowed(const String &name){
  return name=="set_channel_config"||name=="set_channel_state"||name=="set_body_map"||name=="simulate_channel_input"||name=="doll_simulate_press"||
-  name=="set_input_enabled"||name=="set_output_enabled"||name=="set_vibration"||name=="set_operating_mode"||name=="doll_set_led"||
+  name=="set_input_enabled"||name=="set_operating_mode"||name=="doll_set_led"||
   name=="capture_pressure_calibration"||name=="get_pressure_calibration"||name=="apply_pressure_calibration"||name=="cancel_pressure_calibration"||
-  name=="scan_input_devices"||name=="get_sensor_config"||name=="set_sensor_config";
+  name=="get_sensor_config"||name=="set_sensor_config";
 }
 static void remoteAccept(RemoteJob *job){
  remoteHTTPCode=job->code;

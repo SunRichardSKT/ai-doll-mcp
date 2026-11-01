@@ -275,6 +275,11 @@ class Companion:
         elif pressure and event['phase']=='end':
             self.db.execute('UPDATE touches SET ended=?,duration_ms=?,peak_raw=? WHERE device=? AND touch_id=?',
                 (at,event['duration_ms'],event['peak_raw'],device,event['touch_id']))
+        elif (sid and event.get('direction','input')=='input' and event.get('source') in ('sensor','simulation')
+              and event.get('quality')=='ok' and event.get('delivery_quality')=='live' and
+              ((event.get('sensor_type')=='motion' and event.get('phase') in ('orientation','shake')) or
+               (event.get('sensor_type')=='switch' and event.get('phase')=='close'))):
+            self.db.execute('UPDATE sessions SET last_activity=MAX(last_activity,?) WHERE id=?',(at,sid))
         self.bridge.enqueue(inserted.lastrowid,device,at,sid,event,received)
 
     def sync(self):
@@ -490,7 +495,7 @@ class Companion:
                         **self.archive_metadata())
         if name in ('doll_get_status', 'doll_set_led', 'doll_simulate_press', 'get_body_map', 'set_body_map', 'get_touch_events', 'get_sensor_config', 'set_sensor_config',
                     'get_channel_capabilities', 'get_channel_config', 'set_channel_config', 'set_channel_state', 'read_channel_values', 'scan_input_devices',
-                    'simulate_channel_input', 'set_input_enabled', 'set_output_enabled', 'set_vibration',
+                    'simulate_channel_input', 'set_input_enabled', 'set_output_enabled', 'set_vibration', 'set_light',
                     'get_operating_mode', 'set_operating_mode', 'capture_pressure_calibration',
                     'get_pressure_calibration', 'apply_pressure_calibration', 'cancel_pressure_calibration',
                     'get_event_storage_status'):

@@ -1,6 +1,7 @@
 // Shared engine for the unified ToolPkg; legacy standalone templates are frozen compatibility entries.
 // Prototype: one independent workflow per target. Android/model checks are separate.
 let running = false;
+const inputEvents=require('./input_events.js');
 
 function configuration(p) {
   if (!p || typeof p.chat_id !== 'string' || !p.chat_id.trim() || p.chat_id === 'main' || p.chat_id.length > 128)
@@ -56,7 +57,7 @@ async function existingChat(chatId) {
 }
 
 function eligible(event, session, now) {
-  return event.session_id === session.id && event.phase === 'start' && event.sensor_type === 'pressure' &&
+  return event.session_id === session.id && inputEvents.phase(event) &&
     event.direction === 'input' && event.quality === 'ok' && ['sensor','simulation'].includes(event.source) &&
     event.delivery_quality !== 'offline_replay' && Number.isInteger(event.id) && event.id > 0 &&
     Number.isFinite(event.at) && event.at >= session.started && event.at <= now+2 && now-event.at <= 30;
@@ -71,7 +72,7 @@ function prompt(context,replyPrompt) {
     +(doll?'用户为触摸反馈选择了娃娃人设，请按保存设定回应，不改写原聊天的设置。':'沿用当前聊天人设，不切换角色。')
     +'\n触摸回应方式：\n'+(replyPrompt?.trim()||DEFAULT_REPLY_PROMPT)
     +'\n一次按压只主要回应一次；释放不另行回应。模拟来源要简短说明，原始读数不是实际力度，'
-    +'单通道按压不能直接认定拥抱。\n'+JSON.stringify({touch_count:context.events.length,events:context.events,
+    +'单通道按压不能直接认定拥抱。温度是探头读数，不是体温诊断；朝向和摇晃不代表精确位置；开关闭合不冒充触摸。\n'+JSON.stringify({touch_count:context.events.filter(e=>e.sensor_type==='pressure').length,interaction_count:context.events.length,events:context.events,
       queued_during_reply:!!context.queued_during_reply,
       persona:doll?context.persona:'', feedback:context.feedback, persona_priority:doll?'saved_doll':'current_chat'});
 }
@@ -167,6 +168,7 @@ async function listen_interaction(p) {
       if (!Array.isArray(batch.events) || !Number.isInteger(batch.next_cursor) || batch.next_cursor < cursor)
         throw Error('Invalid event page');
       const starts=batch.events.filter(e=>eligible(e,session,serverNow()));
+      let accepted=[];
       if(starts.length){
         stage='fresh_context';
         const context=await tool('get_chat_context',{chat_id:p.chat_id,session_id:session.id,after:cursor,through:batch.next_cursor,limit:200});
@@ -175,8 +177,9 @@ async function listen_interaction(p) {
           if(context.events.some(e=>!eligible(e,session,serverNow())||e.id>batch.next_cursor))throw Error('Invalid leased context page');
           if(!state.queue.some(q=>q.receipt_id===context.receipt_id)){
             state.queue.push({...context,captured_at:serverNow(),queue_deadline:Math.min(session.deadline,serverNow()+120)});
-            for(const e of context.events)state.pressed[(e.boot||'')+':'+e.touch_id]=e.channel;
+            for(const e of context.events)if(e.sensor_type==='pressure')state.pressed[(e.boot||'')+':'+e.touch_id]=e.channel;
           }
+          accepted=context.events;
         }
       }
       // Releases extend the quiet window and update queued durations, never
@@ -190,7 +193,7 @@ async function listen_interaction(p) {
           }
         }
       }
-      for(const e of starts)state.last_touch_at=Math.max(state.last_touch_at||0,e.at);
+      for(const e of accepted)state.last_touch_at=Math.max(state.last_touch_at||0,e.at);
       if(batch.next_cursor!==cursor||batch.events.length){cursor=batch.next_cursor;state.cursor=cursor;await save(p,state);}
       await finishSend();
       const currentWait=p.get_response_wait?p.get_response_wait():wait;
@@ -205,7 +208,7 @@ async function listen_interaction(p) {
         // previous reply runs. Preserve timestamps: queued data is not new input.
         const ready=state.queue.filter(q=>q.queue_deadline>serverNow()).map(q=>({...q,events:q.events.filter(e=>{
           const port=policy.channels?.find(c=>c.channel===e.channel);
-          return !policy.channels||(port&&port.mode!=='off'&&(!port.feedback_level||port.feedback_level==='normal'));
+          return inputEvents.phase(e,policy.response_policy||{})&&(!policy.channels||(port&&port.mode!=='off'&&(!port.feedback_level||port.feedback_level==='normal')));
         })})).filter(q=>q.events.length);
         report.queue_cancelled=(report.queue_cancelled||0)+state.queue.reduce((n,q)=>n+q.events.length,0)-ready.reduce((n,q)=>n+q.events.length,0);
         state.queue=[];

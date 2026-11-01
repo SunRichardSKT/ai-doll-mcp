@@ -5,14 +5,16 @@
 
 先按 [连接方式](../start/MCP_TRANSPORT_DECISION.md)安装。工具不会自行启动 AI 对话；实际可用范围以当前客户端发现的 schema 为准。
 
-本页工具目录适用 **0.1.0内测第一版／固件0.1.0**。配套文件见[0.1.0 Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.0)，旧安装以实际工具发现为准。
+本页工具目录适用 **0.1.1内测0.1.1版／固件0.1.1**。配套文件见[0.1.1 Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.1)，旧安装以实际工具发现为准。
+
+当前[压力/开关固件](../reports/FIRMWARE_INPUTS.md)为`pressure-switch-v1`，原生公开23工具，STDIO保留53工具用于兼容旧设备；HTTP profile仍为2/9/19。温度、动作、马达和外接灯驱动已移除，`scan_input_devices`、`set_output_enabled`、`set_vibration`、`set_light`在该固件明确返回不支持。下方STDIO兼容工具不代表当前固件全部可用，硬件工具以设备能力为准。
 
 ## 不同连接有多少工具
 
 | 连接 | 数量 | 数据与用途 |
 | --- | --- | --- |
-| 电脑 STDIO：`tools/companion_mcp.py` | 52 | 0.1.0内测第一版；设备管理、端口状态、电脑历史、人设、会话与维护 |
-| 设备 `/mcp` | 30 | 0.1.0固件；设备操作、端口状态、归档租约、缓存确认和校时；没有电脑长期历史 |
+| 电脑 STDIO：`tools/companion_mcp.py` | 53 | 0.1.1内测0.1.1版；设备管理、端口状态、电脑历史、人设、会话与维护 |
+| 设备 `/mcp` | 23 | 0.1.1固件；设备操作、端口状态、归档租约、缓存确认和校时；没有电脑长期历史 |
 | HTTP `status` | 2 | `get_installation_status`、`doll_get_status` |
 | HTTP `history` | 9 | status，加能力、配置、人设、偏好、历史、摘要、统计 |
 | HTTP `interaction` | 19 | history，加会话和六个自然陪伴工具 |
@@ -23,7 +25,7 @@ history 的七个附加工具为 `get_channel_capabilities`、`get_channel_confi
 
 设备／STDIO提供`set_channel_state(channel, mode?, name?)`。mode为`off/simulation/connected`，必须先实际发现固件的`port_state_model=per_port_v1`。远程保持19个工具，经`update_body_part(channel, changes={mode:...})`使用同一局部操作，不对离线设备排队。改名不改变校准、采样和其他端口。连接状态来自保存的安装确认，不是自动插拔检测。`update_companion_preferences`另支持`persona_source=chat/doll`及`doll_persona`，只控制身体互动反馈，不改宿主聊天配置。
 
-## 设备内部归档接口（0.1.0）
+## 设备内部归档接口（0.1.1）
 
 设备状态及 `event_storage` 返回 `archive_lease_supported:true`。以下三个工具用于采集器协调，未加入电脑 STDIO 或远程 HTTP 的工具允许列表；HTTP `status/history` 继续只读，`interaction` 继续保持原19个工具。
 
@@ -39,7 +41,7 @@ history 的七个附加工具为 `get_channel_capabilities`、`get_channel_confi
 
 电脑将稳定的 `archive_collector_id` 保存于现有 SQLite 设置中，归档提交后才 ACK，正常采集线程停止时释放；强制结束进程或断网后由设备期限回收。设备直传占用内部 `server` 租约，启用期间外部不能申请；切换归档通路先正常停止旧端。写入或 ACK 不做无条件自动重试，读取页、当前启动和租约状态需要重新核对。
 
-旧客户端在0.1.0上仍可查询，但不带有效租约的 ACK 会失败，不能靠手工确认或清缓存跳过。新手机和新电脑采集器遇到旧固件时默认复制归档、不自动 ACK；电脑状态返回 `archive_mode:legacy_copy_only`。旧Flash接口不能在不ACK的情况下翻过最前24条，完整补传与清理需升级固件；电脑另读RAM页以免积压遮住实时输入。以上均不能证明用户已经升级固件，见 [固件清单](../../firmware/prebuilt/FLASH_MANIFEST.json)。
+旧客户端在0.1.1上仍可查询，但不带有效租约的 ACK 会失败，不能靠手工确认或清缓存跳过。新手机和新电脑采集器遇到旧固件时默认复制归档、不自动 ACK；电脑状态返回 `archive_mode:legacy_copy_only`。旧Flash接口不能在不ACK的情况下翻过最前24条，完整补传与清理需升级固件；电脑另读RAM页以免积压遮住实时输入。以上均不能证明用户已经升级固件，见 [固件清单](../../firmware/prebuilt/FLASH_MANIFEST.json)。
 
 ## 自然陪伴（新增 6 个工具）
 
@@ -54,7 +56,7 @@ history 的七个附加工具为 `get_channel_capabilities`、`get_channel_confi
 
 读取上下文不消费事件。默认 after=0 查询近期未确认事件；分页时处理并确认本页后再用 next_cursor；游标不是确认凭据。释放位于 updates，不产生主要反馈；单页最多 200。名称失败返回 updated=false、name_sync=not_confirmed，先核对设备，不能自动重发。新增工具在电脑与 Linux 直传一致提供，使用规则见 [自然陪伴](../daily/NATURAL_COMPANION.md)。
 
-0.1.0的活动监听可提交当前聊天有效`session_id`及本页最大编号`through`，一次读取整批触摸而不按普通聊天冷却删除独立按压；普通调用不传时行为保持。读取后仍需要按回执确认，不能以游标代替。
+0.1.1的活动监听可提交当前聊天有效`session_id`及本页最大编号`through`，一次读取整批触摸而不按普通聊天冷却删除独立按压；普通调用不传时行为保持。读取后仍需要按回执确认，不能以游标代替。
 
 ## 会话调用共同规则
 
@@ -143,7 +145,7 @@ history 的七个附加工具为 `get_channel_capabilities`、`get_channel_confi
 
 STDIO 的 `doll_chat_companion` 是提示模板，不计入工具数；不会调用设备或开启会话。客户端没有提示菜单时使用 [聊天测试请求](../integrations/CHAT_MCP.md)。AI 执行规则见 [AI 指南](../ai/AI_GUIDE.md)。
 
-## 0.1.0临时热点与管理访问
+## 0.1.1临时热点与管理访问
 
 配对窗口最长600秒；新配置的STA首次连通后最多再保留90秒，重复连接不延长窗口。已有STA连接时手动打开保留完整窗口及STA链路；无网只退避重连，不自行开AP。BOOT、USB `setup_mode` 或已授权LAN管理可开启；热点客户端不能通过HTTP续窗。关闭AP不清除Wi-Fi、身份、通道、校准或归档租约。
 
@@ -152,3 +154,7 @@ STDIO 的 `doll_chat_companion` 是提示模板，不计入工具数；不会调
 `/api/identity`公开最少身份信息；`/api/setup`及状态、配置API要求物理热点窗口、已配对令牌，或已开启的网页登录认证。静态页面不含凭据，允许加载；新浏览器裸LAN地址不会导出令牌。已配对客户端给设置链接附加`#setup_token=...`，网页读入sessionStorage后清除片段，不放入查询参数或日志。若开启网页登录仍须登录；物理热点窗口提供登录恢复，独立热点密码仍生效。
 
 服务器直传与OTA沿用原鉴权和LAN限制。网页开关热点不应中断在线STA或上传，实际无线、手机切网和OTA仍需目标设备验收。旧固件保持原行为，需要升级镜像才获得限时策略。
+
+精简候选不再公开列出 `get_sensor_config`、`set_sensor_config`、`get_operating_mode`、`set_operating_mode`，但保留直接调用兼容；新流程使用逐端口状态、`read_channel_values` 和校准接口。模拟仍仅限明确设为模拟的端口；释放与事件记录共用计时。旧无线调参串口命令 `radio_test` 已移除，正常网络诊断与 BOOT 配网保留。
+
+当前本地固件已改为仅压力/开关的`pressure-switch-v1`，温度、动作和外接输出设计不再是当前驱动能力。见[最新固件说明](../reports/FIRMWARE_INPUTS.md)。

@@ -8,7 +8,7 @@ import threading
 from types import SimpleNamespace
 import webbrowser
 
-from flash_esp32 import ROOT, FlashJob, flash, validate_images, select_port, validate_name
+from flash_esp32 import ROOT, DEFAULT_BAUD, FlashJob, flash, validate_images, select_port, validate_name
 from service_lifecycle import ExclusiveLoopbackServer, ServiceLease, ServiceAlreadyRunning
 
 PORT = 8770
@@ -59,7 +59,7 @@ class Flasher:
             self.job = FlashJob()
             self.running = True
             job = self.job
-        args = SimpleNamespace(port=data.get('port') or None, baud=460800, name=name,
+        args = SimpleNamespace(port=data.get('port') or None, baud=DEFAULT_BAUD, name=name,
                                images=ROOT/'firmware/prebuilt', factory=data.get('factory',False), boot_timeout=180)
         def worker():
             try:

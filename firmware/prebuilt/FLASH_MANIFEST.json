@@ -1,5 +1,5 @@
 {
-  "firmware": "doll-lab-0.1.0",
+  "firmware": "doll-lab-0.1.1",
   "chip": "esp32c3",
   "flashSize": "4MB",
   "flashMode": "dio",
@@ -26,9 +26,11 @@
     {
       "file": "firmware.bin",
       "offset": "0x10000",
-      "bytes": 1278192,
-      "sha256": "892e2eeb7a81b96acb0cf4769d2217c1b552172de7d09dcdf00c01f9ec12511b"
+      "bytes": 1198848,
+      "sha256": "232064b2bf907f8df3c8c6be84683429d192a7889bfe4c97b868c5d8ef966f14"
     }
   ],
-  "target": "ai-doll-supermini-v1"
+  "target": "ai-doll-supermini-v1",
+  "feature_set": "pressure-switch-v1",
+  "network_revision": 2
 }

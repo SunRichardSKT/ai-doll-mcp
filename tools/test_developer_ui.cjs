@@ -38,6 +38,7 @@ const calibration=()=>({capturing:false,engaged:false,ready:false,reason:'captur
     if(p==='/'||p==='/companion'){
      body=kind==='device'?assetSource('device_page'):fs.readFileSync(path.join(root,'tools/companion.html'),'utf8');type='text/html';
     }else if(p==='/channel-editor.js'||p==='/console-embed.js'){body=p==='/channel-editor.js'?assetSource('channel_editor'):fs.readFileSync(path.join(root,'tools/console_embed.js'),'utf8');type='application/javascript';}
+    else if(p==='/wifi-feedback.js'){body=assetSource('wifi_feedback');type='application/javascript';}
     else if(p.endsWith('.js')){body='/* Unrelated history, OTA and persona UI excluded from this fixture. */';type='application/javascript';}
     else if(p==='/api/setup')body=JSON.stringify({token:'fixture',enabled:true,auth_enabled:false});
     else if(p==='/api/uplink')body=JSON.stringify({enabled:false});
@@ -77,10 +78,12 @@ const calibration=()=>({capturing:false,engaged:false,ready:false,reason:'captur
     for(const [id,name,target]of [['debugReadings','read_channel_values','#values'],['debugEvents','get_touch_events','#debugEventsData'],['debugConfig','get_channel_config','#debugConfigData'],['debugDevice','doll_get_status','#debugDeviceData']]){
      const previous=count(name);await page.locator('#'+id+'>summary').click();
      await page.waitForFunction(selector=>document.querySelector(selector).textContent.length>0,target);
+     for(let attempt=0;count(name)<=previous&&attempt<40;attempt++)await page.waitForTimeout(100);
      assert.ok(count(name)>previous,kind+' '+id+' refreshes when opened');
      await page.locator('#'+id+'>summary').click();await page.waitForTimeout(300);const closed=count(name);
      await page.waitForTimeout(1650);assert.equal(count(name),closed,kind+' '+id+' stops reads when closed');
     }
+    assert.ok(!calls.some(c=>['get_sensor_config','get_operating_mode'].includes(c.name)),kind+' diagnostics use the current per-port API');
     await page.locator('#debugDevice>summary').click();await page.waitForTimeout(200);
     await page.locator('#developerOptions>summary').click();await page.waitForTimeout(200);
     const parentClosed=count('doll_get_status');await page.waitForTimeout(1650);

@@ -19,6 +19,7 @@ import time
 import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_BAUD = 115200
 EXPECTED_OFFSETS = {'bootloader.bin': 0, 'partitions.bin': 0x8000,
                     'boot_app0.bin': 0xe000, 'firmware.bin': 0x10000}
 
@@ -327,7 +328,7 @@ def main():
     parser = argparse.ArgumentParser(description='ESP32-C3 快速烧录：自动串口、镜像校验、写入校验、启动检查。')
     parser.add_argument('--port')
     parser.add_argument('--name', help='自定义显示名与热点名，最多 32 个 UTF-8 字节；省略使用随机名称')
-    parser.add_argument('--baud', type=int, choices=(115200, 230400, 460800, 921600), default=460800)
+    parser.add_argument('--baud', type=int, choices=(115200, 230400, 460800, 921600), default=DEFAULT_BAUD)
     parser.add_argument('--images', type=Path, default=ROOT/'firmware/prebuilt')
     parser.add_argument('--check', action='store_true', help='只校验镜像，不访问开发板')
     parser.add_argument('--list-ports', action='store_true')

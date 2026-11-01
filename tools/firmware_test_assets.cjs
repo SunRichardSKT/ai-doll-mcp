@@ -8,7 +8,7 @@ function embedded(name){
 }
 function source(name){
  if(process.argv.includes('--firmware'))return embedded(name);
- if(name==='device_page')return fs.readFileSync(path.join(root,'firmware/src/device_page.h'),'utf8').split('R"HTML(')[1].split(')HTML"')[0];
+ if(name==='device_page'||name==='setup_page')return fs.readFileSync(path.join(root,'firmware/src/'+name+'.h'),'utf8').split('R"HTML(')[1].split(')HTML"')[0];
  if(name==='pairing')return fs.readFileSync(path.join(root,'clients/operit/vendor/qrcodegen.js'),'utf8')+'\n'+fs.readFileSync(path.join(root,'tools/pairing_connection.js'),'utf8');
  return fs.readFileSync(path.join(root,'tools/'+name+'.js'),'utf8');
 }

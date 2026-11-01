@@ -29,7 +29,14 @@ class FirmwareToolTests(unittest.TestCase):
             subprocess.run(command,check=True,capture_output=True,timeout=40)
             actual=json.loads(subprocess.check_output([str(work/'catalog.exe')],timeout=10))['result']['tools']
         self.assertEqual(actual,expected)
-        self.assertEqual(len(ListToolsResult.model_validate({'tools':actual}).tools),30)
+        self.assertEqual(len(ListToolsResult.model_validate({'tools':actual}).tools),23)
+        names={tool['name'] for tool in actual}
+        legacy={'get_sensor_config','set_sensor_config','get_operating_mode','set_operating_mode'}
+        self.assertFalse(names & legacy)
+        source=(ROOT/'firmware/src/lab_main.cpp').read_text(encoding='utf-8')
+        for name in legacy:
+            self.assertIn('name=="'+name+'"',source)  # Existing callers keep their compatibility entry.
+        self.assertTrue({'simulate_channel_input','set_channel_state','read_channel_values'} <= names)
 
 
 if __name__=='__main__':unittest.main()

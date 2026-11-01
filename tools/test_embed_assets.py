@@ -23,11 +23,12 @@ class EmbeddedAssetTests(unittest.TestCase):
             shutil.copyfile(ROOT/'clients/operit/vendor/qrcodegen.LICENSE',root/'clients/operit/vendor/qrcodegen.LICENSE')
             (root/'clients/operit/vendor/qrcodegen.js').write_bytes((ROOT/'clients/operit/vendor/qrcodegen.js').read_bytes())
             (root/'tools/pairing_connection.js').write_bytes((ROOT/'tools/pairing_connection.js').read_bytes())
-            for name in ('channel_editor','ota_manager'):
+            for name in ('channel_editor','ota_manager','wifi_feedback'):
                 (root/'tools'/f'{name}.js').write_bytes((ROOT/'tools'/f'{name}.js').read_bytes())
-            (root/'firmware/src/device_page.h').write_bytes((ROOT/'firmware/src/device_page.h').read_bytes())
+            for name in ('device_page','setup_page'):
+                (root/f'firmware/src/{name}.h').write_bytes((ROOT/f'firmware/src/{name}.h').read_bytes())
             build_assets(root)
-            for name in ('channel_editor','ota_manager','device_page','pairing'):
+            for name in ('channel_editor','ota_manager','device_page','setup_page','pairing','wifi_feedback'):
                 header=root/'firmware/src'/f'{name}_asset.h'
                 first=header.read_bytes()
                 compressed=bytes(int(value,16) for value in re.findall(rb'0x([0-9a-f]{2})',first))

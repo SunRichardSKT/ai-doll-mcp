@@ -54,6 +54,7 @@ class FlashPageTests(unittest.TestCase):
         finished=threading.Event()
         def fake(args,job):
             self.assertEqual(args.name,'小樱')
+            self.assertEqual(args.baud,115200)
             self.assertTrue(job.report['target_device_id'].startswith('AI-Doll-'))
             self.assertNotEqual(job.report['target_device_id'],args.name)
             finished.set()
