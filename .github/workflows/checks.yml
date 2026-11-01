@@ -28,7 +28,7 @@ jobs:
       - name: Firmware integrity, source version, OTA reserve and fixed partitions
         run: python tools/check_firmware.py
       - name: Core behavior and native network and archive policies
-        run: python -m unittest test_shared_core test_companion_experience test_hotspot_policy test_archive_lease test_embed_assets test_firmware_delivery test_firmware_compat test_expansion
+        run: python -m unittest test_shared_core test_companion_experience test_hotspot_policy test_archive_lease test_embed_assets test_firmware_delivery test_firmware_compat
       - name: Build and validate ToolPkg, including storage and queue regressions
         run: python tools/package_operit.py
       - name: Actual MCP SDK over HTTP and STDIO
@@ -56,6 +56,6 @@ jobs:
       - name: Compile the actual ESP32-C3 application
         run: python -m platformio run -d firmware -e supermini-lab
       - name: Validate flash tool metadata through production serializer and MCP SDK
-        run: python -m unittest test_firmware_tools test_embed_assets
+        run: python -m unittest test_firmware_tools test_embed_assets test_expansion
       - name: Export and check actual image size, hashes and unchanged partitions
         run: python tools/export_firmware.py
