@@ -1,0 +1,66 @@
+{
+  "status": "live-verified-layout-candidate",
+  "layout": "unrouted",
+  "nativeProject": "AI_Doll_C3_Socket_20261105",
+  "pcbMm": [
+    34.29,
+    44.45
+  ],
+  "componentCount": 51,
+  "padsMatchBefore": true,
+  "copperCounts": {
+    "lines": 0,
+    "arcs": 0,
+    "vias": 0,
+    "pours": 0,
+    "fills": 0,
+    "regions": 2
+  },
+  "previewKind": "Native viewport captures plus separately labelled auxiliary actual-readback drawing",
+  "nativeFinalImageVerified": true,
+  "layoutApprovalReceived": false,
+  "physicalFitTested": false,
+  "reviews": [
+    {
+      "stage": "review-final-1",
+      "readbackSha256": "8431194e7a7846e7d1308973072e5c2556f1ed0b2709a098976eef7368de4bf2",
+      "imageSha256": "550f02119fc20efa16b0b8e673cdaf951018ff90a94f53d5f176d92bb66f9cc6",
+      "capturedAt": "2026-11-05T15:39:33.2826821Z",
+      "captureKind": "all-primitives-fitted-viewport-png",
+      "fixesApplied": false,
+      "findings": [],
+      "scope": "Native whole-board placement image, pad net equality, anchors/layers and documented mechanical envelopes; no routing acceptance."
+    },
+    {
+      "stage": "review-final-2",
+      "readbackSha256": "3a4865842bbe586a0e4f036019341c393c94d913eb86acc86ef1154d45dbbef8",
+      "imageSha256": "550f02119fc20efa16b0b8e673cdaf951018ff90a94f53d5f176d92bb66f9cc6",
+      "capturedAt": "2026-11-05T15:41:40.40178Z",
+      "captureKind": "all-primitives-fitted-viewport-png",
+      "fixesApplied": false,
+      "findings": [],
+      "scope": "Native whole-board placement image, pad net equality, anchors/layers and documented mechanical envelopes; no routing acceptance."
+    }
+  ],
+  "saveReloadVerified": true,
+  "nativeDrc": {
+    "passed": false,
+    "connectionErrorCount": 117,
+    "otherViolationTypesObserved": [],
+    "scope": "Unrouted board; connection errors remain."
+  },
+  "nativeExport": {
+    "bytes": 397365,
+    "format": "epro2",
+    "restoreVerified": false,
+    "sha256": "7fb26d7a2dc4ff97e0448aa4c7540e0812fb5dde96c2e9c07e7c79b874abdd31",
+    "zipIntegrityVerified": true
+  },
+  "files": {
+    "AI_Doll_C3_Socket_P01.epro2": "7fb26d7a2dc4ff97e0448aa4c7540e0812fb5dde96c2e9c07e7c79b874abdd31",
+    "layout-actual.png": "0120d09551bea4432517b9e1a43c698282f453718e3c17f770c57671d382ef72",
+    "layout-actual.svg": "12839db3a432594b6a95f2596c2f14d3ddeebcda3c369710f000b22c8894e9f6",
+    "layout-native-bottom-focus.png": "575777952a9416136b71b15d130b9cb7efe9322bf37b9da574af9cec02454090",
+    "layout-native-top.png": "550f02119fc20efa16b0b8e673cdaf951018ff90a94f53d5f176d92bb66f9cc6"
+  }
+}

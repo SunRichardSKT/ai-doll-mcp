@@ -1,0 +1,8 @@
+const {chromium}=require('playwright');
+const fs=require('node:fs'),path=require('node:path'),{pathToFileURL}=require('node:url');
+(async()=>{const out=path.join(__dirname,'output');const browser=await chromium.launch({channel:'msedge',headless:true});const errors=[];
+try{const page=await browser.newPage({viewport:{width:1440,height:1090},deviceScaleFactor:1});page.on('pageerror',e=>errors.push(String(e)));await page.goto(pathToFileURL(path.join(out,'preview.html')).href);await page.waitForFunction(()=>window.modelReady===true);
+const captures=[];for(const [mode,file] of [['exploded','preview.png'],['assembled','assembled.png'],['inside','inside.png'],['base','base.png'],['lid','lid.png']]){await page.locator(`[data-mode=${mode}]`).click();await page.locator('canvas').screenshot({path:path.join(out,file)});captures.push(file)}
+await page.locator('[data-mode=exploded]').click();await page.screenshot({path:path.join(out,'overview.png'),fullPage:true});await page.setViewportSize({width:390,height:940});await page.locator('#reset').click();const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth);if(overflow)throw Error('Mobile viewport overflow');if(errors.length)throw Error(errors.join('\n'));
+await page.goto(pathToFileURL(path.join(out,'wiring.svg')).href);await page.setViewportSize({width:1280,height:690});await page.screenshot({path:path.join(out,'wiring.png')});
+fs.writeFileSync(path.join(out,'preview_check.json'),JSON.stringify({passed:true,modes:['exploded','assembled','inside','base','lid'],mobile390:true,javascriptErrors:errors,captures},null,2));console.log(JSON.stringify({passed:true,captures}));}finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});

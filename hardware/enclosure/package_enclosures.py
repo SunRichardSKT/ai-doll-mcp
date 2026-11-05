@@ -14,7 +14,7 @@ COMMON = ('README.md', 'preview.html', 'validation_103450.json',
 SOURCE = ('README.md', 'parameters.json', 'pcb_reference.json', 'requirements-cad.txt',
           'build_enclosure.py', 'render_preview.py', 'SHA256SUMS.txt')
 OUTPUT = ('base.stl', 'lid.stl', 'base.step', 'lid.step', 'assembly_reference.step',
-          'fit_tray.stl', 'audit.json', 'export_check.json', 'meshes.json', 'preview.html',
+          'fit_tray.stl', 'audit.json', 'export_check.json', 'preview.html',
           'preview.png', 'assembled.png', 'cutaway.png')
 EXTRA = {'v22-prototype': ('capture_preview.cjs', 'output/lid.png')}
 STACKED = 'ordered-v2-stacked'
@@ -23,7 +23,7 @@ STACKED_SOURCE = ('README.md', 'parameters.json', 'pcb_reference.json', 'require
                   'capture_preview.cjs', 'SHA256SUMS.txt')
 STACKED_OUTPUT = ('base.stl', 'base.step', 'tray.stl', 'tray.step', 'lid.stl', 'lid.step',
                   'assembly_reference.step', 'audit.json', 'validation.json',
-                  'independent_validation.json', 'meshes.json', 'preview.html', 'preview.png',
+                  'independent_validation.json', 'preview.html', 'preview.png',
                   'assembled.png', 'side.png', 'tray.png', 'lid.png', 'stack.svg', 'stack.png', 'preview_check.json')
 
 

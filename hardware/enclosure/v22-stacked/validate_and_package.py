@@ -100,7 +100,7 @@ def package(target,report):
     source=['README.md','parameters.json','pcb_reference.json','requirements-cad.txt',
             'build_enclosure.py','render_preview.py','capture_preview.cjs','validate_and_package.py']
     exports=[*(name+ext for name in NAMES for ext in ('.stl','.step')),'assembly_reference.step',
-             'audit.json','validation.json','independent_validation.json','meshes.json','preview.html',
+             'audit.json','validation.json','independent_validation.json','preview.html',
              'preview.png','assembled.png','side.png','tray.png','lid.png','stack.svg','stack.png','preview_check.json']
     files={name:(HERE/name).read_bytes() for name in source}
     files.update({'output/'+name:(OUT/name).read_bytes() for name in exports})

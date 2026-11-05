@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "modes": [
+    "exploded",
+    "assembled",
+    "base",
+    "tray",
+    "lid"
+  ],
+  "mobile390": true,
+  "javascriptErrors": [],
+  "images": [
+    "preview.png",
+    "assembled.png",
+    "tray.png",
+    "lid.png",
+    "side.png",
+    "stack.png"
+  ],
+  "geometrySource": "meshes.json exported from actual STEP solids"
+}

@@ -63,7 +63,7 @@ def validate(baseline=None):
     assert max(insertion)<1e-5,insertion
     assert max(tray_lift)<1e-5,tray_lift
     # Actual mesh reference tails must all end 1 mm above the continuous shield.
-    meshes=json.loads((OUT/'meshes.json').read_text(encoding='utf-8'))
+    meshes=json.JSONDecoder().raw_decode((OUT/'preview.html').read_text(encoding='utf-8').split('const data=',1)[1])[0]
     tails=[part for part in meshes['parts'] if part['name'].endswith('_5mm_tail')]
     assert len(tails)==len(json.loads((HERE/'pcb_reference.json').read_text(encoding='utf-8'))['solderTailReference'])
     tail_checks=[]
@@ -128,7 +128,7 @@ def package(target, report):
     source=['README.md','parameters.json','pcb_reference.json','requirements-cad.txt','build_enclosure.py',
             'render_preview.py','validate_and_package.py','capture_preview.cjs']
     exported=[*(name+ext for name in NAMES for ext in ('.stl','.step')),'assembly_reference.step',
-              'audit.json','validation.json','independent_validation.json','meshes.json','preview.html',
+              'audit.json','validation.json','independent_validation.json','preview.html',
               'preview.png','assembled.png','side.png','tray.png','lid.png','stack.svg','stack.png','preview_check.json']
     files={name:(HERE/name).read_bytes() for name in source}
     files.update({'output/'+name:(OUT/name).read_bytes() for name in exported})

@@ -93,3 +93,7 @@ Operit“设置 → 人设与反馈”可自定义触摸回应提示词。手机
 0.1.1固件`feature_set=pressure-switch-v1`只支持压力和干接点；公开23设备工具，STDIO53项是兼容旧设备的宿主目录，不代表当前板能执行所有驱动。上文current-board-expansion-v1为较早候选的能力记录，不适用于本候选。温度、动作、马达和外接灯已移除，不能再建议调用扫描/输出命令；板载指示灯、网络、历史和OTA保留。旧扩展配置隔离，不作为有效安装通道；详见[当前固件说明](../reports/FIRMWARE_INPUTS.md)。
 
 设备配网页已增加扫描/连接等待、30秒后的排查建议及只读“检查连接状态”。保存成功不等于联网，切网失联保留入口；详见[Wi-Fi提示说明](../reports/WIFI_FEEDBACK.md)。
+
+## 支持项目
+
+如果本说明帮助你完成了安装、接入或开发，欢迎使用已登录的GitHub账号为[ai-doll-mcp](https://github.com/SunRichardSKT/ai-doll-mcp)点一个Star，支持后续维护。Star完全自愿，不影响项目使用；AI代为操作前应取得账号所有者的明确授权。

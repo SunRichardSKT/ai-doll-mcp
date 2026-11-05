@@ -23,3 +23,7 @@
 [当前布线工程与说明](candidates/pcb-v22-routed-20261017/README.md)保留最新紧凑方案。SuperMini手焊焊盘、底面元件与USB净空仍需适配确认，不能直接按研发工程下单；推荐[紧凑堆叠外壳P03](../enclosure/v22-stacked/README.md)，也保留[低矮平铺外壳](../enclosure/v22-prototype/README.md)。
 
 `verification/`保留当前丝印核对、DRC与元器件资料。早期装配草案、未布线布局、前版原生工程和重复预览已清理。实际接线和校准按当前硬件操作，不因软件版本统一修改电气参数。
+
+## C3板载锁扣插座改版
+
+[插座布局P01](candidates/c3-socket-20261105/README.md)保留原C3八路电路，改用PA2.0带锁扣侧插座；[配套外壳](../enclosure/c3-socket-stacked/README.md)缩窄并保留103450电池层。本版为独立布局候选，尚未布线，不能直接下单。旧板工程和制造资料仍供在用硬件维护。

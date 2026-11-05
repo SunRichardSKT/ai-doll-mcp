@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "modes": [
+    "exploded",
+    "assembled",
+    "inside",
+    "base",
+    "lid"
+  ],
+  "mobile390": true,
+  "javascriptErrors": [],
+  "captures": [
+    "preview.png",
+    "assembled.png",
+    "inside.png",
+    "base.png",
+    "lid.png"
+  ]
+}

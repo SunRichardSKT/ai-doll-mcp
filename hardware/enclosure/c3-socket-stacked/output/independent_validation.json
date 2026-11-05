@@ -1,0 +1,107 @@
+{
+  "passed": true,
+  "revision": "C3-SOCKET-ENC-P01",
+  "dimensionsMm": {
+    "width": 42.89,
+    "length": 56.45,
+    "height": 33.5
+  },
+  "checks": {
+    "base": {
+      "validSingleStep": true,
+      "watertightStl": true,
+      "relativeVolumeError": 4.6105836581984954e-05
+    },
+    "tray": {
+      "validSingleStep": true,
+      "watertightStl": true,
+      "relativeVolumeError": 1.3112074837026657e-06
+    },
+    "lid": {
+      "validSingleStep": true,
+      "watertightStl": true,
+      "relativeVolumeError": 8.516935533174857e-06
+    }
+  },
+  "batteryInsertionSampleMm": 2,
+  "batteryInsertionMm3": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "trayLiftMm3": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "populatedCarrierLiftMm3": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "headerCount": 8,
+  "physicalFitTested": false,
+  "scope": "Independent exports and sampled rigid vertical insertion/removal; no connector mating force, continuous sweep, fatigue or physical assembly proof.",
+  "files": {
+    "base.stl": "a74546f35a207982a9d8aade77403cae6ae640de1990eb2c3fc5d772feefe6ec",
+    "base.step": "722e41b8d0dd33ce16161ecd33501ae864339d0a76aa76e33a791a73d1f77e88",
+    "tray.stl": "c22741f1d375104d12e155eb82c16b03c487095ce3023baf2b1e6fccbbd2d46c",
+    "tray.step": "682f25cbcdcc537c7d9709b41a26924e42b7b4bc2bd568a64d55c45e90044a78",
+    "lid.stl": "0b0e6ffad16ce4bfeb1fefd617987f709c7cec7fce555fb6c77c6d36dfa7640a",
+    "lid.step": "467abdb67d85a58ce9605b993f97882294c23a99938a2ea77af38f78b79e9e95"
+  }
+}

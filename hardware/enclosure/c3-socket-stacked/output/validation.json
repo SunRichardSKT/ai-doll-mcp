@@ -1,0 +1,45 @@
+{
+  "passed": true,
+  "checks": {
+    "base": {
+      "validBrep": true,
+      "solids": 1,
+      "meshWatertight": true,
+      "meshWindingConsistent": true,
+      "meshBodies": 1,
+      "volumeMm3": 13164.987702524775,
+      "stepRoundtripVolumeError": 2.0372681319713593e-10,
+      "stlRelativeVolumeError": 4.6105836566510767e-05
+    },
+    "tray": {
+      "validBrep": true,
+      "solids": 1,
+      "meshWatertight": true,
+      "meshWindingConsistent": true,
+      "meshBodies": 1,
+      "volumeMm3": 2997.9085339297285,
+      "stepRoundtripVolumeError": 3.637978807091713e-12,
+      "stlRelativeVolumeError": 1.3112074824891616e-06
+    },
+    "lid": {
+      "validBrep": true,
+      "solids": 1,
+      "meshWatertight": true,
+      "meshWindingConsistent": true,
+      "meshBodies": 1,
+      "volumeMm3": 4868.77071651561,
+      "stepRoundtripVolumeError": 2.201000006607501e-05,
+      "stlRelativeVolumeError": 8.521456142973479e-06
+    }
+  },
+  "physicalFitTested": false,
+  "files": {
+    "base.step": "722e41b8d0dd33ce16161ecd33501ae864339d0a76aa76e33a791a73d1f77e88",
+    "base.stl": "a74546f35a207982a9d8aade77403cae6ae640de1990eb2c3fc5d772feefe6ec",
+    "tray.step": "682f25cbcdcc537c7d9709b41a26924e42b7b4bc2bd568a64d55c45e90044a78",
+    "tray.stl": "c22741f1d375104d12e155eb82c16b03c487095ce3023baf2b1e6fccbbd2d46c",
+    "lid.step": "467abdb67d85a58ce9605b993f97882294c23a99938a2ea77af38f78b79e9e95",
+    "lid.stl": "0b0e6ffad16ce4bfeb1fefd617987f709c7cec7fce555fb6c77c6d36dfa7640a",
+    "assembly_reference.step": "2a085c5669473ef86bfab4f6258cbdadb2a0fdc1e83194f88e6d0ed554368e94"
+  }
+}

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="720" viewBox="0 0 1100 720"><defs><marker id="a" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10" fill="none" stroke="#536b5a"/></marker></defs><style>text{font-family:Segoe UI,Microsoft YaHei,sans-serif;fill:#304739}.d{stroke:#536b5a;stroke-width:1;fill:none;marker-start:url(#a);marker-end:url(#a)}.label{font-size:15px}.small{font-size:13px;fill:#65765f}</style><rect width="1100" height="720" fill="#f7f8f3"/><text x="50" y="48" font-size="26" font-weight="600">充电模块四线保护壳 · CHARGER-P02</text><text x="50" y="80" class="small">双片卡扣 / 无五金件 / 长36 × 宽22 × 高11 mm / 单位 mm</text>
+<rect x="100" y="145" width="176.0" height="288.0" rx="24" fill="#dbe4d8" stroke="#607b65" stroke-width="2"/>
+<rect x="140.0" y="157.8" width="96.0" height="129.6" rx="3" fill="none" stroke="#748b8b" stroke-dasharray="5 4"/>
+<rect x="140.0" y="181.0" width="96.0" height="56.0" rx="5" fill="#91a99b" stroke="#536c5b"/>
+<text x="188.0" y="214.0" text-anchor="middle" font-size="15">灯窗 12×7</text>
+<path d="M100 120 H276.0" class="d"/><text x="188.0" y="111" text-anchor="middle" class="label">22</text>
+<path d="M73 145 V433.0" class="d"/><text x="62" y="289.0" transform="rotate(-90 62 289.0)" text-anchor="middle" class="label">36</text><rect x="123.6" y="157.8" width="13.6" height="148.79999999999998" fill="#719a9e" fill-opacity=".28" stroke="#719a9e" stroke-dasharray="4 3"/><rect x="238.79999999999998" y="157.8" width="13.6" height="148.79999999999998" fill="#719a9e" fill-opacity=".28" stroke="#719a9e" stroke-dasharray="4 3"/><rect x="148" y="257" width="8" height="24" fill="#8a9d88"/><rect x="172" y="257" width="8" height="24" fill="#8a9d88"/><rect x="196" y="257" width="8" height="24" fill="#8a9d88"/><text x="167.2" y="377" text-anchor="middle" font-size="13">BAT</text><text x="208.8" y="377" text-anchor="middle" font-size="13">5V</text><path d="M156.8 433.0 v28" stroke="#bb5247" stroke-width="9"/><path d="M177.6 433.0 v28" stroke="#3e4c4e" stroke-width="9"/><path d="M198.4 433.0 v28" stroke="#bb5247" stroke-width="9"/><path d="M219.2 433.0 v28" stroke="#3e4c4e" stroke-width="9"/><text x="188.0" y="493.0" text-anchor="middle" class="label">俯视 · 两侧蓝区为取电线通道</text>
+<text x="405" y="153" class="label">侧向剖面示意</text>
+<rect x="405" y="185" width="288.0" height="88.0" rx="10" fill="#c5d4c3" stroke="#607b65" stroke-width="2"/>
+<rect x="416.2" y="196.2" width="265.6" height="65.6" fill="#f7f8f3"/>
+<rect x="417.8" y="217.8" width="129.6" height="35.2" fill="#7a9290"/>
+<rect x="597" y="196.2" width="64" height="40.4" fill="#ccd6c6" stroke="#607b65"/>
+<rect x="597" y="237.0" width="64" height="24.8" fill="#bacdb5" stroke="#607b65"/>
+<path d="M549 237.0 H733.0" stroke="#bd594b" stroke-width="7" fill="none"/>
+<path d="M723.0 185 V273.0" class="d"/><text x="741.0" y="234.0" class="label">11</text>
+<text x="418" y="315" class="small">模块支承</text><text x="565" y="315" class="small">留线余量</text><text x="635" y="338" class="small">合盖夹线</text>
+<text x="405" y="395" class="label">USB-C前孔</text>
+<rect x="405" y="416" width="176.0" height="88.0" rx="24" fill="#dbe4d8" stroke="#607b65" stroke-width="2"/>
+<rect x="449.0" y="447.2" width="88.0" height="38.4" rx="3" fill="#91a99b" stroke="#536c5b"/>
+<text x="635" y="452" class="label">11 × 4.8 mm</text><text x="635" y="479" class="small">用实际插头核对可插到底</text>
+<text x="50" y="574" font-size="17" font-weight="600">打印 base.stl + lid.stl；PH2.0与SM插头本体均在壳外</text>
+<text x="50" y="607" class="small">模块参考16.2 × 12 × 4.4 mm；BAT两线接电池，5V两线接主板；焊点见接线关系图。</text>
+<text x="50" y="634" class="small">图中模块与走线是包络示意，不能代替焊点三维测量、打印试装和实际拉力检查。</text></svg>

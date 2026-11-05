@@ -27,3 +27,6 @@ python/*
 !python/SHA256SUMS.txt
 
 delivery/*.toolpkg
+
+# CAD triangle intermediates are generated; offline previews already embed this data.
+hardware/enclosure/**/output/meshes.json

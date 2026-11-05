@@ -60,6 +60,8 @@
 
 已制板堆叠壳保持46.29 × 56.45 × 35.2 mm，使用103450电池仓。P02扩大、降低电源开关凹槽并加紧卡扣，已有底壳只需换上盖。
 
+新增机械资料：[四线充电模块保护壳](hardware/enclosure/charger-inline/README.md)；[C3锁扣插座布局候选](hardware/rev-v2/candidates/c3-socket-20261105/README.md)及[配套电池堆叠壳](hardware/enclosure/c3-socket-stacked/README.md)。PCB候选尚未布线，不能直接下单。
+
 ## 开发与维护
 
 [开发和构建](docs/developers/DEVELOPER_GUIDE.md) · [工具目录](docs/developers/MCP_TOOLS.md) · [AI使用说明书](docs/ai/AI_GUIDE.md) · [项目结构](docs/developers/REPOSITORY_LAYOUT.md) · [当前检查记录](docs/reports/VALIDATION.md)

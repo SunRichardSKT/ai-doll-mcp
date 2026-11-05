@@ -1,0 +1,99 @@
+{
+  "revision": "CHARGER-P02-FOUR-WIRE",
+  "units": "mm",
+  "case": {
+    "width": 22.0,
+    "length": 36.0,
+    "height": 11.0,
+    "wall": 1.4,
+    "floor": 1.4,
+    "lid": 1.4,
+    "radius": 3.0
+  },
+  "module": {
+    "width": 12.0,
+    "length": 16.2,
+    "total_height": 4.4,
+    "pcb_thickness": 1.0,
+    "front_y": 1.6,
+    "bottom_z": 2.5,
+    "edge_margin": 0.5
+  },
+  "usb": {
+    "protrusion": 1.3,
+    "shell_width": 9.0,
+    "shell_height": 3.3,
+    "shell_bottom_above_pcb_bottom": 1.0,
+    "cutout_width": 11.0,
+    "cutout_bottom": 2.3,
+    "cutout_height": 4.8
+  },
+  "led_window": {
+    "width": 12.0,
+    "length": 7.0,
+    "center_y": 8.0
+  },
+  "wires": {
+    "count": 4,
+    "nominal_insulation_diameter": 1.5,
+    "groove_radius": 0.8,
+    "centers_x": [
+      7.1,
+      9.7,
+      12.3,
+      14.9
+    ],
+    "clamp_y": 24.0,
+    "clamp_length": 8.0,
+    "bed_top": 4.5,
+    "bar_bottom": 4.55,
+    "bar_thickness": 2.2,
+    "bar_groove_center_z": 4.3,
+    "exit_diameter": 2.0
+  },
+  "snap": {
+    "centers_y": [
+      8.0,
+      20.5
+    ],
+    "width": 3.8,
+    "thickness": 0.7,
+    "length": 6.0,
+    "inside_x": 1.65,
+    "tip_x": 1.05,
+    "hook_top": 5.25,
+    "window_bottom": 3.8,
+    "window_top": 5.3
+  },
+  "measurement_status": "Seller drawing: PCB 12 x 16.2 mm, module total height 4.4 mm, USB projection about 1.3 mm. PCB thickness, LED positions, lower components, solder and wire diameters require physical fit check.",
+  "side_wire_channels": {
+    "width": 1.7,
+    "left_center_x": 3.8,
+    "front_y": 1.6,
+    "rear_y": 20.2,
+    "bottom_z": 2.2,
+    "top_z": 6.5,
+    "reference_wire_center_z": 3.2
+  },
+  "wire_groups": [
+    {
+      "label": "BAT",
+      "centers_x": [
+        7.1,
+        9.7
+      ],
+      "connector": "external PH2.0 pigtail",
+      "source": "B+ and B- battery pads"
+    },
+    {
+      "label": "5V",
+      "centers_x": [
+        12.3,
+        14.9
+      ],
+      "connector": "external SM2.54 3P pigtail, two contacts used",
+      "source": "Labeled input/output positive and negative pads in the supplied seller diagram"
+    }
+  ],
+  "electrical_status": "Four pad assignments established from the user supplied annotated seller diagram; actual voltage, load current and charge/boost transitions not measured."
+}

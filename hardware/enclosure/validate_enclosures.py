@@ -39,7 +39,7 @@ def validate(folder):
     output = folder / 'output'
     parameters = json.loads((folder / 'parameters.json').read_text(encoding='utf-8'))
     audit = json.loads((output / 'audit.json').read_text(encoding='utf-8'))
-    data = json.loads((output / 'meshes.json').read_text(encoding='utf-8'))
+    data = json.JSONDecoder().raw_decode((output / 'preview.html').read_text(encoding='utf-8').split('const data=',1)[1])[0]
     solids, checks = {}, {}
     for name in ('base', 'lid'):
         shape = cq.importers.importStep(str(output / (name + '.step'))).val()
