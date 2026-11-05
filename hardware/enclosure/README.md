@@ -9,13 +9,13 @@
 
 [查看两种板型](preview.html)。按实际板型选模型，勿混用。已制通孔板P02支持只换上盖；第二版PCB的P03重新对齐开关、观察口和线槽，底壳、载架、上盖须配套打印。
 
-## C3板载锁扣插座候选
+## C3板载锁扣插座版
 
-[配套堆叠壳P01](c3-socket-stacked/README.md) · [旋转预览](c3-socket-stacked/output/preview.html)：42.89 × 56.45 × 33.5 mm，103450电池下置、八个PA2.0侧插窗口、J9后端出线。仅匹配本轮新插座布局，先试装，不替换原带线板外壳。
+[配套堆叠壳P02](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/c3-socket-stacked/README.md) · [旋转预览](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/c3-socket-stacked/output/preview.html)：42.89 × 56.45 × 33.5 mm，103450电池下置、八个PA2.0侧插窗口、开关端BAT和5V双出线。适配本轮板载插座版，建议先试装。
 
 ## 独立充电模块保护壳
 
-[Type-C 小充电／升压板保护壳 P02](charger-inline/README.md) · [旋转预览](charger-inline/output/preview.html)：36 × 22 × 11 mm，全打印双片卡扣，带灯窗、两侧走线通道与四线压线槽，无需五金件。按16.2 × 12 × 4.4 mm商品图建模，先试装。
+[Type-C 小充电／升压板保护壳 P02](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/charger-inline/README.md) · [旋转预览](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/charger-inline/output/preview.html)：36 × 22 × 11 mm，全打印双片卡扣，带灯窗、两侧走线通道与四线压线槽，无需五金件。按16.2 × 12 × 4.4 mm商品图建模，先试装。
 
 ## 打印文件
 

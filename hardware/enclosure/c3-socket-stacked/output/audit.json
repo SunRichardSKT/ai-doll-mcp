@@ -1,5 +1,5 @@
 {
-  "revision": "C3-SOCKET-ENC-P01",
+  "revision": "C3-SOCKET-ENC-P02",
   "units": "mm",
   "dimensionsMm": {
     "width": 42.89,
@@ -46,9 +46,9 @@
       "meshWatertight": true,
       "meshWindingConsistent": true,
       "meshBodies": 1,
-      "volumeMm3": 13164.987702524775,
-      "stepRoundtripVolumeError": 2.0372681319713593e-10,
-      "stlRelativeVolumeError": 4.6105836566510767e-05
+      "volumeMm3": 13117.942968870968,
+      "stepRoundtripVolumeError": 3.2014213502407074e-10,
+      "stlRelativeVolumeError": 4.761516089883025e-05
     },
     "tray": {
       "validBrep": true,
@@ -56,9 +56,9 @@
       "meshWatertight": true,
       "meshWindingConsistent": true,
       "meshBodies": 1,
-      "volumeMm3": 2997.9085339297285,
-      "stepRoundtripVolumeError": 3.637978807091713e-12,
-      "stlRelativeVolumeError": 1.3112074824891616e-06
+      "volumeMm3": 2962.5301339297293,
+      "stepRoundtripVolumeError": 2.7284841053187847e-12,
+      "stlRelativeVolumeError": 1.3220193310962396e-06
     },
     "lid": {
       "validBrep": true,
@@ -66,9 +66,9 @@
       "meshWatertight": true,
       "meshWindingConsistent": true,
       "meshBodies": 1,
-      "volumeMm3": 4868.77071651561,
-      "stepRoundtripVolumeError": 2.201000006607501e-05,
-      "stlRelativeVolumeError": 8.521456142973479e-06
+      "volumeMm3": 4892.190120992586,
+      "stepRoundtripVolumeError": 1.844775579229463e-05,
+      "stlRelativeVolumeError": 8.405048770311403e-06
     }
   },
   "componentEnvelopeCollisions": [],
@@ -139,8 +139,8 @@
       52,
       12
     ],
-    "orientation": "long axis +Y, leads +Y then upward through tray notch",
-    "wireExitEndGapMm": 1.8500000000000085,
+    "orientation": "long axis Y; leads face the switch end and rise through the front tray notch",
+    "wireExitEndGapMm": 1.4999999999999998,
     "cellToTrayGapMm": 1.6000000000000014,
     "cellToLowestPinMm": 4.0000000000000036,
     "wireBendTested": false
@@ -207,12 +207,30 @@
     "height": 10.0
   },
   "wireRiser": {
-    "x": 15.445,
-    "y": 50.85,
+    "x": 8.9,
+    "y": 3.3,
     "z": 12.2,
-    "width": 12.0,
-    "length": 3.5,
+    "width": 5.6,
+    "length": 2.3,
     "height": 10.0
+  },
+  "wireExits": {
+    "side": "switch end",
+    "ports": [
+      {
+        "label": "BAT",
+        "side": "left",
+        "y": 5.6
+      },
+      {
+        "label": "5V",
+        "side": "right",
+        "y": 5.6
+      }
+    ],
+    "widthMm": 3.6,
+    "centerZMm": 26.900000000000006,
+    "nominalWireDiameterMm": 1.5
   },
   "scope": "Exported topology, declared rigid clearances and sampled clip envelope. Not stress, continuous insertion, thermal or RF validation.",
   "pending": [

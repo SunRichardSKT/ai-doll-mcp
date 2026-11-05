@@ -26,4 +26,4 @@
 
 ## C3板载锁扣插座改版
 
-[插座布局P01](candidates/c3-socket-20261105/README.md)保留原C3八路电路，改用PA2.0带锁扣侧插座；[配套外壳](../enclosure/c3-socket-stacked/README.md)缩窄并保留103450电池层。本版为独立布局候选，尚未布线，不能直接下单。旧板工程和制造资料仍供在用硬件维护。
+[插座布线样板 P01](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/rev-v2/candidates/c3-socket-20261105/README.md)保留原C3八路电路，改用PA2.0带锁扣侧插座；[配套外壳](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/c3-socket-stacked/README.md)缩窄并保留103450电池层。本版已完成布线和原生DRC，配套P02外壳为开关端双出线，待首板试装。

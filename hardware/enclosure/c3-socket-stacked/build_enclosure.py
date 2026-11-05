@@ -88,8 +88,8 @@ def build():
                    H-2*(wall+.35), p['tray_thickness'], 1.25)
     # Open notch is outside the PCB outline: insulated cell leads rise here.
     wr = p['wire_riser']
-    tray = tray.cut(box(wr['x'], wr['y'], tray_z-.1, wr['width'],
-                        H-wr['y'], p['tray_thickness']+.2))
+    tray = tray.cut(box(wr['x'], 0, tray_z-.1, wr['width'],
+                        wr['y']+wr['length'], p['tray_thickness']+.2))
     # The PCB carrier lifts out with the tray. Fixed inward PCB ledges would
     # obstruct insertion of the 34 mm cell through the upper compartment.
     for sy in p['support_y']:
@@ -99,7 +99,7 @@ def build():
             post = box(xx, yy, tray_z, dx, p['support_length'], bz-tray_z)
             tray = tray.fuse(post)
     stops = []
-    for yy, xs in [(oy-1.15, [ox, ox+bw/2]), (oy+bl+.35, [ox, ox+bw-1.8])]:
+    for yy, xs in [(oy-1.15, [ox, ox+bw-1.8]), (oy+bl+.35, [ox, ox+bw-1.8])]:
         for xx in xs:
             stops.append((xx, yy, 1.8, .8))
     for xx in [ox-1.15, ox+bw+.35]:
@@ -119,13 +119,16 @@ def build():
         xx=-.3 if port['side']=='left' else W-wall-.3
         base=base.cut(box(xx,yy-size/2,port_bottom,wall+.6,size,roof-port_bottom+1))
         ports.append(dict(**port,yWorld=yy,width=size,zBottom=port_bottom))
-    power_x=p['power_exit_x'];power_bottom=top_z+6.4
-    zc=power_bottom+p['power_port_width']/2
-    power_cut=cq.Solid.makeCylinder(p['power_port_width']/2,wall+.6,
-        cq.Vector(power_x,H-wall-.3,zc),cq.Vector(0,1,0))
-    power_cut=power_cut.fuse(box(power_x-p['power_port_width']/2,H-wall-.3,zc,
-        p['power_port_width'],wall+.6,roof-zc+1))
-    base=base.cut(power_cut)
+    slot_width = p['wire_slot_width']
+    slot_bottom = top_z + p['wire_exit_above_pcb']
+    slot_center_z = slot_bottom + slot_width/2
+    for exit_port in p['wire_exits']:
+        x = -.3 if exit_port['side'] == 'left' else W-wall-.3
+        y = exit_port['y']
+        opening = cq.Solid.makeCylinder(slot_width/2, wall+.6,
+            cq.Vector(x, y, slot_center_z), cq.Vector(1, 0, 0))
+        relief = box(x, y-slot_width/2, slot_center_z, wall+.6, slot_width, roof-slot_center_z+1)
+        base = base.cut(opening.fuse(relief))
     clips=[(x,'front') for x in p['snap_front_x']]+[(x,'back') for x in p['snap_back_x']]
     window_z = roof-12.2
     for xx, side in clips:
@@ -147,8 +150,11 @@ def build():
         sz,yy=port['width'],port['yWorld'];zz=port_bottom+p['header_port_height']
         xx=.2 if port['side']=='left' else W-wall+.2
         lid=lid.fuse(box(xx,yy-sz/2+.25,zz,wall-.4,sz-.5,roof-zz+.1))
-    sz=p['power_port_width'];zz=power_bottom+sz
-    lid=lid.fuse(box(power_x-sz/2+.25,H-wall+.2,zz,sz-.5,wall-.4,roof-zz+.1))
+    slot_top = slot_bottom + slot_width
+    for exit_port in p['wire_exits']:
+        x = .2 if exit_port['side'] == 'left' else W-wall+.2
+        lid = lid.fuse(box(x, exit_port['y']-slot_width/2+.25, slot_top,
+                           wall-.4, slot_width-.5, roof-slot_top+.1))
     for sy in p['support_y']:
         yy = oy+sy-p['support_length']/2
         for xx, end in [(wall+.25,ox+p['support_overlap']),
@@ -241,8 +247,9 @@ def build():
         else:
             text=text.translate((W-.55,port['yWorld'],roof-1.1))
         lid=lid.cut(text)
-    power_label=cq.Workplane('XY').text('5V',2.2,.4,font='Arial',kind='bold',combine=True).translate((power_x,H-4,roof+lt-.3)).val()
-    lid=lid.cut(power_label)
+    for exit_port in p['wire_exits']:
+        label = cq.Workplane('XY').text(exit_port['label'], 2.2, .4, font='Arial', kind='bold', combine=True).translate((4.5 if exit_port['side'] == 'left' else W-4.5, 4, roof+lt-.3)).val()
+        lid = lid.cut(label)
     base, tray, lid = base.clean(), tray.clean(), lid.clean()
     pcb = cq.Workplane('XY').polyline(r['outline']).close().extrude(bt).translate((ox,oy,bz)).val()
     components = []
@@ -331,8 +338,8 @@ def build():
                 printedParts=['base','tray','lid'],footprintUnchangedFromNoBattery=p['original_no_battery_footprint_mm']==[W,H],
                 checks=checks,componentEnvelopeCollisions=collisions,partIntersectionsMm3=assembly_overlaps,
                 reservedClearancesMm3=clearances,snapRetractedChecksMm3=snap_checks,
-                battery=dict(nominalMm=[34,50,10],clearanceMm=[36,52,12],orientation='long axis +Y, leads +Y then upward through tray notch',
-                             wireExitEndGapMm=H-wall-p['battery']['y']-50,cellToTrayGapMm=tray_z-p['battery']['z']-10,
+                battery=dict(nominalMm=[34,50,10],clearanceMm=[36,52,12],orientation='long axis Y; leads face the switch end and rise through the front tray notch',
+                             wireExitEndGapMm=p['battery']['y']-wall,cellToTrayGapMm=tray_z-p['battery']['z']-10,
                              cellToLowestPinMm=tip_z-p['battery']['z']-10,wireBendTested=False),
                 tray=dict(thicknessMm=p['tray_thickness'],bottomComponentClearanceMm=tip_z-tray_top,
                           removable=True,pressureOnBattery=False),
@@ -349,6 +356,8 @@ def build():
                            hookEngagementMm=wall-p['snap_tip_inset'],verticalPlayMm=p['snap_vertical_clearance'],
                            guideClearancePerSideMm=p['lid_guide_clearance'],elasticTested=False),
                 connectorAllowance=p['connector_allowance'],wireRiser=p['wire_riser'],
+                wireExits=dict(side='switch end', ports=p['wire_exits'], widthMm=slot_width, centerZMm=slot_center_z,
+                               nominalWireDiameterMm=p['wire_nominal_diameter']),
                 scope='Exported topology, declared rigid clearances and sampled clip envelope. Not stress, continuous insertion, thermal or RF validation.',
                 pending=['actual component and switch measurements','battery seam and upward lead bend','connector and wire route above PCB',
                          'switch lever finger access','PETG snap fit and fatigue','RF with battery below antenna','temperature and drop test'])

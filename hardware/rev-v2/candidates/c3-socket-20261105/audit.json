@@ -1,6 +1,6 @@
 {
-  "status": "live-verified-layout-candidate",
-  "layout": "unrouted",
+  "status": "live-verified-routed-prototype",
+  "layout": "routed",
   "nativeProject": "AI_Doll_C3_Socket_20261105",
   "pcbMm": [
     34.29,
@@ -9,16 +9,15 @@
   "componentCount": 51,
   "padsMatchBefore": true,
   "copperCounts": {
-    "lines": 0,
+    "lines": 337,
     "arcs": 0,
-    "vias": 0,
-    "pours": 0,
+    "vias": 27,
+    "pours": 2,
     "fills": 0,
     "regions": 2
   },
-  "previewKind": "Native viewport captures plus separately labelled auxiliary actual-readback drawing",
-  "nativeFinalImageVerified": true,
-  "layoutApprovalReceived": false,
+  "previewKind": "Manufacturing previews derived from the official Gerber export. Native snapshots were captured for the earlier layout review.",
+  "layoutApprovalReceived": true,
   "physicalFitTested": false,
   "reviews": [
     {
@@ -44,23 +43,94 @@
   ],
   "saveReloadVerified": true,
   "nativeDrc": {
-    "passed": false,
-    "connectionErrorCount": 117,
-    "otherViolationTypesObserved": [],
-    "scope": "Unrouted board; connection errors remain."
+    "passed": true,
+    "violations": 0
   },
   "nativeExport": {
-    "bytes": 397365,
+    "bytes": 533480,
     "format": "epro2",
-    "restoreVerified": false,
-    "sha256": "7fb26d7a2dc4ff97e0448aa4c7540e0812fb5dde96c2e9c07e7c79b874abdd31",
-    "zipIntegrityVerified": true
+    "sha256": "3d43009271465a9b5d70476f3abf1af5ff4d14aa14f986fd2a83da296d527cd6",
+    "zipIntegrityVerified": true,
+    "restoreVerified": false
   },
   "files": {
-    "AI_Doll_C3_Socket_P01.epro2": "7fb26d7a2dc4ff97e0448aa4c7540e0812fb5dde96c2e9c07e7c79b874abdd31",
-    "layout-actual.png": "0120d09551bea4432517b9e1a43c698282f453718e3c17f770c57671d382ef72",
-    "layout-actual.svg": "12839db3a432594b6a95f2596c2f14d3ddeebcda3c369710f000b22c8894e9f6",
-    "layout-native-bottom-focus.png": "575777952a9416136b71b15d130b9cb7efe9322bf37b9da574af9cec02454090",
-    "layout-native-top.png": "550f02119fc20efa16b0b8e673cdaf951018ff90a94f53d5f176d92bb66f9cc6"
+    "AI_Doll_C3_Socket_P01.epro2": "3d43009271465a9b5d70476f3abf1af5ff4d14aa14f986fd2a83da296d527cd6",
+    "manufacturing/Drill_NPTH_Through.DRL": "3e02c3815057fa68358b834f2411d25340776d27c1b889adba6867e74a8ec6cd",
+    "manufacturing/Drill_PTH_Through.DRL": "46d82312b23c2eee047976cfbc7b5fe85656fd89ea79b3cd364b4092c074d54b",
+    "manufacturing/Drill_PTH_Through_Via.DRL": "721ff466d5606ed5607512e303660b9c2a74950b6fd4026ba1d29ea43bb860d3",
+    "manufacturing/FlyingProbeTesting.json": "4bde9780cf0a9aedf30da15699b413524c7b847060bdd856d71c6ebb71d22ead",
+    "manufacturing/Gerber_BoardOutlineLayer.GKO": "18f902a3aafe67a85eb35acf36159446b5a365417f862b63f39373f0cca6cfa3",
+    "manufacturing/Gerber_BottomLayer.GBL": "00ec6fb38d1936851777a0c5d9efc49786a6c10df41e5c180f7d9f38c8539d3a",
+    "manufacturing/Gerber_BottomPasteMaskLayer.GBP": "2ba6e920e9d878670bab6a8eb6b17aee196a36049ce2a277a7028f97edf07072",
+    "manufacturing/Gerber_BottomSilkscreenLayer.GBO": "c53f33c198a328f6d0a076440e6011915523cd0132007dee6d3a507f8fb2839c",
+    "manufacturing/Gerber_BottomSolderMaskLayer.GBS": "23b9663e9566e35bf52e7da59a2dfbac9531e5355348fd359f41263eeb49affe",
+    "manufacturing/Gerber_DocumentLayer.GDL": "3596d9238751bfa17d20a2a33f20fd454fb7a14fddeef149e4eac33430497caa",
+    "manufacturing/Gerber_DrillDrawingLayer.GDD": "136705dd7c03bd5eaaef73f7b19a181fff9a459bfb8e6839cc043d26fc225c28",
+    "manufacturing/Gerber_TopLayer.GTL": "47309463ce7088bf31c5a1502096c3d12e91b1c490a265657ced5f43e7568895",
+    "manufacturing/Gerber_TopPasteMaskLayer.GTP": "ae4e51cabb56e2a45d0fbde47c19a20c0d6c851921884ec5ccf7d32c33608d80",
+    "manufacturing/Gerber_TopSilkscreenLayer.GTO": "a8acbcd6b507bcbdf7db6b998c6bd892c234dac5bf202dbbcaf222d84b3c32cf",
+    "manufacturing/Gerber_TopSolderMaskLayer.GTS": "fc844635448e18c80ca312b79e6df554e0f272510663da8cd29fcdf7c9213177",
+    "manufacturing/PCB下单必读.txt": "dcb3ee1c645c17a009d70726ad9ab708b68a074556fabcf75a4a059d3b43ec59",
+    "gerber-top.png": "42978b3658c3bdce4c5d3e1cf50aab4655f2bf665cd6f595a0984278c882d2b7",
+    "gerber-bottom.png": "b79c875c118a0adb37ec485eb9a0627dc8aa7243719ec4dedad4e2cf37818e4c"
+  },
+  "layoutApprovalDate": "2026-11-06",
+  "nativeLayoutImageVerified": true,
+  "manufacturingExport": {
+    "zipSha256": "8b98c016d41853b9b6cb91a6d07dee5532e49b38d761b131e9e044a3e3358c5f",
+    "fileCount": 16,
+    "fileIntegrityVerified": true,
+    "preview": "Top and physical underside images rendered from official Gerber layers and visually reviewed",
+    "visualReviewPassed": true
+  },
+  "dfm": {
+    "rawSummary": {
+      "danglingEnds": 0,
+      "acuteAngles": 0,
+      "nonOrthogonal": 0,
+      "trackOverPad": 0,
+      "clearance": 3,
+      "silkscreenFlipped": 0,
+      "overlappingVias": 0,
+      "singleLayerVias": 0,
+      "widthMismatches": 28,
+      "duplicateSegments": 0,
+      "parallelCoupling": 14,
+      "antennaKeepout": 0,
+      "netlessPours": 0,
+      "viaCrossesPlane": 0,
+      "floatingIslands": 0,
+      "powerNotPoured": 1,
+      "netlessViaInPad": 0,
+      "widthUnderSpec": 0,
+      "silkOverPad": 0,
+      "silkOffBoard": 0,
+      "decapTooFar": 1,
+      "viaInPad": 2,
+      "copperNearEdge": 0,
+      "fiducialMissing": 0,
+      "zoneViolation": 0,
+      "internalOnEdge": 0,
+      "connectorPlugClearance": 6,
+      "connectorMatingBlocked": 0,
+      "connectorOpeningInward": 0,
+      "errors": 3,
+      "warnings": 27,
+      "total": 55
+    },
+    "clearanceReview": {
+      "ruleMil": 5.98,
+      "clearanceMil": {
+        "3V3 track to TP1.1": 11.249383990399634,
+        "S1 via to U2.3": 7.185016429832871,
+        "CH6 via to U2.1": 8.32741059889684,
+        "CH6 via to its U2.2 pad": 0.7574328780960489,
+        "GND via to its TP3.1 pad": 0.6653212041414136
+      }
+    },
+    "jstHousingWidthMm": 6,
+    "portPitchMm": 8,
+    "socketWindowWidthMm": 7,
+    "physicalFitTested": false
   }
 }

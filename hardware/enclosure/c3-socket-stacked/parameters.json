@@ -1,5 +1,5 @@
 {
-  "revision": "C3-SOCKET-ENC-P01",
+  "revision": "C3-SOCKET-ENC-P02",
   "units": "mm",
   "outer_width": 42.89,
   "outer_length": 56.45,
@@ -40,10 +40,9 @@
   "lid_guide_clearance": 0.15,
   "snap_root_radius": 0.65,
   "sensor_port_width": 7.0,
-  "power_port_width": 4.4,
   "battery": {
     "x": 4.445,
-    "y": 2.8,
+    "y": 3.3,
     "z": 2.2,
     "width": 34.0,
     "length": 50.0,
@@ -58,11 +57,11 @@
     "height": 12.0
   },
   "wire_riser": {
-    "x": 15.445,
-    "y": 50.85,
+    "x": 8.9,
+    "y": 3.3,
     "z": 12.2,
-    "width": 12.0,
-    "length": 3.5,
+    "width": 5.6,
+    "length": 2.3,
     "height": 10.0
   },
   "connector_allowance": {
@@ -105,7 +104,6 @@
   "source_pcb_identity": "AI_Doll_C3_Socket_20261105",
   "header_height": 6.5,
   "header_port_height": 8.8,
-  "power_exit_x": 37.0,
   "snap_front_x": [
     8.5,
     34.39
@@ -113,5 +111,20 @@
   "snap_back_x": [
     8.5,
     31.0
-  ]
+  ],
+  "wire_slot_width": 3.6,
+  "wire_exits": [
+    {
+      "label": "BAT",
+      "side": "left",
+      "y": 5.6
+    },
+    {
+      "label": "5V",
+      "side": "right",
+      "y": 5.6
+    }
+  ],
+  "wire_exit_above_pcb": 4.5,
+  "wire_nominal_diameter": 1.5
 }
