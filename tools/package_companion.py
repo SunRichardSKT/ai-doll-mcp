@@ -398,6 +398,7 @@ def main():
     files += [ROOT/'deploy/direct-server'/name for name in ('Dockerfile','Dockerfile.dockerignore','compose.yml','compose.backend.yml','Caddyfile','.env.example')]
     files += [ROOT/'docs'/name for name in DOCS]
     files += sorted((ROOT/'docs/images').glob('*.png'))
+    files.append(ROOT/'docs/images/ai-doll-logo.svg')
     files += [ROOT/'templates'/name for name in ('chatgpt-mcp-config.json','README.md','host-event.example.json','openclaw-hook.example.json')]
     files += [p for p in (ROOT/'hardware/expansion/current-board').iterdir() if p.is_file()]
     files += [ROOT/'firmware/src'/name for name in SOURCE]
