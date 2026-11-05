@@ -9,7 +9,7 @@
   "componentCount": 51,
   "padsMatchBefore": true,
   "copperCounts": {
-    "lines": 337,
+    "lines": 335,
     "arcs": 0,
     "vias": 27,
     "pours": 2,
@@ -47,37 +47,37 @@
     "violations": 0
   },
   "nativeExport": {
-    "bytes": 533480,
+    "bytes": 536591,
     "format": "epro2",
-    "sha256": "3d43009271465a9b5d70476f3abf1af5ff4d14aa14f986fd2a83da296d527cd6",
+    "sha256": "30ae3acf69febbf3f65423950b557ffb47804e0a663d6c43e9db0eae3c7d153e",
     "zipIntegrityVerified": true,
     "restoreVerified": false
   },
   "files": {
-    "AI_Doll_C3_Socket_P01.epro2": "3d43009271465a9b5d70476f3abf1af5ff4d14aa14f986fd2a83da296d527cd6",
-    "manufacturing/Drill_NPTH_Through.DRL": "3e02c3815057fa68358b834f2411d25340776d27c1b889adba6867e74a8ec6cd",
-    "manufacturing/Drill_PTH_Through.DRL": "46d82312b23c2eee047976cfbc7b5fe85656fd89ea79b3cd364b4092c074d54b",
-    "manufacturing/Drill_PTH_Through_Via.DRL": "721ff466d5606ed5607512e303660b9c2a74950b6fd4026ba1d29ea43bb860d3",
-    "manufacturing/FlyingProbeTesting.json": "4bde9780cf0a9aedf30da15699b413524c7b847060bdd856d71c6ebb71d22ead",
-    "manufacturing/Gerber_BoardOutlineLayer.GKO": "18f902a3aafe67a85eb35acf36159446b5a365417f862b63f39373f0cca6cfa3",
-    "manufacturing/Gerber_BottomLayer.GBL": "00ec6fb38d1936851777a0c5d9efc49786a6c10df41e5c180f7d9f38c8539d3a",
-    "manufacturing/Gerber_BottomPasteMaskLayer.GBP": "2ba6e920e9d878670bab6a8eb6b17aee196a36049ce2a277a7028f97edf07072",
-    "manufacturing/Gerber_BottomSilkscreenLayer.GBO": "c53f33c198a328f6d0a076440e6011915523cd0132007dee6d3a507f8fb2839c",
-    "manufacturing/Gerber_BottomSolderMaskLayer.GBS": "23b9663e9566e35bf52e7da59a2dfbac9531e5355348fd359f41263eeb49affe",
-    "manufacturing/Gerber_DocumentLayer.GDL": "3596d9238751bfa17d20a2a33f20fd454fb7a14fddeef149e4eac33430497caa",
-    "manufacturing/Gerber_DrillDrawingLayer.GDD": "136705dd7c03bd5eaaef73f7b19a181fff9a459bfb8e6839cc043d26fc225c28",
-    "manufacturing/Gerber_TopLayer.GTL": "47309463ce7088bf31c5a1502096c3d12e91b1c490a265657ced5f43e7568895",
-    "manufacturing/Gerber_TopPasteMaskLayer.GTP": "ae4e51cabb56e2a45d0fbde47c19a20c0d6c851921884ec5ccf7d32c33608d80",
-    "manufacturing/Gerber_TopSilkscreenLayer.GTO": "a8acbcd6b507bcbdf7db6b998c6bd892c234dac5bf202dbbcaf222d84b3c32cf",
-    "manufacturing/Gerber_TopSolderMaskLayer.GTS": "fc844635448e18c80ca312b79e6df554e0f272510663da8cd29fcdf7c9213177",
+    "AI_Doll_C3_Socket_P01.epro2": "30ae3acf69febbf3f65423950b557ffb47804e0a663d6c43e9db0eae3c7d153e",
+    "manufacturing/Drill_NPTH_Through.DRL": "ba714e131438113df14153228ed98a7b7f9108f1f58e0b1b6a90d8d7d1401af1",
+    "manufacturing/Drill_PTH_Through.DRL": "acce28957b8c7d7d6d44b623e44e935fbddb02e1e140e6cdd407cc392f081f4f",
+    "manufacturing/Drill_PTH_Through_Via.DRL": "a1635161c2777510e78a0d585a54ae74015cf4e7b93b716203093cc86124c512",
+    "manufacturing/FlyingProbeTesting.json": "c4a65ec9cebd4a89a82ca46976988ec6a7d29e34cf6a556fe8ec7d5e41a10c70",
+    "manufacturing/Gerber_BoardOutlineLayer.GKO": "5bef260b2581641901db26e10babab5d473dd5d84d746625d550bb3e95b836b0",
+    "manufacturing/Gerber_BottomLayer.GBL": "f95364638ab2bd96f8dff230d528dea6499ce4886b4f3225b4d82cfacfbc879f",
+    "manufacturing/Gerber_BottomPasteMaskLayer.GBP": "4d204917489bd62d4a01b00c856ec7b4c4a4c9102284232d7713d81d8daff6d6",
+    "manufacturing/Gerber_BottomSilkscreenLayer.GBO": "6b64f1c0302b36f0136623ed69c45dcaf264a1bd110ec14d017b8eee381f5e74",
+    "manufacturing/Gerber_BottomSolderMaskLayer.GBS": "d328fb31be5088abdd0ebd68f0422dc2b9db4fbce442631e9c5bda97a68ea66f",
+    "manufacturing/Gerber_DocumentLayer.GDL": "c056c5f0ca004dcd0979d30838643b1e1bf8226092c0ba43cef392cbdc7a4c1c",
+    "manufacturing/Gerber_DrillDrawingLayer.GDD": "5882bace957a395797690b4243f861a58f513f5365748ea206607b2f4c4f9986",
+    "manufacturing/Gerber_TopLayer.GTL": "70da382e5beec368aff6792318d9dfaa504244d1df9b9e20f4f83f6bf5e68cb0",
+    "manufacturing/Gerber_TopPasteMaskLayer.GTP": "4322812bbf7a3de187e1da006ba7ebbe6a4f374bdde89316e534e42e4de6f4b9",
+    "manufacturing/Gerber_TopSilkscreenLayer.GTO": "db6abd152b96945f344de67b8fd32b5a7a7cc95621a5451e4abf51d90fd63774",
+    "manufacturing/Gerber_TopSolderMaskLayer.GTS": "03276d7d269048a5c09c24567a7653f158a44eb45136ccc34d884f5c3b5ca53b",
     "manufacturing/PCB下单必读.txt": "dcb3ee1c645c17a009d70726ad9ab708b68a074556fabcf75a4a059d3b43ec59",
-    "gerber-top.png": "42978b3658c3bdce4c5d3e1cf50aab4655f2bf665cd6f595a0984278c882d2b7",
+    "gerber-top.png": "63485f269d26f519c0b78c68b662fdba1516df1d3fd4a0420c6cf2d27c158e79",
     "gerber-bottom.png": "b79c875c118a0adb37ec485eb9a0627dc8aa7243719ec4dedad4e2cf37818e4c"
   },
   "layoutApprovalDate": "2026-11-06",
   "nativeLayoutImageVerified": true,
   "manufacturingExport": {
-    "zipSha256": "8b98c016d41853b9b6cb91a6d07dee5532e49b38d761b131e9e044a3e3358c5f",
+    "zipSha256": "5d938ad61dc28559da5aa35224edc1edb7a4920a8a4dcb60f138e87f8c32d9fd",
     "fileCount": 16,
     "fileIntegrityVerified": true,
     "preview": "Top and physical underside images rendered from official Gerber layers and visually reviewed",
@@ -95,7 +95,7 @@
       "singleLayerVias": 0,
       "widthMismatches": 28,
       "duplicateSegments": 0,
-      "parallelCoupling": 14,
+      "parallelCoupling": 15,
       "antennaKeepout": 0,
       "netlessPours": 0,
       "viaCrossesPlane": 0,
@@ -115,8 +115,8 @@
       "connectorMatingBlocked": 0,
       "connectorOpeningInward": 0,
       "errors": 3,
-      "warnings": 27,
-      "total": 55
+      "warnings": 28,
+      "total": 56
     },
     "clearanceReview": {
       "ruleMil": 5.98,
@@ -131,6 +131,24 @@
     "jstHousingWidthMm": 6,
     "portPitchMm": 8,
     "socketWindowWidthMm": 7,
+    "physicalFitTested": false
+  },
+  "capacitorClearanceRevision": {
+    "date": "2026-11-06",
+    "moved": [
+      "C13",
+      "C14"
+    ],
+    "nearestSensorSocketEnvelopeGapMm": {
+      "C13": 5.204200919999996,
+      "C14": 1.2041987600000006
+    },
+    "usbEnvelopeInterference": false,
+    "affectedRouting": [
+      "SYS5V",
+      "GND"
+    ],
+    "otherCopperMatchedBefore": true,
     "physicalFitTested": false
   }
 }

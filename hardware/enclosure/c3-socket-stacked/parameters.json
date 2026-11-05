@@ -64,14 +64,6 @@
     "length": 2.3,
     "height": 10.0
   },
-  "connector_allowance": {
-    "x": 15.445,
-    "y": 17.5,
-    "z": 20.85,
-    "width": 12.0,
-    "length": 8.0,
-    "height": 10.0
-  },
   "led_window": {
     "offset_x": -4.495936,
     "offset_y": 0.2499882,

@@ -114,12 +114,10 @@ def side_diagram(audit,p):
     svg.append(rect(33.18,stack['bottomComponentBottom'],7.62,2.8,'#73796f'))
     svg.append(rect(26.63,stack['pcbTop'],22.5,6,'#273e4d'))
     svg.append(rect(7.55,stack['pcbTop'],3.75,4.5,'#887b63'))
-    con=p['connector_allowance'];svg.append(rect(con['y'],con['z'],con['length'],con['height'],'none','#7a6b50','stroke-dasharray="5 4"'))
     svg.append(rect(0,audit['switchWell']['floorTopMm'],5.73,audit['dimensionsMm']['height']-audit['switchWell']['floorTopMm'],'#f9faf6'))
     svg.extend([
         '<text x="308" y="430" font-size="20">103450 电池</text>',
         '<text x="352" y="256" font-size="17" fill="#fff">SuperMini</text>',
-        '<text x="245" y="204" font-size="13">PH2.0预留</text>',
         '<text x="124" y="243" font-size="13">开关</text>'])
     rows=[('主盖外顶',audit['dimensionsMm']['height']),('盖内顶',stack['roofBottom']),('模块参考顶',stack['moduleTop']),
           ('开关拨杆顶',stack['switchActuatorTip']),('PCB顶面',stack['pcbTop']),('PCB底面',stack['pcbBottom']),

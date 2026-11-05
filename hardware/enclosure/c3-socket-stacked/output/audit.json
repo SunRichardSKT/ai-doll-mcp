@@ -9,8 +9,8 @@
   "physicalFitTested": false,
   "sourcePcbIdentity": "AI_Doll_C3_Socket_20261105",
   "sourceHashes": {
-    "mechanicalReferenceSha256": "af80f0ce702e6e3376bb36622aaa2443c668fa940a48e85434796968da847cef",
-    "sourceSha256": "c7a8ec1fa5411d657103d188929bbf76a1ba13a31973bdd74a07d08602ee82b9"
+    "mechanicalReferenceSha256": "6f1ed0e6017d1c1b25758ee137e58eaa6c4c0b2e262b98b385d1804d3a170c26",
+    "sourceSha256": "7e7cdd6bca75dc6f158405cf48d0dcc3ab84449c53f972ee53a2758ddc885200"
   },
   "userMeasurement": {
     "quality": "Candidate: native connector readback and S02B-PASK-2 envelope; Z values require physical fit check.",
@@ -79,11 +79,6 @@
   },
   "reservedClearancesMm3": {
     "battery_36x52x12": {
-      "base": 0.0,
-      "tray": 0.0,
-      "lid": 0.0
-    },
-    "PH2_allowance_12x8x10": {
       "base": 0.0,
       "tray": 0.0,
       "lid": 0.0
@@ -198,14 +193,6 @@
     "guideClearancePerSideMm": 0.15,
     "elasticTested": false
   },
-  "connectorAllowance": {
-    "x": 15.445,
-    "y": 17.5,
-    "z": 20.85,
-    "width": 12.0,
-    "length": 8.0,
-    "height": 10.0
-  },
   "wireRiser": {
     "x": 8.9,
     "y": 3.3,
@@ -213,6 +200,10 @@
     "width": 5.6,
     "length": 2.3,
     "height": 10.0
+  },
+  "capacitorToSocketGapMm": {
+    "C13": 5.204200919999996,
+    "C14": 1.2041987600000006
   },
   "wireExits": {
     "side": "switch end",

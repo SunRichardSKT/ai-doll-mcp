@@ -22,7 +22,7 @@
 
 ## 设计与检查范围
 
-[参数](parameters.json)和[PCB参考](pcb_reference.json)记录了来源：XY来自本轮原生PCB回读；板厚1.6 mm、SuperMini顶高6 mm、侧插座高6.5 mm及底面包络采用标注的名义值。当前为试装版，实体装配和打印拉力待检查。
+[参数](parameters.json)和[PCB参考](pcb_reference.json)记录了来源：XY来自本轮原生PCB回读；板厚1.6 mm、SuperMini顶高6 mm、侧插座高6.5 mm及底面包络采用标注的名义值。装配参考已更新至 C13、C14 内移后的 PCB。模型中两颗电容与插座包络分别留出约 5.2 mm、1.2 mm，与 USB 参考包络无干涉。实体装配和打印拉力待检查。
 
 [STEP装配](output/assembly_reference.step)含PCB、电池、元件参考件，不要整件打印。`output/audit.json`保存了实体、STL/STEP一致性及声明包络的干涉检查。独立检查另见`output/independent_validation.json`。
 

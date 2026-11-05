@@ -99,10 +99,10 @@
   "scope": "Independent exports and sampled rigid vertical insertion/removal; no connector mating force, continuous sweep, fatigue or physical assembly proof.",
   "files": {
     "base.stl": "0b4f1c5630dfc27d05a0e1f2fc39011a12c3a4d78176b9515493c6ca09b4da3d",
-    "base.step": "8a1c4b1d921c9e5209602974e2706df4f03d399bc5b6f32f8b60226ffa68b9e4",
+    "base.step": "53360b29637f30676ce5428def2e28b04492cb75f69b2ed47dd3b4461136374d",
     "tray.stl": "641a1e59791433e762a3b66da545f604de782754414f9a5b68e3d0ab4b9d87b3",
-    "tray.step": "c76db1e43b397768a262397fe712fad542e525981da420621ffc46fc726453a7",
+    "tray.step": "21bf5d50fc07b811ee8b66db806e51432fe05589cb80c7e46b8c68189ec0351f",
     "lid.stl": "952f4c03ecca9770084b634a117eff0c271aa7ff7a882aeab250c97ddbbf1a31",
-    "lid.step": "bd1993ad94f862d1749a03a5dca336f745fdcde2f7a73c79a1828e8cdccb149e"
+    "lid.step": "c7290a8e80ab1ffc57bdfc5f38db9fa9aec55a73ff8850d517934073cca7fee2"
   }
 }

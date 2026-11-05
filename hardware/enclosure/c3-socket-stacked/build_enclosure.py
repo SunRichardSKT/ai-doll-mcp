@@ -5,6 +5,7 @@ No electrical or PCB manufacturing files are changed. All dimensions are mm.
 """
 import hashlib
 import json
+from math import hypot
 from pathlib import Path
 
 import cadquery as cq
@@ -279,7 +280,7 @@ def build():
                                     cq.Vector(ox+tail['x'],oy+tail['y'],tip_z))
         components.append((tail['name']+'_5mm_tail',shape,'#b6b2a2'))
     battery, reserve = declared(p['battery']), declared(p['battery_reserved'])
-    connector, wire = declared(p['connector_allowance']), declared(p['wire_riser'])
+    wire = declared(p['wire_riser'])
     shapes={'base':base,'tray':tray,'lid':lid}
     refs=[('PCB',pcb),('module_envelope',module),('Battery_103450_reference',battery)]+[(n,s) for n,s,c in components]
     collisions=[]
@@ -287,11 +288,25 @@ def build():
         for part,case in shapes.items():
             overlap=common(shape,case)
             if overlap>1e-5:collisions.append(dict(reference=name,part=part,mm3=overlap))
+    capacitor_gaps = {}
+    for ref in ('C13', 'C14'):
+        cap = comps[ref]['bbox']
+        distances = []
+        for port in ports:
+            header = comps[port['ref']]['bbox']
+            dx = max(cap['minX']-header['maxX'], header['minX']-cap['maxX'], 0)
+            dy = max(cap['minY']-header['maxY'], header['minY']-cap['maxY'], 0)
+            distances.append(hypot(dx, dy))
+        capacitor_gaps[ref] = min(distances)
+        assert capacitor_gaps[ref] >= 1.0, (ref, capacitor_gaps[ref])
+        cap_solid = next(shape for name, shape, _ in components if name == ref)
+        usb = next(shape for name, shape, _ in components if name == 'USB_symbolic')
+        assert common(cap_solid, usb) < 1e-5, ref
     clearances={}
-    for name,shape in [('battery_36x52x12',reserve),('PH2_allowance_12x8x10',connector),('wire_riser',wire)]:
+    for name,shape in [('battery_36x52x12',reserve),('wire_riser',wire)]:
         clearances[name]={part:common(shape,case) for part,case in shapes.items()}
     for name,shape in [('PCB',pcb),('module',module)]+[(n,s) for n,s,c in components]:
-        for label,region in [('battery',reserve),('connector',connector),('wire',wire)]:
+        for label,region in [('battery',reserve),('wire',wire)]:
             overlap=common(shape,region)
             if overlap>1e-5:collisions.append(dict(reference=label,part=name,mm3=overlap))
     assembly_overlaps={a+'/'+b:common(shapes[a],shapes[b]) for a,b in [('base','tray'),('base','lid'),('tray','lid')]}
@@ -355,7 +370,7 @@ def build():
                 snaps=dict(count=4,walls=['front','back'],deflectionMm=wall+.1-p['snap_tip_inset'],
                            hookEngagementMm=wall-p['snap_tip_inset'],verticalPlayMm=p['snap_vertical_clearance'],
                            guideClearancePerSideMm=p['lid_guide_clearance'],elasticTested=False),
-                connectorAllowance=p['connector_allowance'],wireRiser=p['wire_riser'],
+                wireRiser=p['wire_riser'],capacitorToSocketGapMm=capacitor_gaps,
                 wireExits=dict(side='switch end', ports=p['wire_exits'], widthMm=slot_width, centerZMm=slot_center_z,
                                nominalWireDiameterMm=p['wire_nominal_diameter']),
                 scope='Exported topology, declared rigid clearances and sampled clip envelope. Not stress, continuous insertion, thermal or RF validation.',
