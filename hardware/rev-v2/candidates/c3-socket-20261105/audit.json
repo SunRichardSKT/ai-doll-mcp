@@ -47,37 +47,37 @@
     "violations": 0
   },
   "nativeExport": {
-    "bytes": 536591,
+    "bytes": 543494,
     "format": "epro2",
-    "sha256": "30ae3acf69febbf3f65423950b557ffb47804e0a663d6c43e9db0eae3c7d153e",
+    "sha256": "a1b62e9fc3e3059f40d237907f9f4bb491d4679001e879d27cc232522938ac3f",
     "zipIntegrityVerified": true,
     "restoreVerified": false
   },
   "files": {
-    "AI_Doll_C3_Socket_P01.epro2": "30ae3acf69febbf3f65423950b557ffb47804e0a663d6c43e9db0eae3c7d153e",
-    "manufacturing/Drill_NPTH_Through.DRL": "ba714e131438113df14153228ed98a7b7f9108f1f58e0b1b6a90d8d7d1401af1",
-    "manufacturing/Drill_PTH_Through.DRL": "acce28957b8c7d7d6d44b623e44e935fbddb02e1e140e6cdd407cc392f081f4f",
-    "manufacturing/Drill_PTH_Through_Via.DRL": "a1635161c2777510e78a0d585a54ae74015cf4e7b93b716203093cc86124c512",
+    "AI_Doll_C3_Socket_P01.epro2": "a1b62e9fc3e3059f40d237907f9f4bb491d4679001e879d27cc232522938ac3f",
+    "manufacturing/Drill_NPTH_Through.DRL": "37fd98cc73841edc7a0539f366c0dfa99f6ba25cb05d9d2e2c9aa4421b0e5e79",
+    "manufacturing/Drill_PTH_Through.DRL": "709b372a866a5abeaba9d6c8bb76ddfadedfdbb6868f6ad5047a8203f01306ad",
+    "manufacturing/Drill_PTH_Through_Via.DRL": "41496adef200854ba33d1f9ba0623489f6c2148f4cd8e5a32ee2cfc8ac89651d",
     "manufacturing/FlyingProbeTesting.json": "c4a65ec9cebd4a89a82ca46976988ec6a7d29e34cf6a556fe8ec7d5e41a10c70",
-    "manufacturing/Gerber_BoardOutlineLayer.GKO": "5bef260b2581641901db26e10babab5d473dd5d84d746625d550bb3e95b836b0",
-    "manufacturing/Gerber_BottomLayer.GBL": "f95364638ab2bd96f8dff230d528dea6499ce4886b4f3225b4d82cfacfbc879f",
-    "manufacturing/Gerber_BottomPasteMaskLayer.GBP": "4d204917489bd62d4a01b00c856ec7b4c4a4c9102284232d7713d81d8daff6d6",
-    "manufacturing/Gerber_BottomSilkscreenLayer.GBO": "6b64f1c0302b36f0136623ed69c45dcaf264a1bd110ec14d017b8eee381f5e74",
-    "manufacturing/Gerber_BottomSolderMaskLayer.GBS": "d328fb31be5088abdd0ebd68f0422dc2b9db4fbce442631e9c5bda97a68ea66f",
-    "manufacturing/Gerber_DocumentLayer.GDL": "c056c5f0ca004dcd0979d30838643b1e1bf8226092c0ba43cef392cbdc7a4c1c",
-    "manufacturing/Gerber_DrillDrawingLayer.GDD": "5882bace957a395797690b4243f861a58f513f5365748ea206607b2f4c4f9986",
-    "manufacturing/Gerber_TopLayer.GTL": "70da382e5beec368aff6792318d9dfaa504244d1df9b9e20f4f83f6bf5e68cb0",
-    "manufacturing/Gerber_TopPasteMaskLayer.GTP": "4322812bbf7a3de187e1da006ba7ebbe6a4f374bdde89316e534e42e4de6f4b9",
-    "manufacturing/Gerber_TopSilkscreenLayer.GTO": "db6abd152b96945f344de67b8fd32b5a7a7cc95621a5451e4abf51d90fd63774",
-    "manufacturing/Gerber_TopSolderMaskLayer.GTS": "03276d7d269048a5c09c24567a7653f158a44eb45136ccc34d884f5c3b5ca53b",
+    "manufacturing/Gerber_BoardOutlineLayer.GKO": "a9b300fab916ff68c327a7c0d743e5ea0137e3739667a1016c34722652ebfd75",
+    "manufacturing/Gerber_BottomLayer.GBL": "f80c38c7c3c08b339da9336268c060d00664e9ecb4a584af6c299e3cb2e71998",
+    "manufacturing/Gerber_BottomPasteMaskLayer.GBP": "a5640a5562589b5cf1448f6d003b99787d72f363f0f2e756c0901dc3ee887ef4",
+    "manufacturing/Gerber_BottomSilkscreenLayer.GBO": "33f4af4fbea629ee8923b96ff8d9629dd8263752f887d93c69ae71813b6f873e",
+    "manufacturing/Gerber_BottomSolderMaskLayer.GBS": "6d5d229a9f4de71e248ecea475c2bf129ddf93b121b0bdbe383a388579e95fcb",
+    "manufacturing/Gerber_DocumentLayer.GDL": "479f19503ab43aa731a18d0f6393a0d12a8888b6c805f7d72e090727294cb367",
+    "manufacturing/Gerber_DrillDrawingLayer.GDD": "1483ff5c83e6f87b916ed34031cf7667e5d2fa0d63cfdc58a7d159d0fe1aec8d",
+    "manufacturing/Gerber_TopLayer.GTL": "76837dc477ffd7390dbdc2351e9d10c9848414361e8fee8d1fbc82fdad8984e7",
+    "manufacturing/Gerber_TopPasteMaskLayer.GTP": "2e767381e0f4d3fe3b1a45a2d90f64da4e39d777178bb3f7053897634759f267",
+    "manufacturing/Gerber_TopSilkscreenLayer.GTO": "5b3933da57bb00865a4f5a2271bc9349c52008b461593ed3e9fe2e4050d184a3",
+    "manufacturing/Gerber_TopSolderMaskLayer.GTS": "9c2e392f5a0d75d90e6639ee3adeaeab91b853629c2c05312bfa3f001b8be53c",
     "manufacturing/PCB下单必读.txt": "dcb3ee1c645c17a009d70726ad9ab708b68a074556fabcf75a4a059d3b43ec59",
-    "gerber-top.png": "63485f269d26f519c0b78c68b662fdba1516df1d3fd4a0420c6cf2d27c158e79",
+    "gerber-top.png": "acf9ec8b1bd4dd26e5849dad4abf7c5c58cc1af97851639a09bb092a66b9aa35",
     "gerber-bottom.png": "b79c875c118a0adb37ec485eb9a0627dc8aa7243719ec4dedad4e2cf37818e4c"
   },
   "layoutApprovalDate": "2026-11-06",
   "nativeLayoutImageVerified": true,
   "manufacturingExport": {
-    "zipSha256": "5d938ad61dc28559da5aa35224edc1edb7a4920a8a4dcb60f138e87f8c32d9fd",
+    "zipSha256": "c57f1dbeeb612fab121c24358386ce17c443338820b282fd652b802cce7cc238",
     "fileCount": 16,
     "fileIntegrityVerified": true,
     "preview": "Top and physical underside images rendered from official Gerber layers and visually reviewed",
@@ -150,5 +150,15 @@
     ],
     "otherCopperMatchedBefore": true,
     "physicalFitTested": false
+  },
+  "silkscreenRefresh": {
+    "date": "2026-11-06",
+    "layer": "top",
+    "text": [
+      "AI DOLL CORE",
+      "DESIGN & BUILD: RichardG"
+    ],
+    "componentAndCopperReadbackMatchedPrevious": true,
+    "nativeDrcZero": true
   }
 }
