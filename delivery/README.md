@@ -24,7 +24,7 @@ Windows 包内置 Python，无需另装。Linux 小型包不含 Windows Python�
 
 ## 当前硬件修订
 
-[板尾开关 C3 插座板](../hardware/rev-v2/candidates/c3-socket-20261105/README.md) · [直头 USB 堆叠壳 P03](../hardware/enclosure/c3-socket-stacked/README.md) · [全部外壳](../hardware/enclosure/README.md)
+[板尾开关 C3 插座板](../hardware/rev-v2/candidates/c3-socket-20261105/README.md) · [直头 USB 堆叠壳 P04](../hardware/enclosure/c3-socket-stacked/README.md) · [全部外壳](../hardware/enclosure/README.md)
 
 上述硬件目录随源码维护，选型时以对应 PCB 说明及模型为准。
 

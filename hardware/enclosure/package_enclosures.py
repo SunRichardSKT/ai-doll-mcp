@@ -26,8 +26,13 @@ def model_files(model):
         contents[model + '/' + name] = raw
     contents[model + '/SHA256SUMS.txt'] = (directory / 'SHA256SUMS.txt').read_bytes()
     for path in directory.iterdir():
-        if path.is_file() and path.suffix in {'.md', '.py', '.json', '.cjs', '.txt'}:
+        if path.is_file() and path.suffix in {'.md', '.py', '.js', '.json', '.cjs', '.txt'}:
             contents[model + '/' + path.name] = path.read_bytes()
+    for path in (directory / 'output').iterdir():
+        if model == 'charger-inline' and path.name in {'base.png', 'lid.png', 'overview.png'}:
+            continue
+        if path.is_file() and path.name != 'meshes.json' and path.suffix in {'.stl', '.step', '.png', '.svg', '.html', '.json'}:
+            contents[model + '/output/' + path.name] = path.read_bytes()
     validation = directory / 'output/independent_validation.json'
     if validation.exists() and not json.loads(validation.read_text(encoding='utf-8'))['passed']:
         raise ValueError('Model validation failed: ' + model)

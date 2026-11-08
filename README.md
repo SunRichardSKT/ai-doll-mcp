@@ -103,7 +103,7 @@ sudo bash Install_Server.sh
 | 你手里的板或模块 | 对应资料 |
 | --- | --- |
 | 已制带线板 | [主板、采购与制造资料](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/rev-v2/README.md) · [按板型选外壳](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/README.md) |
-| C3 八路 PA2.0 锁扣插座样板 | [嘉立创工程、Gerber 和正反面图](https://github.com/SunRichardSKT/ai-doll-mcp/tree/main/hardware/rev-v2/candidates/c3-socket-20261105) · [直头 USB 堆叠壳 P03](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/c3-socket-stacked/README.md) |
+| C3 八路 PA2.0 锁扣插座样板 | [嘉立创工程、Gerber 和正反面图](https://github.com/SunRichardSKT/ai-doll-mcp/tree/main/hardware/rev-v2/candidates/c3-socket-20261105) · [直头 USB 堆叠壳 P04](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/c3-socket-stacked/README.md) |
 | 独立 Type-C 充放模块 | [四线防拉脱保护壳](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/charger-inline/README.md) |
 
 按实际 PCB 选打印件。插座样板的首板实体装配和八路采样待验证。当前固件支持压力与干接点输入。 [固件功能范围](docs/reports/FIRMWARE_INPUTS.md) · [固件、PCB 与外壳下载清单](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/delivery/README.md)

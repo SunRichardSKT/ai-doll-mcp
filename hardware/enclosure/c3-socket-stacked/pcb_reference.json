@@ -1,8 +1,8 @@
 {
   "units": "mm",
-  "date": "2026-11-08",
-  "source": "Native PCB readback after rear switch and J9 relocation; declared heights include the complete straight USB plug.",
-  "sourceSha256": "7f233966fa169a8af990ca6525a8e8ad822cd43ce16fb146da60e4b3c857aca3",
+  "date": "2026-11-09",
+  "source": "Native readback of C3 PCB P03: 3P locking power socket and non-overlapping R1/C12.",
+  "sourceSha256": "bfdb4b29d5b7642b582bf05b1fb6dce46ae4f75fd518948cf78c9e1a6ff8d0ef",
   "width": 34.29,
   "length": 44.45,
   "cornerRadius": 1.524,
@@ -751,46 +751,46 @@
       "ref": "C13",
       "device": "CL31A476MQHNNNE",
       "side": "bottom",
-      "x": 10.0,
-      "y": 2.5,
+      "x": 10.00000032,
+      "y": 2.50000008,
       "rotation": 0,
       "bbox": {
-        "minX": 7.3602034,
-        "minY": 1.331193599999997,
-        "maxX": 12.6397966,
-        "maxY": 3.6688064000000007
+        "minX": 7.3602037199999994,
+        "minY": 1.33119368,
+        "maxX": 12.639796919999998,
+        "maxY": 3.66880648
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "C14",
       "device": "CL31B104KBCNNNC",
       "side": "bottom",
-      "x": 17.5,
-      "y": 2.5,
+      "x": 17.50000056,
+      "y": 2.50000008,
       "rotation": 0,
       "bbox": {
-        "minX": 14.860203399999994,
-        "minY": 1.3311936000000024,
-        "maxX": 20.139796599999997,
-        "maxY": 3.668806399999998
+        "minX": 14.860203959999998,
+        "minY": 1.33119368,
+        "maxX": 20.139797159999997,
+        "maxY": 3.66880648
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "J9",
-      "device": "MTP125-1102S1",
+      "device": "S03B-PASK-2(LF)(SN)",
       "side": "top",
-      "x": 3.6000000000000005,
-      "y": 37.8,
-      "rotation": 0,
+      "x": 3.50000062,
+      "y": 39.300000139999995,
+      "rotation": 90,
       "bbox": {
-        "minX": 0.9330000000000008,
-        "minY": 36.403,
-        "maxX": 6.267,
-        "maxY": 39.196999999999996
+        "minX": -4.82698298,
+        "minY": 35.16244173999999,
+        "maxX": 7.12699362,
+        "maxY": 43.437812539999996
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "R1",
@@ -805,7 +805,7 @@
         "maxX": 7.851292399999999,
         "maxY": 26.475334399999998
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "R2",
@@ -820,7 +820,7 @@
         "maxX": 7.851292399999999,
         "maxY": 21.6493344
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "R3",
@@ -835,7 +835,7 @@
         "maxX": 7.851292399999999,
         "maxY": 16.0613344
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "R4",
@@ -850,7 +850,7 @@
         "maxX": 7.851292399999999,
         "maxY": 10.4733344
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "R5",
@@ -865,7 +865,7 @@
         "maxX": 28.4252924,
         "maxY": 26.475334399999998
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "R6",
@@ -880,7 +880,7 @@
         "maxX": 28.4252924,
         "maxY": 21.6493344
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "R7",
@@ -895,7 +895,7 @@
         "maxX": 28.4252924,
         "maxY": 16.0613344
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "R8",
@@ -910,7 +910,7 @@
         "maxX": 28.4252924,
         "maxY": 10.4733344
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "R9",
@@ -925,7 +925,7 @@
         "maxX": 10.8992924,
         "maxY": 26.475334399999998
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "R10",
@@ -940,7 +940,7 @@
         "maxX": 10.8992924,
         "maxY": 21.6493344
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "R11",
@@ -955,7 +955,7 @@
         "maxX": 10.8992924,
         "maxY": 16.0613344
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "R12",
@@ -970,7 +970,7 @@
         "maxX": 10.8992924,
         "maxY": 10.4733344
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "R13",
@@ -985,7 +985,7 @@
         "maxX": 25.377292399999998,
         "maxY": 26.475334399999998
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "R14",
@@ -1000,7 +1000,7 @@
         "maxX": 25.377292399999998,
         "maxY": 21.6493344
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "R15",
@@ -1015,7 +1015,7 @@
         "maxX": 25.377292399999998,
         "maxY": 16.0613344
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "R16",
@@ -1030,7 +1030,7 @@
         "maxX": 25.377292399999998,
         "maxY": 10.4733344
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "R17",
@@ -1045,22 +1045,22 @@
         "maxX": 17.077334399999998,
         "maxY": 37.188292399999995
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "R18",
       "device": "0805W8F1003T5E",
       "side": "bottom",
-      "x": 9.19999938,
-      "y": 35.500000119999996,
+      "x": 9.652,
+      "y": 36.321999999999996,
       "rotation": 0,
       "bbox": {
-        "minX": 7.362664979999999,
-        "minY": 34.50670772,
-        "maxX": 11.037333779999999,
-        "maxY": 36.49329251999999
+        "minX": 7.8146656,
+        "minY": 35.3287076,
+        "maxX": 11.4893344,
+        "maxY": 37.31529239999999
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "R19",
@@ -1075,7 +1075,7 @@
         "maxX": 30.7933344,
         "maxY": 33.75929239999999
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "R20",
@@ -1090,22 +1090,22 @@
         "maxX": 30.7933344,
         "maxY": 36.807292399999994
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "SW1",
       "device": "SS12D00G4",
       "side": "top",
-      "x": 31.799999999999997,
-      "y": 39.0,
+      "x": 31.799999899999996,
+      "y": 39.00000074,
       "rotation": 90,
       "bbox": {
-        "minX": 29.923016199999996,
-        "minY": 34.554873,
-        "maxX": 33.67700919999999,
-        "maxY": 43.444873
+        "minX": 29.923016099999998,
+        "minY": 34.55487374,
+        "maxX": 33.67700909999999,
+        "maxY": 43.44487374
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "TP1",
@@ -1120,67 +1120,67 @@
         "maxX": 18.145000539999998,
         "maxY": 11.922000539999999
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "TP2",
       "device": "AI_Doll_V2_TESTPOINT",
       "side": "top",
-      "x": 24.799999999999997,
-      "y": 3.0000000000000036,
+      "x": 24.800001199999997,
+      "y": 2.99999908,
       "rotation": 0,
       "bbox": {
-        "minX": 23.79999946,
-        "minY": 1.999999460000007,
-        "maxX": 25.80000054,
-        "maxY": 4.00000054
+        "minX": 23.80000066,
+        "minY": 1.9999985400000002,
+        "maxX": 25.80000174,
+        "maxY": 3.9999996199999996
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "TP3",
       "device": "AI_Doll_V2_TESTPOINT",
       "side": "top",
-      "x": 24.799999999999997,
-      "y": 6.1999999999999975,
+      "x": 24.800001199999997,
+      "y": 6.200000299999999,
       "rotation": 0,
       "bbox": {
-        "minX": 23.79999946,
-        "minY": 5.199999460000001,
-        "maxX": 25.80000054,
-        "maxY": 7.200000539999994
+        "minX": 23.80000066,
+        "minY": 5.19999976,
+        "maxX": 25.80000174,
+        "maxY": 7.20000084
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "TP4",
       "device": "AI_Doll_V2_TESTPOINT",
-      "side": "top",
-      "x": 3.5000000000000004,
-      "y": 42.1,
+      "side": "bottom",
+      "x": 6.35,
+      "y": 42.925999999999995,
       "rotation": 0,
       "bbox": {
-        "minX": 2.499999460000001,
-        "minY": 41.09999946,
-        "maxX": 4.50000054,
-        "maxY": 43.10000053999999
+        "minX": 5.349999459999999,
+        "minY": 41.92599946,
+        "maxX": 7.350000539999999,
+        "maxY": 43.92600054
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "TP5",
       "device": "AI_Doll_V2_TESTPOINT",
       "side": "top",
-      "x": 24.799999999999997,
-      "y": 9.399999999999999,
+      "x": 24.800001199999997,
+      "y": 9.39999898,
       "rotation": 0,
       "bbox": {
-        "minX": 23.79999946,
-        "minY": 8.399999460000002,
-        "maxX": 25.80000054,
-        "maxY": 10.400000539999995
+        "minX": 23.80000066,
+        "minY": 8.399998440000001,
+        "maxX": 25.80000174,
+        "maxY": 10.399999520000001
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "U2",
@@ -1195,7 +1195,7 @@
         "maxX": 22.44975952,
         "maxY": 34.79852578
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "C1",
@@ -1210,7 +1210,7 @@
         "maxX": 13.933805000000001,
         "maxY": 26.6777978
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "C2",
@@ -1225,7 +1225,7 @@
         "maxX": 13.933805000000001,
         "maxY": 21.8517978
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "C3",
@@ -1240,7 +1240,7 @@
         "maxX": 13.933805000000001,
         "maxY": 16.2637978
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "C4",
@@ -1255,7 +1255,7 @@
         "maxX": 13.933805000000001,
         "maxY": 10.6757978
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "C5",
@@ -1270,7 +1270,7 @@
         "maxX": 22.315805,
         "maxY": 26.6777978
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "C6",
@@ -1285,7 +1285,7 @@
         "maxX": 22.315805,
         "maxY": 21.8517978
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "C7",
@@ -1300,7 +1300,7 @@
         "maxX": 22.315805,
         "maxY": 16.2637978
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "C8",
@@ -1315,22 +1315,22 @@
         "maxX": 22.315805,
         "maxY": 10.6757978
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "C9",
       "device": "CL21B102KBCNNNC",
       "side": "bottom",
-      "x": 5.842,
+      "x": 6.604,
       "y": 40.132,
       "rotation": 180,
       "bbox": {
-        "minX": 3.8022021999999995,
+        "minX": 4.5642021999999995,
         "minY": 39.152195000000006,
-        "maxX": 7.8817978,
+        "maxX": 8.6437978,
         "maxY": 41.111805
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "C10",
@@ -1345,37 +1345,37 @@
         "maxX": 11.393805,
         "maxY": 32.0117978
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "C11",
       "device": "CL21A106KAYNNNE",
-      "side": "top",
-      "x": 4.826,
-      "y": 35.00000112,
-      "rotation": 0,
+      "side": "bottom",
+      "x": 5.588,
+      "y": 36.321999999999996,
+      "rotation": 90,
       "bbox": {
-        "minX": 2.7862021999999995,
-        "minY": 34.02019612,
-        "maxX": 6.8657978,
-        "maxY": 35.97980611999999
+        "minX": 4.608194999999999,
+        "minY": 34.2822022,
+        "maxX": 6.567805000000001,
+        "maxY": 38.3617978
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "C12",
       "device": "CC0805KRX7R9BB104",
       "side": "bottom",
-      "x": 7.62,
-      "y": 28.07462,
+      "x": 7.366,
+      "y": 29.971999999999998,
       "rotation": 90,
       "bbox": {
-        "minX": 6.6401949999999985,
-        "minY": 26.034822199999997,
-        "maxX": 8.599805,
-        "maxY": 30.1144178
+        "minX": 6.386194999999999,
+        "minY": 27.9322022,
+        "maxX": 8.345805,
+        "maxY": 32.0117978
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "U1",
@@ -1390,7 +1390,7 @@
         "maxX": 26.293064000000008,
         "maxY": 44.133770000000005
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "J1",
@@ -1405,7 +1405,7 @@
         "maxX": 7.12699362,
         "maxY": 32.637813820000005
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "J2",
@@ -1420,7 +1420,7 @@
         "maxX": 7.12699362,
         "maxY": 24.63781458
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "J3",
@@ -1435,7 +1435,7 @@
         "maxX": 7.12699362,
         "maxY": 16.637815339999996
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "J4",
@@ -1450,7 +1450,7 @@
         "maxX": 7.12699362,
         "maxY": 8.63781356
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "J5",
@@ -1465,7 +1465,7 @@
         "maxX": 39.11698298,
         "maxY": 32.63755982
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "J6",
@@ -1480,7 +1480,7 @@
         "maxX": 39.11698298,
         "maxY": 24.637560579999995
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "J7",
@@ -1495,7 +1495,7 @@
         "maxX": 39.11698298,
         "maxY": 16.637561339999998
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     },
     {
       "ref": "J8",
@@ -1510,7 +1510,7 @@
         "maxX": 39.11698298,
         "maxY": 8.637559560000001
       },
-      "bboxStatus": "Native readback of the straight-USB revision"
+      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
     }
   ],
   "wirePorts": [
@@ -1561,21 +1561,17 @@
       "channel": "CH7",
       "side": "right",
       "y": 5.499999159999999
+    },
+    {
+      "ref": "J9",
+      "channel": "5V",
+      "side": "left",
+      "x": 3.50000062,
+      "y": 39.300000139999995,
+      "width": 9.0
     }
   ],
   "solderTailReference": [
-    {
-      "name": "J9_2",
-      "x": 4.869179999999999,
-      "y": 37.80028,
-      "radius": 0.45
-    },
-    {
-      "name": "J9_1",
-      "x": 2.32918,
-      "y": 37.80028,
-      "radius": 0.45
-    },
     {
       "name": "SW1_1",
       "x": 31.8008,
@@ -1689,7 +1685,25 @@
       "x": 30.78988,
       "y": 6.49986,
       "radius": 0.45
+    },
+    {
+      "name": "J9_1",
+      "x": 3.5001200000000003,
+      "y": 41.300399999999996,
+      "radius": 0.45
+    },
+    {
+      "name": "J9_2",
+      "x": 3.5001200000000003,
+      "y": 39.29888,
+      "radius": 0.45
+    },
+    {
+      "name": "J9_3",
+      "x": 3.5001200000000003,
+      "y": 37.2999,
+      "radius": 0.45
     }
   ],
-  "mechanicalReferenceSha256": "9b05d02acdf5c69b0d93061aba0d35cba87905840a2e78d4489bfa32211d9ebb"
+  "mechanicalReferenceSha256": "8484c27c3c67193273b64dfae4747efa9a6dd6f28c239963c0e95d8383b18cd4"
 }

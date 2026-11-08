@@ -77,6 +77,17 @@ def build():
     roof = max(switch_top, module_top, top_z+p['header_height'])+p['roof_clearance']
     total_height = roof+lt
     comps = {c['ref']: c for c in r['components']}
+    # Electrical DRC does not check component bodies/courtyards (R1/C12).
+    footprint_overlaps = []
+    for index, first in enumerate(r['components']):
+        a = first['bbox']
+        for second in r['components'][index+1:]:
+            if first['side'] != second['side']:
+                continue
+            b = second['bbox']
+            if min(a['maxX'], b['maxX']) > max(a['minX'], b['minX']) + 1e-6 and min(a['maxY'], b['maxY']) > max(a['minY'], b['minY']) + 1e-6:
+                footprint_overlaps.append([first['ref'], second['ref']])
+    assert not footprint_overlaps, footprint_overlaps
     base = rounded(0, 0, 0, W, H, roof, p['corner_radius'])
     base = base.cut(rounded(wall, wall, floor, W-2*wall, H-2*wall,
                             roof+1, p['corner_radius']-wall))
@@ -116,10 +127,10 @@ def build():
     ports = []
     port_bottom = top_z-.2
     for port in r['wirePorts']:
-        yy=oy+port['y'];size=p['sensor_port_width']
+        yy=oy+port['y'];size=port.get('width',p['sensor_port_width'])
         xx=-.3 if port['side']=='left' else W-wall-.3
         base=base.cut(box(xx,yy-size/2,port_bottom,wall+.6,size,roof-port_bottom+1))
-        ports.append(dict(**port,yWorld=yy,width=size,zBottom=port_bottom))
+        ports.append({**port,'yWorld':yy,'width':size,'zBottom':port_bottom})
     slot_width = p['wire_slot_width']
     slot_bottom = top_z + p['wire_exit_above_pcb']
     slot_center_z = slot_bottom + slot_width/2
@@ -306,6 +317,11 @@ def build():
     usb_intersections={name:common(plug_sweep,shape) for name,shape in shapes.items()}
     usb_intersections.update({name:common(plug_sweep,shape) for name,shape in refs})
     assert max(usb_intersections.values())<1e-5,usb_intersections
+    power_port = next(port for port in ports if port['ref'] == 'J9')
+    # Declared 8 x 8 mm plug envelope, swept through the left wall.
+    power_sweep = box(-12,power_port['yWorld']-4,top_z+.2,wall+12.3,8,8)
+    power_intersections = {name:common(power_sweep,shape) for name,shape in shapes.items()}
+    assert max(power_intersections.values())<1e-5,power_intersections
     capacitor_gaps = {}
     for ref in ('C13', 'C14'):
         cap = comps[ref]['bbox']
@@ -364,6 +380,8 @@ def build():
     dimensions=dict(width=W,length=H,height=total_height)
     (OUT/'meshes.json').write_text(json.dumps(dict(dimensions=dimensions,parts=meshes),separators=(',',':')),encoding='utf-8')
     report=dict(revision=p['revision'],units='mm',dimensionsMm=dimensions,physicalFitTested=False,
+                sameSideFootprintOverlaps=footprint_overlaps,
+                powerConnector=dict(ref='J9',series='PA2.0 3P',pinNets={'1':'GND','2':'NC','3':'PWR5V_RAW'},portWidthMm=power_port['width'],centerYMm=power_port['yWorld'],sweepBottomZMm=top_z+.2,sweepHeightMm=8,sweepWidthMm=8,sweptIntersectionsMm3=power_intersections,physicalFitTested=False),
                 sourcePcbIdentity=p['source_pcb_identity'],sourceHashes={'mechanicalReferenceSha256':r['mechanicalReferenceSha256'],'sourceSha256':r['sourceSha256']},userMeasurement=p['user_measurement'],
                 heightStackMm=dict(floorTop=floor,batteryReferenceTop=p['battery']['z']+p['battery']['height'],batteryReserveTop=tray_z,
                                    trayBottom=tray_z,trayTop=tray_top,bottomComponentBottom=tip_z,pcbBottom=bz,pcbTop=top_z,

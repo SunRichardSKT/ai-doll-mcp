@@ -7,9 +7,9 @@
       "meshWatertight": true,
       "meshWindingConsistent": true,
       "meshBodies": 1,
-      "volumeMm3": 12862.942883900994,
-      "stepRoundtripVolumeError": 2.5647750589996576e-10,
-      "stlRelativeVolumeError": 4.656278957153633e-05
+      "volumeMm3": 12720.147754830205,
+      "stepRoundtripVolumeError": 8.549250196665525e-11,
+      "stlRelativeVolumeError": 4.750821295975224e-05
     },
     "tray": {
       "validBrep": true,
@@ -27,19 +27,19 @@
       "meshWatertight": true,
       "meshWindingConsistent": true,
       "meshBodies": 1,
-      "volumeMm3": 4806.55715026949,
-      "stepRoundtripVolumeError": 5.664162017637864e-06,
-      "stlRelativeVolumeError": 7.883195635139867e-06
+      "volumeMm3": 4823.412198638001,
+      "stepRoundtripVolumeError": 5.634276931232307e-06,
+      "stlRelativeVolumeError": 7.918547353012269e-06
     }
   },
   "physicalFitTested": false,
   "files": {
-    "base.step": "45219da5d40c5689a53181e643106cda89ed65735fb30cb9d86a671791b9952a",
-    "base.stl": "a6a3fde49f03950cdfb483bade3075ed7f9a19e86ad15e359452a9941d51ced4",
-    "tray.step": "593d202b52bf3f619fd000ff4dd6b8833cc558715cfa31d4e891d9320994acef",
+    "base.step": "0b2ea7b80a7e5ab5ed2625ebd2d5bc41d4c8ec9cc0289ce90e765da0fe8b95e8",
+    "base.stl": "ff8921eac709e6a4055c7fa657cec92eedfdd701e246a55818eef74ace2e27e4",
+    "tray.step": "95795cc378e9b26424db71f2c98d29e2d1f82caa626ea090de113e1949586b05",
     "tray.stl": "641a1e59791433e762a3b66da545f604de782754414f9a5b68e3d0ab4b9d87b3",
-    "lid.step": "23816aafd686bbad2e18798c02b3541f6f47b794f87495be78d3eaed94811438",
-    "lid.stl": "b6416b55090ec5334287eaa4e5d88f48ab169b3a170dc6f524ca7e52498eae7b",
-    "assembly_reference.step": "122a28c592cb11a6e5062c3bef8d91fa82219b558d7c8fd4fa9b26b5a5ea7edd"
+    "lid.step": "8e08f65406ba335ecfd985b3f94fab8ee4c6252256f09de4b883d3e8dc56c9e4",
+    "lid.stl": "08846a143a6e5eaad5afe847013eb2f808f46d613b15894572c0e1f83635af61",
+    "assembly_reference.step": "32368446d41db42026936672df1072a7ff97e488a6db6e089fcf5bb9fcfcf658"
   }
 }

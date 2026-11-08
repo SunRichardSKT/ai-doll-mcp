@@ -1,5 +1,5 @@
 {
-  "revision": "C3-SOCKET-ENC-P03",
+  "revision": "C3-SOCKET-ENC-P04",
   "units": "mm",
   "dimensionsMm": {
     "width": 42.89,
@@ -7,13 +7,34 @@
     "height": 33.5
   },
   "physicalFitTested": false,
+  "sameSideFootprintOverlaps": [],
+  "powerConnector": {
+    "ref": "J9",
+    "series": "PA2.0 3P",
+    "pinNets": {
+      "1": "GND",
+      "2": "NC",
+      "3": "PWR5V_RAW"
+    },
+    "portWidthMm": 9.0,
+    "centerYMm": 45.300000139999995,
+    "sweepBottomZMm": 20.800000000000004,
+    "sweepHeightMm": 8,
+    "sweepWidthMm": 8,
+    "sweptIntersectionsMm3": {
+      "base": 0.0,
+      "tray": 0.0,
+      "lid": 0.0
+    },
+    "physicalFitTested": false
+  },
   "sourcePcbIdentity": "AI_Doll_C3_Socket_20261105",
   "sourceHashes": {
-    "mechanicalReferenceSha256": "9b05d02acdf5c69b0d93061aba0d35cba87905840a2e78d4489bfa32211d9ebb",
-    "sourceSha256": "7f233966fa169a8af990ca6525a8e8ad822cd43ce16fb146da60e4b3c857aca3"
+    "mechanicalReferenceSha256": "8484c27c3c67193273b64dfae4747efa9a6dd6f28c239963c0e95d8383b18cd4",
+    "sourceSha256": "bfdb4b29d5b7642b582bf05b1fb6dce46ae4f75fd518948cf78c9e1a6ff8d0ef"
   },
   "userMeasurement": {
-    "quality": "Candidate: native connector readback and S02B-PASK-2 envelope; Z values require physical fit check.",
+    "quality": "Native C3 PCB P03 geometry, PA2.0 2P sensors and 3P power; nominal heights require physical fit check.",
     "bottom_component_envelope_mm": 2.8,
     "module_height_above_pcb_mm": 6.0,
     "switch_height_above_pcb_mm": 4.5,
@@ -46,9 +67,9 @@
       "meshWatertight": true,
       "meshWindingConsistent": true,
       "meshBodies": 1,
-      "volumeMm3": 12862.942883900994,
-      "stepRoundtripVolumeError": 2.5647750589996576e-10,
-      "stlRelativeVolumeError": 4.656278957153633e-05
+      "volumeMm3": 12720.147754830205,
+      "stepRoundtripVolumeError": 8.549250196665525e-11,
+      "stlRelativeVolumeError": 4.750821295975224e-05
     },
     "tray": {
       "validBrep": true,
@@ -66,9 +87,9 @@
       "meshWatertight": true,
       "meshWindingConsistent": true,
       "meshBodies": 1,
-      "volumeMm3": 4806.55715026949,
-      "stepRoundtripVolumeError": 5.664162017637864e-06,
-      "stlRelativeVolumeError": 7.883195635139867e-06
+      "volumeMm3": 4823.412198638001,
+      "stepRoundtripVolumeError": 5.634276931232307e-06,
+      "stlRelativeVolumeError": 7.918547353012269e-06
     }
   },
   "componentEnvelopeCollisions": [],
@@ -148,8 +169,8 @@
   },
   "switchWell": {
     "centerMm": [
-      36.099999999999994,
-      45.0
+      36.09999989999999,
+      45.00000074
     ],
     "floorTopMm": 22.700000000000003,
     "actuatorTipMm": 25.1,
@@ -202,8 +223,8 @@
     "height": 10.0
   },
   "capacitorToSocketGapMm": {
-    "C13": 0.23320977999999926,
-    "C14": 7.0232097800000055
+    "C13": 0.2332100999999991,
+    "C14": 7.023209220000005
   },
   "usbStraightPlug": {
     "plugMm": [
@@ -277,8 +298,6 @@
       "J6_PA_header": 0.0,
       "J7_PA_header": 0.0,
       "J8_PA_header": 0.0,
-      "J9_2_5mm_tail": 0.0,
-      "J9_1_5mm_tail": 0.0,
       "SW1_1_5mm_tail": 0.0,
       "SW1_2_5mm_tail": 0.0,
       "SW1_3_5mm_tail": 0.0,
@@ -297,7 +316,10 @@
       "J7_1_5mm_tail": 0.0,
       "J7_2_5mm_tail": 0.0,
       "J8_1_5mm_tail": 0.0,
-      "J8_2_5mm_tail": 0.0
+      "J8_2_5mm_tail": 0.0,
+      "J9_1_5mm_tail": 0.0,
+      "J9_2_5mm_tail": 0.0,
+      "J9_3_5mm_tail": 0.0
     },
     "physicalFitTested": false
   },
@@ -308,11 +330,6 @@
         "label": "BAT",
         "side": "left",
         "y": 5.6
-      },
-      {
-        "label": "5V",
-        "side": "left",
-        "y": 43.8
       }
     ],
     "widthMm": 3.6,

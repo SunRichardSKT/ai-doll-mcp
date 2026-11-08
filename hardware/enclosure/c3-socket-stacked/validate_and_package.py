@@ -23,9 +23,9 @@ def run(package=False):
  ox,oy=p['board_offset'];top=a['heightStackMm']['pcbTop'];bottom=a['heightStackMm']['pcbBottom']
  heads=[]
  for c in r['components']:
-  if c['ref'] not in ['J'+str(i) for i in range(1,9)]:continue
+  if c['ref'] not in ['J'+str(i) for i in range(1,10)]:continue
   b=c['bbox'];heads.append(box(ox+b['minX'],oy+b['minY'],top,b['maxX']-b['minX'],b['maxY']-b['minY'],p['header_height']))
- assert len(heads)==8
+ assert len(heads)==9
  carrier=cq.Compound.makeCompound([solids['tray'],box(ox,oy,bottom,r['width'],r['length'],r['thickness']),*heads]);carrier_lift=[]
  for z in range(0,41,2):carrier_lift.append(carrier.translate((0,0,z)).intersect(solids['base']).Volume())
  assert max(carrier_lift)<1e-5,carrier_lift
@@ -41,8 +41,12 @@ def run(package=False):
  sweep=box(x-width/2,-length,z-height/2,width,y+length,height)
  usb_clearance={name:sweep.intersect(solid).Volume() for name,solid in solids.items()}
  assert max(usb_clearance.values())<1e-5,usb_clearance
+ power=a['powerConnector']
+ power_sweep=box(-12,power['centerYMm']-power['sweepWidthMm']/2,power['sweepBottomZMm'],p['wall']+12.3,power['sweepWidthMm'],power['sweepHeightMm'])
+ power_clearance={name:power_sweep.intersect(solid).Volume() for name,solid in solids.items()}
+ assert max(power_clearance.values())<1e-5,power_clearance
  assert not a['componentEnvelopeCollisions'] and max(a['partIntersectionsMm3'].values())<1e-5
- report=dict(passed=True,revision=p['revision'],dimensionsMm=a['dimensionsMm'],checks=checks,batteryInsertionSampleMm=2,batteryInsertionMm3=insertion,trayLiftMm3=tray_lift,populatedCarrierLiftMm3=carrier_lift,headerCount=8,powerWireSlotProbesPassed=True,usbStraightPlugSweepMm3=usb_clearance,physicalFitTested=False,scope='Independent exports and sampled rigid vertical insertion/removal; no connector mating force, continuous sweep, fatigue or physical assembly proof.',files={name+ext:hashlib.sha256((OUT/(name+ext)).read_bytes()).hexdigest() for name in NAMES for ext in ('.stl','.step')})
+ report=dict(passed=True,revision=p['revision'],dimensionsMm=a['dimensionsMm'],checks=checks,batteryInsertionSampleMm=2,batteryInsertionMm3=insertion,trayLiftMm3=tray_lift,populatedCarrierLiftMm3=carrier_lift,headerCount=9,sensorHeaderCount=8,powerHeaderCount=1,batteryWireSlotProbesPassed=True,usbStraightPlugSweepMm3=usb_clearance,powerConnectorMatingSweepMm3=power_clearance,physicalFitTested=False,scope='Independent exports and sampled rigid vertical insertion/removal; no connector mating force, continuous sweep, fatigue or physical assembly proof.',files={name+ext:hashlib.sha256((OUT/(name+ext)).read_bytes()).hexdigest() for name in NAMES for ext in ('.stl','.step')})
  (OUT/'independent_validation.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
  source=['README.md','parameters.json','pcb_reference.json','requirements-cad.txt','build_enclosure.py','render_preview.py','capture_preview.cjs','validate_and_package.py']
  exports=[*(name+ext for name in NAMES for ext in ('.stl','.step')),'assembly_reference.step','audit.json','validation.json','independent_validation.json','preview.html','preview.png','assembled.png','side.png','tray.png','lid.png','stack.svg','stack.png','preview_check.json']
@@ -52,7 +56,7 @@ def run(package=False):
  if not package:
   print(json.dumps(dict(passed=True,revision=p['revision'],usbStraightPlugSweepMm3=usb_clearance),ensure_ascii=False))
   return
- target=HERE.parents[2]/'delivery/AI_Doll_C3_Socket_Enclosure_P03.zip';target.parent.mkdir(parents=True,exist_ok=True)
+ target=HERE.parents[2]/'delivery/AI_Doll_C3_Socket_Enclosure_P04.zip';target.parent.mkdir(parents=True,exist_ok=True)
  with zipfile.ZipFile(target,'w',zipfile.ZIP_DEFLATED) as z:
   for name,raw in files.items():z.writestr(name,raw)
  with zipfile.ZipFile(target) as z:

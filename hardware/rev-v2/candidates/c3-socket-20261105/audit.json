@@ -1,62 +1,69 @@
 {
   "status": "live-verified-routed-prototype",
-  "revision": "C3-SOCKET-P02",
-  "date": "2026-11-08",
-  "nativeProject": "AI_Doll_C3_Socket_20261105",
+  "revision": "C3-SOCKET-P03",
+  "date": "2026-11-09",
   "pcbMm": [
     34.29,
     44.45
   ],
   "componentCount": 51,
-  "padsMatchBefore": true,
-  "saveReloadVerified": true,
   "nativeDrc": {
     "passed": true,
     "violations": 0
   },
+  "saveReloadVerified": true,
   "physicalFitTested": false,
-  "copperCounts": {
-    "lines": 388,
-    "vias": 39,
-    "pours": 2,
-    "regions": 2
+  "powerConnector": {
+    "device": "S03B-PASK-2(LF)(SN)",
+    "lcsc": "C265095",
+    "housing": "PAP-03V-S",
+    "pinNets": {
+      "1": "GND",
+      "2": "NC",
+      "3": "PWR5V_RAW"
+    },
+    "middleNoConnectVerified": true
   },
+  "otherPadNetsPreserved": true,
+  "sameSideFootprintOverlaps": [],
+  "r1C12EnvelopeGapMm": 1.4568677999999993,
+  "sourceReadbackSha256": "e300ed7a13c613aa6e2bf296fdfb3659deb1b8f3dad27f881a788961b0125794",
+  "reviews": [
+    {
+      "readbackSha256": "bfdb4b29d5b7642b582bf05b1fb6dce46ae4f75fd518948cf78c9e1a6ff8d0ef",
+      "nativeDrcPassed": true
+    },
+    {
+      "readbackSha256": "e300ed7a13c613aa6e2bf296fdfb3659deb1b8f3dad27f881a788961b0125794",
+      "nativeDrcPassed": true
+    }
+  ],
   "nativeExport": {
-    "bytes": 557404,
+    "bytes": 611453,
     "format": "epro2",
-    "sha256": "211dc85c270b80dc1aa5c543869b5548b34f1818f45e2fd7ca05618a7dbd6edf",
+    "sha256": "8e6740209de7d21ad5f9155b24294c3d3a31719ae4e8a27305e600fc836e2e5d",
     "zipIntegrityVerified": true,
     "restoreVerified": false
   },
-  "sourceReadbackSha256": "7f233966fa169a8af990ca6525a8e8ad822cd43ce16fb146da60e4b3c857aca3",
-  "changes": [
-    "SW1 rear-right rotated 90 degrees",
-    "J9 rear-left; original 2-pin 5V input retained",
-    "C13/C14 bottom front; original pad nets unchanged",
-    "Front straight-USB insertion corridor, 14 x 8 mm overmould, matched enclosure P03"
-  ],
-  "powerConnectorProposal": {
-    "implemented": false,
-    "series": "JST PA 2.0 mm",
-    "circuits": 3,
-    "boardPart": "S03B-PASK-2(LF)(SN)",
-    "housing": "PAP-03V-S",
-    "note": "Requires schematic, footprint, harness and enclosure revision before adoption"
+  "preview": {
+    "kind": "Actual-readback auxiliary layout SVG and derived PNG; not an official EDA canvas image. Copper routing is in the native Gerber export, not this auxiliary layout.",
+    "officialCanvasAvailable": false,
+    "reason": "Host reported PCB tab hidden; user foreground request pending",
+    "generatedFrom": "sourceReadbackSha256"
   },
-  "previewKind": "Native editor whole-board viewport after save/reload, both physical viewing sides",
   "dfm": {
     "rawSummary": {
-      "danglingEnds": 7,
-      "acuteAngles": 3,
+      "danglingEnds": 8,
+      "acuteAngles": 2,
       "nonOrthogonal": 4,
-      "trackOverPad": 0,
-      "clearance": 3,
+      "trackOverPad": 1,
+      "clearance": 4,
       "silkscreenFlipped": 0,
       "overlappingVias": 0,
       "singleLayerVias": 0,
-      "widthMismatches": 25,
-      "duplicateSegments": 2,
-      "parallelCoupling": 18,
+      "widthMismatches": 24,
+      "duplicateSegments": 1,
+      "parallelCoupling": 21,
       "antennaKeepout": 0,
       "netlessPours": 0,
       "viaCrossesPlane": 0,
@@ -64,7 +71,7 @@
       "powerNotPoured": 1,
       "netlessViaInPad": 0,
       "widthUnderSpec": 1,
-      "silkOverPad": 1,
+      "silkOverPad": 0,
       "silkOffBoard": 0,
       "decapTooFar": 1,
       "viaInPad": 2,
@@ -75,999 +82,71 @@
       "connectorPlugClearance": 6,
       "connectorMatingBlocked": 0,
       "connectorOpeningInward": 0,
-      "errors": 3,
-      "warnings": 49,
-      "total": 74
+      "errors": 4,
+      "warnings": 52,
+      "total": 76
     },
-    "findings": [
-      {
-        "type": "dangling-end",
-        "level": "WARN",
-        "net": "CH3",
-        "layer": 1,
-        "primitives": [
-          "3554879a525ea63b"
-        ],
-        "message": "track end connects to nothing (no pad/via/track) — unfinished or floating copper",
-        "at": {
-          "x": 309.41,
-          "y": 953.28
+    "shapeSpecificClearanceChecks": {
+      "passed": true,
+      "scope": "Listed circles and axis-aligned OVAL copper shapes for four conservative bbox DFM reports; nominal readback dimensions rounded to 0.1mil",
+      "minimumRequiredMil": 6,
+      "measurements": [
+        {
+          "kind": "track-circle",
+          "net": "3V3",
+          "pad": "TP3.1",
+          "clearanceMil": 8.923851208433275
+        },
+        {
+          "kind": "via-oval-or-circle",
+          "net": "S1",
+          "pad": "U2.3",
+          "clearanceMil": 7.185016429832871
+        },
+        {
+          "kind": "via-oval-or-circle",
+          "net": "CH6",
+          "pad": "U2.1",
+          "clearanceMil": 8.32741059889684
+        },
+        {
+          "kind": "via-oval-or-circle",
+          "net": "3V3",
+          "pad": "TP3.1",
+          "clearanceMil": 13.62649922395024
         }
-      },
-      {
-        "type": "dangling-end",
-        "level": "WARN",
-        "net": "CH6",
-        "layer": 1,
-        "primitives": [
-          "d2fad33b888ed597"
-        ],
-        "message": "track end connects to nothing (no pad/via/track) — unfinished or floating copper",
-        "at": {
-          "x": 800.23,
-          "y": 701.84
-        }
-      },
-      {
-        "type": "dangling-end",
-        "level": "WARN",
-        "net": "CH6",
-        "layer": 1,
-        "primitives": [
-          "462a57302e40c67f"
-        ],
-        "message": "track end connects to nothing (no pad/via/track) — unfinished or floating copper",
-        "at": {
-          "x": 553.4,
-          "y": 1300.05
-        }
-      },
-      {
-        "type": "dangling-end",
-        "level": "WARN",
-        "net": "GND",
-        "layer": 2,
-        "primitives": [
-          "975b4defc2c4f367"
-        ],
-        "message": "track end connects to nothing (no pad/via/track) — unfinished or floating copper",
-        "at": {
-          "x": 850.91,
-          "y": 1264.9
-        }
-      },
-      {
-        "type": "dangling-end",
-        "level": "WARN",
-        "net": "GPIO6_SPARE",
-        "layer": 1,
-        "primitives": [
-          "ad5b1b7d4c5377cb"
-        ],
-        "message": "track end connects to nothing (no pad/via/track) — unfinished or floating copper",
-        "at": {
-          "x": 1253.37,
-          "y": 1343.85
-        }
-      },
-      {
-        "type": "dangling-end",
-        "level": "WARN",
-        "net": "GPIO6_SPARE",
-        "layer": 1,
-        "primitives": [
-          "e6bd196686096d46"
-        ],
-        "message": "track end connects to nothing (no pad/via/track) — unfinished or floating copper",
-        "at": {
-          "x": 1043.78,
-          "y": 1393.16
-        }
-      },
-      {
-        "type": "dangling-end",
-        "level": "WARN",
-        "net": "GPIO6_SPARE",
-        "layer": 1,
-        "primitives": [
-          "cbc8b184a824fa97"
-        ],
-        "message": "track end connects to nothing (no pad/via/track) — unfinished or floating copper",
-        "at": {
-          "x": 1043.78,
-          "y": 1059.21
-        }
-      },
-      {
-        "type": "acute-angle",
-        "level": "WARN",
-        "net": "GND",
-        "layer": 2,
-        "primitives": [
-          "f8d89356d0d7b4e1",
-          "421228834ca925ac"
-        ],
-        "angleDeg": 45,
-        "message": "trace bends 45° (<90°) — acid-trap acute angle [规范 §4.1 转角禁直角/锐角 — pcb-design-rules.md]",
-        "at": {
-          "x": 360.21,
-          "y": 1439
-        }
-      },
-      {
-        "type": "acute-angle",
-        "level": "WARN",
-        "net": "GND",
-        "layer": 2,
-        "primitives": [
-          "8598e3e12165c1bc",
-          "dc532c35892ccec1"
-        ],
-        "angleDeg": 45,
-        "message": "trace bends 45° (<90°) — acid-trap acute angle [规范 §4.1 转角禁直角/锐角 — pcb-design-rules.md]",
-        "at": {
-          "x": 435.93,
-          "y": 1432
-        }
-      },
-      {
-        "type": "acute-angle",
-        "level": "WARN",
-        "net": "GPIO6_SPARE",
-        "layer": 1,
-        "primitives": [
-          "44b94103a6b29f9b",
-          "ad5b1b7d4c5377cb"
-        ],
-        "angleDeg": 45,
-        "message": "trace bends 45° (<90°) — acid-trap acute angle [规范 §4.1 转角禁直角/锐角 — pcb-design-rules.md]",
-        "at": {
-          "x": 1253.37,
-          "y": 1322.46
-        }
-      },
-      {
-        "type": "non-orthogonal",
-        "level": "WARN",
-        "net": "GND",
-        "layer": 2,
-        "primitives": [
-          "21ca71f69a1eca42"
-        ],
-        "angleDeg": 6.28,
-        "message": "trace runs at 6.3° — not on the 0/45/90° grid (free-angle routing) [规范 §4.1 推荐45°折线或圆弧 — pcb-design-rules.md]",
-        "at": {
-          "x": 490,
-          "y": 377.2
-        }
-      },
-      {
-        "type": "non-orthogonal",
-        "level": "WARN",
-        "net": "GND",
-        "layer": 1,
-        "primitives": [
-          "cc5091c116cd2e97"
-        ],
-        "angleDeg": 91.43,
-        "message": "trace runs at 91.4° — not on the 0/45/90° grid (free-angle routing) [规范 §4.1 推荐45°折线或圆弧 — pcb-design-rules.md]",
-        "at": {
-          "x": 467.51,
-          "y": 474.42
-        }
-      },
-      {
-        "type": "non-orthogonal",
-        "level": "WARN",
-        "net": "GND",
-        "layer": 2,
-        "primitives": [
-          "c3ea8a8e4f180536"
-        ],
-        "angleDeg": 28.47,
-        "message": "trace runs at 28.5° — not on the 0/45/90° grid (free-angle routing) [规范 §4.1 推荐45°折线或圆弧 — pcb-design-rules.md]",
-        "at": {
-          "x": 487.47,
-          "y": 587.18
-        }
-      },
-      {
-        "type": "non-orthogonal",
-        "level": "WARN",
-        "net": "GND",
-        "layer": 2,
-        "primitives": [
-          "5ad8f53005002f4a"
-        ],
-        "angleDeg": 128.29,
-        "message": "trace runs at 128.3° — not on the 0/45/90° grid (free-angle routing) [规范 §4.1 推荐45°折线或圆弧 — pcb-design-rules.md]",
-        "at": {
-          "x": 771.51,
-          "y": 1307.09
-        }
-      },
-      {
-        "type": "width-mismatch",
-        "level": "INFO",
-        "net": "GND",
-        "designator": "C1",
-        "widths": [
-          20,
-          10
-        ],
-        "message": "2-pin part C1: entering track widths differ (20.0 vs 10.0 mil) [规范 §1.2 推荐线宽 — pcb-design-rules.md]"
-      },
-      {
-        "type": "width-mismatch",
-        "level": "INFO",
-        "net": "GND",
-        "designator": "C2",
-        "widths": [
-          20,
-          10
-        ],
-        "message": "2-pin part C2: entering track widths differ (20.0 vs 10.0 mil) [规范 §1.2 推荐线宽 — pcb-design-rules.md]"
-      },
-      {
-        "type": "width-mismatch",
-        "level": "INFO",
-        "net": "GND",
-        "designator": "C3",
-        "widths": [
-          20,
-          10
-        ],
-        "message": "2-pin part C3: entering track widths differ (20.0 vs 10.0 mil) [规范 §1.2 推荐线宽 — pcb-design-rules.md]"
-      },
-      {
-        "type": "width-mismatch",
-        "level": "INFO",
-        "net": "GND",
-        "designator": "C4",
-        "widths": [
-          20,
-          10
-        ],
-        "message": "2-pin part C4: entering track widths differ (20.0 vs 10.0 mil) [规范 §1.2 推荐线宽 — pcb-design-rules.md]"
-      },
-      {
-        "type": "width-mismatch",
-        "level": "INFO",
-        "net": "GND",
-        "designator": "C5",
-        "widths": [
-          20,
-          10
-        ],
-        "message": "2-pin part C5: entering track widths differ (20.0 vs 10.0 mil) [规范 §1.2 推荐线宽 — pcb-design-rules.md]"
-      },
-      {
-        "type": "width-mismatch",
-        "level": "INFO",
-        "net": "GND",
-        "designator": "C6",
-        "widths": [
-          20,
-          10
-        ],
-        "message": "2-pin part C6: entering track widths differ (20.0 vs 10.0 mil) [规范 §1.2 推荐线宽 — pcb-design-rules.md]"
-      },
-      {
-        "type": "width-mismatch",
-        "level": "INFO",
-        "net": "GND",
-        "designator": "C7",
-        "widths": [
-          20,
-          10
-        ],
-        "message": "2-pin part C7: entering track widths differ (20.0 vs 10.0 mil) [规范 §1.2 推荐线宽 — pcb-design-rules.md]"
-      },
-      {
-        "type": "width-mismatch",
-        "level": "INFO",
-        "net": "GND",
-        "designator": "C8",
-        "widths": [
-          20,
-          10
-        ],
-        "message": "2-pin part C8: entering track widths differ (20.0 vs 10.0 mil) [规范 §1.2 推荐线宽 — pcb-design-rules.md]"
-      },
-      {
-        "type": "width-mismatch",
-        "level": "INFO",
-        "net": "EXC0",
-        "designator": "R1",
-        "widths": [
-          10,
-          20
-        ],
-        "message": "2-pin part R1: entering track widths differ (10.0 vs 20.0 mil) [规范 §1.2 推荐线宽 — pcb-design-rules.md]"
-      },
-      {
-        "type": "width-mismatch",
-        "level": "INFO",
-        "net": "GND",
-        "designator": "R10",
-        "widths": [
-          20,
-          10
-        ],
-        "message": "2-pin part R10: entering track widths differ (20.0 vs 10.0 mil) [规范 §1.2 推荐线宽 — pcb-design-rules.md]"
-      },
-      {
-        "type": "width-mismatch",
-        "level": "INFO",
-        "net": "GND",
-        "designator": "R11",
-        "widths": [
-          20,
-          10
-        ],
-        "message": "2-pin part R11: entering track widths differ (20.0 vs 10.0 mil) [规范 §1.2 推荐线宽 — pcb-design-rules.md]"
-      },
-      {
-        "type": "width-mismatch",
-        "level": "INFO",
-        "net": "GND",
-        "designator": "R12",
-        "widths": [
-          20,
-          10
-        ],
-        "message": "2-pin part R12: entering track widths differ (20.0 vs 10.0 mil) [规范 §1.2 推荐线宽 — pcb-design-rules.md]"
-      },
-      {
-        "type": "width-mismatch",
-        "level": "INFO",
-        "net": "GND",
-        "designator": "R13",
-        "widths": [
-          20,
-          10
-        ],
-        "message": "2-pin part R13: entering track widths differ (20.0 vs 10.0 mil) [规范 §1.2 推荐线宽 — pcb-design-rules.md]"
-      },
-      {
-        "type": "width-mismatch",
-        "level": "INFO",
-        "net": "GND",
-        "designator": "R14",
-        "widths": [
-          20,
-          10
-        ],
-        "message": "2-pin part R14: entering track widths differ (20.0 vs 10.0 mil) [规范 §1.2 推荐线宽 — pcb-design-rules.md]"
-      },
-      {
-        "type": "width-mismatch",
-        "level": "INFO",
-        "net": "GND",
-        "designator": "R15",
-        "widths": [
-          20,
-          10
-        ],
-        "message": "2-pin part R15: entering track widths differ (20.0 vs 10.0 mil) [规范 §1.2 推荐线宽 — pcb-design-rules.md]"
-      },
-      {
-        "type": "width-mismatch",
-        "level": "INFO",
-        "net": "GND",
-        "designator": "R16",
-        "widths": [
-          20,
-          10
-        ],
-        "message": "2-pin part R16: entering track widths differ (20.0 vs 10.0 mil) [规范 §1.2 推荐线宽 — pcb-design-rules.md]"
-      },
-      {
-        "type": "width-mismatch",
-        "level": "INFO",
-        "net": "GND",
-        "designator": "R18",
-        "widths": [
-          20,
-          10
-        ],
-        "message": "2-pin part R18: entering track widths differ (20.0 vs 10.0 mil) [规范 §1.2 推荐线宽 — pcb-design-rules.md]"
-      },
-      {
-        "type": "width-mismatch",
-        "level": "INFO",
-        "net": "EXC1",
-        "designator": "R2",
-        "widths": [
-          10,
-          20
-        ],
-        "message": "2-pin part R2: entering track widths differ (10.0 vs 20.0 mil) [规范 §1.2 推荐线宽 — pcb-design-rules.md]"
-      },
-      {
-        "type": "width-mismatch",
-        "level": "INFO",
-        "net": "EXC2",
-        "designator": "R3",
-        "widths": [
-          10,
-          20
-        ],
-        "message": "2-pin part R3: entering track widths differ (10.0 vs 20.0 mil) [规范 §1.2 推荐线宽 — pcb-design-rules.md]"
-      },
-      {
-        "type": "width-mismatch",
-        "level": "INFO",
-        "net": "EXC3",
-        "designator": "R4",
-        "widths": [
-          10,
-          20
-        ],
-        "message": "2-pin part R4: entering track widths differ (10.0 vs 20.0 mil) [规范 §1.2 推荐线宽 — pcb-design-rules.md]"
-      },
-      {
-        "type": "width-mismatch",
-        "level": "INFO",
-        "net": "EXC4",
-        "designator": "R5",
-        "widths": [
-          10,
-          20
-        ],
-        "message": "2-pin part R5: entering track widths differ (10.0 vs 20.0 mil) [规范 §1.2 推荐线宽 — pcb-design-rules.md]"
-      },
-      {
-        "type": "width-mismatch",
-        "level": "INFO",
-        "net": "EXC5",
-        "designator": "R6",
-        "widths": [
-          10,
-          20
-        ],
-        "message": "2-pin part R6: entering track widths differ (10.0 vs 20.0 mil) [规范 §1.2 推荐线宽 — pcb-design-rules.md]"
-      },
-      {
-        "type": "width-mismatch",
-        "level": "INFO",
-        "net": "EXC6",
-        "designator": "R7",
-        "widths": [
-          10,
-          20
-        ],
-        "message": "2-pin part R7: entering track widths differ (10.0 vs 20.0 mil) [规范 §1.2 推荐线宽 — pcb-design-rules.md]"
-      },
-      {
-        "type": "width-mismatch",
-        "level": "INFO",
-        "net": "EXC7",
-        "designator": "R8",
-        "widths": [
-          10,
-          20
-        ],
-        "message": "2-pin part R8: entering track widths differ (10.0 vs 20.0 mil) [规范 §1.2 推荐线宽 — pcb-design-rules.md]"
-      },
-      {
-        "type": "width-mismatch",
-        "level": "INFO",
-        "net": "GND",
-        "designator": "R9",
-        "widths": [
-          20,
-          10
-        ],
-        "message": "2-pin part R9: entering track widths differ (20.0 vs 10.0 mil) [规范 §1.2 推荐线宽 — pcb-design-rules.md]"
-      },
-      {
-        "type": "duplicate-segment",
-        "level": "WARN",
-        "net": "ADC_IN",
-        "layer": 2,
-        "primitives": [
-          "3486c8c19c998dca",
-          "03a7d8b6550f1c43"
-        ],
-        "message": "collinear overlapping copper (19 mil overlap) — redundant/mergeable"
-      },
-      {
-        "type": "duplicate-segment",
-        "level": "WARN",
-        "net": "GND",
-        "layer": 1,
-        "primitives": [
-          "cc5091c116cd2e97",
-          "64b109ae008f2f43"
-        ],
-        "message": "collinear overlapping copper (60 mil overlap) — redundant/mergeable"
-      },
-      {
-        "type": "parallel-coupling",
-        "level": "WARN",
-        "nets": [
-          "MUX_COM",
-          "S0"
-        ],
-        "layer": 2,
-        "primitives": [
-          "bbad89404ea3a82e",
-          "c47359b6974b3cb5"
-        ],
-        "message": "parallel traces 25.0 mil apart over 35 mil (< 30.0 mil = 3×W) — crosstalk/3W risk [规范 §4.2 减少串扰 — pcb-design-rules.md]"
-      },
-      {
-        "type": "parallel-coupling",
-        "level": "WARN",
-        "nets": [
-          "MUX_COM",
-          "S1"
-        ],
-        "layer": 2,
-        "primitives": [
-          "bbad89404ea3a82e",
-          "0e3fce5b564eb011"
-        ],
-        "message": "parallel traces 25.0 mil apart over 35 mil (< 30.0 mil = 3×W) — crosstalk/3W risk [规范 §4.2 减少串扰 — pcb-design-rules.md]"
-      },
-      {
-        "type": "parallel-coupling",
-        "level": "WARN",
-        "nets": [
-          "CH4",
-          "EXC4"
-        ],
-        "layer": 2,
-        "primitives": [
-          "400196bb9a71cf3a",
-          "2d086b57abb152f0"
-        ],
-        "message": "parallel traces 23.8 mil apart over 112 mil (< 30.0 mil = 3×W) — crosstalk/3W risk [规范 §4.2 减少串扰 — pcb-design-rules.md]"
-      },
-      {
-        "type": "parallel-coupling",
-        "level": "WARN",
-        "nets": [
-          "CH5",
-          "S1"
-        ],
-        "layer": 2,
-        "primitives": [
-          "3869c22b0a1a233e",
-          "636608bc95bdc88d"
-        ],
-        "message": "parallel traces 26.3 mil apart over 45 mil (< 30.0 mil = 3×W) — crosstalk/3W risk [规范 §4.2 减少串扰 — pcb-design-rules.md]"
-      },
-      {
-        "type": "parallel-coupling",
-        "level": "WARN",
-        "nets": [
-          "CH5",
-          "S2"
-        ],
-        "layer": 2,
-        "primitives": [
-          "eb56971244ce636a",
-          "a6e39b937764a0e7"
-        ],
-        "message": "parallel traces 20.2 mil apart over 207 mil (< 30.0 mil = 3×W) — crosstalk/3W risk [规范 §4.2 减少串扰 — pcb-design-rules.md]"
-      },
-      {
-        "type": "parallel-coupling",
-        "level": "WARN",
-        "nets": [
-          "CH0",
-          "CH1"
-        ],
-        "layer": 2,
-        "primitives": [
-          "9a70b14ae4820069",
-          "59e2fc29a459b297"
-        ],
-        "message": "parallel traces 25.0 mil apart over 105 mil (< 30.0 mil = 3×W) — crosstalk/3W risk [规范 §4.2 减少串扰 — pcb-design-rules.md]"
-      },
-      {
-        "type": "parallel-coupling",
-        "level": "WARN",
-        "nets": [
-          "CH4",
-          "S0"
-        ],
-        "layer": 2,
-        "primitives": [
-          "c0b5be78c77f68c7",
-          "ca350d2578ac0bb3"
-        ],
-        "message": "parallel traces 25.8 mil apart over 157 mil (< 30.0 mil = 3×W) — crosstalk/3W risk [规范 §4.2 减少串扰 — pcb-design-rules.md]"
-      },
-      {
-        "type": "parallel-coupling",
-        "level": "WARN",
-        "nets": [
-          "CH3",
-          "CH4"
-        ],
-        "layer": 2,
-        "primitives": [
-          "07ac7bcd7fdc7559",
-          "3461eaa3ef7e72dd"
-        ],
-        "message": "parallel traces 25.0 mil apart over 47 mil (< 30.0 mil = 3×W) — crosstalk/3W risk [规范 §4.2 减少串扰 — pcb-design-rules.md]"
-      },
-      {
-        "type": "parallel-coupling",
-        "level": "WARN",
-        "nets": [
-          "CH4",
-          "CH5"
-        ],
-        "layer": 2,
-        "primitives": [
-          "66b513bbb305c900",
-          "1378b79f4b2937da"
-        ],
-        "message": "parallel traces 29.8 mil apart over 38 mil (< 30.0 mil = 3×W) — crosstalk/3W risk [规范 §4.2 减少串扰 — pcb-design-rules.md]"
-      },
-      {
-        "type": "parallel-coupling",
-        "level": "WARN",
-        "nets": [
-          "CH3",
-          "SYS5V"
-        ],
-        "layer": 2,
-        "primitives": [
-          "4c1d645528673d67",
-          "303bf22184feabd5"
-        ],
-        "message": "parallel traces 44.9 mil apart over 93 mil (< 60.0 mil = 3×W) — crosstalk/3W risk [规范 §4.2 减少串扰 — pcb-design-rules.md]"
-      },
-      {
-        "type": "parallel-coupling",
-        "level": "WARN",
-        "nets": [
-          "CH6",
-          "S0"
-        ],
-        "layer": 2,
-        "primitives": [
-          "f963f7418acb48e6",
-          "faa951e97c93244d"
-        ],
-        "message": "parallel traces 14.9 mil apart over 123 mil (< 30.0 mil = 3×W) — crosstalk/3W risk [规范 §4.2 减少串扰 — pcb-design-rules.md]"
-      },
-      {
-        "type": "parallel-coupling",
-        "level": "WARN",
-        "nets": [
-          "CH5",
-          "S0"
-        ],
-        "layer": 2,
-        "primitives": [
-          "55a2274bb8d46f68",
-          "636608bc95bdc88d"
-        ],
-        "message": "parallel traces 23.7 mil apart over 45 mil (< 30.0 mil = 3×W) — crosstalk/3W risk [规范 §4.2 减少串扰 — pcb-design-rules.md]"
-      },
-      {
-        "type": "parallel-coupling",
-        "level": "WARN",
-        "nets": [
-          "CH0",
-          "CH2"
-        ],
-        "layer": 2,
-        "primitives": [
-          "59e2fc29a459b297",
-          "9674a9d40f38732e"
-        ],
-        "message": "parallel traces 25.0 mil apart over 47 mil (< 30.0 mil = 3×W) — crosstalk/3W risk [规范 §4.2 减少串扰 — pcb-design-rules.md]"
-      },
-      {
-        "type": "parallel-coupling",
-        "level": "WARN",
-        "nets": [
-          "CH7",
-          "S1"
-        ],
-        "layer": 2,
-        "primitives": [
-          "0e3fce5b564eb011",
-          "22d4b8fdd757be1d"
-        ],
-        "message": "parallel traces 25.0 mil apart over 46 mil (< 30.0 mil = 3×W) — crosstalk/3W risk [规范 §4.2 减少串扰 — pcb-design-rules.md]"
-      },
-      {
-        "type": "parallel-coupling",
-        "level": "WARN",
-        "nets": [
-          "CH6",
-          "CH7"
-        ],
-        "layer": 1,
-        "primitives": [
-          "5f096f6b8e00dce5",
-          "d2fad33b888ed597"
-        ],
-        "message": "parallel traces 24.0 mil apart over 121 mil (< 30.0 mil = 3×W) — crosstalk/3W risk [规范 §4.2 减少串扰 — pcb-design-rules.md]"
-      },
-      {
-        "type": "parallel-coupling",
-        "level": "WARN",
-        "nets": [
-          "GPIO6_SPARE",
-          "PWR5V_RAW"
-        ],
-        "layer": 1,
-        "primitives": [
-          "86b18b6de65d65b7",
-          "e6bd196686096d46"
-        ],
-        "message": "parallel traces 23.1 mil apart over 33 mil (< 36.0 mil = 3×W) — crosstalk/3W risk [规范 §4.2 减少串扰 — pcb-design-rules.md]"
-      },
-      {
-        "type": "parallel-coupling",
-        "level": "WARN",
-        "nets": [
-          "GPIO6_SPARE",
-          "SYS5V"
-        ],
-        "layer": 1,
-        "primitives": [
-          "0f6af63562c35138",
-          "a198a803f183964a"
-        ],
-        "message": "parallel traces 24.3 mil apart over 37 mil (< 36.0 mil = 3×W) — crosstalk/3W risk [规范 §4.2 减少串扰 — pcb-design-rules.md]"
-      },
-      {
-        "type": "parallel-coupling",
-        "level": "WARN",
-        "nets": [
-          "GPIO6_SPARE",
-          "SYS5V"
-        ],
-        "layer": 1,
-        "primitives": [
-          "50af4c0d3f73b886",
-          "6f25020a0279aa8c"
-        ],
-        "message": "parallel traces 20.9 mil apart over 40 mil (< 36.0 mil = 3×W) — crosstalk/3W risk [规范 §4.2 减少串扰 — pcb-design-rules.md]"
-      },
-      {
-        "type": "silk-over-pad",
-        "level": "WARN",
-        "layer": 3,
-        "designator": "U1",
-        "primitives": [
-          "107bab8fa7c761efe20"
-        ],
-        "message": "silk text Designator \"C11\" overlaps pad U1.11 — fab clips silk on exposed copper; move it (`pcb silk-align` / `pcb silk-set`) [规范 §11.2 丝印不压焊盘 — pcb-design-rules.md]",
-        "at": {
-          "x": 359.8,
-          "y": 1405.3
-        }
-      },
-      {
-        "type": "decap-too-far",
-        "level": "WARN",
-        "net": "3V3",
-        "designator": "C11",
-        "message": "decoupling cap C11 sits 344mil (8.7mm) from the nearest 3V3 pin U1.14 — a decap must hug its IC (≤100mil / 2.54mm) [规范 §3.1 去耦电容紧贴IC — pcb-design-rules.md]",
-        "at": {
-          "x": 150.6,
-          "y": 1378
-        }
-      },
-      {
-        "type": "via-in-pad",
-        "level": "WARN",
-        "net": "CH6",
-        "designator": "U2",
-        "primitives": [
-          "1493f016a4f008a0"
-        ],
-        "message": "via sits ON pad U2.2 (net CH6) — solder wicks down the barrel; offset the via and enter with a short stub (dog-bone) [规范 §2.3 禁止过孔打在焊盘上 — pcb-design-rules.md]",
-        "at": {
-          "x": 537.3,
-          "y": 1283.95
-        }
-      },
-      {
-        "type": "via-in-pad",
-        "level": "WARN",
-        "net": "GND",
-        "designator": "U2",
-        "primitives": [
-          "143c1e1cfbb1b3f7"
-        ],
-        "message": "via sits ON pad U2.7 (net GND) — solder wicks down the barrel; offset the via and enter with a short stub (dog-bone) [规范 §2.3 禁止过孔打在焊盘上 — pcb-design-rules.md]",
-        "at": {
-          "x": 785,
-          "y": 1290
-        }
-      },
-      {
-        "type": "clearance",
-        "level": "ERROR",
-        "net": "3V3",
-        "layer": 2,
-        "designator": "TP1",
-        "primitives": [
-          "c6f461cc2c8bc000"
-        ],
-        "message": "track (net 3V3) runs 5.0mil from pad TP1.1 (net SYS5V) — under the 6mil spacing rule [规范 §1.1 最小间距 — pcb-design-rules.md]",
-        "at": {
-          "x": 675,
-          "y": 430
-        }
-      },
-      {
-        "type": "clearance",
-        "level": "ERROR",
-        "nets": [
-          "S1",
-          "MUX_COM"
-        ],
-        "designator": "U2",
-        "primitives": [
-          "427f6a0b9d9b332e"
-        ],
-        "message": "via (net S1) sits ~2.4mil from pad U2.3 (net MUX_COM) — under the 6mil spacing rule [规范 §1.1 最小间距 — pcb-design-rules.md]",
-        "at": {
-          "x": 628.35,
-          "y": 1273.82
-        }
-      },
-      {
-        "type": "clearance",
-        "level": "ERROR",
-        "nets": [
-          "CH6",
-          "CH4"
-        ],
-        "designator": "U2",
-        "primitives": [
-          "1493f016a4f008a0"
-        ],
-        "message": "via (net CH6) sits ~5.5mil from pad U2.1 (net CH4) — under the 6mil spacing rule [规范 §1.1 最小间距 — pcb-design-rules.md]",
-        "at": {
-          "x": 537.3,
-          "y": 1283.95
-        }
-      },
-      {
-        "type": "connector-plug-clearance",
-        "level": "WARN",
-        "designator": "J1",
-        "primitives": [
-          "6bfc688627b572cf",
-          "2604b45cd5570e8f"
-        ],
-        "message": "J1 ↔ J2 center distance 8.00mm (315mil) < 8.28mm required by their plug envelopes (J1 8.28mm[fallback], J2 8.28mm[fallback]) — the receptacle footprints may clear, but the plugs/overmolds will collide [plug-width=fallback — no envelope table entry, estimated from the rendered bbox] [规范 §3.5 插头护套包络 ≠ 母座本体宽 — pcb-design-rules.md]",
-        "at": {
-          "x": 45.28,
-          "y": 1003.94
-        }
-      },
-      {
-        "type": "connector-plug-clearance",
-        "level": "WARN",
-        "designator": "J2",
-        "primitives": [
-          "2604b45cd5570e8f",
-          "6fa1268100eb3d21"
-        ],
-        "message": "J2 ↔ J3 center distance 8.00mm (315mil) < 8.28mm required by their plug envelopes (J2 8.28mm[fallback], J3 8.28mm[fallback]) — the receptacle footprints may clear, but the plugs/overmolds will collide [plug-width=fallback — no envelope table entry, estimated from the rendered bbox] [规范 §3.5 插头护套包络 ≠ 母座本体宽 — pcb-design-rules.md]",
-        "at": {
-          "x": 45.28,
-          "y": 688.98
-        }
-      },
-      {
-        "type": "connector-plug-clearance",
-        "level": "WARN",
-        "designator": "J3",
-        "primitives": [
-          "6fa1268100eb3d21",
-          "9aebe87f71cd637f"
-        ],
-        "message": "J3 ↔ J4 center distance 8.00mm (315mil) < 8.28mm required by their plug envelopes (J3 8.28mm[fallback], J4 8.28mm[fallback]) — the receptacle footprints may clear, but the plugs/overmolds will collide [plug-width=fallback — no envelope table entry, estimated from the rendered bbox] [规范 §3.5 插头护套包络 ≠ 母座本体宽 — pcb-design-rules.md]",
-        "at": {
-          "x": 45.28,
-          "y": 374.02
-        }
-      },
-      {
-        "type": "connector-plug-clearance",
-        "level": "WARN",
-        "designator": "J5",
-        "primitives": [
-          "09e71266db0d1b23",
-          "5e43a4428658d090"
-        ],
-        "message": "J5 ↔ J6 center distance 8.00mm (315mil) < 8.28mm required by their plug envelopes (J5 8.28mm[fallback], J6 8.28mm[fallback]) — the receptacle footprints may clear, but the plugs/overmolds will collide [plug-width=fallback — no envelope table entry, estimated from the rendered bbox] [规范 §3.5 插头护套包络 ≠ 母座本体宽 — pcb-design-rules.md]",
-        "at": {
-          "x": 1304.72,
-          "y": 1003.93
-        }
-      },
-      {
-        "type": "connector-plug-clearance",
-        "level": "WARN",
-        "designator": "J6",
-        "primitives": [
-          "5e43a4428658d090",
-          "34649494396ed244"
-        ],
-        "message": "J6 ↔ J7 center distance 8.00mm (315mil) < 8.28mm required by their plug envelopes (J6 8.28mm[fallback], J7 8.28mm[fallback]) — the receptacle footprints may clear, but the plugs/overmolds will collide [plug-width=fallback — no envelope table entry, estimated from the rendered bbox] [规范 §3.5 插头护套包络 ≠ 母座本体宽 — pcb-design-rules.md]",
-        "at": {
-          "x": 1304.72,
-          "y": 688.97
-        }
-      },
-      {
-        "type": "connector-plug-clearance",
-        "level": "WARN",
-        "designator": "J7",
-        "primitives": [
-          "34649494396ed244",
-          "d5d1f16a225416fa"
-        ],
-        "message": "J7 ↔ J8 center distance 8.00mm (315mil) < 8.28mm required by their plug envelopes (J7 8.28mm[fallback], J8 8.28mm[fallback]) — the receptacle footprints may clear, but the plugs/overmolds will collide [plug-width=fallback — no envelope table entry, estimated from the rendered bbox] [规范 §3.5 插头护套包络 ≠ 母座本体宽 — pcb-design-rules.md]",
-        "at": {
-          "x": 1304.72,
-          "y": 374.01
-        }
-      },
-      {
-        "type": "power-not-poured",
-        "level": "WARN",
-        "net": "3V3",
-        "message": "power net 3V3 (14 pads) has no copper pour/plane — power should be poured, not carried by thin tracks: `pcb pour-fit --net 3V3` (2-layer) or `pcb power-planes` (4-layer) [规范 §5.2 铺铜策略 — pcb-design-rules.md]"
-      },
-      {
-        "type": "width-under-spec",
-        "level": "WARN",
-        "net": "GND",
-        "primitives": [
-          "8598e3e12165c1bc"
-        ],
-        "widths": [
-          12,
-          19.69
-        ],
-        "message": "power net GND: 10 track(s) below the gnd spec width 19.7 mil (thinnest 12 mil) — widen for current capacity (route-short sizes by role; pour it instead, or --width-power to override) [规范 §1.2 推荐线宽 — pcb-design-rules.md]",
-        "at": {
-          "x": 417.97,
-          "y": 1432
-        }
-      }
-    ],
-    "passed": false,
-    "scope": "Supplementary geometry heuristics, distinct from native DRC; includes conservative oval-pad and connector-envelope checks. Warnings retained for review."
+      ]
+    },
+    "unresolvedWarnings": "Heuristic dangling-end/width/coupling and conservative connector envelopes are retained separately from native DRC."
+  },
+  "copperCounts": {
+    "lines": 385,
+    "vias": 41,
+    "pours": 2,
+    "regions": 2
   },
   "files": {
-    "AI_Doll_C3_Socket_P02.epro2": "211dc85c270b80dc1aa5c543869b5548b34f1818f45e2fd7ca05618a7dbd6edf",
-    "manufacturing/Drill_NPTH_Through.DRL": "3bedcecfd2036e7d85949214ad85200d377c8ad47e10016e223cb569ffb1e297",
-    "manufacturing/Drill_PTH_Through.DRL": "f969682b407cd059b01fe6747c6a6d5444201a77e34336725a8fa805e04f05ed",
-    "manufacturing/Drill_PTH_Through_Via.DRL": "e2f556c78e4684271129364929614efaa0effcfe70b0bc94c007ff620e65f985",
-    "manufacturing/FlyingProbeTesting.json": "2bd12cd393af0b1f1eb237ff961269937a712b7c2496abfc114ea591ae37d1ac",
-    "manufacturing/Gerber_BoardOutlineLayer.GKO": "7fa9dfe09c0d6abda48ee1c9aa618a600694209614529b1b341a7522a0079e47",
-    "manufacturing/Gerber_BottomLayer.GBL": "2c8427fc80d6ef916a78fc13a1dd2bce46a5b38a79573529ce525531afcb53b4",
-    "manufacturing/Gerber_BottomPasteMaskLayer.GBP": "f0426b54cad3bd8f55f840bfdc02f62d3f36d007c6bcba48a9a989699308f419",
-    "manufacturing/Gerber_BottomSilkscreenLayer.GBO": "decff35e34e13d03830e21ee9dac7c8cc208e5285b9237763a3d3a6d556ddbd3",
-    "manufacturing/Gerber_BottomSolderMaskLayer.GBS": "e4840cd5417f4b472c11f5de094b8888acd9be6b0c6fdfdfc663083a2df8d11f",
-    "manufacturing/Gerber_DocumentLayer.GDL": "3981092778ee650b137ef8154f2e9037f90760496dfc86827abd656b57b871a7",
-    "manufacturing/Gerber_DrillDrawingLayer.GDD": "33b82ad1851ae232d2cc94e5ec4f1578c351f0f5eecd23b499db89f5b43714d5",
-    "manufacturing/Gerber_TopLayer.GTL": "e894598cbca1442b5f53a1719ccefdff16bce2d679829313ca51b88594840466",
-    "manufacturing/Gerber_TopPasteMaskLayer.GTP": "06f071758a8af5c3cda9408f518325ca82ba97e23988b2b9f52f784c0bbce7cd",
-    "manufacturing/Gerber_TopSilkscreenLayer.GTO": "e9028c09e01e95dd04a8df9df8e7c2dfaaf192e8ea4df5fefbb7b2a2a178d50b",
-    "manufacturing/Gerber_TopSolderMaskLayer.GTS": "05f2c93bfb42f7b8848fd44913942ceb7e1327f4a6c5e0c40d7f44133ff812c2",
+    "AI_Doll_C3_Socket_P03.epro2": "8e6740209de7d21ad5f9155b24294c3d3a31719ae4e8a27305e600fc836e2e5d",
+    "manufacturing/Drill_NPTH_Through.DRL": "2cd98ceaf5c66ab1a054783f393237cccc7b5c461cca9163803904098d5a19fb",
+    "manufacturing/Drill_PTH_Through.DRL": "554c43adf714a24268ab7e56c376838d12ae5b2dd468fde27d59527e640527f3",
+    "manufacturing/Drill_PTH_Through_Via.DRL": "e1ab4e7bd60898937a418cb992640e94d27c9601eb4c9cffa705bd9b4be79488",
+    "manufacturing/FlyingProbeTesting.json": "5e8a59b207e5e3be8a10b40bbf7c7c34447f4a28bd401e819960f388e776c3e7",
+    "manufacturing/Gerber_BoardOutlineLayer.GKO": "d5a8f1edd9a4b72d55e7764402aabe76fe508be58ae082d5457369d281d37c4a",
+    "manufacturing/Gerber_BottomLayer.GBL": "ffed127eb1cadf10efd5a310740323b52a98c8af7f0623c20fc8a13600524bb0",
+    "manufacturing/Gerber_BottomPasteMaskLayer.GBP": "ae68e551d3c1463b99a3b6810c9b6f114e2ab5b337b034dd23e2c6d73df4124d",
+    "manufacturing/Gerber_BottomSilkscreenLayer.GBO": "47b263cc7928d107eeb90d8e597fde80607d90512cb18fb9907f7174a8f2a89f",
+    "manufacturing/Gerber_BottomSolderMaskLayer.GBS": "3e1762abcfdd8254b497af254af17ab47eeecbd62aee40b0b84105630f9efa65",
+    "manufacturing/Gerber_DocumentLayer.GDL": "561252117ae3c487b90f8078c44c29e0e65132b3e2ef4fb02dbe4b3e73db5ce7",
+    "manufacturing/Gerber_DrillDrawingLayer.GDD": "4798bb5dc14030447f1530be0c4cd4992f8a01e0fd9da502e64b13283681a965",
+    "manufacturing/Gerber_TopLayer.GTL": "bad867e8ebbdb9200808c4ebacfa0e3d7d8baac4d669bc119cf87290ecc59cbd",
+    "manufacturing/Gerber_TopPasteMaskLayer.GTP": "89a0e1b323f353413d00e6c2f21f0bd28484eeb263346d94d0d44c2f8b60a735",
+    "manufacturing/Gerber_TopSilkscreenLayer.GTO": "082710a7d1dd7d6c5707e131ebed7c3f92b4aa9df61bc80a09f21bac6664665d",
+    "manufacturing/Gerber_TopSolderMaskLayer.GTS": "4303800840d553eb50163db4b4fb662a63b8bd20aea86f258a0adf8445c35130",
     "manufacturing/PCB下单必读.txt": "dcb3ee1c645c17a009d70726ad9ab708b68a074556fabcf75a4a059d3b43ec59",
-    "pcb-bottom.png": "e530b01f70a3efe395d4ceda914f1cadcf6f5cd3cda1c2b5b040a4131e92f446",
-    "pcb-top.png": "946056bd87181d12998743eb8ee0d2169fe9a567d690f862aca29baff2f55458",
-    "README.md": "39049ae59982a0c9066c26887c8ab03b40ae7e4319882e9d40c2bf1b0cc707c5"
+    "pcb-bottom.png": "fa7a346b5692790eb61a1b742307db3b8c18e0f09af1f23aaf9d6f0092f3e2f8",
+    "pcb-bottom.svg": "50147c179379b3256480c1d832125fe2531504038bffb568ac839a03932c5cb8",
+    "pcb-top.png": "dafe6440937d04ccfe3a2a39aa9a7277cabea7c63948770a1673b362a6b04663",
+    "pcb-top.svg": "ee85e55084181c99ee96f1753c1da289cfc5cdd096d3e0e91505045aa04314be",
+    "README.md": "b98e70cd03ddc7f57cbbd42b7b33f9df6660a228fcce1b30cd4a2f6732ed7422"
   }
 }

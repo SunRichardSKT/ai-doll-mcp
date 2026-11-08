@@ -37,7 +37,7 @@ def run():
 <rect x="405" y="416" width="{W*k}" height="{H*k}" rx="24" fill="#dbe4d8" stroke="#607b65" stroke-width="2"/>
 <rect x="{405+(W-p['usb']['cutout_width'])*k/2}" y="{416+(H-p['usb']['cutout_bottom']-p['usb']['cutout_height'])*k}" width="{p['usb']['cutout_width']*k}" height="{p['usb']['cutout_height']*k}" rx="3" fill="#91a99b" stroke="#536c5b"/>
 <text x="635" y="452" class="label">{p['usb']['cutout_width']:g} × {p['usb']['cutout_height']:g} mm</text><text x="635" y="479" class="small">用实际插头核对可插到底</text>
-<text x="50" y="574" font-size="17" font-weight="600">打印 base.stl + lid.stl；PH2.0与SM插头本体均在壳外</text>
+<text x="50" y="574" font-size="17" font-weight="600">打印 base.stl + lid.stl；PH2.0与主板插头均在壳外</text>
 <text x="50" y="607" class="small">模块参考16.2 × 12 × 4.4 mm；BAT两线接电池，5V两线接主板；焊点见接线关系图。</text>
 <text x="50" y="634" class="small">图中模块与走线是包络示意，不能代替焊点三维测量、打印试装和实际拉力检查。</text></svg>''')
     (HERE/'output/drawing.svg').write_text(''.join(pieces),encoding='utf-8')

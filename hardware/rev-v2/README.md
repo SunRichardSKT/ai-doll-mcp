@@ -18,6 +18,6 @@
 
 ## C3 板载锁扣插座主板
 
-[当前 PCB 修订](candidates/c3-socket-20261105/README.md)使用八个 PA2.0 双针侧插锁扣座。开关移到板尾右侧，J9 移到板尾左侧，为直头 Type-C 留出插线通道。配套 [直头 USB 堆叠壳 P03](../enclosure/c3-socket-stacked/README.md) 含 103450 下置电池仓。
+[当前 PCB 修订](candidates/c3-socket-20261105/README.md)使用八个 PA2.0 双针侧插锁扣座。开关移到板尾右侧，J9 移到板尾左侧，为直头 Type-C 留出插线通道。配套 [直头 USB 堆叠壳 P04](../enclosure/c3-socket-stacked/README.md) 含 103450 下置电池仓。
 
 早期 V2.2 居中开关布局及其外壳已撤下。已有板子的 [扩展接线资料](../expansion/current-board/README.md) 继续用于核对既有接线。

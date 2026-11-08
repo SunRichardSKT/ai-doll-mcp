@@ -1,6 +1,6 @@
 {
   "passed": true,
-  "revision": "C3-SOCKET-ENC-P03",
+  "revision": "C3-SOCKET-ENC-P04",
   "dimensionsMm": {
     "width": 42.89,
     "length": 56.45,
@@ -10,7 +10,7 @@
     "base": {
       "validSingleStep": true,
       "watertightStl": true,
-      "relativeVolumeError": 4.656278959147466e-05
+      "relativeVolumeError": 4.7508212966472954e-05
     },
     "tray": {
       "validSingleStep": true,
@@ -20,7 +20,7 @@
     "lid": {
       "validSingleStep": true,
       "watertightStl": true,
-      "relativeVolumeError": 7.88437404978931e-06
+      "relativeVolumeError": 7.919715453949392e-06
     }
   },
   "batteryInsertionSampleMm": 2,
@@ -93,9 +93,16 @@
     0.0,
     0.0
   ],
-  "headerCount": 8,
-  "powerWireSlotProbesPassed": true,
+  "headerCount": 9,
+  "sensorHeaderCount": 8,
+  "powerHeaderCount": 1,
+  "batteryWireSlotProbesPassed": true,
   "usbStraightPlugSweepMm3": {
+    "base": 0.0,
+    "tray": 0.0,
+    "lid": 0.0
+  },
+  "powerConnectorMatingSweepMm3": {
     "base": 0.0,
     "tray": 0.0,
     "lid": 0.0
@@ -103,11 +110,11 @@
   "physicalFitTested": false,
   "scope": "Independent exports and sampled rigid vertical insertion/removal; no connector mating force, continuous sweep, fatigue or physical assembly proof.",
   "files": {
-    "base.stl": "a6a3fde49f03950cdfb483bade3075ed7f9a19e86ad15e359452a9941d51ced4",
-    "base.step": "45219da5d40c5689a53181e643106cda89ed65735fb30cb9d86a671791b9952a",
+    "base.stl": "ff8921eac709e6a4055c7fa657cec92eedfdd701e246a55818eef74ace2e27e4",
+    "base.step": "0b2ea7b80a7e5ab5ed2625ebd2d5bc41d4c8ec9cc0289ce90e765da0fe8b95e8",
     "tray.stl": "641a1e59791433e762a3b66da545f604de782754414f9a5b68e3d0ab4b9d87b3",
-    "tray.step": "593d202b52bf3f619fd000ff4dd6b8833cc558715cfa31d4e891d9320994acef",
-    "lid.stl": "b6416b55090ec5334287eaa4e5d88f48ab169b3a170dc6f524ca7e52498eae7b",
-    "lid.step": "23816aafd686bbad2e18798c02b3541f6f47b794f87495be78d3eaed94811438"
+    "tray.step": "95795cc378e9b26424db71f2c98d29e2d1f82caa626ea090de113e1949586b05",
+    "lid.stl": "08846a143a6e5eaad5afe847013eb2f808f46d613b15894572c0e1f83635af61",
+    "lid.step": "8e08f65406ba335ecfd985b3f94fab8ee4c6252256f09de4b883d3e8dc56c9e4"
   }
 }

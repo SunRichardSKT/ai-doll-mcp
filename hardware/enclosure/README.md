@@ -4,7 +4,7 @@
 
 | 对应硬件 | 当前外壳 | 外形 |
 | --- | --- | --- |
-| C3 八路 PA2.0 板载锁扣插座板，开关移到板尾 | [直头 USB 堆叠壳 P03](c3-socket-stacked/README.md) · [旋转预览](c3-socket-stacked/output/preview.html) | 56.45 × 42.89 × 33.5 |
+| C3 八路 PA2.0 板载锁扣插座板，开关移到板尾 | [直头 USB 堆叠壳 P04](c3-socket-stacked/README.md) · [旋转预览](c3-socket-stacked/output/preview.html) | 56.45 × 42.89 × 33.5 |
 | 已制双排通孔 SuperMini 带线板 | [带线板堆叠壳 P02](ordered-v2-stacked/README.md) · [旋转预览](ordered-v2-stacked/output/preview.html) | 56.45 × 46.29 × 35.2 |
 | 独立 Type-C 充电／升压小板 | [四线保护壳 P02](charger-inline/README.md) · [旋转预览](charger-inline/output/preview.html) | 36 × 22 × 11 |
 

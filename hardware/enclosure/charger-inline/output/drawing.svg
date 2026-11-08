@@ -18,6 +18,6 @@
 <rect x="405" y="416" width="176.0" height="88.0" rx="24" fill="#dbe4d8" stroke="#607b65" stroke-width="2"/>
 <rect x="449.0" y="447.2" width="88.0" height="38.4" rx="3" fill="#91a99b" stroke="#536c5b"/>
 <text x="635" y="452" class="label">11 × 4.8 mm</text><text x="635" y="479" class="small">用实际插头核对可插到底</text>
-<text x="50" y="574" font-size="17" font-weight="600">打印 base.stl + lid.stl；PH2.0与SM插头本体均在壳外</text>
+<text x="50" y="574" font-size="17" font-weight="600">打印 base.stl + lid.stl；PH2.0与主板插头均在壳外</text>
 <text x="50" y="607" class="small">模块参考16.2 × 12 × 4.4 mm；BAT两线接电池，5V两线接主板；焊点见接线关系图。</text>
 <text x="50" y="634" class="small">图中模块与走线是包络示意，不能代替焊点三维测量、打印试装和实际拉力检查。</text></svg>
