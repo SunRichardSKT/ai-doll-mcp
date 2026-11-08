@@ -1,6 +1,6 @@
 # ESP32-C3 预编译固件 0.1.1
 
-本目录镜像沿用已发布的 0.1.1 批次及既有授权；本次许可切换不改镜像或哈希。当前固件源码按 AGPL-3.0-only 授权，范围与旧版 MIT 文本见 [项目许可](../../LICENSING.md)。
+本项目固件及源码使用 AGPL-3.0-only，第三方组件保留原许可，范围见 [项目许可](../../LICENSING.md)。本次许可整理不改变镜像内容或哈希。
 
 配套固件为0.1.1，`feature_set=pressure-switch-v1`、`network_revision=2`。[本版Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.1)提供完整包与单独固件包。按[一键烧录教程](../../docs/start/QUICK_FLASH.md)操作；发布不会自动给已有设备烧录。
 

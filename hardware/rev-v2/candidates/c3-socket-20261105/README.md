@@ -1,6 +1,6 @@
 # 共感娃娃第一代主板 · 最终版
 
-PCB、BOM 和制造设计使用 CERN-OHL-S-2.0。[许可范围与旧版说明](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/LICENSING.md)。
+PCB、BOM 和制造设计使用 CERN-OHL-S-2.0。[许可范围](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/LICENSING.md)。
 
 [项目首页](../../../../README.md) · [主板资料](../../README.md) · [核心电池外壳](../../../enclosure/c3-socket-stacked/README.md) · [独立充电板外壳](../../../enclosure/charger-inline/README.md)
 

@@ -1,6 +1,6 @@
 # 第一代最终版 · 核心电池外壳
 
-模型与硬件设计使用 CERN-OHL-S-2.0，生成、检查及打包脚本使用 AGPL-3.0-only。[许可范围与旧版说明](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/LICENSING.md)。
+模型与硬件设计使用 CERN-OHL-S-2.0，生成、检查及打包脚本使用 AGPL-3.0-only。[许可范围](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/LICENSING.md)。
 
 [外壳目录](../README.md) · [旋转预览](output/preview.html) · [对应PCB](../../rev-v2/candidates/c3-socket-20261105/README.md) · [分体接线图](output/wiring.svg)
 

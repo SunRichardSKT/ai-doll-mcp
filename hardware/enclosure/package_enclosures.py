@@ -46,7 +46,7 @@ def write_archive(target, files, **metadata):
         files['README.md'] = files['README.md'].decode('utf-8').replace(
             '](../../LICENSING.md)', '](LICENSING.md)').replace(
             '](../LICENSE)', '](hardware/LICENSE)').encode('utf-8')
-    for name in ('LICENSE', 'LICENSING.md', 'LICENSES/MIT-legacy.txt', 'hardware/LICENSE'):
+    for name in ('LICENSE', 'LICENSING.md', 'hardware/LICENSE'):
         files[name] = (ROOT / name).read_bytes()
     files['MANIFEST.json'] = json.dumps(dict(metadata,
         files={name: hashlib.sha256(raw).hexdigest() for name, raw in files.items()}),

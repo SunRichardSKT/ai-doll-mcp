@@ -8,7 +8,6 @@ COPY --chown=doll:doll src /app/src
 COPY --chown=doll:doll clients/operit/vendor /app/clients/operit/vendor
 COPY --chown=doll:doll delivery/AI_Doll_Operit.toolpkg /app/delivery/AI_Doll_Operit.toolpkg
 COPY --chown=doll:doll LICENSE LICENSING.md /app/
-COPY --chown=doll:doll LICENSES/MIT-legacy.txt /app/LICENSES/MIT-legacy.txt
 COPY --chown=doll:doll hardware/LICENSE /app/hardware/LICENSE
 USER doll
 EXPOSE 8781

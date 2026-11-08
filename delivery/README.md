@@ -1,6 +1,6 @@
 # 下载与交付文件
 
-当前源码许可已切换为软件 AGPL-3.0-only、硬件 CERN-OHL-S-2.0，见 [项目许可](../LICENSING.md)。下列已发布附件保留各自原批次的授权和校验，不以源码许可更新替换旧包。
+项目软件与固件使用 AGPL-3.0-only，硬件设计使用 CERN-OHL-S-2.0，第三方资源保留各自许可。详见 [项目许可](../LICENSING.md)。
 
 **0.1.1 · 内测0.1.1版 / 固件0.1.1**，更新于2026-11-02。[下载本版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.1)。
 

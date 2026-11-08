@@ -24,7 +24,7 @@ def run():
     out=ROOT/'delivery'/'AI_Doll_Charger_Enclosure_P02.zip'
     out.parent.mkdir(parents=True,exist_ok=True)
     manifest={'revision':'CHARGER-P02-FOUR-WIRE','files':{'AI_Doll_Charger_P02/'+name:hashlib.sha256((HERE/name).read_bytes()).hexdigest() for name in FILES}}
-    licenses={name:(ROOT/name).read_bytes() for name in ('LICENSE','LICENSING.md','LICENSES/MIT-legacy.txt','hardware/LICENSE')}
+    licenses={name:(ROOT/name).read_bytes() for name in ('LICENSE','LICENSING.md','hardware/LICENSE')}
     manifest['files'].update({name:hashlib.sha256(raw).hexdigest() for name,raw in licenses.items()})
     with zipfile.ZipFile(out,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=9) as z:
         for name in FILES: z.write(HERE/name,'AI_Doll_Charger_P02/'+name)

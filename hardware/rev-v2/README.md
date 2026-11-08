@@ -1,6 +1,6 @@
 # 主板与采购资料
 
-PCB、原理图、BOM、制造文件及对应硬件说明使用 [CERN-OHL-S-2.0](../LICENSE)。完整范围及旧版授权见 [项目许可](../../LICENSING.md)。
+PCB、原理图、BOM、制造文件及对应硬件说明使用 [CERN-OHL-S-2.0](../LICENSE)。完整许可范围见 [项目许可](../../LICENSING.md)。
 
 > [项目首页](../../README.md) · [接线教程](../../docs/daily/SENSOR_CHANNELS.md) · [外壳选择](../enclosure/README.md)
 

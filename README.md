@@ -133,4 +133,4 @@ sudo bash Install_Server.sh
 
 ## 许可证
 
-© 2026 SunRichardSKT。软件与固件源码使用 [AGPL-3.0-only](LICENSE)；PCB、外壳及制造设计使用 [CERN-OHL-S-2.0](hardware/LICENSE)。第三方资源保留原许可，旧版 MIT 授权不追溯撤销。范围、网络服务源码要求与旧版说明见 [项目许可](LICENSING.md)。
+© 2026 SunRichardSKT。软件与固件使用 [AGPL-3.0-only](LICENSE)；PCB、外壳及制造设计使用 [CERN-OHL-S-2.0](hardware/LICENSE)。第三方资源保留原许可。适用范围与网络服务源码要求见 [项目许可](LICENSING.md)。
