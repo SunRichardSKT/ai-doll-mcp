@@ -1,6 +1,6 @@
 {
-  "status": "live-verified-routed-prototype",
-  "revision": "C3-SOCKET-P03",
+  "status": "gen1-final-design",
+  "revision": "GEN1-FINAL",
   "date": "2026-11-09",
   "pcbMm": [
     34.29,
@@ -27,21 +27,21 @@
   "otherPadNetsPreserved": true,
   "sameSideFootprintOverlaps": [],
   "r1C12EnvelopeGapMm": 1.4568677999999993,
-  "sourceReadbackSha256": "84b451796835f684a37fed3f5e44804b18a82f6fd85595919ffc902f6bfd457d",
+  "sourceReadbackSha256": "606d73cc327c829a23227148d9580e1ef2997f4541922522669ac8d32d0f5628",
   "reviews": [
     {
-      "readbackSha256": "821ae449cc4e5842d36e7b6fa817b038533ed3fa7028ab7b923906052a4a689a",
+      "readbackSha256": "c766c0f71ad41b127c27d2d46bc94892f3d9c9fc3d3f063e20133b019c1f5e0e",
       "nativeDrcPassed": true
     },
     {
-      "readbackSha256": "84b451796835f684a37fed3f5e44804b18a82f6fd85595919ffc902f6bfd457d",
+      "readbackSha256": "606d73cc327c829a23227148d9580e1ef2997f4541922522669ac8d32d0f5628",
       "nativeDrcPassed": true
     }
   ],
   "nativeExport": {
-    "bytes": 553451,
+    "bytes": 616750,
     "format": "epro2",
-    "sha256": "a621e5a7b9d491e8c06716ca9e5b16755daf57351ae1983ba55d04e53f8d8627",
+    "sha256": "4dda53067f386edf0cffd4d23f0a12a88f4b7394315a743d7e63ea110e888d0a",
     "zipIntegrityVerified": true,
     "restoreVerified": false
   },
@@ -59,7 +59,7 @@
       "nonOrthogonal": 4,
       "trackOverPad": 1,
       "clearance": 4,
-      "silkscreenFlipped": 0,
+      "silkscreenFlipped": 18,
       "overlappingVias": 0,
       "singleLayerVias": 0,
       "widthMismatches": 24,
@@ -84,8 +84,8 @@
       "connectorMatingBlocked": 0,
       "connectorOpeningInward": 0,
       "errors": 4,
-      "warnings": 52,
-      "total": 76
+      "warnings": 70,
+      "total": 94
     },
     "shapeSpecificClearanceChecks": {
       "passed": true,
@@ -127,41 +127,54 @@
     "regions": 2
   },
   "files": {
-    "AI_Doll_C3_Socket_P03.epro2": "a621e5a7b9d491e8c06716ca9e5b16755daf57351ae1983ba55d04e53f8d8627",
-    "manufacturing/Drill_NPTH_Through.DRL": "67f08961be5c02b3e2b3c5d40eda495e320cd0cadf2c5228ab3f4ce25eafb08f",
-    "manufacturing/Drill_PTH_Through.DRL": "d736a696fd2e648cd1f7c06b472af8f3db03709b094a3f67420ccf09c3b7c3bc",
-    "manufacturing/Drill_PTH_Through_Via.DRL": "bbc2c5fb460bf15dab7c0c2036e7c4f86bcdb6eb522f5a4f04c38e7f91a67e27",
+    "AI_Doll_Gen1_Final.epro2": "4dda53067f386edf0cffd4d23f0a12a88f4b7394315a743d7e63ea110e888d0a",
+    "manufacturing/Drill_NPTH_Through.DRL": "326b792da7043bff770dc693a7de73eac89950cb27ac04760d32839b9d4aca03",
+    "manufacturing/Drill_PTH_Through.DRL": "0d608706b41601440e93e7a2d2de00fe0f2e1711687e831f2e7091533b126194",
+    "manufacturing/Drill_PTH_Through_Via.DRL": "8668677ce37859b5e5433c8b18ef15864f4fbd0443e233677fec407cf904081e",
     "manufacturing/FlyingProbeTesting.json": "5e8a59b207e5e3be8a10b40bbf7c7c34447f4a28bd401e819960f388e776c3e7",
-    "manufacturing/Gerber_BoardOutlineLayer.GKO": "93f93d27b927622124c2e35d10ceaa87585d7b50d6da187ace65db70092f7a79",
-    "manufacturing/Gerber_BottomLayer.GBL": "694b9e14dc218f30eaeee09d3ed5e655e3e110c3262dacaa41ec9c6ff9bfdced",
-    "manufacturing/Gerber_BottomPasteMaskLayer.GBP": "6b39feb8f6ca16c159e7887a545d356102e6637ae4cd96fd400ed0f89726a7ae",
-    "manufacturing/Gerber_BottomSilkscreenLayer.GBO": "44a9e19fe3e476d31ae0b2a04b9e73f60bfa89666984443afc2549767fe9ac7e",
-    "manufacturing/Gerber_BottomSolderMaskLayer.GBS": "dc5e8f1d2b69e4f82952c63d7b6663ce529c0f516090c8c5fa4f24498b32f18f",
-    "manufacturing/Gerber_DocumentLayer.GDL": "69da32e35af00712b8a537d1ac49ea0c9dcc3347c79b9d1691ccd4c06f971384",
-    "manufacturing/Gerber_DrillDrawingLayer.GDD": "d3942e91cab8154722c1be2ea4c54af0facc89c12363073bf90c66e1fe748798",
-    "manufacturing/Gerber_TopLayer.GTL": "0d641153f45fcc23f5834e01fb2e5363b0f0d48571962a2658cfc36b649e8d77",
-    "manufacturing/Gerber_TopPasteMaskLayer.GTP": "6c834f6a829815647917c0ca3dc1875e7a48900c42ddb2881b510321a85915de",
-    "manufacturing/Gerber_TopSilkscreenLayer.GTO": "6050c4054afef2f96abf2358208e4b93d6201a5534dc9a6dac85bf346531053e",
-    "manufacturing/Gerber_TopSolderMaskLayer.GTS": "7f0dba984d76a1c76e93f88bf4ad25ee65ed9e3fc73ce2714cccdbe0307d0c6f",
+    "manufacturing/Gerber_BoardOutlineLayer.GKO": "0203da48b3c61cfe9d602d744e2e2a12455c5d2938bd6ed1e5d90c7ca2fa38e8",
+    "manufacturing/Gerber_BottomLayer.GBL": "5d1081b661d589900da68d89239fded1b67d60698ede0e7ed115cca255efa6ff",
+    "manufacturing/Gerber_BottomPasteMaskLayer.GBP": "d2c2ee3e3ac18d85a9a6cd68c1ed2a3b7034ca1834f2ae34b73edba58af76007",
+    "manufacturing/Gerber_BottomSilkscreenLayer.GBO": "30008f5e706931cf6f60a9defa2da958688bbf2972b7ffd09dbccb9004396b19",
+    "manufacturing/Gerber_BottomSolderMaskLayer.GBS": "be0446d6be25e238abbf46ea8d3665ecb43d66af79a6f9754823667e02151103",
+    "manufacturing/Gerber_DocumentLayer.GDL": "74b98fcee8e4917814bbbfb636af386ebb6f759275f8b5a98023b18c9742591b",
+    "manufacturing/Gerber_DrillDrawingLayer.GDD": "1f90aa8625686902f35a987a8964b8290e0f8fe51cf7ca9b9f170ae2425ee009",
+    "manufacturing/Gerber_TopLayer.GTL": "0285cacab8a51194c02e3860a1422c423cb8decfc449c82328510e9548515600",
+    "manufacturing/Gerber_TopPasteMaskLayer.GTP": "bde4d0f742ccc7ea78f98e2845470a2a6116cf5e1eb1a07f7c20f15d37c989af",
+    "manufacturing/Gerber_TopSilkscreenLayer.GTO": "58f349da63357d237f2cc55697334a404af082a3eb2b37e03d7fba02cb76b52c",
+    "manufacturing/Gerber_TopSolderMaskLayer.GTS": "285d64174e8f95e1b6792f05eee3da32d7164fdf9ef86c9a368e184284e92eb2",
     "manufacturing/PCB下单必读.txt": "dcb3ee1c645c17a009d70726ad9ab708b68a074556fabcf75a4a059d3b43ec59",
-    "pcb-bottom.png": "4bfec9d9c25f488e49606d79640fcecf20175c359bebff760bb21d1cc3c4cece",
-    "pcb-bottom.svg": "cbaa2c3fdd240f1c4f5883a3e5d3c83c2041c885ec848e9d8ef07f59694f368e",
-    "pcb-top.png": "eff03db87f527573ea1f5287a5dce8a48ef2745513be590c9aeb5e7ffe18411d",
-    "pcb-top.svg": "cf7ae011dd846fc576992cec6ec1c3080ff80121e42b59f3b599def9ecca9ebd",
-    "README.md": "45f502393d5706d680239e00060d60a360bcf87d352ef83a03f451549f151b1e"
+    "pcb-bottom.png": "0bc360e1e491c318df12c7852943028408cf2b4d6080671a4f412bc747ba1a1e",
+    "pcb-bottom.svg": "7cd5f5f1acd669ad185d4d13feef61e9d1ad3b1fddf50c9dd5e74bbc7afa2282",
+    "pcb-top.png": "9f51f9bdfff23400bbe276a6ca150b1e1f0e0ebbe841553ab265cfab2d205339",
+    "pcb-top.svg": "d71227def164eb793312ff3c6fd589bf02bd262d7dc6e3f263588a32aa7b0314",
+    "README.md": "bcc2402a417b68da374f351063776200d6355f77d7713047a8802ecd5823676f"
   },
+  "mechanicalBaseline": "C3-SOCKET-P03",
+  "userFinalSilkscreenPreserved": true,
   "silkscreenOrientation": {
-    "visibleBottomTextsCorrected": 38,
-    "bottomTextMirror": false,
-    "anchorCompensation": "Visible text bounding boxes preserved within 1e-6 mil",
-    "componentGeometryPreserved": true,
-    "copperGeometryPreserved": true,
-    "nonBottomSilkscreenGerberDrawingCommandsPreserved": true,
-    "gerberComparison": "Aperture aliases resolved; unused apertures and generation timestamps excluded",
-    "nativeObjExportSha256": "5aa5beaeadc7c0eb066d5de110df84c1348bced6ca9dcdcff3dfaf0345ea55bf",
-    "nativeObjBottomProjectionSha256": "190ae2be73fa5e758d98eaf7cafc048274b240c17a92f8be25979dfdd11298d2",
-    "bottomProjectionReadabilityChecked": true,
-    "silkOverPad": 0,
-    "silkOffBoard": 0
+    "preservedFromUser": true,
+    "bottomVisibleCount": 38,
+    "projectMirrorFlagsAltered": false,
+    "userTextPositionsAndRotationsPreserved": true
+  },
+  "battery": {
+    "model": "103450",
+    "nominalVoltageV": 3.7,
+    "capacityMah": 2000,
+    "connector": "PH2.0 2P",
+    "cellNominalMm": [
+      34,
+      50,
+      10
+    ],
+    "coreCaseMm": [
+      42.89,
+      56.45,
+      33.5
+    ],
+    "coreCaseRevision": "GEN1-FINAL-ENC",
+    "chargerCase": "separate charger-inline P02",
+    "chargerIntegratedIntoCore": false
   }
 }

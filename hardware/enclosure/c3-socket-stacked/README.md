@@ -1,35 +1,53 @@
-# C3 板载锁扣插座 · 直头 USB 堆叠外壳 P04
+# 第一代最终版 · 核心电池外壳
 
-[外壳目录](../README.md) · [旋转预览](output/preview.html) · [对应 PCB](../../rev-v2/candidates/c3-socket-20261105/README.md)
+[外壳目录](../README.md) · [旋转预览](output/preview.html) · [对应PCB](../../rev-v2/candidates/c3-socket-20261105/README.md) · [分体接线图](output/wiring.svg)
 
-适配C3插座板PCB P03（三针电源座）。外形宽 42.89 × 长 56.45 × 高 33.5 mm，103450 电池在下层。开关在右后方，J9 三针锁扣电源座在左后方，开口宽9 mm。正面开有 15 × 9 mm Type-C 维护口。
+适配用户最终丝印版C3八路锁扣插座主板。**核心和充电板分开装壳**：103450电池位于核心壳底层，主板在上；充电板继续使用独立[四线保护壳](../charger-inline/README.md)。
 
-## 打印与安装
+| 项目 | 规格 |
+| --- | --- |
+| 核心壳外形（长×宽×高） | 56.45 × 42.89 × 33.5 mm |
+| 电池 | 103450聚合物锂电池，3.7V、2000mAh、PH2.0端子 |
+| 电芯名义尺寸 / 电池仓净空 | 50 × 34 × 10 / 52 × 36 × 12 mm |
+| 盖板 | 四处可释放卡扣，无螺丝 |
+| 指示灯窗口 | 14 × 12 mm |
+| 维护USB口 | 15 × 9 mm，前侧直插 |
+| 接口 | 八个7 mm传感器窗口、一个9 mm J9电源窗口 |
 
-打印 [底壳](output/base.stl)、[绝缘托板](output/tray.stl)、[卡扣上盖](output/lid.stl) 各一件。建议 PETG、0.4 mm 喷嘴、0.16～0.20 mm 层高、至少 3 道壁，100% 比例。STL 已摆好打印方向。
+## 打印文件
 
-先断电试装电池、托板与主板，再整理线束并扣盖。电池按 34 × 50 × 10 mm 建模，保留 36 × 52 × 12 mm 净空。托板隔开电芯与底面元件，底面焊脚按不超过 2.8 mm 校核。卡扣盖保留四处可释放卡扣和 14 × 12 mm 指示灯窗口。
+打印[底壳](output/base.stl)、[绝缘托板](output/tray.stl)、[卡扣上盖](output/lid.stl)各一件。建议PETG、0.4 mm喷嘴、0.16～0.20 mm层高、至少3道壁、100%比例。STL已摆好打印方向。
 
-八个7 mm侧插窗口对应PA2.0传感器接口，左后方另有9 mm三针电源窗口。BAT线从左前方出壳，电源插头从左后方插入。J9为1脚GND、2脚空置、3脚5V。开关可从顶部凹口及右侧拨动；BOOT、RST 开盖维护。
+[装配参考STEP](output/assembly_reference.step)用于核对位置，包含电池、主板和元件示意件，不整件打印。单件STEP与STL在同一output目录。
 
-## 直头 Type-C 空间
+## 电池与分体充电板
 
-按胶壳宽 14 × 长 24 × 高 8 mm 的直头线预留，从壳外到 USB 座前端连续检查插入空间。正面维护口为 15 × 9 mm。开关、J9 及两颗电容均已移出这条通道。
+1. 电池长边沿外壳长度方向平放，出线朝前侧USB端。先放电池，整理线束，再放绝缘托板和主板；托板隔开电芯、底面元件和焊脚。
+2. 两根电池线从前侧托板缺口上行，经左前侧BAT槽引出。竖向通道宽5.2 mm，已避开直头USB插入区域；上方两根线的出口通道单独检查。
+3. **PH2.0插头本体留在壳外**，不用穿过小线孔。装配时把导线放入敞口槽再合盖；电池原厂线保留缓弯和约12 mm整理余量，不压电芯封边。按成品电池（含封边、保护板）确认实际外形在净空内。
+4. 壳外PH2.0插接到充电板BAT线；充电板独立输入输出端经PA2.0三针线束接J9：**1=GND、2=空置、3=5V**。主板不接充电板B+/B−。PH2.0按实际正负核对针序。
 
-[装配参考 STEP](output/assembly_reference.step) 用于查看主板和电池位置。实际线材的胶壳尺寸、模块安装高度及插拔手感请先用实物核对。三针电源座版使用本P04，旧两针J9的P02板不能直接按此版针序接线。
+充电模块采用之前选定的Type-C 3.7V升5V充放模块，包络16.2 × 12 × 4.4 mm。其[独立保护壳](../charger-inline/README.md)为36 × 22 × 11 mm，保留灯窗及四条夹线槽；不装入核心壳。[完整四线说明](../charger-inline/POWER_WIRING.md)。
 
-## 设计与检查
+## 开关、USB与维护
 
-[参数](parameters.json) · [PCB 参考](pcb_reference.json) · [几何报告](output/audit.json) · [独立检查](output/independent_validation.json)
+开关在右后方，可从顶部下沉口或右侧拨动；J9位于左后方。前侧USB维护口按14 × 8 mm截面、24 mm长的直头胶壳预留插入通道。BOOT、RST开盖操作。
 
-检查覆盖实体、STL水密、STEP回读、三件装配、电池净空、直头USB插入通道、三针电源插入通道及同面元件包络。机械尺寸来自本轮 PCB 回读，元件高度使用已声明的名义值。首次打印须试装。
+主板、托板和盖板配套使用。底面焊脚按修剪后不超过2.8 mm预留，焊脚到托板再留1 mm。盖板导向单边间隙0.15 mm、卡扣咬合0.55 mm；第一次打印先断电试装，核对实际插头、开关高度、卡扣及电池封边。
 
-安装 requirements-cad.txt 后，在本目录运行以下命令。
+## 源文件与检查
+
+[参数](parameters.json) · [当前PCB参考](pcb_reference.json) · [几何报告](output/audit.json) · [导出检查](output/independent_validation.json)
+
+来源为本轮最终PCB的实际回读；丝印修改完整保留。检查包括三件装配、电池与线束净空、直头USB、电源插入、载架取出、STEP回读和STL水密。元件高度为已声明的名义值，几何检查不代替首次打印试装。
+
+安装requirements-cad.txt中的依赖后，在本目录运行：
 
 ```text
 python build_enclosure.py
 python render_preview.py
+node capture_preview.cjs
 python validate_and_package.py
 ```
 
-预览截图使用 capture_preview.cjs，需要 Node.js、Playwright 和 Edge。默认保留普通文件夹，准备上传压缩包时再运行 `python validate_and_package.py --package`。
+截图需要Playwright与Edge。默认生成普通文件；上传需要ZIP时再运行`python validate_and_package.py --package`。

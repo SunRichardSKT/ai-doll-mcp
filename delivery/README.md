@@ -24,7 +24,7 @@ Windows 包内置 Python，无需另装。Linux 小型包不含 Windows Python�
 
 ## 当前硬件修订
 
-[板尾开关 C3 插座板](../hardware/rev-v2/candidates/c3-socket-20261105/README.md) · [直头 USB 堆叠壳 P04](../hardware/enclosure/c3-socket-stacked/README.md) · [全部外壳](../hardware/enclosure/README.md)
+[板尾开关 C3 插座板](../hardware/rev-v2/candidates/c3-socket-20261105/README.md) · [第一代最终版电池壳](../hardware/enclosure/c3-socket-stacked/README.md) · [全部外壳](../hardware/enclosure/README.md)
 
 上述硬件目录随源码维护，选型时以对应 PCB 说明及模型为准。
 
@@ -51,3 +51,5 @@ Linux安装入口位于本版TAR内和Release附件 `Install_Server.sh`；使用
 新板烧录：双击 Flash_ESP32.cmd，点击一键烧录。日常管理：双击 AI_Doll.cmd。手机连接娃娃热点后，固定设置页为 http://192.168.4.1/，首次热点最长10分钟，新配网成功后约90秒关闭；正常重启不开热点，运行中长按BOOT约3秒重新开启。
 
 每次 USB 烧录产生新内部配对编号；可选择自定义显示名和热点名并保留独立日志；标准烧录保留设置，恢复出厂才清空设备。CH0 实体按压/释放及电脑归档已实测；其他硬件、普通 Chat 空闲唤醒和真实公网部署仍按 [验证汇总](../docs/reports/VALIDATION.md)列出的范围。
+
+[第一代硬件最终版下载](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/hardware-gen1-final)：独立硬件发布，软件0.1.1及其校验文件保持原版。

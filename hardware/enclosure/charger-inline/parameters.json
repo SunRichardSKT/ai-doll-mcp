@@ -91,7 +91,7 @@
         12.3,
         14.9
       ],
-      "connector": "external SM2.54 3P pigtail, two contacts used",
+      "connector": "external PA2.0 3P pigtail, pins 1 GND / 2 NC / 3 +5V, for Gen1 final core",
       "source": "Labeled input/output positive and negative pads in the supplied seller diagram"
     }
   ],

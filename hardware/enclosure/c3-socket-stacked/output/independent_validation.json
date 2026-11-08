@@ -1,6 +1,6 @@
 {
   "passed": true,
-  "revision": "C3-SOCKET-ENC-P04",
+  "revision": "GEN1-FINAL-ENC",
   "dimensionsMm": {
     "width": 42.89,
     "length": 56.45,
@@ -15,7 +15,7 @@
     "tray": {
       "validSingleStep": true,
       "watertightStl": true,
-      "relativeVolumeError": 1.3220193320172363e-06
+      "relativeVolumeError": 1.3202275427140749e-06
     },
     "lid": {
       "validSingleStep": true,
@@ -97,6 +97,24 @@
   "sensorHeaderCount": 8,
   "powerHeaderCount": 1,
   "batteryWireSlotProbesPassed": true,
+  "batteryWireUpperRunLengthMm": 14.500000000000002,
+  "batterySpecification": {
+    "model": "103450",
+    "chemistry": "Li-ion polymer",
+    "nominal_voltage_v": 3.7,
+    "capacity_mah": 2000,
+    "cell_mm": [
+      34,
+      50,
+      10
+    ],
+    "connector": "PH2.0 2P on battery pigtail",
+    "connector_location": "outside core shell at BAT exit; plug need not pass through the closed wire slot",
+    "charger_enclosure": "separate charger-inline; no charge/boost PCB in core shell",
+    "nominal_wire_diameter_mm": 1.5,
+    "exit_wire_separation_mm": 1.6,
+    "service_loop_mm": 12.0
+  },
   "usbStraightPlugSweepMm3": {
     "base": 0.0,
     "tray": 0.0,
@@ -111,10 +129,10 @@
   "scope": "Independent exports and sampled rigid vertical insertion/removal; no connector mating force, continuous sweep, fatigue or physical assembly proof.",
   "files": {
     "base.stl": "ff8921eac709e6a4055c7fa657cec92eedfdd701e246a55818eef74ace2e27e4",
-    "base.step": "0b2ea7b80a7e5ab5ed2625ebd2d5bc41d4c8ec9cc0289ce90e765da0fe8b95e8",
-    "tray.stl": "641a1e59791433e762a3b66da545f604de782754414f9a5b68e3d0ab4b9d87b3",
-    "tray.step": "95795cc378e9b26424db71f2c98d29e2d1f82caa626ea090de113e1949586b05",
+    "base.step": "5a91c6cdffb490221dab8e87b3b3c1b88d82f9e0731a43221bc8f1cc9c16dda9",
+    "tray.stl": "7790a6200550fa12739ac9729f139404fa72d5f635b9017615e6e80c42559d5f",
+    "tray.step": "d00e039a467c0c6795a6fc5d999ad3828ebc31d83834b008d5fa2d7c0b56fb5e",
     "lid.stl": "08846a143a6e5eaad5afe847013eb2f808f46d613b15894572c0e1f83635af61",
-    "lid.step": "8e08f65406ba335ecfd985b3f94fab8ee4c6252256f09de4b883d3e8dc56c9e4"
+    "lid.step": "45dec53ce68a16026b93e51884306b48e3e7caaf1518d32a333c9efb410497b8"
   }
 }

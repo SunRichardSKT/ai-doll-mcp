@@ -1,5 +1,5 @@
 {
-  "revision": "C3-SOCKET-ENC-P04",
+  "revision": "GEN1-FINAL-ENC",
   "units": "mm",
   "outer_width": 42.89,
   "outer_length": 56.45,
@@ -60,9 +60,9 @@
     "x": 8.9,
     "y": 3.3,
     "z": 12.2,
-    "width": 5.6,
+    "width": 5.2,
     "length": 2.3,
-    "height": 10.0
+    "height": 16.5
   },
   "led_window": {
     "offset_x": -4.495936,
@@ -85,7 +85,7 @@
     "hole_length": 10.4
   },
   "user_measurement": {
-    "quality": "Native C3 PCB P03 geometry, PA2.0 2P sensors and 3P power; nominal heights require physical fit check.",
+    "quality": "User Gen1 final PCB readback; nominal component heights need first-print fit check.",
     "bottom_component_envelope_mm": 2.8,
     "module_height_above_pcb_mm": 6.0,
     "switch_height_above_pcb_mm": 4.5,
@@ -120,5 +120,22 @@
     "plug_length": 24.0,
     "opening_width": 15.0,
     "opening_height": 9.0
+  },
+  "battery_spec": {
+    "model": "103450",
+    "chemistry": "Li-ion polymer",
+    "nominal_voltage_v": 3.7,
+    "capacity_mah": 2000,
+    "cell_mm": [
+      34,
+      50,
+      10
+    ],
+    "connector": "PH2.0 2P on battery pigtail",
+    "connector_location": "outside core shell at BAT exit; plug need not pass through the closed wire slot",
+    "charger_enclosure": "separate charger-inline; no charge/boost PCB in core shell",
+    "nominal_wire_diameter_mm": 1.5,
+    "exit_wire_separation_mm": 1.6,
+    "service_loop_mm": 12.0
   }
 }

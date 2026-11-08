@@ -32,9 +32,9 @@ def run(package=False):
  wire_ports = a['wireExits']
  radius = wire_ports['nominalWireDiameterMm']/2
  for port in wire_ports['ports']:
-  for offset in (-.8, .8):
+  for offset in (-p['battery_spec']['exit_wire_separation_mm']/2, p['battery_spec']['exit_wire_separation_mm']/2):
    x = -.4 if port['side'] == 'left' else p['outer_width']-3.2
-   wire = cq.Solid.makeCylinder(radius, 3.6, cq.Vector(x, port['y'], wire_ports['centerZMm']+offset), cq.Vector(1, 0, 0))
+   wire = cq.Solid.makeCylinder(radius, p['wire_riser']['x']+p['wire_riser']['width']+.4, cq.Vector(x, port['y'], wire_ports['centerZMm']+offset), cq.Vector(1, 0, 0))
    assert all(wire.intersect(part).Volume() < 1e-5 for part in solids.values()), port['label']
  # Independently load exported solids and sweep a straight overmould through the front.
  usb=a['usbStraightPlug'];x,y,z=usb['faceCenterMm'];width,length,height=usb['plugMm']
@@ -46,17 +46,17 @@ def run(package=False):
  power_clearance={name:power_sweep.intersect(solid).Volume() for name,solid in solids.items()}
  assert max(power_clearance.values())<1e-5,power_clearance
  assert not a['componentEnvelopeCollisions'] and max(a['partIntersectionsMm3'].values())<1e-5
- report=dict(passed=True,revision=p['revision'],dimensionsMm=a['dimensionsMm'],checks=checks,batteryInsertionSampleMm=2,batteryInsertionMm3=insertion,trayLiftMm3=tray_lift,populatedCarrierLiftMm3=carrier_lift,headerCount=9,sensorHeaderCount=8,powerHeaderCount=1,batteryWireSlotProbesPassed=True,usbStraightPlugSweepMm3=usb_clearance,powerConnectorMatingSweepMm3=power_clearance,physicalFitTested=False,scope='Independent exports and sampled rigid vertical insertion/removal; no connector mating force, continuous sweep, fatigue or physical assembly proof.',files={name+ext:hashlib.sha256((OUT/(name+ext)).read_bytes()).hexdigest() for name in NAMES for ext in ('.stl','.step')})
+ report=dict(passed=True,revision=p['revision'],dimensionsMm=a['dimensionsMm'],checks=checks,batteryInsertionSampleMm=2,batteryInsertionMm3=insertion,trayLiftMm3=tray_lift,populatedCarrierLiftMm3=carrier_lift,headerCount=9,sensorHeaderCount=8,powerHeaderCount=1,batteryWireSlotProbesPassed=True,batteryWireUpperRunLengthMm=p['wire_riser']['x']+p['wire_riser']['width']+.4,batterySpecification=p['battery_spec'],usbStraightPlugSweepMm3=usb_clearance,powerConnectorMatingSweepMm3=power_clearance,physicalFitTested=False,scope='Independent exports and sampled rigid vertical insertion/removal; no connector mating force, continuous sweep, fatigue or physical assembly proof.',files={name+ext:hashlib.sha256((OUT/(name+ext)).read_bytes()).hexdigest() for name in NAMES for ext in ('.stl','.step')})
  (OUT/'independent_validation.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
- source=['README.md','parameters.json','pcb_reference.json','requirements-cad.txt','build_enclosure.py','render_preview.py','capture_preview.cjs','validate_and_package.py']
- exports=[*(name+ext for name in NAMES for ext in ('.stl','.step')),'assembly_reference.step','audit.json','validation.json','independent_validation.json','preview.html','preview.png','assembled.png','side.png','tray.png','lid.png','stack.svg','stack.png','preview_check.json']
+ source=['README.md','parameters.json','pcb_reference.json','requirements-cad.txt','build_enclosure.py','render_preview.py','render_wiring.py','capture_preview.cjs','validate_and_package.py']
+ exports=[*(name+ext for name in NAMES for ext in ('.stl','.step')),'assembly_reference.step','audit.json','validation.json','independent_validation.json','preview.html','preview.png','assembled.png','side.png','tray.png','lid.png','stack.svg','stack.png','wiring.svg','preview_check.json']
  files={name:(HERE/name).read_bytes() for name in source};files.update({'output/'+name:(OUT/name).read_bytes() for name in exports})
  sums=''.join(hashlib.sha256(raw).hexdigest()+'  '+name+'\n' for name,raw in sorted(files.items()));(HERE/'SHA256SUMS.txt').write_text(sums,encoding='utf-8');files['SHA256SUMS.txt']=sums.encode('utf-8')
  manifest=dict(revision=p['revision'],files={name:hashlib.sha256(raw).hexdigest() for name,raw in files.items()});files['MANIFEST.json']=(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n').encode('utf-8')
  if not package:
   print(json.dumps(dict(passed=True,revision=p['revision'],usbStraightPlugSweepMm3=usb_clearance),ensure_ascii=False))
   return
- target=HERE.parents[2]/'delivery/AI_Doll_C3_Socket_Enclosure_P04.zip';target.parent.mkdir(parents=True,exist_ok=True)
+ target=HERE.parents[2]/'delivery/AI_Doll_Gen1_Final_Enclosure.zip';target.parent.mkdir(parents=True,exist_ok=True)
  with zipfile.ZipFile(target,'w',zipfile.ZIP_DEFLATED) as z:
   for name,raw in files.items():z.writestr(name,raw)
  with zipfile.ZipFile(target) as z:

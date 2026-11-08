@@ -1,5 +1,5 @@
 {
-  "revision": "C3-SOCKET-ENC-P04",
+  "revision": "GEN1-FINAL-ENC",
   "units": "mm",
   "dimensionsMm": {
     "width": 42.89,
@@ -31,10 +31,10 @@
   "sourcePcbIdentity": "AI_Doll_C3_Socket_20261105",
   "sourceHashes": {
     "mechanicalReferenceSha256": "8484c27c3c67193273b64dfae4747efa9a6dd6f28c239963c0e95d8383b18cd4",
-    "sourceSha256": "bfdb4b29d5b7642b582bf05b1fb6dce46ae4f75fd518948cf78c9e1a6ff8d0ef"
+    "sourceSha256": "0ff500c4662e65e46d3534b7c75fbb1d6cd0738e4a01fa950b9c7ea88fbdc268"
   },
   "userMeasurement": {
-    "quality": "Native C3 PCB P03 geometry, PA2.0 2P sensors and 3P power; nominal heights require physical fit check.",
+    "quality": "User Gen1 final PCB readback; nominal component heights need first-print fit check.",
     "bottom_component_envelope_mm": 2.8,
     "module_height_above_pcb_mm": 6.0,
     "switch_height_above_pcb_mm": 4.5,
@@ -77,9 +77,9 @@
       "meshWatertight": true,
       "meshWindingConsistent": true,
       "meshBodies": 1,
-      "volumeMm3": 2962.5301339297293,
-      "stepRoundtripVolumeError": 2.7284841053187847e-12,
-      "stlRelativeVolumeError": 1.3220193310962396e-06
+      "volumeMm3": 2964.4621339297296,
+      "stepRoundtripVolumeError": 2.2737367544323206e-12,
+      "stlRelativeVolumeError": 1.3202275419470778e-06
     },
     "lid": {
       "validBrep": true,
@@ -145,6 +145,23 @@
     }
   ],
   "battery": {
+    "specification": {
+      "model": "103450",
+      "chemistry": "Li-ion polymer",
+      "nominal_voltage_v": 3.7,
+      "capacity_mah": 2000,
+      "cell_mm": [
+        34,
+        50,
+        10
+      ],
+      "connector": "PH2.0 2P on battery pigtail",
+      "connector_location": "outside core shell at BAT exit; plug need not pass through the closed wire slot",
+      "charger_enclosure": "separate charger-inline; no charge/boost PCB in core shell",
+      "nominal_wire_diameter_mm": 1.5,
+      "exit_wire_separation_mm": 1.6,
+      "service_loop_mm": 12.0
+    },
     "nominalMm": [
       34,
       50,
@@ -155,7 +172,7 @@
       52,
       12
     ],
-    "orientation": "long axis Y; leads face the switch end and rise through the front tray notch",
+    "orientation": "long axis Y; leads face front USB end and rise through the front tray notch to the left BAT exit",
     "wireExitEndGapMm": 1.4999999999999998,
     "cellToTrayGapMm": 1.6000000000000014,
     "cellToLowestPinMm": 4.0000000000000036,
@@ -218,9 +235,9 @@
     "x": 8.9,
     "y": 3.3,
     "z": 12.2,
-    "width": 5.6,
+    "width": 5.2,
     "length": 2.3,
-    "height": 10.0
+    "height": 16.5
   },
   "capacitorToSocketGapMm": {
     "C13": 0.2332100999999991,
@@ -298,28 +315,29 @@
       "J6_PA_header": 0.0,
       "J7_PA_header": 0.0,
       "J8_PA_header": 0.0,
-      "SW1_1_5mm_tail": 0.0,
-      "SW1_2_5mm_tail": 0.0,
-      "SW1_3_5mm_tail": 0.0,
-      "J1_1_5mm_tail": 0.0,
-      "J1_2_5mm_tail": 0.0,
-      "J2_1_5mm_tail": 0.0,
-      "J2_2_5mm_tail": 0.0,
-      "J3_1_5mm_tail": 0.0,
-      "J3_2_5mm_tail": 0.0,
-      "J4_1_5mm_tail": 0.0,
-      "J4_2_5mm_tail": 0.0,
-      "J5_1_5mm_tail": 0.0,
-      "J5_2_5mm_tail": 0.0,
-      "J6_1_5mm_tail": 0.0,
-      "J6_2_5mm_tail": 0.0,
-      "J7_1_5mm_tail": 0.0,
-      "J7_2_5mm_tail": 0.0,
-      "J8_1_5mm_tail": 0.0,
-      "J8_2_5mm_tail": 0.0,
-      "J9_1_5mm_tail": 0.0,
-      "J9_2_5mm_tail": 0.0,
-      "J9_3_5mm_tail": 0.0
+      "SW1_1_trimmed_tail": 0.0,
+      "SW1_2_trimmed_tail": 0.0,
+      "SW1_3_trimmed_tail": 0.0,
+      "J1_1_trimmed_tail": 0.0,
+      "J1_2_trimmed_tail": 0.0,
+      "J2_1_trimmed_tail": 0.0,
+      "J2_2_trimmed_tail": 0.0,
+      "J3_1_trimmed_tail": 0.0,
+      "J3_2_trimmed_tail": 0.0,
+      "J4_1_trimmed_tail": 0.0,
+      "J4_2_trimmed_tail": 0.0,
+      "J5_1_trimmed_tail": 0.0,
+      "J5_2_trimmed_tail": 0.0,
+      "J6_1_trimmed_tail": 0.0,
+      "J6_2_trimmed_tail": 0.0,
+      "J7_1_trimmed_tail": 0.0,
+      "J7_2_trimmed_tail": 0.0,
+      "J8_1_trimmed_tail": 0.0,
+      "J8_2_trimmed_tail": 0.0,
+      "J9_1_trimmed_tail": 0.0,
+      "J9_2_trimmed_tail": 0.0,
+      "J9_3_trimmed_tail": 0.0,
+      "battery_wire_riser": 0.0
     },
     "physicalFitTested": false
   },

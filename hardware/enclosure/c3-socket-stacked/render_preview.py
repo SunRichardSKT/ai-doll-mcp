@@ -56,9 +56,9 @@ def run():
     p=json.loads((HERE/'parameters.json').read_text(encoding='utf-8'))
     page=TEMPLATE
     replacements={
-        'AI Doll · 外壳 P01':'AI Doll · V2.2紧凑堆叠外壳',
-        'AI DOLL / HARDWARE / V22-ENC-P01':'AI DOLL / C3 PCB / STACK P04',
-        '圆角双片外壳':'V2.2 · 紧凑堆叠 · 卡扣电池壳',
+        'AI Doll · 外壳 P01':'AI Doll · 第一代最终版核心电池壳',
+        'AI DOLL / HARDWARE / V22-ENC-P01':'AI DOLL / GEN 1 / FINAL',
+        '圆角双片外壳':'第一代最终版 · 卡扣电池壳',
         '首版试装样件 · 尚未实物验证':'新版PCB专用 · 三件打印',
         'J9 日常供电 · USB 开盖维护 · 八路带线传感输入':'下层电池 · 中间绝缘托板 · 上层主板 · 下沉开关口',
         '46.29 × 56.45':'46.29 × 56.45 mm',
@@ -68,8 +68,8 @@ def run():
         '边缘托座固定 PCB，不使用板上的线束固定孔。线束从敞口槽放入，盖上的挡片补齐槽口，无需让 SM 塑壳穿过小孔。':'电池平放在底层，长边沿外壳长度方向。1.4 mm可拆绝缘托板同时承托主板，将载荷传到壳壁侧轨。托板上方给2.8 mm底面元件及修剪后的焊脚再留1 mm间隙。',
         '正面独立 J9 出线口与开关检修口；松开上盖后操作 USB、BOOT / RST。天线端不布置紧固螺钉。':'需要打印底壳、绝缘托板、上盖三件。托板隔离底面元件和电芯，并可单独取出更换电池。前后墙卡扣避开八路侧面线槽。USB从正面直插；BOOT、RST开盖维护。',
         '元件高度、板厚与线径为预留假设。灰色元件是包络参考，USB 不是已验证插拔模型。':f"开关移到右后方，顶部与右侧可拨动；正面USB口15 × 9 mm，按14 × 8 mm直头胶壳校核插入通道。导向单边间隙{p['lid_guide_clearance']:.2f} mm，挂钩咬合{p['wall']-p['snap_tip_inset']:.2f} mm。",
-        '先打印 fit_tray，再检查焊点、线束弯折和开关可达性。此结构没有防水等级，也不包含电池。':'电池净空36 × 52 × 12 mm，出线向上经过托板开口；短边水平余量约1.85 mm，原厂线弯曲及封边必须试装。建议PETG，不压电芯。J9仍需5 V电源管理。',
-        '模型来自当前 PCB 实际 XY 回读；Z 向包络采用公开标注的假设。剖切仅用于观察，不改变打印模型。单位 mm。2026-10-17':'P04适配C3 PCB P03，左后方增加三针锁扣电源口。底壳、绝缘载架、上盖需配套打印；不与旧板外壳混用。黄色电池及绿色PCB不要打印。单位 mm。2026-11-09',
+        '先打印 fit_tray，再检查焊点、线束弯折和开关可达性。此结构没有防水等级，也不包含电池。':'电池净空36 × 52 × 12 mm，出线向上经过托板开口；短边水平余量约1.85 mm，原厂线弯曲及封边必须试装。建议PETG，不压电芯。103450为3.7V 2000mAh，PH2.0接头留在壳外，接独立充电模块；J9接模块5V输出。',
+        '模型来自当前 PCB 实际 XY 回读；Z 向包络采用公开标注的假设。剖切仅用于观察，不改变打印模型。单位 mm。2026-10-17':'对应用户最终丝印版PCB；核心与充电模块各用独立外壳。底壳、绝缘载架、上盖需配套打印；不与旧板外壳混用。黄色电池及绿色PCB不要打印。单位 mm。2026-11-09',
         '<button id="cut">':'<button data-mode="tray">绝缘托板</button><button id="side">层叠侧视</button><button id="cut">',
         '<i style="background:#22736c"></i>PCB 位置参考</span>':'<i style="background:#22736c"></i>PCB 位置参考</span><span><i style="background:#dfbc5e"></i>103450电池</span><span><i style="background:#c7af8a"></i>可拆绝缘托板</span>',
         '<a href="lid.stl">上盖 STL</a>':'<a href="tray.stl">绝缘托板 STL</a> · <a href="lid.stl">上盖 STL</a>',
@@ -89,10 +89,12 @@ def run():
         f'<div class="spec"><span>{name}</span><strong>{value:.1f} mm</strong></div>' for name,value in rows)+\
         '</div><p><a href="../README.md">试装与打印说明</a> · <a href="stack.svg">带尺寸侧剖示意</a></p>'
     page=page.replace('</aside>',extra+'</aside>')
-    page=page.replace('V2.2','C3插座版').replace('P02','P04').replace('46.29 × 56.45','42.89 × 56.45').replace('侧面线孔','侧插窗口').replace('8 × 4.4 mm','8 × 7 mm + 1 × 9 mm').replace('侧面线槽','侧面插座').replace('八路带线传感输入','八路锁扣板载插座')
+    page=page.replace('V2.2','C3插座版').replace('P02','第一代最终版').replace('46.29 × 56.45','42.89 × 56.45').replace('侧面线孔','侧插窗口').replace('8 × 4.4 mm','8 × 7 mm + 1 × 9 mm').replace('侧面线槽','侧面插座').replace('八路带线传感输入','八路锁扣板载插座')
     page=page.replace('下沉开关口','右后方开关 · 左侧BAT出线／5V锁扣座').replace('缩小长宽，电池下置','板载插座，电池下置')
     (OUT/'preview.html').write_text(page.replace('__DATA__',json.dumps(data,separators=(',',':'))),encoding='utf-8')
     side_diagram(audit,p)
+    from render_wiring import run as draw_wiring
+    draw_wiring()
     print('Self-contained preview:',OUT/'preview.html')
 
 
@@ -104,7 +106,7 @@ def side_diagram(audit,p):
     svg=['<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="650" viewBox="0 0 1040 650">',
          '<rect width="1040" height="650" fill="#f2f3ed"/>',
          '<g font-family="Microsoft YaHei,Segoe UI,sans-serif" fill="#24372f">',
-         '<text x="54" y="48" font-size="27" font-weight="bold">C3 · P04 直头USB堆叠外壳</text>',
+         '<text x="54" y="48" font-size="27" font-weight="bold">第一代最终版 · 103450堆叠外壳</text>',
          '<text x="54" y="79" font-size="16">42.89 × 56.45 × 33.5 mm · 下图为名义层高与侧投影，非加工图</text>',
          rect(0,0,p['outer_length'],audit['dimensionsMm']['height'],'#dce4d5'),
          rect(p['wall'],p['floor'],p['outer_length']-2*p['wall'],stack['roofBottom']-p['floor'],'#f9faf6')]
@@ -129,7 +131,7 @@ def side_diagram(audit,p):
         svg.append(f'<path d="M 650 {yy} H 685" stroke="#9baa98"/>')
         svg.append(f'<text x="710" y="{147+i*35}" font-size="16">{label}　{value:.1f} mm</text>')
     svg.extend(['<text x="54" y="551" font-size="16">打印三件：底壳 + 可拆绝缘载架 + 卡扣上盖；USB从正面直插；BOOT、RST开盖维护。</text>',
-                '<text x="54" y="581" font-size="15">103450名义34×50×10 mm，保证净空36×52×12 mm；J9为3P锁扣5V输入。</text>',
+                '<text x="54" y="581" font-size="15">103450 · 3.7V 2000mAh · PH2.0接独立充电板；电池净空36×52×12 mm。</text>',
                 '<text x="54" y="611" font-size="14">PCB板厚、贴片模块高度、焊脚和电池封边须用实物试装核对。</text></g></svg>'])
     (OUT/'stack.svg').write_text(''.join(svg),encoding='utf-8')
 

@@ -1,8 +1,8 @@
 {
   "units": "mm",
   "date": "2026-11-09",
-  "source": "Native readback of C3 PCB P03: 3P locking power socket and non-overlapping R1/C12.",
-  "sourceSha256": "bfdb4b29d5b7642b582bf05b1fb6dce46ae4f75fd518948cf78c9e1a6ff8d0ef",
+  "source": "User final silkscreen, Gen1 final PCB; native component layout and copper preserved.",
+  "sourceSha256": "0ff500c4662e65e46d3534b7c75fbb1d6cd0738e4a01fa950b9c7ea88fbdc268",
   "width": 34.29,
   "length": 44.45,
   "cornerRadius": 1.524,
@@ -760,7 +760,7 @@
         "maxX": 12.639796919999998,
         "maxY": 3.66880648
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "C14",
@@ -775,7 +775,7 @@
         "maxX": 20.139797159999997,
         "maxY": 3.66880648
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "J9",
@@ -790,7 +790,7 @@
         "maxX": 7.12699362,
         "maxY": 43.437812539999996
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "R1",
@@ -805,7 +805,7 @@
         "maxX": 7.851292399999999,
         "maxY": 26.475334399999998
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "R2",
@@ -820,7 +820,7 @@
         "maxX": 7.851292399999999,
         "maxY": 21.6493344
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "R3",
@@ -835,7 +835,7 @@
         "maxX": 7.851292399999999,
         "maxY": 16.0613344
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "R4",
@@ -850,7 +850,7 @@
         "maxX": 7.851292399999999,
         "maxY": 10.4733344
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "R5",
@@ -865,7 +865,7 @@
         "maxX": 28.4252924,
         "maxY": 26.475334399999998
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "R6",
@@ -880,7 +880,7 @@
         "maxX": 28.4252924,
         "maxY": 21.6493344
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "R7",
@@ -895,7 +895,7 @@
         "maxX": 28.4252924,
         "maxY": 16.0613344
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "R8",
@@ -910,7 +910,7 @@
         "maxX": 28.4252924,
         "maxY": 10.4733344
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "R9",
@@ -925,7 +925,7 @@
         "maxX": 10.8992924,
         "maxY": 26.475334399999998
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "R10",
@@ -940,7 +940,7 @@
         "maxX": 10.8992924,
         "maxY": 21.6493344
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "R11",
@@ -955,7 +955,7 @@
         "maxX": 10.8992924,
         "maxY": 16.0613344
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "R12",
@@ -970,7 +970,7 @@
         "maxX": 10.8992924,
         "maxY": 10.4733344
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "R13",
@@ -985,7 +985,7 @@
         "maxX": 25.377292399999998,
         "maxY": 26.475334399999998
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "R14",
@@ -1000,7 +1000,7 @@
         "maxX": 25.377292399999998,
         "maxY": 21.6493344
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "R15",
@@ -1015,7 +1015,7 @@
         "maxX": 25.377292399999998,
         "maxY": 16.0613344
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "R16",
@@ -1030,7 +1030,7 @@
         "maxX": 25.377292399999998,
         "maxY": 10.4733344
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "R17",
@@ -1045,7 +1045,7 @@
         "maxX": 17.077334399999998,
         "maxY": 37.188292399999995
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "R18",
@@ -1060,7 +1060,7 @@
         "maxX": 11.4893344,
         "maxY": 37.31529239999999
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "R19",
@@ -1075,7 +1075,7 @@
         "maxX": 30.7933344,
         "maxY": 33.75929239999999
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "R20",
@@ -1090,7 +1090,7 @@
         "maxX": 30.7933344,
         "maxY": 36.807292399999994
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "SW1",
@@ -1105,7 +1105,7 @@
         "maxX": 33.67700909999999,
         "maxY": 43.44487374
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "TP1",
@@ -1120,7 +1120,7 @@
         "maxX": 18.145000539999998,
         "maxY": 11.922000539999999
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "TP2",
@@ -1135,7 +1135,7 @@
         "maxX": 25.80000174,
         "maxY": 3.9999996199999996
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "TP3",
@@ -1150,7 +1150,7 @@
         "maxX": 25.80000174,
         "maxY": 7.20000084
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "TP4",
@@ -1165,7 +1165,7 @@
         "maxX": 7.350000539999999,
         "maxY": 43.92600054
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "TP5",
@@ -1180,7 +1180,7 @@
         "maxX": 25.80000174,
         "maxY": 10.399999520000001
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "U2",
@@ -1195,7 +1195,7 @@
         "maxX": 22.44975952,
         "maxY": 34.79852578
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "C1",
@@ -1210,7 +1210,7 @@
         "maxX": 13.933805000000001,
         "maxY": 26.6777978
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "C2",
@@ -1225,7 +1225,7 @@
         "maxX": 13.933805000000001,
         "maxY": 21.8517978
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "C3",
@@ -1240,7 +1240,7 @@
         "maxX": 13.933805000000001,
         "maxY": 16.2637978
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "C4",
@@ -1255,7 +1255,7 @@
         "maxX": 13.933805000000001,
         "maxY": 10.6757978
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "C5",
@@ -1270,7 +1270,7 @@
         "maxX": 22.315805,
         "maxY": 26.6777978
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "C6",
@@ -1285,7 +1285,7 @@
         "maxX": 22.315805,
         "maxY": 21.8517978
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "C7",
@@ -1300,7 +1300,7 @@
         "maxX": 22.315805,
         "maxY": 16.2637978
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "C8",
@@ -1315,7 +1315,7 @@
         "maxX": 22.315805,
         "maxY": 10.6757978
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "C9",
@@ -1330,7 +1330,7 @@
         "maxX": 8.6437978,
         "maxY": 41.111805
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "C10",
@@ -1345,7 +1345,7 @@
         "maxX": 11.393805,
         "maxY": 32.0117978
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "C11",
@@ -1360,7 +1360,7 @@
         "maxX": 6.567805000000001,
         "maxY": 38.3617978
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "C12",
@@ -1375,7 +1375,7 @@
         "maxX": 8.345805,
         "maxY": 32.0117978
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "U1",
@@ -1390,7 +1390,7 @@
         "maxX": 26.293064000000008,
         "maxY": 44.133770000000005
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "J1",
@@ -1405,7 +1405,7 @@
         "maxX": 7.12699362,
         "maxY": 32.637813820000005
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "J2",
@@ -1420,7 +1420,7 @@
         "maxX": 7.12699362,
         "maxY": 24.63781458
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "J3",
@@ -1435,7 +1435,7 @@
         "maxX": 7.12699362,
         "maxY": 16.637815339999996
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "J4",
@@ -1450,7 +1450,7 @@
         "maxX": 7.12699362,
         "maxY": 8.63781356
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "J5",
@@ -1465,7 +1465,7 @@
         "maxX": 39.11698298,
         "maxY": 32.63755982
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "J6",
@@ -1480,7 +1480,7 @@
         "maxX": 39.11698298,
         "maxY": 24.637560579999995
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "J7",
@@ -1495,7 +1495,7 @@
         "maxX": 39.11698298,
         "maxY": 16.637561339999998
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     },
     {
       "ref": "J8",
@@ -1510,7 +1510,7 @@
         "maxX": 39.11698298,
         "maxY": 8.637559560000001
       },
-      "bboxStatus": "Native readback of C3 PCB P03, PA2.0 3P power"
+      "bboxStatus": "Native Gen1 final PCB readback; component geometry unchanged from C3 P03"
     }
   ],
   "wirePorts": [

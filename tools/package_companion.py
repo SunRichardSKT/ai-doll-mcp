@@ -259,7 +259,7 @@ PCB_FILES = (
 )
 PCB_PACKAGE = f'AI_Doll_PCB_v{VERSION}.zip'
 CODE_README = (ROOT/'README.md').read_bytes().decode('utf-8')
-PCB_README = '# AI Doll PCB · 内测0.1.1版\n\n当前实物主板为34.29 × 44.45 mm双层通孔板，使用ESP32-C3 SuperMini、74HC4051和八路板外FSR。\n\n- [主板与采购说明](hardware/rev-v2/README.md)\n- [当前原生工程](hardware/rev-v2/AI_Doll_V2_丝印镜像修正_20261016.epro2)\n- [采购BOM](hardware/rev-v2/AI_Doll_V2_标准化采购BOM_20261003.csv)\n- [板外器件与测试点](hardware/rev-v2/AI_Doll_V2_板外器件与测试点_20261003.csv)\n- [在用制造资料](hardware/rev-v2/ordered-gerber-20260920/已下单PCB封装核对.md)\n- [C3锁扣插座板P03](hardware/rev-v2/candidates/c3-socket-20261105/README.md)\n\nJ9要求5V输入，主板不包含锂电池充电、升压或保护电路。插座板P03采用后置开关和三针锁扣电源座，配套外壳P04；首板先核对实际插头、开关和电池。\n\n[接线教程](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/daily/SENSOR_CHANNELS.md) · [外壳选择](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/README.md)\n'
+PCB_README = '# AI Doll PCB · 内测0.1.1版\n\n第一代最终版为34.29 × 44.45 mm双层C3八路锁扣插座板。下方保留早期已制带线板资料，按实物区分。\n\n- [主板与采购说明](hardware/rev-v2/README.md)\n- [早期已制带线板工程](hardware/rev-v2/AI_Doll_V2_丝印镜像修正_20261016.epro2)\n- [采购BOM](hardware/rev-v2/AI_Doll_V2_标准化采购BOM_20261003.csv)\n- [板外器件与测试点](hardware/rev-v2/AI_Doll_V2_板外器件与测试点_20261003.csv)\n- [在用制造资料](hardware/rev-v2/ordered-gerber-20260920/已下单PCB封装核对.md)\n- [第一代最终版锁扣插座板](hardware/rev-v2/candidates/c3-socket-20261105/README.md)\n\nJ9要求5V输入，主板不包含锂电池充电、升压或保护电路。第一代最终版采用后置开关和三针锁扣电源座，配套103450/PH2.0核心电池壳及独立充电板壳；首板先核对实际插头、开关和电池。\n\n[接线教程](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/daily/SENSOR_CHANNELS.md) · [外壳选择](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/README.md)\n'
 
 
 def link_unbundled_docs(contents):

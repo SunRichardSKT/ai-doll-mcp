@@ -1,0 +1,38 @@
+"""Render the separate core/battery and charge/boost wiring guide."""
+from pathlib import Path
+OUT=Path(__file__).resolve().parent/'output'
+
+def run():
+    svg='''<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="640" viewBox="0 0 1080 640">
+<rect width="1080" height="640" rx="20" fill="#f2f4ef"/>
+<g font-family="Microsoft YaHei,Segoe UI,sans-serif" fill="#263d34">
+<text x="42" y="52" font-size="27" font-weight="bold">第一代最终版 · 核心与充电板分体接线</text>
+<text x="42" y="84" font-size="16">电池放在核心壳内；PH2.0接头留在壳外；充电板使用独立四线保护壳。</text>
+<rect x="50" y="118" width="370" height="410" rx="20" fill="#e0e9df" stroke="#527564" stroke-width="2"/>
+<text x="78" y="154" font-size="21" font-weight="bold">核心外壳</text>
+<rect x="88" y="177" width="290" height="111" rx="12" fill="#e9d596" stroke="#ac914d"/>
+<text x="106" y="209" font-size="19" font-weight="bold">103450 聚合物锂电池</text>
+<text x="106" y="238" font-size="17">3.7V · 2000mAh · PH2.0</text>
+<text x="106" y="267" font-size="15">名义34 × 50 × 10 mm</text>
+<rect x="88" y="338" width="290" height="147" rx="12" fill="#24736d"/>
+<g fill="#fff"><text x="106" y="370" font-size="20" font-weight="bold">C3主板 · J9 PA2.0 3P</text>
+<text x="106" y="400" font-size="16">3脚：+5V（PWR5V_RAW）</text>
+<text x="106" y="429" font-size="16">1脚：GND</text>
+<text x="106" y="458" font-size="16">2脚：空置</text></g>
+<rect x="650" y="175" width="372" height="310" rx="20" fill="#e6ebe3" stroke="#527564" stroke-width="2"/>
+<text x="682" y="210" font-size="21" font-weight="bold">独立充电／升压模块</text>
+<text x="682" y="244" font-size="16">B+：电池正极</text><text x="682" y="276" font-size="16">B−：电池负极</text>
+<text x="682" y="361" font-size="16">输入输出正极 → 主板5V</text>
+<text x="682" y="395" font-size="16">输入输出负极 → 主板GND</text>
+<text x="682" y="455" font-size="16">四根线分别夹持，指示灯可见</text>
+<g fill="none" stroke-linecap="round" stroke-width="4"><path d="M378 226 H520 V238 H650" stroke="#c65150"/><path d="M378 258 H510 V270 H650" stroke="#39494e"/>
+<path d="M378 392 H560 V354 H650" stroke="#c65150"/><path d="M378 421 H575 V388 H650" stroke="#39494e"/>
+<path d="M835 137 V172" stroke="#4a7fa3"/></g>
+<text x="435" y="200" font-size="16">PH2.0插接</text><text x="441" y="447" font-size="16">PA3P线束：只用1、3脚</text>
+<text x="708" y="125" font-size="17">Type-C接5V充电器</text>
+<text x="50" y="568" font-size="17">主板不并接在B+/B−；PH2.0针序按实际极性核对，不能仅看线色。</text>
+<text x="50" y="602" font-size="15" fill="#66786b">核心壳：56.45 × 42.89 × 33.5 mm　｜　充电壳：36 × 22 × 11 mm　｜　不合并壳体</text>
+</g></svg>'''
+    (OUT/'wiring.svg').write_text(svg,encoding='utf-8')
+
+if __name__=='__main__':run()

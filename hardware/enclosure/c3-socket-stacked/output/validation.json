@@ -17,9 +17,9 @@
       "meshWatertight": true,
       "meshWindingConsistent": true,
       "meshBodies": 1,
-      "volumeMm3": 2962.5301339297293,
-      "stepRoundtripVolumeError": 2.7284841053187847e-12,
-      "stlRelativeVolumeError": 1.3220193310962396e-06
+      "volumeMm3": 2964.4621339297296,
+      "stepRoundtripVolumeError": 2.2737367544323206e-12,
+      "stlRelativeVolumeError": 1.3202275419470778e-06
     },
     "lid": {
       "validBrep": true,
@@ -34,12 +34,12 @@
   },
   "physicalFitTested": false,
   "files": {
-    "base.step": "0b2ea7b80a7e5ab5ed2625ebd2d5bc41d4c8ec9cc0289ce90e765da0fe8b95e8",
+    "base.step": "5a91c6cdffb490221dab8e87b3b3c1b88d82f9e0731a43221bc8f1cc9c16dda9",
     "base.stl": "ff8921eac709e6a4055c7fa657cec92eedfdd701e246a55818eef74ace2e27e4",
-    "tray.step": "95795cc378e9b26424db71f2c98d29e2d1f82caa626ea090de113e1949586b05",
-    "tray.stl": "641a1e59791433e762a3b66da545f604de782754414f9a5b68e3d0ab4b9d87b3",
-    "lid.step": "8e08f65406ba335ecfd985b3f94fab8ee4c6252256f09de4b883d3e8dc56c9e4",
+    "tray.step": "d00e039a467c0c6795a6fc5d999ad3828ebc31d83834b008d5fa2d7c0b56fb5e",
+    "tray.stl": "7790a6200550fa12739ac9729f139404fa72d5f635b9017615e6e80c42559d5f",
+    "lid.step": "45dec53ce68a16026b93e51884306b48e3e7caaf1518d32a333c9efb410497b8",
     "lid.stl": "08846a143a6e5eaad5afe847013eb2f808f46d613b15894572c0e1f83635af61",
-    "assembly_reference.step": "32368446d41db42026936672df1072a7ff97e488a6db6e089fcf5bb9fcfcf658"
+    "assembly_reference.step": "d8e623acb03782423b7ef71d75c456dc6d39a692e99b939f80171a204891abbc"
   }
 }

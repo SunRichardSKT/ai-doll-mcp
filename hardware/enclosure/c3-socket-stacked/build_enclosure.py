@@ -304,7 +304,7 @@ def build():
     for tail in r.get('solderTailReference',[]):
         shape=cq.Solid.makeCylinder(tail['radius'],p['bottom_pin_length'],
                                     cq.Vector(ox+tail['x'],oy+tail['y'],tip_z))
-        components.append((tail['name']+'_5mm_tail',shape,'#b6b2a2'))
+        components.append((tail['name']+'_trimmed_tail',shape,'#b6b2a2'))
     battery, reserve = declared(p['battery']), declared(p['battery_reserved'])
     wire = declared(p['wire_riser'])
     shapes={'base':base,'tray':tray,'lid':lid}
@@ -316,6 +316,7 @@ def build():
             if overlap>1e-5:collisions.append(dict(reference=name,part=part,mm3=overlap))
     usb_intersections={name:common(plug_sweep,shape) for name,shape in shapes.items()}
     usb_intersections.update({name:common(plug_sweep,shape) for name,shape in refs})
+    usb_intersections['battery_wire_riser']=common(plug_sweep,wire)
     assert max(usb_intersections.values())<1e-5,usb_intersections
     power_port = next(port for port in ports if port['ref'] == 'J9')
     # Declared 8 x 8 mm plug envelope, swept through the left wall.
@@ -389,7 +390,7 @@ def build():
                 printedParts=['base','tray','lid'],footprintUnchangedFromNoBattery=p['original_no_battery_footprint_mm']==[W,H],
                 checks=checks,componentEnvelopeCollisions=collisions,partIntersectionsMm3=assembly_overlaps,
                 reservedClearancesMm3=clearances,snapRetractedChecksMm3=snap_checks,
-                battery=dict(nominalMm=[34,50,10],clearanceMm=[36,52,12],orientation='long axis Y; leads face the switch end and rise through the front tray notch',
+                battery=dict(specification=p['battery_spec'],nominalMm=[34,50,10],clearanceMm=[36,52,12],orientation='long axis Y; leads face front USB end and rise through the front tray notch to the left BAT exit',
                              wireExitEndGapMm=p['battery']['y']-wall,cellToTrayGapMm=tray_z-p['battery']['z']-10,
                              cellToLowestPinMm=tip_z-p['battery']['z']-10,wireBendTested=False),
                 tray=dict(thicknessMm=p['tray_thickness'],bottomComponentClearanceMm=tip_z-tray_top,
