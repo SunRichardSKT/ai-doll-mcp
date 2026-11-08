@@ -21,6 +21,13 @@ def build(output=None):
     base = ROOT / 'clients/operit'
     output = output or ROOT / 'delivery/AI_Doll_Operit.toolpkg'
     contents = {name: (base / name).read_bytes() for name in FILES}
+    for name in ('LICENSE', 'LICENSING.md', 'LICENSES/MIT-legacy.txt', 'hardware/LICENSE'):
+        contents[name] = (ROOT / name).read_bytes()
+    contents['README.md'] = ('# AI Doll Operit\n\n'
+        '软件使用 AGPL-3.0-only，第三方资源保留原许可。'
+        '范围与旧版授权见 [项目许可](LICENSING.md)。\n\n'
+        '[完整源码与构建脚本](https://github.com/SunRichardSKT/ai-doll-mcp) · '
+        '[安装指南](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/integrations/OPERIT_SETUP.md)\n').encode('utf-8')
     for asset in json.loads(contents['vendor/SOURCES.json']):
         raw = contents.get('vendor/'+asset['file'])
         if raw is None or hashlib.sha256(raw).hexdigest() != asset['sha256']:

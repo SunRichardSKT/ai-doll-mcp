@@ -1,5 +1,7 @@
 # 充电／升压模块保护壳 P02
 
+模型与硬件设计使用 CERN-OHL-S-2.0，生成、检查及打包脚本使用 AGPL-3.0-only。[许可范围与旧版说明](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/LICENSING.md)。
+
 [外壳目录](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/README.md) · [旋转预览](output/preview.html) · [尺寸图](output/drawing.svg) · [四线取电方案](POWER_WIRING.md)
 
 适配本次提供的 Type-C 单节锂电池充电／5V 升压小板。按商品图中的 **16.2 × 12 × 4.4 mm** 包络建模，USB-C 约伸出 PCB 1.3 mm；不是通用 TP4056 大板外壳。

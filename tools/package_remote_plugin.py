@@ -41,6 +41,8 @@ def build_package(folder=DEFAULT, output=None):
         'mcp.json':json.dumps(mcp,ensure_ascii=False,indent=2),
         'skills/doll-interaction/SKILL.md':'---\nname: doll-interaction\ndescription: Use when the user queries doll history or explicitly requests timed body interaction in this conversation.\n---\n\n'+prompt,
         'README.md':'# 私人连接包\n\n含私密 MCP 地址，请勿公开、提交 GitHub 或转送。电脑和隧道必须运行。ZIP 只包装技能和连接，不部署服务。上传后在原 Chat 实际调用工具验收；SDK 通过不能替代普通 Chat 验收。\n'}
+    for name in ('LICENSE', 'LICENSING.md', 'LICENSES/MIT-legacy.txt', 'hardware/LICENSE'):
+        files[name] = (Path(__file__).resolve().parents[1] / name).read_text(encoding='utf-8')
     with zipfile.ZipFile(output,'x',zipfile.ZIP_DEFLATED) as archive:
         for name,value in files.items():archive.writestr('ai-doll-chat/'+name,value.encode('utf-8'))
     with zipfile.ZipFile(output) as archive:

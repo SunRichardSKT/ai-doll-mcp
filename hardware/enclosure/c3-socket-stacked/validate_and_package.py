@@ -52,6 +52,8 @@ def run(package=False):
  exports=[*(name+ext for name in NAMES for ext in ('.stl','.step')),'assembly_reference.step','audit.json','validation.json','independent_validation.json','preview.html','preview.png','assembled.png','side.png','tray.png','lid.png','stack.svg','stack.png','wiring.svg','preview_check.json']
  files={name:(HERE/name).read_bytes() for name in source};files.update({'output/'+name:(OUT/name).read_bytes() for name in exports})
  sums=''.join(hashlib.sha256(raw).hexdigest()+'  '+name+'\n' for name,raw in sorted(files.items()));(HERE/'SHA256SUMS.txt').write_text(sums,encoding='utf-8');files['SHA256SUMS.txt']=sums.encode('utf-8')
+ for name in ('LICENSE', 'LICENSING.md', 'LICENSES/MIT-legacy.txt', 'hardware/LICENSE'):
+  files[name]=(HERE.parents[2]/name).read_bytes()
  manifest=dict(revision=p['revision'],files={name:hashlib.sha256(raw).hexdigest() for name,raw in files.items()});files['MANIFEST.json']=(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n').encode('utf-8')
  if not package:
   print(json.dumps(dict(passed=True,revision=p['revision'],usbStraightPlugSweepMm3=usb_clearance),ensure_ascii=False))

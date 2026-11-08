@@ -85,6 +85,8 @@ Node / Playwright 页面测试需要开发者另装对应环境，运行 `tools/
 
 ## 制作交付包
 
+本次许可切换后的软件与固件源码使用 AGPL-3.0-only，硬件设计使用 CERN-OHL-S-2.0；范围和第三方例外见 [项目许可](../../LICENSING.md)。新包必须携带 `LICENSE`、`hardware/LICENSE`、`LICENSING.md` 和 `LICENSES/MIT-legacy.txt`，保留依赖自己的许可证。发布修改版网络服务时提供实际运行版本的完整源码入口；不要把上游滚动 `main` 当作修改版对应源码。旧 Release 和已发布的 0.1.1 预编译镜像不追溯换协议；本次不重编译或刷写设备。
+
 从干净源码制作完整包时，先完成上面的开发环境准备，再依次执行：
 
 ```powershell

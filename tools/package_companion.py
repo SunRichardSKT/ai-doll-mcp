@@ -288,6 +288,8 @@ def package(output, files, readme, version):
         if any(part in {'build', '.tools', '_local', '.pio', '__pycache__'} for part in relative.parts):
             raise ValueError('Local/private path cannot enter a delivery package')
     contents = {p.relative_to(ROOT).as_posix(): p.read_bytes() for p in files}
+    for name in ('LICENSE', 'LICENSING.md', 'LICENSES/MIT-legacy.txt', 'hardware/LICENSE'):
+        contents[name] = (ROOT / name).read_bytes()
     contents['README.md'] = readme.encode('utf-8')
     link_unbundled_docs(contents)
     manifest = {'version': version, 'files': {
@@ -324,6 +326,7 @@ def package(output, files, readme, version):
 def server_package(delivery, operit_package=None):
     """Small Linux payload: no Windows runtime, firmware images or PCB."""
     names = ['Install_Server.sh', 'LICENSE', 'requirements-server.txt', 'docs/integrations/REMOTE_SERVER_SETUP.md', 'CHANGELOG.md', 'docs/daily/NATURAL_COMPANION.md']
+    names += ['LICENSING.md', 'LICENSES/MIT-legacy.txt', 'hardware/LICENSE']
     names += ['deploy/direct-server/'+name for name in ('Dockerfile','Dockerfile.dockerignore','compose.yml','compose.backend.yml','Caddyfile','.env.example')]
     names += ['tools/'+name for name in (
         'direct_server.py','direct_mcp.py','companion.py','interaction_bridge.py','input_observations.py',
@@ -451,6 +454,7 @@ def main():
     readme += '\nOperit 无需为了取得手机工具包下载 Windows 包。服务器管理页可导出连接文件、连接码与临时二维码；仅手机模式默认从设备热点读取，不要求实体标签。原电脑入口继续兼容，完整包内含相同工具包。[统一安装](../docs/integrations/OPERIT_SETUP.md) · [免电脑指南](../docs/integrations/OPERIT_NO_PC.md)。\n'
     readme += '\nWindows 包内置 Python，无需另装。Linux 小型包不含 Windows Python，由容器准备运行环境。PCB 包使用当前丝印工程并修正背面文字，电路与原下单文件保持；当前仍有 1 项网表不匹配，重新下单前须核对。[丝印与 3D 核对](../hardware/rev-v2/丝印镜像修正说明_20261016.md)。\n\n'
     readme += '[Windows 首次安装](../docs/start/AI_INSTALL.md) · [远程部署](../docs/integrations/REMOTE_SERVER_SETUP.md) · [给 AI 的执行指南](../docs/ai/AI_GUIDE.md) · [全部文档](../docs/README.md)\n\n'
+    readme += '## 许可\n\n软件 AGPL-3.0-only，硬件 CERN-OHL-S-2.0，第三方资源保留各自声明。具体范围与旧版授权见 [项目许可](../LICENSING.md)。已发布版本的授权不追溯撤销。\n\n'
     readme += f'## 如何校验发布包\n\n使用[本版Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v{VERSION})附带的固定清单。\n\n[DELIVERY_MANIFEST.json](DELIVERY_MANIFEST.json) 与 [SHA256SUMS.txt](SHA256SUMS.txt) 记录哈希；ZIP / TAR 内的 MANIFEST.json 记录逐文件校验，ToolPkg 使用 CHECKSUMS.json。Linux 包另有同目录 `.sha256`。\n\n'
     readme += 'Linux安装入口位于本版TAR内和Release附件 `Install_Server.sh`；使用同版安装器，保留原目录、项目名与数据卷。大型文件仅放在Releases，源码目录保留下载链接与校验元数据。\n\n'
     for item in outputs:

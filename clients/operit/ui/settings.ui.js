@@ -275,6 +275,7 @@ async function Screen(ctx) {
   button('从设备热点重新获取家庭地址',()=>go('pairing')),button('刷新状态',()=>refresh())
  ])];
  else if(page==='tests')content=[card('测试与帮助',[
+  button('项目源码与许可（AGPLv3）',async()=>{setWebReturn('tests');setWebUrl('https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/LICENSING.md');setPage('web');}),
   button('试摸一下',touchTest),button('一键检查',check),
   button('原聊天发送自检',async()=>{const r=await call('schedule',{kind:'probe'});setMessage(r.message);}),
   button('我已看到自检输入和回复',async()=>{await call('confirm_probe');await refresh(false);setMessage('确认已保存。');}),

@@ -1,5 +1,7 @@
 # 共感娃娃第一代主板 · 最终版
 
+PCB、BOM 和制造设计使用 CERN-OHL-S-2.0。[许可范围与旧版说明](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/LICENSING.md)。
+
 [项目首页](../../../../README.md) · [主板资料](../../README.md) · [核心电池外壳](../../../enclosure/c3-socket-stacked/README.md) · [独立充电板外壳](../../../enclosure/charger-inline/README.md)
 
 本目录为**第一代C3八路锁扣插座板最终版**，保留用户2026-11-09最后修改的丝印。板框、元件位置、走线、电气参数和固件引脚不变；历史工程名中的日期及目录名仅为内部来源标识。

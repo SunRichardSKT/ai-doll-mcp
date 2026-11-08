@@ -4,7 +4,8 @@
 
 [![Release](https://img.shields.io/github/v/release/SunRichardSKT/ai-doll-mcp)](https://github.com/SunRichardSKT/ai-doll-mcp/releases/latest)
 [![Checks](https://img.shields.io/github/actions/workflow/status/SunRichardSKT/ai-doll-mcp/checks.yml?branch=main)](https://github.com/SunRichardSKT/ai-doll-mcp/actions/workflows/checks.yml)
-[![License](https://img.shields.io/github/license/SunRichardSKT/ai-doll-mcp)](LICENSE)
+[![Software License: AGPL v3](https://img.shields.io/badge/software-AGPL--3.0--only-blue)](LICENSE)
+[![Hardware License: CERN OHL S v2](https://img.shields.io/badge/hardware-CERN--OHL--S--2.0-green)](hardware/LICENSE)
 [![Hardware](https://img.shields.io/badge/Hardware-ESP32--C3-blue)](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/rev-v2/README.md)
 
 让 AI 感知你对娃娃的真实触摸，在聊天里回应，并留下可查询的互动记录。
@@ -132,4 +133,4 @@ sudo bash Install_Server.sh
 
 ## 许可证
 
-[MIT 许可证](LICENSE) © 2026 SunRichardSKT。第三方资源附带各自的许可证。
+© 2026 SunRichardSKT。软件与固件源码使用 [AGPL-3.0-only](LICENSE)；PCB、外壳及制造设计使用 [CERN-OHL-S-2.0](hardware/LICENSE)。第三方资源保留原许可，旧版 MIT 授权不追溯撤销。范围、网络服务源码要求与旧版说明见 [项目许可](LICENSING.md)。

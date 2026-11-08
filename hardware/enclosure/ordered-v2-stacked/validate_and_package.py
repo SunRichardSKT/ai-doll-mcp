@@ -140,6 +140,9 @@ def package(target, report):
     (HERE/'SHA256SUMS.txt').write_text(sums,encoding='utf-8')
     files['SHA256SUMS.txt']=sums.encode('utf-8')
     manifest['files']['SHA256SUMS.txt']=hashlib.sha256(files['SHA256SUMS.txt']).hexdigest()
+    for name in ('LICENSE', 'LICENSING.md', 'LICENSES/MIT-legacy.txt', 'hardware/LICENSE'):
+        files[name]=(HERE.parents[2]/name).read_bytes()
+        manifest['files'][name]=hashlib.sha256(files[name]).hexdigest()
     files['MANIFEST.json']=json.dumps(manifest,ensure_ascii=False,indent=2).encode('utf-8')
     target.parent.mkdir(parents=True,exist_ok=True)
     with zipfile.ZipFile(target,'w',zipfile.ZIP_DEFLATED) as archive:

@@ -76,6 +76,8 @@ ZIP 上传成功不证明普通 Chat 可启动本机 MCP。若提示不支持 ST
         'mcp.json': encode(mcp),
         'README.md': readme.encode('utf-8'),
     }
+    for name in ('LICENSE', 'LICENSING.md', 'LICENSES/MIT-legacy.txt', 'hardware/LICENSE'):
+        files[name] = (ROOT / name).read_bytes()
     # All payloads are generated here, never copied from build/device-lab.
     output = output.resolve()
     if output.exists():

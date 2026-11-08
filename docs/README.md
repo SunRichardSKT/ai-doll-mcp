@@ -32,5 +32,6 @@
 - [后续计划](developers/DEVELOPMENT_PLAN.md) · [检查记录](reports/VALIDATION.md)
 - [固件网络优化与空间评估](reports/FIRMWARE_NETWORK.md) · [Wi-Fi 反馈](reports/WIFI_FEEDBACK.md) · [固件精简](reports/FIRMWARE_TRIM.md) · [当前固件功能](reports/FIRMWARE_INPUTS.md)
 - [给AI的使用说明书](ai/AI_GUIDE.md)
+- [项目许可与对应源码](../LICENSING.md)
 
 遇到问题从[故障排查](TROUBLESHOOTING.md)开始，下载文件见[交付目录](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/delivery/README.md)。

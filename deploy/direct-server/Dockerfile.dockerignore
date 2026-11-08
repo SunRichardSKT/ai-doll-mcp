@@ -1,4 +1,10 @@
 **
+!LICENSE
+!LICENSING.md
+!LICENSES/
+!LICENSES/MIT-legacy.txt
+!hardware/
+!hardware/LICENSE
 !requirements-server.txt
 !tools/
 !tools/**
