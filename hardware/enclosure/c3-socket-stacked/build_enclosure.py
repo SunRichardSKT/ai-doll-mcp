@@ -162,11 +162,10 @@ def build():
                         (ox+bw-p['support_overlap'], W-wall-.25)]:
             zz = top_z+p['board_retention_gap']
             lid = lid.fuse(box(xx,yy,zz,end-xx,p['support_length'],roof-zz+.1))
-    # Four small fingers retain only the loose insulating tray; no cell pressure.
-    for xx in [3.5, W-3.5]:
-        for yy in [4.0, H-4.0]:
-            zz = tray_top+.25
-            lid = lid.fuse(box(xx-.55,yy-.7,zz,1.1,1.4,roof-zz+.1))
+    # Three spaced fingers retain the insulating tray and clear the switch well.
+    for xx, yy in [(3.5,4.0),(W-3.5,4.0),(3.5,H-4.0)]:
+        zz = tray_top+.25
+        lid = lid.fuse(box(xx-.55,yy-.7,zz,1.1,1.4,roof-zz+.1))
     snap_shapes = []
     for xx, side in clips:
         inside = wall+p['snap_clearance']
@@ -218,12 +217,11 @@ def build():
                           well['hole_width'],well['hole_length'],total_height-well_bottom+1,.4))
     lid = lid.fuse(cup)
     lid=lid.cut(mouth)
-    # Open the front edge at the well-floor level. This lets a finger approach
-    # the slider from the edge instead of reaching down the full roof depth.
-    front_access=box(swx-7,-.2,well_floor_top,14,
-                     swy-well['outer_length']/2+well['wall']+.7,total_height-well_floor_top+.3)
-    base=base.cut(front_access)
-    lid=lid.cut(front_access)
+    # Reach the rear-right slider from the side as well as from above.
+    side_access=box(swx,swy-well['mouth_length']/2-.2,well_floor_top,
+                    W-swx+.3,well['mouth_length']+.4,total_height-well_floor_top+.3)
+    base=base.cut(side_access)
+    lid=lid.cut(side_access)
     root_edges = []
     for edge in lid.Edges():
         bb=edge.BoundingBox()
@@ -249,8 +247,22 @@ def build():
             text=text.translate((W-.55,port['yWorld'],roof-1.1))
         lid=lid.cut(text)
     for exit_port in p['wire_exits']:
-        label = cq.Workplane('XY').text(exit_port['label'], 2.2, .4, font='Arial', kind='bold', combine=True).translate((4.5 if exit_port['side'] == 'left' else W-4.5, 4, roof+lt-.3)).val()
+        label = cq.Workplane('XY').text(exit_port['label'], 2.2, .4, font='Arial', kind='bold', combine=True).translate((4.5 if exit_port['side'] == 'left' else W-4.5, exit_port['y'], roof+lt-.3)).val()
         lid = lid.cut(label)
+    # Reserve a continuous insertion sweep for the straight plug overmould.
+    usb = p['usb_service']
+    u = comps['U1']
+    usb_x = ox+u['x']
+    usb_face_y = oy+u['y']-11.75
+    usb_center_z = top_z+p['module_height_above_pcb']-1.6
+    plug_bottom = usb_center_z-usb['plug_height']/2
+    plug_sweep = box(usb_x-usb['plug_width']/2,-usb['plug_length'],plug_bottom,
+                     usb['plug_width'],usb_face_y+usb['plug_length'],usb['plug_height'])
+    usb_opening = box(usb_x-usb['opening_width']/2,-.3,
+                      usb_center_z-usb['opening_height']/2,
+                      usb['opening_width'],usb_face_y+.3,usb['opening_height'])
+    base=base.cut(usb_opening)
+    lid=lid.cut(usb_opening)
     base, tray, lid = base.clean(), tray.clean(), lid.clean()
     pcb = cq.Workplane('XY').polyline(r['outline']).close().extrude(bt).translate((ox,oy,bz)).val()
     components = []
@@ -269,6 +281,9 @@ def build():
         components.append(('U1_socket_'+str(xx),box(xx-1.27,oy+u['y']-10.16,top_z,2.54,20.32,stand),'#444b50'))
     components.append(('U1_module_PCB',box(ux,uy,top_z+stand,18,22.5,1.6),'#273e4d'))
     components.append(('USB_symbolic',box(ox+u['x']-4.5,uy-.5,top_z+stand+1.6,9,6.5,3.2),'#adb6b9'))
+    power = comps['J9']['bbox']
+    components.append(('J9_power_connector',box(ox+power['minX'],oy+power['minY'],top_z,
+        power['maxX']-power['minX'],power['maxY']-power['minY'],p['header_height']),'#d7d5c2'))
     components.append(('Antenna_symbolic',box(ox+u['x']-3,uy+19.7,top_z+stand+1.6,6,2,1.2),'#b98270'))
     for c in r['components']:
         if c['ref'] not in ['J'+str(i) for i in range(1,9)]:continue
@@ -288,6 +303,9 @@ def build():
         for part,case in shapes.items():
             overlap=common(shape,case)
             if overlap>1e-5:collisions.append(dict(reference=name,part=part,mm3=overlap))
+    usb_intersections={name:common(plug_sweep,shape) for name,shape in shapes.items()}
+    usb_intersections.update({name:common(plug_sweep,shape) for name,shape in refs})
+    assert max(usb_intersections.values())<1e-5,usb_intersections
     capacitor_gaps = {}
     for ref in ('C13', 'C14'):
         cap = comps[ref]['bbox']
@@ -298,10 +316,10 @@ def build():
             dy = max(cap['minY']-header['maxY'], header['minY']-cap['maxY'], 0)
             distances.append(hypot(dx, dy))
         capacitor_gaps[ref] = min(distances)
-        assert capacitor_gaps[ref] >= 1.0, (ref, capacitor_gaps[ref])
+        assert capacitor_gaps[ref]>=1.0 or comps[ref]['side']=='bottom', (ref,capacitor_gaps[ref])
         cap_solid = next(shape for name, shape, _ in components if name == ref)
-        usb = next(shape for name, shape, _ in components if name == 'USB_symbolic')
-        assert common(cap_solid, usb) < 1e-5, ref
+        usb_socket = next(shape for name, shape, _ in components if name == 'USB_symbolic')
+        assert common(cap_solid, usb_socket) < 1e-5, ref
     clearances={}
     for name,shape in [('battery_36x52x12',reserve),('wire_riser',wire)]:
         clearances[name]={part:common(shape,case) for part,case in shapes.items()}
@@ -321,7 +339,7 @@ def build():
     issues=collisions or any(v>1e-5 for v in assembly_overlaps.values()) or any(v>1e-5 for c in clearances.values() for v in c.values()) or any(v>1e-5 for c in snap_checks for v in c.values())
     checks={}; meshes=[]
     for name,shape in shapes.items():
-        assert shape.isValid() and len(shape.Solids())==1, f'{name} disconnected or invalid'
+        assert shape.isValid() and len(shape.Solids())==1, f'{name} invalid={not shape.isValid()}, solids={[(round(v.Volume(),3), round(v.Center().x,2),round(v.Center().y,2),round(v.Center().z,2)) for v in shape.Solids()]}'
         cq.exporters.export(shape,str(OUT/(name+'.step')))
         printing=shape.rotate((0,0,0),(1,0,0),180) if name=='lid' else shape
         bb=printing.BoundingBox()
@@ -364,14 +382,18 @@ def build():
                                 openingMm=[well['hole_width'],well['hole_length']],
                                 fingerMouthMm=[mouth_width,mouth_length],flareBottomMm=flare_z,
                                 moduleSeparatedInXY=True,
-                                frontAccessWidthMm=14,frontAccessFloorMm=well_floor_top,
+                                sideAccessWidthMm=well['mouth_length']+.4,sideAccessFloorMm=well_floor_top,
                                 reachPhysicallyTested=False,description='Recessed finger well, no claim actuator protrudes above the whole roof'),
                 ledWindow=dict(centerMm=[lx,ly],sizeMm=[led['width'],led['length']],physicalAlignmentTested=False),
                 snaps=dict(count=4,walls=['front','back'],deflectionMm=wall+.1-p['snap_tip_inset'],
                            hookEngagementMm=wall-p['snap_tip_inset'],verticalPlayMm=p['snap_vertical_clearance'],
                            guideClearancePerSideMm=p['lid_guide_clearance'],elasticTested=False),
                 wireRiser=p['wire_riser'],capacitorToSocketGapMm=capacitor_gaps,
-                wireExits=dict(side='switch end', ports=p['wire_exits'], widthMm=slot_width, centerZMm=slot_center_z,
+                usbStraightPlug=dict(plugMm=[usb['plug_width'],usb['plug_length'],usb['plug_height']],
+                                     openingMm=[usb['opening_width'],usb['opening_height']],
+                                     faceCenterMm=[usb_x,usb_face_y,usb_center_z],
+                                     sweptIntersectionsMm3=usb_intersections,physicalFitTested=False),
+                wireExits=dict(side='left', ports=p['wire_exits'], widthMm=slot_width, centerZMm=slot_center_z,
                                nominalWireDiameterMm=p['wire_nominal_diameter']),
                 scope='Exported topology, declared rigid clearances and sampled clip envelope. Not stress, continuous insertion, thermal or RF validation.',
                 pending=['actual component and switch measurements','battery seam and upward lead bend','connector and wire route above PCB',

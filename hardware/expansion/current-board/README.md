@@ -56,7 +56,7 @@ LIS3DH只提供加速度。本方案定义朝向变化、静止/运动、摇晃�
 
 ## 资料与原板
 
-- [原板工程及历史核对](../../rev-v2/candidates/pcb-v22-routed-20261017/README.md)
+- [主板资料与版本区分](../../rev-v2/README.md)
 - [通道与校准说明](../../../docs/daily/SENSOR_CHANNELS.md)
 - [DS18B20接线](../../../docs/daily/DIGITAL_TEMPERATURE.md)
 - [给AI的规则](../../../docs/ai/AI_GUIDE.md)

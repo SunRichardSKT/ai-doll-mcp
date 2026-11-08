@@ -13,7 +13,7 @@
 | AI_Doll_PCB_v0.1.1.zip · 11.38 MiB | 采购和手工焊接主板 | 打开新版丝印工程与 BOM；重新下单前核对现有网表不匹配 |
 | AI_Doll_Server_v0.1.1.tar.gz · 0.30 MiB | 远程 Linux 服务器 | 运行 sudo bash Install_Server.sh，按提示填写域名 |
 | AI_Doll_Operit.toolpkg · 0.20 MiB | Operit 安卓用户 | 在包管理中导入，选择电脑、服务器或仅手机连接，按标题绑定原聊天 |
-| AI_Doll_Enclosures_v0.1.1.zip · 4.05 MiB | 3D打印与机械修改 | 已制板堆叠壳与紧凑板平铺壳；按主板选STL或STEP |
+| AI_Doll_Enclosures_v0.1.1.zip · 4.05 MiB | 3D打印与机械修改 | 原发布附件；最新板尾开关 PCB 和配套壳从下方当前硬件入口获取 |
 | AI_Doll_Stacked_Enclosure_v0.1.1.zip · 1.24 MiB | 已制板上下堆叠壳 | 保持原长宽46.29×56.45mm，总厚35.2mm；打印底壳、绝缘载架、上盖 |
 
 Operit 无需为了取得手机工具包下载 Windows 包。服务器管理页可导出连接文件、连接码与临时二维码；仅手机模式默认从设备热点读取，不要求实体标签。原电脑入口继续兼容，完整包内含相同工具包。[统一安装](../docs/integrations/OPERIT_SETUP.md) · [免电脑指南](../docs/integrations/OPERIT_NO_PC.md)。
@@ -21,6 +21,12 @@ Operit 无需为了取得手机工具包下载 Windows 包。服务器管理页�
 Windows 包内置 Python，无需另装。Linux 小型包不含 Windows Python，由容器准备运行环境。PCB 包使用当前丝印工程并修正背面文字，电路与原下单文件保持；当前仍有 1 项网表不匹配，重新下单前须核对。[丝印与 3D 核对](../hardware/rev-v2/丝印镜像修正说明_20261016.md)。
 
 [Windows 首次安装](../docs/start/AI_INSTALL.md) · [远程部署](../docs/integrations/REMOTE_SERVER_SETUP.md) · [给 AI 的执行指南](../docs/ai/AI_GUIDE.md) · [全部文档](../docs/README.md)
+
+## 当前硬件修订
+
+[板尾开关 C3 插座板](../hardware/rev-v2/candidates/c3-socket-20261105/README.md) · [直头 USB 堆叠壳 P03](../hardware/enclosure/c3-socket-stacked/README.md) · [全部外壳](../hardware/enclosure/README.md)
+
+上述硬件目录随源码维护，选型时以对应 PCB 说明及模型为准。
 
 ## 如何校验发布包
 

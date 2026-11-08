@@ -1,4 +1,4 @@
-"""Bundle public planar and stacked mechanical candidates, previews and source."""
+"""Package current printable models only when preparing an upload."""
 import argparse
 import hashlib
 import json
@@ -7,96 +7,71 @@ import zipfile
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
-MODELS = ('v22-prototype',)
-COMMON = ('README.md', 'preview.html', 'validation_103450.json',
-          'validate_enclosures.py', 'package_enclosures.py',
-          'preview-assets/v22.png')
-SOURCE = ('README.md', 'parameters.json', 'pcb_reference.json', 'requirements-cad.txt',
-          'build_enclosure.py', 'render_preview.py', 'SHA256SUMS.txt')
-OUTPUT = ('base.stl', 'lid.stl', 'base.step', 'lid.step', 'assembly_reference.step',
-          'fit_tray.stl', 'audit.json', 'export_check.json', 'preview.html',
-          'preview.png', 'assembled.png', 'cutaway.png')
-EXTRA = {'v22-prototype': ('capture_preview.cjs', 'output/lid.png')}
-STACKED = 'ordered-v2-stacked'
-STACKED_SOURCE = ('README.md', 'parameters.json', 'pcb_reference.json', 'requirements-cad.txt',
-                  'build_enclosure.py', 'render_preview.py', 'validate_and_package.py',
-                  'capture_preview.cjs', 'SHA256SUMS.txt')
-STACKED_OUTPUT = ('base.stl', 'base.step', 'tray.stl', 'tray.step', 'lid.stl', 'lid.step',
-                  'assembly_reference.step', 'audit.json', 'validation.json',
-                  'independent_validation.json', 'preview.html', 'preview.png',
-                  'assembled.png', 'side.png', 'tray.png', 'lid.png', 'stack.svg', 'stack.png', 'preview_check.json')
+MODELS = ('c3-socket-stacked', 'ordered-v2-stacked', 'charger-inline')
+COMMON = ('README.md', 'preview.html', 'package_enclosures.py')
+
+
+def model_files(model):
+    directory = HERE / model
+    contents = {}
+    for line in (directory / 'SHA256SUMS.txt').read_text(encoding='utf-8').splitlines():
+        digest, name = line.split(None, 1)
+        name = name.strip().lstrip('*')
+        path = (directory / name).resolve()
+        if not path.is_relative_to(directory.resolve()):
+            raise ValueError('Checksum path outside model: ' + name)
+        raw = path.read_bytes()
+        if hashlib.sha256(raw).hexdigest() != digest:
+            raise ValueError('Regenerate and validate changed model: ' + model + '/' + name)
+        contents[model + '/' + name] = raw
+    contents[model + '/SHA256SUMS.txt'] = (directory / 'SHA256SUMS.txt').read_bytes()
+    for path in directory.iterdir():
+        if path.is_file() and path.suffix in {'.md', '.py', '.json', '.cjs', '.txt'}:
+            contents[model + '/' + path.name] = path.read_bytes()
+    validation = directory / 'output/independent_validation.json'
+    if validation.exists() and not json.loads(validation.read_text(encoding='utf-8'))['passed']:
+        raise ValueError('Model validation failed: ' + model)
+    return contents
 
 
 def write_archive(target, files, **metadata):
+    target = Path(target)
     files = dict(files)
     files['MANIFEST.json'] = json.dumps(dict(metadata,
-        files={name:hashlib.sha256(raw).hexdigest() for name,raw in files.items()}),
-        ensure_ascii=False,indent=2).encode('utf-8')
+        files={name: hashlib.sha256(raw).hexdigest() for name, raw in files.items()}),
+        ensure_ascii=False, indent=2).encode('utf-8')
     target.parent.mkdir(parents=True, exist_ok=True)
-    with zipfile.ZipFile(target,'w',zipfile.ZIP_DEFLATED) as archive:
-        for name,raw in sorted(files.items()):
-            info=zipfile.ZipInfo(name,date_time=(2026,10,20,0,0,0))
-            info.compress_type=zipfile.ZIP_DEFLATED
-            archive.writestr(info,raw)
+    with zipfile.ZipFile(target, 'w', zipfile.ZIP_DEFLATED) as archive:
+        for name, raw in sorted(files.items()):
+            info = zipfile.ZipInfo(name, date_time=(2026, 11, 8, 0, 0, 0))
+            info.compress_type = zipfile.ZIP_DEFLATED
+            archive.writestr(info, raw)
     with zipfile.ZipFile(target) as archive:
         assert archive.testzip() is None
-        manifest=json.loads(archive.read('MANIFEST.json'))
-        assert set(archive.namelist()) == set(manifest['files'])|{'MANIFEST.json'}
-        for name,digest in manifest['files'].items():
-            assert hashlib.sha256(archive.read(name)).hexdigest()==digest
-    digest=hashlib.sha256(target.read_bytes()).hexdigest()
-    target.with_suffix(target.suffix+'.sha256').write_text(digest+'  '+target.name+'\n',encoding='ascii')
-    print(json.dumps(dict(file=str(target),files=len(files),sha256=digest),ensure_ascii=False,indent=2))
+        manifest = json.loads(archive.read('MANIFEST.json'))
+        assert set(archive.namelist()) == set(manifest['files']) | {'MANIFEST.json'}
+        for name, digest in manifest['files'].items():
+            assert hashlib.sha256(archive.read(name)).hexdigest() == digest
+    digest = hashlib.sha256(target.read_bytes()).hexdigest()
+    target.with_suffix(target.suffix + '.sha256').write_text(
+        digest + '  ' + target.name + '\n', encoding='ascii')
+    print(json.dumps(dict(file=str(target), files=len(files), sha256=digest), ensure_ascii=False))
 
 
 def build(target, stacked_target=None):
-    names = list(COMMON)
+    files = {name: (HERE / name).read_bytes() for name in COMMON}
     for model in MODELS:
-        names.extend(model+'/'+name for name in SOURCE)
-        names.extend(model+'/output/'+name for name in OUTPUT)
-        names.extend(model+'/'+name for name in EXTRA.get(model, ()))
-    names.extend(STACKED+'/'+name for name in STACKED_SOURCE)
-    names.extend(STACKED+'/output/'+name for name in STACKED_OUTPUT)
-    files = {name:(HERE/name).read_bytes() for name in names}
-    report = json.loads(files['validation_103450.json'])
-    assert all(r['passed'] for r in report['models'].values()), 'Model validation failed'
-    for model in MODELS:
-        assert files[model+'/output/base.stl'] and files[model+'/output/lid.stl']
-        for relative,digest in report['models'][model]['files'].items():
-            assert hashlib.sha256(files[model+'/output/'+relative]).hexdigest()==digest, 'Revalidate changed model: '+model
-        for line in files[model+'/SHA256SUMS.txt'].decode('utf-8').splitlines():
-            digest, relative = line.split(None,1)
-            relative = relative.strip().lstrip('*')
-            assert hashlib.sha256(files[model+'/'+relative]).hexdigest() == digest, relative
-    stacked_report = json.loads(files[STACKED+'/output/independent_validation.json'])
-    assert stacked_report['passed'], 'Stacked model validation failed'
-    for relative,digest in stacked_report['files'].items():
-        assert hashlib.sha256(files[STACKED+'/output/'+relative]).hexdigest()==digest, relative
-    for line in files[STACKED+'/SHA256SUMS.txt'].decode('utf-8').splitlines():
-        digest,relative=line.split(None,1)
-        assert hashlib.sha256(files[STACKED+'/'+relative.strip()]).hexdigest()==digest, relative
-    # V2.2 uses its own PCB reference, bottom-component clearance and switch access.
-    v22='v22-stacked'
-    current={v22+'/'+name:(HERE/v22/name).read_bytes() for name in STACKED_SOURCE}
-    current.update({v22+'/output/'+name:(HERE/v22/'output'/name).read_bytes() for name in STACKED_OUTPUT})
-    report=json.loads(current[v22+'/output/independent_validation.json'])
-    assert report['passed'], 'V2.2 stacked model validation failed'
-    for name,digest in report['files'].items():
-        assert hashlib.sha256(current[v22+'/output/'+name]).hexdigest()==digest,name
-    for line in current[v22+'/SHA256SUMS.txt'].decode('utf-8').splitlines():
-        digest,name=line.split(None,1)
-        assert hashlib.sha256(current[v22+'/'+name.strip()]).hexdigest()==digest,name
-    files.update(current)
+        files.update(model_files(model))
     write_archive(target, files, version='0.1.1', physical_fit_tested=False)
     if stacked_target is not None:
-        prefix=STACKED+'/'
-        standalone={name[len(prefix):]:raw for name,raw in files.items() if name.startswith(prefix)}
-        write_archive(stacked_target, standalone, revision=stacked_report['revision'], physicalFitTested=False)
+        prefix = 'ordered-v2-stacked/'
+        standalone = {name[len(prefix):]: raw for name, raw in files.items() if name.startswith(prefix)}
+        write_archive(stacked_target, standalone, physicalFitTested=False)
 
 
 if __name__ == '__main__':
-    parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--output',type=Path,default=ROOT/'delivery/AI_Doll_Enclosures_v0.1.1.zip')
-    parser.add_argument('--stacked-output',type=Path,default=ROOT/'delivery/AI_Doll_Stacked_Enclosure_v0.1.1.zip')
-    args=parser.parse_args()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--output', type=Path, required=True, help='Upload ZIP path')
+    parser.add_argument('--stacked-output', type=Path)
+    args = parser.parse_args()
     build(args.output, args.stacked_output)

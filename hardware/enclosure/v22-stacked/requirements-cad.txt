@@ -1,2 +1,0 @@
-cadquery==2.6.1
-trimesh==5.1.1

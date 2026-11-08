@@ -89,7 +89,7 @@ Node / Playwright 页面测试需要开发者另装对应环境，运行 `tools/
 
 ```powershell
 .\.venv\Scripts\python.exe -X utf8 tools/build_portable_python.py
-.\.venv\Scripts\python.exe -X utf8 hardware/enclosure/package_enclosures.py
+.\.venv\Scripts\python.exe -X utf8 hardware/enclosure/package_enclosures.py --output delivery/AI_Doll_Enclosures_v0.1.1.zip --stacked-output delivery/AI_Doll_Stacked_Enclosure_v0.1.1.zip
 .\.venv\Scripts\python.exe -X utf8 tools/package_companion.py
 .\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Code_v0.1.1.zip
 .\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Server_v0.1.1.tar.gz
@@ -100,7 +100,7 @@ Node / Playwright 页面测试需要开发者另装对应环境，运行 `tools/
 
 `build_portable_python.py` 从官方 CPython 和固定 wheel 构建 Windows x64 运行环境，需要联网。已有完整运行环境时先验证并复用，不要再次覆盖运行中的 `python/`；确需重建时，在停止本项目服务后，将整个已有 `python/` 移到项目内明确的备份位置，再恢复源码的 README、许可和版本元数据后构建。不要打包开发用 `.venv`。
 
-`hardware/enclosure/package_enclosures.py` 使用已有导出模型和校验文件，生成当前两种外壳及独立堆叠包。修改几何时先按[外壳说明](../../hardware/enclosure/README.md#修改和打包)准备CAD环境、重新生成并检查。完整打包器会核对机械包并生成手机ToolPkg，需要Node.js。
+`hardware/enclosure/package_enclosures.py` 使用已有导出模型和校验文件，生成当前插座板、已制带线板和充电模块三类外壳及独立带线板堆叠包。修改几何时先按[外壳说明](../../hardware/enclosure/README.md#生成与上传)准备CAD环境、重新生成并检查。完整打包器会核对机械包并生成手机ToolPkg，需要Node.js。
 
 上述命令不重新编译固件；默认使用仓库中已配套校验的四个预编译镜像。只有修改了固件源码时，才先完成“编译固件”与导出清单，再打包。ZIP / TAR 内 `MANIFEST.json` 是逐文件 SHA-256，ToolPkg 使用 `CHECKSUMS.json`。`DELIVERY_MANIFEST.json` 和 `SHA256SUMS.txt` 记录 Windows、Linux、PCB 与独立手机工具包的哈希。
 

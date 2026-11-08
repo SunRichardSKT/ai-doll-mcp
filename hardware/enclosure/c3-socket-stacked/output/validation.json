@@ -7,9 +7,9 @@
       "meshWatertight": true,
       "meshWindingConsistent": true,
       "meshBodies": 1,
-      "volumeMm3": 13117.942968870968,
-      "stepRoundtripVolumeError": 3.2014213502407074e-10,
-      "stlRelativeVolumeError": 4.761516089883025e-05
+      "volumeMm3": 12862.942883900994,
+      "stepRoundtripVolumeError": 2.5647750589996576e-10,
+      "stlRelativeVolumeError": 4.656278957153633e-05
     },
     "tray": {
       "validBrep": true,
@@ -27,19 +27,19 @@
       "meshWatertight": true,
       "meshWindingConsistent": true,
       "meshBodies": 1,
-      "volumeMm3": 4892.190120992586,
-      "stepRoundtripVolumeError": 1.844775579229463e-05,
-      "stlRelativeVolumeError": 8.405048770311403e-06
+      "volumeMm3": 4806.55715026949,
+      "stepRoundtripVolumeError": 5.664162017637864e-06,
+      "stlRelativeVolumeError": 7.883195635139867e-06
     }
   },
   "physicalFitTested": false,
   "files": {
-    "base.step": "53360b29637f30676ce5428def2e28b04492cb75f69b2ed47dd3b4461136374d",
-    "base.stl": "0b4f1c5630dfc27d05a0e1f2fc39011a12c3a4d78176b9515493c6ca09b4da3d",
-    "tray.step": "21bf5d50fc07b811ee8b66db806e51432fe05589cb80c7e46b8c68189ec0351f",
+    "base.step": "45219da5d40c5689a53181e643106cda89ed65735fb30cb9d86a671791b9952a",
+    "base.stl": "a6a3fde49f03950cdfb483bade3075ed7f9a19e86ad15e359452a9941d51ced4",
+    "tray.step": "593d202b52bf3f619fd000ff4dd6b8833cc558715cfa31d4e891d9320994acef",
     "tray.stl": "641a1e59791433e762a3b66da545f604de782754414f9a5b68e3d0ab4b9d87b3",
-    "lid.step": "c7290a8e80ab1ffc57bdfc5f38db9fa9aec55a73ff8850d517934073cca7fee2",
-    "lid.stl": "952f4c03ecca9770084b634a117eff0c271aa7ff7a882aeab250c97ddbbf1a31",
-    "assembly_reference.step": "46fa79c6cdfc144f85bff3eeb13299687fc920a0f351e9f59648626b1484a780"
+    "lid.step": "23816aafd686bbad2e18798c02b3541f6f47b794f87495be78d3eaed94811438",
+    "lid.stl": "b6416b55090ec5334287eaa4e5d88f48ab169b3a170dc6f524ca7e52498eae7b",
+    "assembly_reference.step": "122a28c592cb11a6e5062c3bef8d91fa82219b558d7c8fd4fa9b26b5a5ea7edd"
   }
 }

@@ -1,8 +1,8 @@
 {
   "units": "mm",
-  "date": "2026-11-06",
-  "source": "Saved PCB readback after moving C13 and C14 clear of the PA socket envelopes. Heights use nominal assembly dimensions.",
-  "sourceSha256": "7e7cdd6bca75dc6f158405cf48d0dcc3ab84449c53f972ee53a2758ddc885200",
+  "date": "2026-11-08",
+  "source": "Native PCB readback after rear switch and J9 relocation; declared heights include the complete straight USB plug.",
+  "sourceSha256": "7f233966fa169a8af990ca6525a8e8ad822cd43ce16fb146da60e4b3c857aca3",
   "width": 34.29,
   "length": 44.45,
   "cornerRadius": 1.524,
@@ -750,47 +750,47 @@
     {
       "ref": "C13",
       "device": "CL31A476MQHNNNE",
-      "side": "top",
-      "x": 13.500000939999998,
-      "y": 16.00000102,
-      "rotation": -90.00000000000001,
+      "side": "bottom",
+      "x": 10.0,
+      "y": 2.5,
+      "rotation": 0,
       "bbox": {
-        "minX": 12.331194539999997,
-        "minY": 13.360204419999997,
-        "maxX": 14.66880734,
-        "maxY": 18.63979762
+        "minX": 7.3602034,
+        "minY": 1.331193599999997,
+        "maxX": 12.6397966,
+        "maxY": 3.6688064000000007
       },
-      "bboxStatus": "Native 2D footprint envelope"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "C14",
       "device": "CL31B104KBCNNNC",
-      "side": "top",
-      "x": 9.499998779999999,
-      "y": 15.74999898,
-      "rotation": -90.00000000000001,
+      "side": "bottom",
+      "x": 17.5,
+      "y": 2.5,
+      "rotation": 0,
       "bbox": {
-        "minX": 8.331192380000001,
-        "minY": 13.110202379999999,
-        "maxX": 10.66880518,
-        "maxY": 18.38979558
+        "minX": 14.860203399999994,
+        "minY": 1.3311936000000024,
+        "maxX": 20.139796599999997,
+        "maxY": 3.668806399999998
       },
-      "bboxStatus": "Native 2D footprint envelope"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "J9",
       "device": "MTP125-1102S1",
       "side": "top",
-      "x": 17.145,
-      "y": 7.366,
+      "x": 3.6000000000000005,
+      "y": 37.8,
       "rotation": 0,
       "bbox": {
-        "maxX": 19.811999999999998,
-        "maxY": 8.763,
-        "minX": 14.478,
-        "minY": 5.968999999999999
+        "minX": 0.9330000000000008,
+        "minY": 36.403,
+        "maxX": 6.267,
+        "maxY": 39.196999999999996
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "R1",
@@ -800,12 +800,12 @@
       "y": 24.637999999999998,
       "rotation": 90,
       "bbox": {
-        "maxX": 7.851292399999999,
-        "maxY": 26.475334399999998,
         "minX": 5.864707599999999,
-        "minY": 22.8006656
+        "minY": 22.8006656,
+        "maxX": 7.851292399999999,
+        "maxY": 26.475334399999998
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "R2",
@@ -815,12 +815,12 @@
       "y": 19.811999999999998,
       "rotation": 90,
       "bbox": {
-        "maxX": 7.851292399999999,
-        "maxY": 21.6493344,
         "minX": 5.864707599999999,
-        "minY": 17.974665599999998
+        "minY": 17.974665599999998,
+        "maxX": 7.851292399999999,
+        "maxY": 21.6493344
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "R3",
@@ -830,12 +830,12 @@
       "y": 14.224,
       "rotation": 90,
       "bbox": {
-        "maxX": 7.851292399999999,
-        "maxY": 16.0613344,
         "minX": 5.864707599999999,
-        "minY": 12.386665599999999
+        "minY": 12.386665599999999,
+        "maxX": 7.851292399999999,
+        "maxY": 16.0613344
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "R4",
@@ -845,12 +845,12 @@
       "y": 8.636,
       "rotation": 90,
       "bbox": {
-        "maxX": 7.851292399999999,
-        "maxY": 10.4733344,
         "minX": 5.864707599999999,
-        "minY": 6.7986656
+        "minY": 6.7986656,
+        "maxX": 7.851292399999999,
+        "maxY": 10.4733344
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "R5",
@@ -860,12 +860,12 @@
       "y": 24.637999999999998,
       "rotation": 90,
       "bbox": {
-        "maxX": 28.4252924,
-        "maxY": 26.475334399999998,
         "minX": 26.4387076,
-        "minY": 22.8006656
+        "minY": 22.8006656,
+        "maxX": 28.4252924,
+        "maxY": 26.475334399999998
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "R6",
@@ -875,12 +875,12 @@
       "y": 19.811999999999998,
       "rotation": 90,
       "bbox": {
-        "maxX": 28.4252924,
-        "maxY": 21.6493344,
         "minX": 26.4387076,
-        "minY": 17.974665599999998
+        "minY": 17.974665599999998,
+        "maxX": 28.4252924,
+        "maxY": 21.6493344
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "R7",
@@ -890,12 +890,12 @@
       "y": 14.224,
       "rotation": 90,
       "bbox": {
-        "maxX": 28.4252924,
-        "maxY": 16.0613344,
         "minX": 26.4387076,
-        "minY": 12.386665599999999
+        "minY": 12.386665599999999,
+        "maxX": 28.4252924,
+        "maxY": 16.0613344
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "R8",
@@ -905,12 +905,12 @@
       "y": 8.636,
       "rotation": 90,
       "bbox": {
-        "maxX": 28.4252924,
-        "maxY": 10.4733344,
         "minX": 26.4387076,
-        "minY": 6.7986656
+        "minY": 6.7986656,
+        "maxX": 28.4252924,
+        "maxY": 10.4733344
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "R9",
@@ -920,12 +920,12 @@
       "y": 24.637999999999998,
       "rotation": 90,
       "bbox": {
-        "maxX": 10.8992924,
-        "maxY": 26.475334399999998,
         "minX": 8.9127076,
-        "minY": 22.8006656
+        "minY": 22.8006656,
+        "maxX": 10.8992924,
+        "maxY": 26.475334399999998
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "R10",
@@ -935,12 +935,12 @@
       "y": 19.811999999999998,
       "rotation": 90,
       "bbox": {
-        "maxX": 10.8992924,
-        "maxY": 21.6493344,
         "minX": 8.9127076,
-        "minY": 17.974665599999998
+        "minY": 17.974665599999998,
+        "maxX": 10.8992924,
+        "maxY": 21.6493344
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "R11",
@@ -950,12 +950,12 @@
       "y": 14.224,
       "rotation": 90,
       "bbox": {
-        "maxX": 10.8992924,
-        "maxY": 16.0613344,
         "minX": 8.9127076,
-        "minY": 12.386665599999999
+        "minY": 12.386665599999999,
+        "maxX": 10.8992924,
+        "maxY": 16.0613344
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "R12",
@@ -965,12 +965,12 @@
       "y": 8.636,
       "rotation": 90,
       "bbox": {
-        "maxX": 10.8992924,
-        "maxY": 10.4733344,
         "minX": 8.9127076,
-        "minY": 6.7986656
+        "minY": 6.7986656,
+        "maxX": 10.8992924,
+        "maxY": 10.4733344
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "R13",
@@ -980,12 +980,12 @@
       "y": 24.637999999999998,
       "rotation": 90,
       "bbox": {
-        "maxX": 25.377292399999998,
-        "maxY": 26.475334399999998,
         "minX": 23.3907076,
-        "minY": 22.8006656
+        "minY": 22.8006656,
+        "maxX": 25.377292399999998,
+        "maxY": 26.475334399999998
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "R14",
@@ -995,12 +995,12 @@
       "y": 19.811999999999998,
       "rotation": 90,
       "bbox": {
-        "maxX": 25.377292399999998,
-        "maxY": 21.6493344,
         "minX": 23.3907076,
-        "minY": 17.974665599999998
+        "minY": 17.974665599999998,
+        "maxX": 25.377292399999998,
+        "maxY": 21.6493344
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "R15",
@@ -1010,12 +1010,12 @@
       "y": 14.224,
       "rotation": 90,
       "bbox": {
-        "maxX": 25.377292399999998,
-        "maxY": 16.0613344,
         "minX": 23.3907076,
-        "minY": 12.386665599999999
+        "minY": 12.386665599999999,
+        "maxX": 25.377292399999998,
+        "maxY": 16.0613344
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "R16",
@@ -1025,12 +1025,12 @@
       "y": 8.636,
       "rotation": 90,
       "bbox": {
-        "maxX": 25.377292399999998,
-        "maxY": 10.4733344,
         "minX": 23.3907076,
-        "minY": 6.7986656
+        "minY": 6.7986656,
+        "maxX": 25.377292399999998,
+        "maxY": 10.4733344
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "R17",
@@ -1040,12 +1040,12 @@
       "y": 36.195,
       "rotation": 0,
       "bbox": {
-        "maxX": 17.077334399999998,
-        "maxY": 37.188292399999995,
         "minX": 13.402665599999999,
-        "minY": 35.201707600000006
+        "minY": 35.201707600000006,
+        "maxX": 17.077334399999998,
+        "maxY": 37.188292399999995
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "R18",
@@ -1055,12 +1055,12 @@
       "y": 35.500000119999996,
       "rotation": 0,
       "bbox": {
-        "maxX": 11.037333779999999,
-        "maxY": 36.49329251999999,
         "minX": 7.362664979999999,
-        "minY": 34.50670772
+        "minY": 34.50670772,
+        "maxX": 11.037333779999999,
+        "maxY": 36.49329251999999
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "R19",
@@ -1070,12 +1070,12 @@
       "y": 32.766,
       "rotation": 0,
       "bbox": {
-        "maxX": 30.7933344,
-        "maxY": 33.75929239999999,
         "minX": 27.1186656,
-        "minY": 31.7727076
+        "minY": 31.7727076,
+        "maxX": 30.7933344,
+        "maxY": 33.75929239999999
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "R20",
@@ -1085,27 +1085,27 @@
       "y": 35.814,
       "rotation": 0,
       "bbox": {
-        "maxX": 30.7933344,
-        "maxY": 36.807292399999994,
         "minX": 27.1186656,
-        "minY": 34.820707600000006
+        "minY": 34.820707600000006,
+        "maxX": 30.7933344,
+        "maxY": 36.807292399999994
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "SW1",
       "device": "SS12D00G4",
       "side": "top",
-      "x": 17.145127,
-      "y": 3.4290126999999995,
-      "rotation": 0,
+      "x": 31.799999999999997,
+      "y": 39.0,
+      "rotation": 90,
       "bbox": {
-        "maxX": 21.59,
-        "maxY": 5.305996499999999,
-        "minX": 12.7,
-        "minY": 1.5520034999999996
+        "minX": 29.923016199999996,
+        "minY": 34.554873,
+        "maxX": 33.67700919999999,
+        "maxY": 43.444873
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "TP1",
@@ -1115,72 +1115,72 @@
       "y": 10.921999999999999,
       "rotation": 0,
       "bbox": {
-        "maxX": 18.145000539999998,
-        "maxY": 11.922000539999999,
         "minX": 16.14499946,
-        "minY": 9.92199946
+        "minY": 9.92199946,
+        "maxX": 18.145000539999998,
+        "maxY": 11.922000539999999
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "TP2",
       "device": "AI_Doll_V2_TESTPOINT",
       "side": "top",
-      "x": 30.499999959999997,
-      "y": 38.4999992,
+      "x": 24.799999999999997,
+      "y": 3.0000000000000036,
       "rotation": 0,
       "bbox": {
-        "maxX": 31.5000005,
-        "maxY": 39.49999973999999,
-        "minX": 29.49999942,
-        "minY": 37.49999866
+        "minX": 23.79999946,
+        "minY": 1.999999460000007,
+        "maxX": 25.80000054,
+        "maxY": 4.00000054
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "TP3",
       "device": "AI_Doll_V2_TESTPOINT",
       "side": "top",
-      "x": 30.499999959999997,
-      "y": 35.00000112,
+      "x": 24.799999999999997,
+      "y": 6.1999999999999975,
       "rotation": 0,
       "bbox": {
-        "maxX": 31.5000005,
-        "maxY": 36.00000165999999,
-        "minX": 29.49999942,
-        "minY": 34.00000058
+        "minX": 23.79999946,
+        "minY": 5.199999460000001,
+        "maxX": 25.80000054,
+        "maxY": 7.200000539999994
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "TP4",
       "device": "AI_Doll_V2_TESTPOINT",
       "side": "top",
-      "x": 3.50000062,
-      "y": 39.99999874,
+      "x": 3.5000000000000004,
+      "y": 42.1,
       "rotation": 0,
       "bbox": {
-        "maxX": 4.500001159999999,
-        "maxY": 40.99999928,
-        "minX": 2.50000008,
-        "minY": 38.99999820000001
+        "minX": 2.499999460000001,
+        "minY": 41.09999946,
+        "maxX": 4.50000054,
+        "maxY": 43.10000053999999
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "TP5",
       "device": "AI_Doll_V2_TESTPOINT",
       "side": "top",
-      "x": 30.499999959999997,
-      "y": 41.99999982,
+      "x": 24.799999999999997,
+      "y": 9.399999999999999,
       "rotation": 0,
       "bbox": {
-        "maxX": 31.5000005,
-        "maxY": 43.000000359999994,
-        "minX": 29.49999942,
-        "minY": 40.999999280000004
+        "minX": 23.79999946,
+        "minY": 8.399999460000002,
+        "maxX": 25.80000054,
+        "maxY": 10.400000539999995
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "U2",
@@ -1190,12 +1190,12 @@
       "y": 30.898546279999998,
       "rotation": 0,
       "bbox": {
-        "maxX": 22.44975952,
-        "maxY": 34.79852578,
         "minX": 11.840243020000003,
-        "minY": 27.17747168
+        "minY": 27.17747168,
+        "maxX": 22.44975952,
+        "maxY": 34.79852578
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "C1",
@@ -1205,12 +1205,12 @@
       "y": 24.637999999999998,
       "rotation": 90,
       "bbox": {
-        "maxX": 13.933805000000001,
-        "maxY": 26.6777978,
         "minX": 11.974194999999998,
-        "minY": 22.5982022
+        "minY": 22.5982022,
+        "maxX": 13.933805000000001,
+        "maxY": 26.6777978
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "C2",
@@ -1220,12 +1220,12 @@
       "y": 19.811999999999998,
       "rotation": 90,
       "bbox": {
-        "maxX": 13.933805000000001,
-        "maxY": 21.8517978,
         "minX": 11.974194999999998,
-        "minY": 17.7722022
+        "minY": 17.7722022,
+        "maxX": 13.933805000000001,
+        "maxY": 21.8517978
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "C3",
@@ -1235,12 +1235,12 @@
       "y": 14.224,
       "rotation": 90,
       "bbox": {
-        "maxX": 13.933805000000001,
-        "maxY": 16.2637978,
         "minX": 11.974194999999998,
-        "minY": 12.1842022
+        "minY": 12.1842022,
+        "maxX": 13.933805000000001,
+        "maxY": 16.2637978
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "C4",
@@ -1250,12 +1250,12 @@
       "y": 8.636,
       "rotation": 90,
       "bbox": {
-        "maxX": 13.933805000000001,
-        "maxY": 10.6757978,
         "minX": 11.974194999999998,
-        "minY": 6.5962022
+        "minY": 6.5962022,
+        "maxX": 13.933805000000001,
+        "maxY": 10.6757978
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "C5",
@@ -1265,12 +1265,12 @@
       "y": 24.637999999999998,
       "rotation": 90,
       "bbox": {
-        "maxX": 22.315805,
-        "maxY": 26.6777978,
         "minX": 20.356195,
-        "minY": 22.5982022
+        "minY": 22.5982022,
+        "maxX": 22.315805,
+        "maxY": 26.6777978
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "C6",
@@ -1280,12 +1280,12 @@
       "y": 19.811999999999998,
       "rotation": 90,
       "bbox": {
-        "maxX": 22.315805,
-        "maxY": 21.8517978,
         "minX": 20.356195,
-        "minY": 17.7722022
+        "minY": 17.7722022,
+        "maxX": 22.315805,
+        "maxY": 21.8517978
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "C7",
@@ -1295,12 +1295,12 @@
       "y": 14.224,
       "rotation": 90,
       "bbox": {
-        "maxX": 22.315805,
-        "maxY": 16.2637978,
         "minX": 20.356195,
-        "minY": 12.1842022
+        "minY": 12.1842022,
+        "maxX": 22.315805,
+        "maxY": 16.2637978
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "C8",
@@ -1310,12 +1310,12 @@
       "y": 8.636,
       "rotation": 90,
       "bbox": {
-        "maxX": 22.315805,
-        "maxY": 10.6757978,
         "minX": 20.356195,
-        "minY": 6.5962022
+        "minY": 6.5962022,
+        "maxX": 22.315805,
+        "maxY": 10.6757978
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "C9",
@@ -1325,12 +1325,12 @@
       "y": 40.132,
       "rotation": 180,
       "bbox": {
-        "maxX": 7.8817978,
-        "maxY": 41.111805,
         "minX": 3.8022021999999995,
-        "minY": 39.152195000000006
+        "minY": 39.152195000000006,
+        "maxX": 7.8817978,
+        "maxY": 41.111805
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "C10",
@@ -1340,12 +1340,12 @@
       "y": 29.971999999999998,
       "rotation": 90,
       "bbox": {
-        "maxX": 11.393805,
-        "maxY": 32.0117978,
         "minX": 9.434194999999999,
-        "minY": 27.9322022
+        "minY": 27.9322022,
+        "maxX": 11.393805,
+        "maxY": 32.0117978
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "C11",
@@ -1355,12 +1355,12 @@
       "y": 35.00000112,
       "rotation": 0,
       "bbox": {
-        "maxX": 6.8657978,
-        "maxY": 35.97980611999999,
         "minX": 2.7862021999999995,
-        "minY": 34.02019612
+        "minY": 34.02019612,
+        "maxX": 6.8657978,
+        "maxY": 35.97980611999999
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "C12",
@@ -1370,12 +1370,12 @@
       "y": 28.07462,
       "rotation": 90,
       "bbox": {
-        "maxX": 8.599805,
-        "maxY": 30.1144178,
         "minX": 6.6401949999999985,
-        "minY": 26.034822199999997
+        "minY": 26.034822199999997,
+        "maxX": 8.599805,
+        "maxY": 30.1144178
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "U1",
@@ -1385,12 +1385,12 @@
       "y": 31.8837818,
       "rotation": 180,
       "bbox": {
-        "maxX": 26.293064000000008,
-        "maxY": 44.133770000000005,
         "minX": 7.996936000000001,
-        "minY": 19.62023
+        "minY": 19.62023,
+        "maxX": 26.293064000000008,
+        "maxY": 44.133770000000005
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "J1",
@@ -1400,12 +1400,12 @@
       "y": 29.49999942,
       "rotation": 90,
       "bbox": {
-        "maxX": 7.12699362,
-        "maxY": 32.637813820000005,
         "minX": -4.82698298,
-        "minY": 26.362439020000004
+        "minY": 26.362439020000004,
+        "maxX": 7.12699362,
+        "maxY": 32.637813820000005
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "J2",
@@ -1415,12 +1415,12 @@
       "y": 21.500000179999997,
       "rotation": 90,
       "bbox": {
-        "maxX": 7.12699362,
-        "maxY": 24.63781458,
         "minX": -4.82698298,
-        "minY": 18.36243978
+        "minY": 18.36243978,
+        "maxX": 7.12699362,
+        "maxY": 24.63781458
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "J3",
@@ -1430,12 +1430,12 @@
       "y": 13.500000939999998,
       "rotation": 90,
       "bbox": {
-        "maxX": 7.12699362,
-        "maxY": 16.637815339999996,
         "minX": -4.82698298,
-        "minY": 10.362440539999998
+        "minY": 10.362440539999998,
+        "maxX": 7.12699362,
+        "maxY": 16.637815339999996
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "J4",
@@ -1445,12 +1445,12 @@
       "y": 5.499999159999999,
       "rotation": 90,
       "bbox": {
-        "maxX": 7.12699362,
-        "maxY": 8.63781356,
         "minX": -4.82698298,
-        "minY": 2.3624387599999994
+        "minY": 2.3624387599999994,
+        "maxX": 7.12699362,
+        "maxY": 8.63781356
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "J5",
@@ -1460,12 +1460,12 @@
       "y": 29.49999942,
       "rotation": -90.00000000000001,
       "bbox": {
-        "maxX": 39.11698298,
-        "maxY": 32.63755982,
         "minX": 27.163006380000002,
-        "minY": 26.36218502
+        "minY": 26.36218502,
+        "maxX": 39.11698298,
+        "maxY": 32.63755982
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "J6",
@@ -1475,12 +1475,12 @@
       "y": 21.500000179999997,
       "rotation": -90.00000000000001,
       "bbox": {
-        "maxX": 39.11698298,
-        "maxY": 24.637560579999995,
         "minX": 27.163006380000002,
-        "minY": 18.362185779999997
+        "minY": 18.362185779999997,
+        "maxX": 39.11698298,
+        "maxY": 24.637560579999995
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "J7",
@@ -1490,12 +1490,12 @@
       "y": 13.500000939999998,
       "rotation": -90.00000000000001,
       "bbox": {
-        "maxX": 39.11698298,
-        "maxY": 16.637561339999998,
         "minX": 27.163006380000002,
-        "minY": 10.362186539999996
+        "minY": 10.362186539999996,
+        "maxX": 39.11698298,
+        "maxY": 16.637561339999998
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     },
     {
       "ref": "J8",
@@ -1505,12 +1505,12 @@
       "y": 5.499999159999999,
       "rotation": -90.00000000000001,
       "bbox": {
-        "maxX": 39.11698298,
-        "maxY": 8.637559560000001,
         "minX": 27.163006380000002,
-        "minY": 2.362184759999998
+        "minY": 2.362184759999998,
+        "maxX": 39.11698298,
+        "maxY": 8.637559560000001
       },
-      "bboxStatus": "native 2D envelope; header height 6.5 mm"
+      "bboxStatus": "Native readback of the straight-USB revision"
     }
   ],
   "wirePorts": [
@@ -1565,101 +1565,131 @@
   ],
   "solderTailReference": [
     {
-      "name": "J1_pin1",
+      "name": "J9_2",
+      "x": 4.869179999999999,
+      "y": 37.80028,
+      "radius": 0.45
+    },
+    {
+      "name": "J9_1",
+      "x": 2.32918,
+      "y": 37.80028,
+      "radius": 0.45
+    },
+    {
+      "name": "SW1_1",
+      "x": 31.8008,
+      "y": 36.4998,
+      "radius": 0.45
+    },
+    {
+      "name": "SW1_2",
+      "x": 31.8008,
+      "y": 38.99916,
+      "radius": 0.45
+    },
+    {
+      "name": "SW1_3",
+      "x": 31.8008,
+      "y": 41.50106,
+      "radius": 0.45
+    },
+    {
+      "name": "J1_1",
       "x": 3.5001200000000003,
       "y": 30.50032,
-      "radius": 0.36
+      "radius": 0.45
     },
     {
-      "name": "J1_pin2",
+      "name": "J1_2",
       "x": 3.5001200000000003,
       "y": 28.4988,
-      "radius": 0.36
+      "radius": 0.45
     },
     {
-      "name": "J2_pin1",
+      "name": "J2_1",
       "x": 3.5001200000000003,
       "y": 22.499319999999997,
-      "radius": 0.36
+      "radius": 0.45
     },
     {
-      "name": "J2_pin2",
+      "name": "J2_2",
       "x": 3.5001200000000003,
       "y": 20.50034,
-      "radius": 0.36
+      "radius": 0.45
     },
     {
-      "name": "J3_pin1",
+      "name": "J3_1",
       "x": 3.5001200000000003,
       "y": 14.50086,
-      "radius": 0.36
+      "radius": 0.45
     },
     {
-      "name": "J3_pin2",
+      "name": "J3_2",
       "x": 3.5001200000000003,
       "y": 12.49934,
-      "radius": 0.36
+      "radius": 0.45
     },
     {
-      "name": "J4_pin1",
+      "name": "J4_1",
       "x": 3.5001200000000003,
       "y": 6.49986,
-      "radius": 0.36
+      "radius": 0.45
     },
     {
-      "name": "J4_pin2",
+      "name": "J4_2",
       "x": 3.5001200000000003,
       "y": 4.5008799999999995,
-      "radius": 0.36
+      "radius": 0.45
     },
     {
-      "name": "J5_pin1",
+      "name": "J5_1",
       "x": 30.78988,
       "y": 28.4988,
-      "radius": 0.36
+      "radius": 0.45
     },
     {
-      "name": "J5_pin2",
+      "name": "J5_2",
       "x": 30.78988,
       "y": 30.50032,
-      "radius": 0.36
+      "radius": 0.45
     },
     {
-      "name": "J6_pin1",
+      "name": "J6_1",
       "x": 30.78988,
       "y": 20.50034,
-      "radius": 0.36
+      "radius": 0.45
     },
     {
-      "name": "J6_pin2",
+      "name": "J6_2",
       "x": 30.78988,
       "y": 22.499319999999997,
-      "radius": 0.36
+      "radius": 0.45
     },
     {
-      "name": "J7_pin1",
+      "name": "J7_1",
       "x": 30.78988,
       "y": 12.49934,
-      "radius": 0.36
+      "radius": 0.45
     },
     {
-      "name": "J7_pin2",
+      "name": "J7_2",
       "x": 30.78988,
       "y": 14.50086,
-      "radius": 0.36
+      "radius": 0.45
     },
     {
-      "name": "J8_pin1",
+      "name": "J8_1",
       "x": 30.78988,
       "y": 4.5008799999999995,
-      "radius": 0.36
+      "radius": 0.45
     },
     {
-      "name": "J8_pin2",
+      "name": "J8_2",
       "x": 30.78988,
       "y": 6.49986,
-      "radius": 0.36
+      "radius": 0.45
     }
   ],
-  "mechanicalReferenceSha256": "6f1ed0e6017d1c1b25758ee137e58eaa6c4c0b2e262b98b385d1804d3a170c26"
+  "mechanicalReferenceSha256": "9b05d02acdf5c69b0d93061aba0d35cba87905840a2e78d4489bfa32211d9ebb"
 }

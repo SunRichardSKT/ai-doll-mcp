@@ -1,6 +1,6 @@
 {
   "passed": true,
-  "revision": "C3-SOCKET-ENC-P02",
+  "revision": "C3-SOCKET-ENC-P03",
   "dimensionsMm": {
     "width": 42.89,
     "length": 56.45,
@@ -10,7 +10,7 @@
     "base": {
       "validSingleStep": true,
       "watertightStl": true,
-      "relativeVolumeError": 4.761516092323399e-05
+      "relativeVolumeError": 4.656278959147466e-05
     },
     "tray": {
       "validSingleStep": true,
@@ -20,7 +20,7 @@
     "lid": {
       "validSingleStep": true,
       "watertightStl": true,
-      "relativeVolumeError": 8.40127794367725e-06
+      "relativeVolumeError": 7.88437404978931e-06
     }
   },
   "batteryInsertionSampleMm": 2,
@@ -94,15 +94,20 @@
     0.0
   ],
   "headerCount": 8,
-  "frontWireSlotProbesPassed": true,
+  "powerWireSlotProbesPassed": true,
+  "usbStraightPlugSweepMm3": {
+    "base": 0.0,
+    "tray": 0.0,
+    "lid": 0.0
+  },
   "physicalFitTested": false,
   "scope": "Independent exports and sampled rigid vertical insertion/removal; no connector mating force, continuous sweep, fatigue or physical assembly proof.",
   "files": {
-    "base.stl": "0b4f1c5630dfc27d05a0e1f2fc39011a12c3a4d78176b9515493c6ca09b4da3d",
-    "base.step": "53360b29637f30676ce5428def2e28b04492cb75f69b2ed47dd3b4461136374d",
+    "base.stl": "a6a3fde49f03950cdfb483bade3075ed7f9a19e86ad15e359452a9941d51ced4",
+    "base.step": "45219da5d40c5689a53181e643106cda89ed65735fb30cb9d86a671791b9952a",
     "tray.stl": "641a1e59791433e762a3b66da545f604de782754414f9a5b68e3d0ab4b9d87b3",
-    "tray.step": "21bf5d50fc07b811ee8b66db806e51432fe05589cb80c7e46b8c68189ec0351f",
-    "lid.stl": "952f4c03ecca9770084b634a117eff0c271aa7ff7a882aeab250c97ddbbf1a31",
-    "lid.step": "c7290a8e80ab1ffc57bdfc5f38db9fa9aec55a73ff8850d517934073cca7fee2"
+    "tray.step": "593d202b52bf3f619fd000ff4dd6b8833cc558715cfa31d4e891d9320994acef",
+    "lid.stl": "b6416b55090ec5334287eaa4e5d88f48ab169b3a170dc6f524ca7e52498eae7b",
+    "lid.step": "23816aafd686bbad2e18798c02b3541f6f47b794f87495be78d3eaed94811438"
   }
 }

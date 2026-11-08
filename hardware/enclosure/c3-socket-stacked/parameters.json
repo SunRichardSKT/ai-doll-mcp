@@ -1,5 +1,5 @@
 {
-  "revision": "C3-SOCKET-ENC-P02",
+  "revision": "C3-SOCKET-ENC-P03",
   "units": "mm",
   "outer_width": 42.89,
   "outer_length": 56.45,
@@ -71,18 +71,18 @@
     "length": 12.0
   },
   "switch_well": {
-    "outer_width": 13.0,
-    "outer_length": 10.0,
-    "mouth_width": 17.0,
-    "mouth_length": 14.0,
-    "mouth_offset_y": 0.5,
-    "flare_bottom_above_actuator": 0.4,
+    "outer_width": 8.5,
+    "outer_length": 12.0,
+    "mouth_width": 12.0,
+    "mouth_length": 17.0,
+    "mouth_offset_y": 0.0,
+    "flare_bottom_above_actuator": 2.5,
     "offset_x": 0.0,
     "wall": 0.8,
     "floor_thickness": 1.2,
     "actuator_above_well_floor": 2.4,
-    "hole_width": 10.4,
-    "hole_length": 5.8
+    "hole_width": 5.8,
+    "hole_length": 10.4
   },
   "user_measurement": {
     "quality": "Candidate: native connector readback and S02B-PASK-2 envelope; Z values require physical fit check.",
@@ -102,7 +102,7 @@
   ],
   "snap_back_x": [
     8.5,
-    31.0
+    24.0
   ],
   "wire_slot_width": 3.6,
   "wire_exits": [
@@ -113,10 +113,17 @@
     },
     {
       "label": "5V",
-      "side": "right",
-      "y": 5.6
+      "side": "left",
+      "y": 43.8
     }
   ],
   "wire_exit_above_pcb": 4.5,
-  "wire_nominal_diameter": 1.5
+  "wire_nominal_diameter": 1.5,
+  "usb_service": {
+    "plug_width": 14.0,
+    "plug_height": 8.0,
+    "plug_length": 24.0,
+    "opening_width": 15.0,
+    "opening_height": 9.0
+  }
 }

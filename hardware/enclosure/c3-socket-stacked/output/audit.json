@@ -1,5 +1,5 @@
 {
-  "revision": "C3-SOCKET-ENC-P02",
+  "revision": "C3-SOCKET-ENC-P03",
   "units": "mm",
   "dimensionsMm": {
     "width": 42.89,
@@ -9,8 +9,8 @@
   "physicalFitTested": false,
   "sourcePcbIdentity": "AI_Doll_C3_Socket_20261105",
   "sourceHashes": {
-    "mechanicalReferenceSha256": "6f1ed0e6017d1c1b25758ee137e58eaa6c4c0b2e262b98b385d1804d3a170c26",
-    "sourceSha256": "7e7cdd6bca75dc6f158405cf48d0dcc3ab84449c53f972ee53a2758ddc885200"
+    "mechanicalReferenceSha256": "9b05d02acdf5c69b0d93061aba0d35cba87905840a2e78d4489bfa32211d9ebb",
+    "sourceSha256": "7f233966fa169a8af990ca6525a8e8ad822cd43ce16fb146da60e4b3c857aca3"
   },
   "userMeasurement": {
     "quality": "Candidate: native connector readback and S02B-PASK-2 envelope; Z values require physical fit check.",
@@ -46,9 +46,9 @@
       "meshWatertight": true,
       "meshWindingConsistent": true,
       "meshBodies": 1,
-      "volumeMm3": 13117.942968870968,
-      "stepRoundtripVolumeError": 3.2014213502407074e-10,
-      "stlRelativeVolumeError": 4.761516089883025e-05
+      "volumeMm3": 12862.942883900994,
+      "stepRoundtripVolumeError": 2.5647750589996576e-10,
+      "stlRelativeVolumeError": 4.656278957153633e-05
     },
     "tray": {
       "validBrep": true,
@@ -66,9 +66,9 @@
       "meshWatertight": true,
       "meshWindingConsistent": true,
       "meshBodies": 1,
-      "volumeMm3": 4892.190120992586,
-      "stepRoundtripVolumeError": 1.844775579229463e-05,
-      "stlRelativeVolumeError": 8.405048770311403e-06
+      "volumeMm3": 4806.55715026949,
+      "stepRoundtripVolumeError": 5.664162017637864e-06,
+      "stlRelativeVolumeError": 7.883195635139867e-06
     }
   },
   "componentEnvelopeCollisions": [],
@@ -148,25 +148,25 @@
   },
   "switchWell": {
     "centerMm": [
-      21.445127,
-      9.4290127
+      36.099999999999994,
+      45.0
     ],
     "floorTopMm": 22.700000000000003,
     "actuatorTipMm": 25.1,
     "actuatorAboveLocalFloorMm": 2.3999999999999986,
     "actuatorBelowOuterTopMm": 8.399999999999999,
     "openingMm": [
-      10.4,
-      5.8
+      5.8,
+      10.4
     ],
     "fingerMouthMm": [
-      15.4,
-      12.4
+      10.4,
+      15.4
     ],
-    "flareBottomMm": 25.5,
+    "flareBottomMm": 27.6,
     "moduleSeparatedInXY": true,
-    "frontAccessWidthMm": 14,
-    "frontAccessFloorMm": 22.700000000000003,
+    "sideAccessWidthMm": 17.4,
+    "sideAccessFloorMm": 22.700000000000003,
     "reachPhysicallyTested": false,
     "description": "Recessed finger well, no claim actuator protrudes above the whole roof"
   },
@@ -202,11 +202,107 @@
     "height": 10.0
   },
   "capacitorToSocketGapMm": {
-    "C13": 5.204200919999996,
-    "C14": 1.2041987600000006
+    "C13": 0.23320977999999926,
+    "C14": 7.0232097800000055
+  },
+  "usbStraightPlug": {
+    "plugMm": [
+      14.0,
+      24.0,
+      8.0
+    ],
+    "openingMm": [
+      15.0,
+      9.0
+    ],
+    "faceCenterMm": [
+      21.440936000000004,
+      26.1337818,
+      25.000000000000004
+    ],
+    "sweptIntersectionsMm3": {
+      "base": 0.0,
+      "tray": 0.0,
+      "lid": 0.0,
+      "PCB": 0.0,
+      "module_envelope": 0.0,
+      "Battery_103450_reference": 0.0,
+      "C13": 0.0,
+      "C14": 0.0,
+      "R1": 0.0,
+      "R2": 0.0,
+      "R3": 0.0,
+      "R4": 0.0,
+      "R5": 0.0,
+      "R6": 0.0,
+      "R7": 0.0,
+      "R8": 0.0,
+      "R9": 0.0,
+      "R10": 0.0,
+      "R11": 0.0,
+      "R12": 0.0,
+      "R13": 0.0,
+      "R14": 0.0,
+      "R15": 0.0,
+      "R16": 0.0,
+      "R17": 0.0,
+      "R18": 0.0,
+      "R19": 0.0,
+      "R20": 0.0,
+      "SW1": 0.0,
+      "U2": 0.0,
+      "C1": 0.0,
+      "C2": 0.0,
+      "C3": 0.0,
+      "C4": 0.0,
+      "C5": 0.0,
+      "C6": 0.0,
+      "C7": 0.0,
+      "C8": 0.0,
+      "C9": 0.0,
+      "C10": 0.0,
+      "C11": 0.0,
+      "C12": 0.0,
+      "U1_socket_13.820936000000003": 0.0,
+      "U1_socket_29.060936000000005": 0.0,
+      "U1_module_PCB": 0.0,
+      "USB_symbolic": 0.0,
+      "J9_power_connector": 0.0,
+      "Antenna_symbolic": 0.0,
+      "J1_PA_header": 0.0,
+      "J2_PA_header": 0.0,
+      "J3_PA_header": 0.0,
+      "J4_PA_header": 0.0,
+      "J5_PA_header": 0.0,
+      "J6_PA_header": 0.0,
+      "J7_PA_header": 0.0,
+      "J8_PA_header": 0.0,
+      "J9_2_5mm_tail": 0.0,
+      "J9_1_5mm_tail": 0.0,
+      "SW1_1_5mm_tail": 0.0,
+      "SW1_2_5mm_tail": 0.0,
+      "SW1_3_5mm_tail": 0.0,
+      "J1_1_5mm_tail": 0.0,
+      "J1_2_5mm_tail": 0.0,
+      "J2_1_5mm_tail": 0.0,
+      "J2_2_5mm_tail": 0.0,
+      "J3_1_5mm_tail": 0.0,
+      "J3_2_5mm_tail": 0.0,
+      "J4_1_5mm_tail": 0.0,
+      "J4_2_5mm_tail": 0.0,
+      "J5_1_5mm_tail": 0.0,
+      "J5_2_5mm_tail": 0.0,
+      "J6_1_5mm_tail": 0.0,
+      "J6_2_5mm_tail": 0.0,
+      "J7_1_5mm_tail": 0.0,
+      "J7_2_5mm_tail": 0.0,
+      "J8_1_5mm_tail": 0.0,
+      "J8_2_5mm_tail": 0.0
+    },
+    "physicalFitTested": false
   },
   "wireExits": {
-    "side": "switch end",
+    "side": "left",
     "ports": [
       {
         "label": "BAT",
@@ -215,8 +311,8 @@
       },
       {
         "label": "5V",
-        "side": "right",
-        "y": 5.6
+        "side": "left",
+        "y": 43.8
       }
     ],
     "widthMm": 3.6,

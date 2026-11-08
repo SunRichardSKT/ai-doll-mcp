@@ -1,5 +1,5 @@
 """Independently reread STEP/STL, test removal envelopes and bundle the socket case."""
-import hashlib,json,zipfile
+import argparse,hashlib,json,zipfile
 from pathlib import Path
 import cadquery as cq
 import trimesh
@@ -7,7 +7,7 @@ HERE=Path(__file__).resolve().parent;OUT=HERE/'output'
 NAMES=('base','tray','lid')
 def box(x,y,z,w,l,h):return cq.Workplane('XY').box(w,l,h,centered=False).translate((x,y,z)).val()
 def region(d):return box(*(d[k] for k in ('x','y','z','width','length','height')))
-def run():
+def run(package=False):
  p=json.loads((HERE/'parameters.json').read_text(encoding='utf-8'));r=json.loads((HERE/'pcb_reference.json').read_text(encoding='utf-8'));a=json.loads((OUT/'audit.json').read_text(encoding='utf-8'))
  solids={name:cq.importers.importStep(str(OUT/(name+'.step'))).val() for name in NAMES};checks={}
  for name,s in solids.items():
@@ -36,15 +36,23 @@ def run():
    x = -.4 if port['side'] == 'left' else p['outer_width']-3.2
    wire = cq.Solid.makeCylinder(radius, 3.6, cq.Vector(x, port['y'], wire_ports['centerZMm']+offset), cq.Vector(1, 0, 0))
    assert all(wire.intersect(part).Volume() < 1e-5 for part in solids.values()), port['label']
+ # Independently load exported solids and sweep a straight overmould through the front.
+ usb=a['usbStraightPlug'];x,y,z=usb['faceCenterMm'];width,length,height=usb['plugMm']
+ sweep=box(x-width/2,-length,z-height/2,width,y+length,height)
+ usb_clearance={name:sweep.intersect(solid).Volume() for name,solid in solids.items()}
+ assert max(usb_clearance.values())<1e-5,usb_clearance
  assert not a['componentEnvelopeCollisions'] and max(a['partIntersectionsMm3'].values())<1e-5
- report=dict(passed=True,revision=p['revision'],dimensionsMm=a['dimensionsMm'],checks=checks,batteryInsertionSampleMm=2,batteryInsertionMm3=insertion,trayLiftMm3=tray_lift,populatedCarrierLiftMm3=carrier_lift,headerCount=8,frontWireSlotProbesPassed=True,physicalFitTested=False,scope='Independent exports and sampled rigid vertical insertion/removal; no connector mating force, continuous sweep, fatigue or physical assembly proof.',files={name+ext:hashlib.sha256((OUT/(name+ext)).read_bytes()).hexdigest() for name in NAMES for ext in ('.stl','.step')})
+ report=dict(passed=True,revision=p['revision'],dimensionsMm=a['dimensionsMm'],checks=checks,batteryInsertionSampleMm=2,batteryInsertionMm3=insertion,trayLiftMm3=tray_lift,populatedCarrierLiftMm3=carrier_lift,headerCount=8,powerWireSlotProbesPassed=True,usbStraightPlugSweepMm3=usb_clearance,physicalFitTested=False,scope='Independent exports and sampled rigid vertical insertion/removal; no connector mating force, continuous sweep, fatigue or physical assembly proof.',files={name+ext:hashlib.sha256((OUT/(name+ext)).read_bytes()).hexdigest() for name in NAMES for ext in ('.stl','.step')})
  (OUT/'independent_validation.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
  source=['README.md','parameters.json','pcb_reference.json','requirements-cad.txt','build_enclosure.py','render_preview.py','capture_preview.cjs','validate_and_package.py']
  exports=[*(name+ext for name in NAMES for ext in ('.stl','.step')),'assembly_reference.step','audit.json','validation.json','independent_validation.json','preview.html','preview.png','assembled.png','side.png','tray.png','lid.png','stack.svg','stack.png','preview_check.json']
  files={name:(HERE/name).read_bytes() for name in source};files.update({'output/'+name:(OUT/name).read_bytes() for name in exports})
  sums=''.join(hashlib.sha256(raw).hexdigest()+'  '+name+'\n' for name,raw in sorted(files.items()));(HERE/'SHA256SUMS.txt').write_text(sums,encoding='utf-8');files['SHA256SUMS.txt']=sums.encode('utf-8')
  manifest=dict(revision=p['revision'],files={name:hashlib.sha256(raw).hexdigest() for name,raw in files.items()});files['MANIFEST.json']=(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n').encode('utf-8')
- target=HERE.parents[2]/'delivery/AI_Doll_C3_Socket_Enclosure_P02.zip';target.parent.mkdir(parents=True,exist_ok=True)
+ if not package:
+  print(json.dumps(dict(passed=True,revision=p['revision'],usbStraightPlugSweepMm3=usb_clearance),ensure_ascii=False))
+  return
+ target=HERE.parents[2]/'delivery/AI_Doll_C3_Socket_Enclosure_P03.zip';target.parent.mkdir(parents=True,exist_ok=True)
  with zipfile.ZipFile(target,'w',zipfile.ZIP_DEFLATED) as z:
   for name,raw in files.items():z.writestr(name,raw)
  with zipfile.ZipFile(target) as z:
@@ -52,4 +60,7 @@ def run():
   for name,raw in files.items():assert z.read(name)==raw
  target.with_suffix('.zip.sha256').write_text(hashlib.sha256(target.read_bytes()).hexdigest()+'  '+target.name+'\n',encoding='utf-8')
  print(json.dumps(dict(passed=True,dimensionsMm=report['dimensionsMm'],path=str(target),files=len(files)),ensure_ascii=False))
-if __name__=='__main__':run()
+if __name__=='__main__':
+ parser=argparse.ArgumentParser(description=__doc__)
+ parser.add_argument('--package',action='store_true',help='Build the upload ZIP after validation')
+ run(package=parser.parse_args().package)

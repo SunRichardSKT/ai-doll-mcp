@@ -16,14 +16,8 @@
 | [丝印与DRC说明](丝印镜像修正说明_20261016.md) | 当前工程的排版核对与网表事项 |
 | [堆叠外壳](../enclosure/ordered-v2-stacked/README.md) | 电池下置、P02加紧上盖 |
 
-## 紧凑贴片主板
+## C3 板载锁扣插座主板
 
-[开关居中靠下现板的扩展设计](../expansion/current-board/README.md)单独维护接线、配件及软件交付边界，保留原八路压力。它不改变下述历史工程的制造核对状态，也不把扩展设计标为已实测。
+[当前 PCB 修订](candidates/c3-socket-20261105/README.md)使用八个 PA2.0 双针侧插锁扣座。开关移到板尾右侧，J9 移到板尾左侧，为直头 Type-C 留出插线通道。配套 [直头 USB 堆叠壳 P03](../enclosure/c3-socket-stacked/README.md) 含 103450 下置电池仓。
 
-[当前布线工程与说明](candidates/pcb-v22-routed-20261017/README.md)保留最新紧凑方案。SuperMini手焊焊盘、底面元件与USB净空仍需适配确认，不能直接按研发工程下单；推荐[紧凑堆叠外壳P03](../enclosure/v22-stacked/README.md)，也保留[低矮平铺外壳](../enclosure/v22-prototype/README.md)。
-
-`verification/`保留当前丝印核对、DRC与元器件资料。早期装配草案、未布线布局、前版原生工程和重复预览已清理。实际接线和校准按当前硬件操作，不因软件版本统一修改电气参数。
-
-## C3板载锁扣插座改版
-
-[插座布线样板 P01](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/rev-v2/candidates/c3-socket-20261105/README.md)保留原C3八路电路，改用PA2.0带锁扣侧插座；[配套外壳](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/c3-socket-stacked/README.md)缩窄并保留103450电池层。本版已完成布线和原生DRC，配套P02外壳为开关端双出线，待首板试装。
+早期 V2.2 居中开关布局及其外壳已撤下。已有板子的 [扩展接线资料](../expansion/current-board/README.md) 继续用于核对既有接线。

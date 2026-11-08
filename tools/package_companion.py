@@ -259,7 +259,7 @@ PCB_FILES = (
 )
 PCB_PACKAGE = f'AI_Doll_PCB_v{VERSION}.zip'
 CODE_README = (ROOT/'README.md').read_bytes().decode('utf-8')
-PCB_README = '# AI Doll PCB · 内测0.1.1版\n\n当前实物主板为34.29 × 44.45 mm双层通孔板，使用ESP32-C3 SuperMini、74HC4051和八路板外FSR。\n\n- [主板与采购说明](hardware/rev-v2/README.md)\n- [当前原生工程](hardware/rev-v2/AI_Doll_V2_丝印镜像修正_20261016.epro2)\n- [采购BOM](hardware/rev-v2/AI_Doll_V2_标准化采购BOM_20261003.csv)\n- [板外器件与测试点](hardware/rev-v2/AI_Doll_V2_板外器件与测试点_20261003.csv)\n- [在用制造资料](hardware/rev-v2/ordered-gerber-20260920/已下单PCB封装核对.md)\n- [紧凑贴片板研发参考](hardware/rev-v2/candidates/pcb-v22-routed-20261017/README.md)\n\nJ9要求5V输入，主板不包含锂电池充电、升压或保护电路。紧凑贴片板手焊焊盘和制造适配仍需确认，不直接用于下单。\n\n[接线教程](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/daily/SENSOR_CHANNELS.md) · [外壳选择](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/README.md)\n'
+PCB_README = '# AI Doll PCB · 内测0.1.1版\n\n当前实物主板为34.29 × 44.45 mm双层通孔板，使用ESP32-C3 SuperMini、74HC4051和八路板外FSR。\n\n- [主板与采购说明](hardware/rev-v2/README.md)\n- [当前原生工程](hardware/rev-v2/AI_Doll_V2_丝印镜像修正_20261016.epro2)\n- [采购BOM](hardware/rev-v2/AI_Doll_V2_标准化采购BOM_20261003.csv)\n- [板外器件与测试点](hardware/rev-v2/AI_Doll_V2_板外器件与测试点_20261003.csv)\n- [在用制造资料](hardware/rev-v2/ordered-gerber-20260920/已下单PCB封装核对.md)\n- [C3锁扣插座板P02](hardware/rev-v2/candidates/c3-socket-20261105/README.md)\n\nJ9要求5V输入，主板不包含锂电池充电、升压或保护电路。插座板P02采用后置开关，配套外壳P03；首板先核对实际插头、开关和电池。\n\n[接线教程](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/daily/SENSOR_CHANNELS.md) · [外壳选择](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/README.md)\n'
 
 
 def link_unbundled_docs(contents):
@@ -411,7 +411,8 @@ def main():
     if hardware.exists():
         pcb = [hardware/name for name in PCB_FILES]
         for directory in ('ordered-gerber-20260920','verification/catalog-20261003',
-                          'verification/silkscreen-mirror-20261016','candidates/pcb-v22-routed-20261017'):
+                          'verification/silkscreen-mirror-20261016','candidates/c3-socket-20261105',
+                          'candidates/c3-socket-20261105/manufacturing'):
             pcb += [p for p in (hardware/directory).iterdir() if p.is_file()
                     and p.suffix.lower() in {'.pdf','.json','.png','.svg','.md','.csv','.txt','.epro2','.drl','.gko','.gbl','.gbp','.gbo','.gbs','.gdl','.gdd','.gtl','.gtp','.gto','.gts'}]
         outputs.append(package(delivery/PCB_PACKAGE, pcb, PCB_README, f'ai-doll-pcb-{VERSION}'))
