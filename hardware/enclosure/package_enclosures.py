@@ -2,13 +2,16 @@
 import argparse
 import hashlib
 import json
+import posixpath
 from pathlib import Path
+import re
+from urllib.parse import urlsplit
 import zipfile
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 MODELS = ('c3-socket-stacked', 'ordered-v2-stacked', 'charger-inline')
-COMMON = ('README.md', 'preview.html', 'package_enclosures.py')
+COMMON = ('README.md', 'PRINT_STRENGTHENING.md', 'preview.html', 'package_enclosures.py')
 
 
 def model_files(model):
@@ -39,15 +42,40 @@ def model_files(model):
     return contents
 
 
-def write_archive(target, files, **metadata):
+def write_archive(target, files, source_prefix='hardware/enclosure', **metadata):
     target = Path(target)
     files = dict(files)
-    if 'README.md' in files:
-        files['README.md'] = files['README.md'].decode('utf-8').replace(
-            '](../../LICENSING.md)', '](LICENSING.md)').replace(
-            '](../LICENSE)', '](hardware/LICENSE)').encode('utf-8')
     for name in ('LICENSE', 'LICENSING.md', 'hardware/LICENSE'):
         files[name] = (ROOT / name).read_bytes()
+    for name, raw in list(files.items()):
+        if not name.endswith('.md'):
+            continue
+        def fix_link(match):
+            target = match[1]
+            parsed = urlsplit(target)
+            if parsed.scheme or target.startswith(('#', '//')):
+                return match[0]
+            local = posixpath.normpath(posixpath.join(posixpath.dirname(name), parsed.path))
+            if local in files:
+                return match[0]
+            public = posixpath.normpath(posixpath.join(source_prefix, posixpath.dirname(name), parsed.path))
+            if public in files:
+                replacement = posixpath.relpath(public, posixpath.dirname(name) or '.')
+            else:
+                replacement = 'https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/' + public
+            return '](' + replacement + ('#' + parsed.fragment if parsed.fragment else '') + ')'
+        files[name] = re.sub(r'\]\(([^)]+)\)', fix_link, raw.decode('utf-8')).encode('utf-8')
+    # Rewritten guide links change the packaged bytes, so refresh model sums too.
+    for name, raw in list(files.items()):
+        if not name.endswith('SHA256SUMS.txt'):
+            continue
+        lines = []
+        for line in raw.decode('utf-8').splitlines():
+            _, relative = line.split(None, 1)
+            relative = relative.strip().lstrip('*')
+            key = posixpath.normpath(posixpath.join(posixpath.dirname(name), relative))
+            lines.append(hashlib.sha256(files[key]).hexdigest() + '  ' + relative + '\n')
+        files[name] = ''.join(lines).encode('utf-8')
     files['MANIFEST.json'] = json.dumps(dict(metadata,
         files={name: hashlib.sha256(raw).hexdigest() for name, raw in files.items()}),
         ensure_ascii=False, indent=2).encode('utf-8')
@@ -77,7 +105,7 @@ def build(target, stacked_target=None):
     if stacked_target is not None:
         prefix = 'ordered-v2-stacked/'
         standalone = {name[len(prefix):]: raw for name, raw in files.items() if name.startswith(prefix)}
-        write_archive(stacked_target, standalone, physicalFitTested=False)
+        write_archive(stacked_target, standalone, source_prefix='hardware/enclosure/ordered-v2-stacked', physicalFitTested=False)
 
 
 if __name__ == '__main__':

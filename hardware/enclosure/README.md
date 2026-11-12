@@ -6,11 +6,13 @@
 
 | 对应硬件 | 当前外壳 | 外形 |
 | --- | --- | --- |
-| C3 八路 PA2.0 板载锁扣插座板，开关移到板尾 | [第一代最终版电池壳](c3-socket-stacked/README.md) · [旋转预览](c3-socket-stacked/output/preview.html) | 56.45 × 42.89 × 33.5 |
-| 已制双排通孔 SuperMini 带线板 | [带线板堆叠壳 P02](ordered-v2-stacked/README.md) · [旋转预览](ordered-v2-stacked/output/preview.html) | 56.45 × 46.29 × 35.2 |
-| 独立 Type-C 充电／升压小板 | [四线保护壳 P02](charger-inline/README.md) · [旋转预览](charger-inline/output/preview.html) | 36 × 22 × 11 |
+| C3 八路 PA2.0 板载锁扣插座板，开关移到板尾 | [第一代最终版加固电池壳](c3-socket-stacked/README.md) · [旋转预览](c3-socket-stacked/output/preview.html) | 56.45 × 42.89 × 33.9 |
+| 已制双排通孔 SuperMini 带线板 | [带线板堆叠壳 P03加固版](ordered-v2-stacked/README.md) · [旋转预览](ordered-v2-stacked/output/preview.html) | 56.45 × 46.29 × 35.6 |
+| 独立 Type-C 充电／升压小板 | [四线保护壳 P03加固版](charger-inline/README.md) · [旋转预览](charger-inline/output/preview.html) | 36 × 22 × 11 |
 
 [查看分类](preview.html)。主板堆叠壳打印底壳、绝缘托板、卡扣上盖三件，充电模块保护壳打印底壳与上盖两件。每个目录提供 STL、STEP、参数及装配图。
+
+[本次加固改动与打印说明](PRINT_STRENGTHENING.md)：取消长压杆、合并细隔片、加宽承托和卡扣根部；新旧壳件不能混用。
 
 当前插座版将开关和 J9 移到板尾，正面预留直头 Type-C 通道。旧 V2.2 居中开关 PCB 及其平铺、堆叠外壳已从当前文件树撤下。
 

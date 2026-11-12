@@ -1,5 +1,7 @@
 # 第一代最终版 · 核心电池外壳
 
+当前为 **GEN1-RUGGED-P01加固版**。[结构加固说明](../PRINT_STRENGTHENING.md)。取消细长托板压杆，以主板边缘宽肋限位；侧面接口上部改为连通窗，底壳、托板和上盖须整套重打。
+
 模型与硬件设计使用 CERN-OHL-S-2.0，生成、检查及打包脚本使用 AGPL-3.0-only。[许可范围](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/LICENSING.md)。
 
 [外壳目录](../README.md) · [旋转预览](output/preview.html) · [对应PCB](../../rev-v2/candidates/c3-socket-20261105/README.md) · [分体接线图](output/wiring.svg)
@@ -8,17 +10,17 @@
 
 | 项目 | 规格 |
 | --- | --- |
-| 核心壳外形（长×宽×高） | 56.45 × 42.89 × 33.5 mm |
+| 核心壳外形（长×宽×高） | 56.45 × 42.89 × 33.9 mm |
 | 电池 | 103450聚合物锂电池，3.7V、2000mAh、PH2.0端子 |
 | 电芯名义尺寸 / 电池仓净空 | 50 × 34 × 10 / 52 × 36 × 12 mm |
 | 盖板 | 四处可释放卡扣，无螺丝 |
 | 指示灯窗口 | 14 × 12 mm |
 | 维护USB口 | 15 × 9 mm，前侧直插 |
-| 接口 | 八个7 mm传感器窗口、一个9 mm J9电源窗口 |
+| 接口 | 保留八路传感器和J9位置；侧面上部合并为连续窗口 |
 
 ## 打印文件
 
-打印[底壳](output/base.stl)、[绝缘托板](output/tray.stl)、[卡扣上盖](output/lid.stl)各一件。建议PETG、0.4 mm喷嘴、0.16～0.20 mm层高、至少3道壁、100%比例。STL已摆好打印方向。
+打印[底壳](output/base.stl)、[绝缘托板](output/tray.stl)、[卡扣上盖](output/lid.stl)各一件。建议PETG、0.4 mm喷嘴、0.16～0.20 mm层高、4道壁、100%比例。STL已摆好打印方向。绝缘托板厚1.8 mm，主板承托长度4 mm、限位挡块厚1.6 mm；必须装好主板后再合盖。
 
 [装配参考STEP](output/assembly_reference.step)用于核对位置，包含电池、主板和元件示意件，不整件打印。单件STEP与STL在同一output目录。
 

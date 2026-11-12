@@ -1,10 +1,10 @@
 {
-  "revision": "GEN1-FINAL-ENC",
+  "revision": "GEN1-RUGGED-P01",
   "units": "mm",
   "dimensionsMm": {
     "width": 42.89,
     "length": 56.45,
-    "height": 33.5
+    "height": 33.9
   },
   "physicalFitTested": false,
   "sameSideFootprintOverlaps": [],
@@ -18,7 +18,7 @@
     },
     "portWidthMm": 9.0,
     "centerYMm": 45.300000139999995,
-    "sweepBottomZMm": 20.800000000000004,
+    "sweepBottomZMm": 21.200000000000003,
     "sweepHeightMm": 8,
     "sweepWidthMm": 8,
     "sweptIntersectionsMm3": {
@@ -45,14 +45,14 @@
     "batteryReferenceTop": 12.2,
     "batteryReserveTop": 13.8,
     "trayBottom": 13.8,
-    "trayTop": 15.200000000000001,
-    "bottomComponentBottom": 16.200000000000003,
-    "pcbBottom": 19.000000000000004,
-    "pcbTop": 20.600000000000005,
-    "switchActuatorTip": 25.1,
-    "moduleTop": 26.600000000000005,
-    "roofBottom": 31.700000000000003,
-    "lidTop": 33.5
+    "trayTop": 15.600000000000001,
+    "bottomComponentBottom": 16.6,
+    "pcbBottom": 19.400000000000002,
+    "pcbTop": 21.000000000000004,
+    "switchActuatorTip": 25.5,
+    "moduleTop": 27.000000000000004,
+    "roofBottom": 32.1,
+    "lidTop": 33.9
   },
   "printedParts": [
     "base",
@@ -67,9 +67,9 @@
       "meshWatertight": true,
       "meshWindingConsistent": true,
       "meshBodies": 1,
-      "volumeMm3": 12720.147754830205,
-      "stepRoundtripVolumeError": 8.549250196665525e-11,
-      "stlRelativeVolumeError": 4.750821295975224e-05
+      "volumeMm3": 12528.32462866668,
+      "stepRoundtripVolumeError": 8.185452315956354e-11,
+      "stlRelativeVolumeError": 4.910495477817341e-05
     },
     "tray": {
       "validBrep": true,
@@ -77,9 +77,9 @@
       "meshWatertight": true,
       "meshWindingConsistent": true,
       "meshBodies": 1,
-      "volumeMm3": 2964.4621339297296,
-      "stepRoundtripVolumeError": 2.2737367544323206e-12,
-      "stlRelativeVolumeError": 1.3202275419470778e-06
+      "volumeMm3": 4049.4970293382253,
+      "stepRoundtripVolumeError": 4.547473508864641e-13,
+      "stlRelativeVolumeError": 1.2636811124422517e-06
     },
     "lid": {
       "validBrep": true,
@@ -87,9 +87,9 @@
       "meshWatertight": true,
       "meshWindingConsistent": true,
       "meshBodies": 1,
-      "volumeMm3": 4823.412198638001,
-      "stepRoundtripVolumeError": 5.634276931232307e-06,
-      "stlRelativeVolumeError": 7.918547353012269e-06
+      "volumeMm3": 5517.675251339291,
+      "stepRoundtripVolumeError": 8.296936357510276e-06,
+      "stlRelativeVolumeError": 6.700736645084709e-06
     }
   },
   "componentEnvelopeCollisions": [],
@@ -175,12 +175,12 @@
     "orientation": "long axis Y; leads face front USB end and rise through the front tray notch to the left BAT exit",
     "wireExitEndGapMm": 1.4999999999999998,
     "cellToTrayGapMm": 1.6000000000000014,
-    "cellToLowestPinMm": 4.0000000000000036,
+    "cellToLowestPinMm": 4.400000000000002,
     "wireBendTested": false
   },
   "tray": {
-    "thicknessMm": 1.4,
-    "bottomComponentClearanceMm": 1.0000000000000018,
+    "thicknessMm": 1.8,
+    "bottomComponentClearanceMm": 1.0,
     "removable": true,
     "pressureOnBattery": false
   },
@@ -189,8 +189,8 @@
       36.09999989999999,
       45.00000074
     ],
-    "floorTopMm": 22.700000000000003,
-    "actuatorTipMm": 25.1,
+    "floorTopMm": 23.1,
+    "actuatorTipMm": 25.5,
     "actuatorAboveLocalFloorMm": 2.3999999999999986,
     "actuatorBelowOuterTopMm": 8.399999999999999,
     "openingMm": [
@@ -198,13 +198,13 @@
       10.4
     ],
     "fingerMouthMm": [
-      10.4,
-      15.4
+      9.6,
+      14.6
     ],
-    "flareBottomMm": 27.6,
+    "flareBottomMm": 28.0,
     "moduleSeparatedInXY": true,
     "sideAccessWidthMm": 17.4,
-    "sideAccessFloorMm": 22.700000000000003,
+    "sideAccessFloorMm": 23.1,
     "reachPhysicallyTested": false,
     "description": "Recessed finger well, no claim actuator protrudes above the whole roof"
   },
@@ -256,7 +256,7 @@
     "faceCenterMm": [
       21.440936000000004,
       26.1337818,
-      25.000000000000004
+      25.400000000000002
     ],
     "sweptIntersectionsMm3": {
       "base": 0.0,
@@ -351,7 +351,7 @@
       }
     ],
     "widthMm": 3.6,
-    "centerZMm": 26.900000000000006,
+    "centerZMm": 27.300000000000004,
     "nominalWireDiameterMm": 1.5
   },
   "scope": "Exported topology, declared rigid clearances and sampled clip envelope. Not stress, continuous insertion, thermal or RF validation.",
@@ -363,5 +363,20 @@
     "PETG snap fit and fatigue",
     "RF with battery below antenna",
     "temperature and drop test"
-  ]
+  ],
+  "printStructure": {
+    "removed_long_tray_fingers": true,
+    "grouped_sensor_windows": true,
+    "wall_backed_board_ribs": true,
+    "thickened_carrier_stops": true,
+    "elastic_fit_tested": false,
+    "usb_roof_on_lid": true,
+    "trayThicknessMm": 1.8,
+    "supportLengthMm": 4.0,
+    "ribWidthMm": 1.4,
+    "snapThicknessMm": 1.25,
+    "snapWidthMm": 6.5,
+    "guideWallMm": 1.4,
+    "stopThicknessMm": 1.6
+  }
 }

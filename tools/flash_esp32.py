@@ -20,6 +20,7 @@ import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_BAUD = 115200
+SETUP_URL = 'http://192.168.4.1/setup'
 EXPECTED_OFFSETS = {'bootloader.bin': 0, 'partitions.bin': 0x8000,
                     'boot_app0.bin': 0xe000, 'firmware.bin': 0x10000}
 
@@ -27,6 +28,8 @@ EXPECTED_OFFSETS = {'bootloader.bin': 0, 'partitions.bin': 0x8000,
 def validate_images(folder):
     folder = Path(folder).resolve()
     manifest = json.loads((folder / 'FLASH_MANIFEST.json').read_text(encoding='utf-8'))
+    if not isinstance(manifest.get('firmware'), str) or not manifest['firmware'].strip():
+        raise ValueError('固件清单缺少有效版本号。')
     if (manifest.get('chip'), manifest.get('flashSize'), manifest.get('flashMode'),
         manifest.get('flashFrequency')) != ('esp32c3', '4MB', 'dio', '80m'):
         raise ValueError('固件清单不是本项目的 ESP32-C3 / 4MB / DIO / 80MHz 配置。')
@@ -280,11 +283,11 @@ def _flash(args, job):
         state = set_identity(state['serial_port'], job, manifest['firmware'], args.boot_timeout, name)
         job.update(identity_verified=True, device_id=state['device_id'], port=state['serial_port'],
                    sensor_mode=state.get('sensor_mode'), network_mode=state.get('network_mode'),
-                   configuration_url=state.get('configuration_url'),
+                   configuration_url=state.get('configuration_url'), setup_url=SETUP_URL,
                    configuration_hotspot=state.get('configuration_hotspot'),
                    factory_profile=state.get('factory_profile'), device_name=state.get('device_name',state['device_id']))
         timed_station = state.get('setup_window_supported') is True and bool(state.get('ssid'))
-        if state.get('configuration_url') != 'http://192.168.4.1/' or (not state.get('config_ap_open') and not timed_station):
+        if state.get('configuration_url') not in ('http://192.168.4.1/', SETUP_URL) or (not state.get('config_ap_open') and not timed_station):
             raise RuntimeError('启动成功，但配置入口状态未通过回读检查。')
         if args.factory and (state.get('wifi_connected') or state.get('sensor_mode') != 'sensor'
                              or state.get('physical_outputs_enabled')
@@ -293,7 +296,7 @@ def _flash(args, job):
         job.update(pairing_refreshed=refresh_pairing(previous,state))
         job.update(status='success', phase='done', finished_at=dt.datetime.now(dt.timezone.utc).isoformat())
         job.message('烧录成功：'+state['device_id'])
-        job.message(('连接临时热点 ' if state.get('config_ap_open') else '已保留家庭配网。需要设置时，运行中长按 BOOT 约3秒再连接热点 ')+state['configuration_hotspot']+'，浏览器打开 http://192.168.4.1/')
+        job.message(('连接临时热点 ' if state.get('config_ap_open') else '已保留家庭配网。需要设置时，运行中长按 BOOT 约3秒再连接热点 ')+state['configuration_hotspot']+'，浏览器打开 '+SETUP_URL)
         return job.report
     except Exception as error:
         job.message('失败：'+str(error))
@@ -329,7 +332,9 @@ def main():
     parser.add_argument('--port')
     parser.add_argument('--name', help='自定义显示名与热点名，最多 32 个 UTF-8 字节；省略使用随机名称')
     parser.add_argument('--baud', type=int, choices=(115200, 230400, 460800, 921600), default=DEFAULT_BAUD)
-    parser.add_argument('--images', type=Path, default=ROOT/'firmware/prebuilt')
+    sources = parser.add_mutually_exclusive_group()
+    sources.add_argument('--images', type=Path, default=ROOT/'firmware/prebuilt', help='项目固件目录或包含完整四镜像及清单的 ZIP')
+    sources.add_argument('--latest', action='store_true', help='查询并下载 GitHub 最新正式版，校验后使用')
     parser.add_argument('--check', action='store_true', help='只校验镜像，不访问开发板')
     parser.add_argument('--list-ports', action='store_true')
     parser.add_argument('--factory', action='store_true', help='明确清空设备设置及板内缓存，重新初始化')
@@ -338,14 +343,22 @@ def main():
     args = parser.parse_args()
     if not 5 <= args.boot_timeout <= 600:
         raise ValueError('启动等待时间应为 5～600 秒。')
-    if args.check:
-        manifest, _ = validate_images(args.images)
-        print('四个镜像和地址校验通过：' + manifest['firmware']); return
     if args.list_ports:
         from serial.tools.list_ports import comports
         ports = list(comports())
         for port in ports: print(port.device + ' · ' + port.description)
         return
+    if args.latest:
+        from flash_sources import latest_release, download_release
+        release = latest_release()
+        print('GitHub 最新正式版：' + release['tag'] + ' · ' + release['asset_name'])
+        args.images = download_release(release, ROOT/'build/flash-sources')
+    elif args.images.is_file():
+        from flash_sources import prepare_zip
+        args.images = prepare_zip(args.images, ROOT/'build/flash-sources')
+    if args.check:
+        manifest, _ = validate_images(args.images)
+        print('四个镜像和地址校验通过：' + manifest['firmware']); return
     job = FlashJob()
     report = flash(args,job)
     print('日志和结果：'+str(job.folder))

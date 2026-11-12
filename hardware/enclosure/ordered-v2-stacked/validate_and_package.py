@@ -47,7 +47,7 @@ def validate(baseline=None):
         checks[name]=dict(validSingleStep=True,watertightSingleStl=True,relativeVolumeError=difference)
     bbs=[s.BoundingBox() for s in solids.values()]
     dims=[max(getattr(b,k+'max') for b in bbs)-min(getattr(b,k+'min') for b in bbs) for k in ('x','y','z')]
-    assert all(abs(a-b)<.01 for a,b in zip(dims,[46.29,56.45,35.2])),dims
+    assert all(abs(a-b)<.01 for a,b in zip(dims,[46.29,56.45,35.6])),dims
     intersections={a+'/'+b:solids[a].intersect(solids[b]).Volume() for a,b in [('base','tray'),('base','lid'),('tray','lid')]}
     assert max(intersections.values())<1e-5,intersections
     clearances={}
@@ -73,7 +73,7 @@ def validate(baseline=None):
         assert abs(top-bottom-5)<.01
         x=sum((min(v[0] for v in vv),max(v[0] for v in vv)))/2
         y=sum((min(v[1] for v in vv),max(v[1] for v in vv)))/2
-        shield_top=13.8+1.4
+        shield_top=13.8+1.8
         assert abs(bottom-shield_top-1)<.01
         probe=cq.Solid.makeCylinder(.2,1.3,cq.Vector(x,y,13.85))
         assert abs(probe.intersect(solids['tray']).Volume()-probe.Volume())<1e-5,part['name']

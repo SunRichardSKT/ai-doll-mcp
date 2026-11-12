@@ -1,5 +1,5 @@
 {
-  "revision": "GEN1-FINAL-ENC",
+  "revision": "GEN1-RUGGED-P01",
   "units": "mm",
   "outer_width": 42.89,
   "outer_length": 56.45,
@@ -16,7 +16,7 @@
   "lid_thickness": 1.8,
   "corner_radius": 4.0,
   "battery_clear_height": 12.0,
-  "tray_thickness": 1.4,
+  "tray_thickness": 1.8,
   "pin_to_tray_gap": 1.0,
   "bottom_pin_length": 2.8,
   "pin_tip_to_switch_top": 8.9,
@@ -27,12 +27,12 @@
     17.5,
     25.5
   ],
-  "support_length": 0.8,
+  "support_length": 4.0,
   "support_overlap": 0.45,
   "tray_fit_gap": 0.35,
   "board_retention_gap": 0.25,
-  "snap_width": 5.0,
-  "snap_thickness": 1.1,
+  "snap_width": 6.5,
+  "snap_thickness": 1.25,
   "snap_length": 12.0,
   "snap_clearance": 0.2,
   "snap_tip_inset": 1.25,
@@ -78,7 +78,7 @@
     "mouth_offset_y": 0.0,
     "flare_bottom_above_actuator": 2.5,
     "offset_x": 0.0,
-    "wall": 0.8,
+    "wall": 1.2,
     "floor_thickness": 1.2,
     "actuator_above_well_floor": 2.4,
     "hole_width": 5.8,
@@ -137,5 +137,16 @@
     "nominal_wire_diameter_mm": 1.5,
     "exit_wire_separation_mm": 1.6,
     "service_loop_mm": 12.0
+  },
+  "lid_support_length": 1.4,
+  "stop_thickness": 1.6,
+  "guide_wall": 1.4,
+  "print_structure": {
+    "removed_long_tray_fingers": true,
+    "grouped_sensor_windows": true,
+    "wall_backed_board_ribs": true,
+    "thickened_carrier_stops": true,
+    "elastic_fit_tested": false,
+    "usb_roof_on_lid": true
   }
 }

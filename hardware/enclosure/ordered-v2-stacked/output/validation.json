@@ -7,9 +7,9 @@
       "meshWatertight": true,
       "meshWindingConsistent": true,
       "meshBodies": 1,
-      "volumeMm3": 15565.475545981386,
-      "stepRoundtripVolumeError": 2.3646862246096134e-10,
-      "stlRelativeVolumeError": 3.8393652139849897e-05
+      "volumeMm3": 15530.039215587014,
+      "stepRoundtripVolumeError": 2.510205376893282e-10,
+      "stlRelativeVolumeError": 3.903472836751609e-05
     },
     "tray": {
       "validBrep": true,
@@ -17,9 +17,9 @@
       "meshWatertight": true,
       "meshWindingConsistent": true,
       "meshBodies": 1,
-      "volumeMm3": 3490.2377339297273,
-      "stepRoundtripVolumeError": 2.7284841053187847e-12,
-      "stlRelativeVolumeError": 1.1077627336459124e-06
+      "volumeMm3": 4861.270229338219,
+      "stepRoundtripVolumeError": 8.185452315956354e-12,
+      "stlRelativeVolumeError": 1.011042502811147e-06
     },
     "lid": {
       "validBrep": true,
@@ -27,19 +27,19 @@
       "meshWatertight": true,
       "meshWindingConsistent": true,
       "meshBodies": 1,
-      "volumeMm3": 5537.0805757593225,
-      "stepRoundtripVolumeError": 6.821210263296962e-11,
-      "stlRelativeVolumeError": 9.139846385739098e-06
+      "volumeMm3": 6003.284417377874,
+      "stepRoundtripVolumeError": 7.480795011360897e-05,
+      "stlRelativeVolumeError": 8.375005297910141e-06
     }
   },
   "physicalFitTested": false,
   "files": {
-    "base.step": "754f2532f01bcddf6d3a23511f086149a787125ccff6697e20f281e72ccf9c7a",
-    "base.stl": "39321928b0aedd5a3f0759edb43453e09c5dd91e8f71f984ccfdf729876126d7",
-    "tray.step": "2c0e247d32cc430bbebd0d848733404639f6f70e48562d5780625cf04bc0f136",
-    "tray.stl": "7f041e9497fa7b805fb3afdd957c0d22fc78968fc1f1433e681e2398969e4a29",
-    "lid.step": "458b1b384cb45dcfa61e80283c02f0a26e791758bd2c13ed00f86a422fa5a329",
-    "lid.stl": "912b831881df9eb714e47d6a7269604afadfc0b376f2c1149614760b202e336d",
-    "assembly_reference.step": "99bc062dc8dc884daee6226720deb2a53ad9bb36e3c7d0bdb5007f44f89f0c1a"
+    "base.step": "15600d0331f80296a636d867a51877565b82f7743742c1d04034d91bc37e39d9",
+    "base.stl": "33c702508fb7d416c09619bef8e4b85a07a829c0105870574f5e833303c6b250",
+    "tray.step": "1e8953180d918cbd35d90ec2ae2ae74f96630c1a95d221e3c4763cd2970ba007",
+    "tray.stl": "2678f4db7dfb2edd7bcd35ed54d0c3632df4315166d3e75cf65526d497423516",
+    "lid.step": "a635906a1b815b984ab64b117b0185771c5000db668958adf7e5dfa74ac03ade",
+    "lid.stl": "199db3773a59c85be58721d8f03f177ddbbdd996aa3124098e62b0e52503d6d3",
+    "assembly_reference.step": "a35b07d7bbda22c49536c3448a6151958e25cafb63e01b16b51a4b42a81f321f"
   }
 }

@@ -12,6 +12,8 @@
 
 [下载 v0.1.1 内测版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.1) · [完整教程](docs/README.md) · [故障排查](docs/TROUBLESHOOTING.md) · [AI 使用说明书](docs/ai/AI_GUIDE.md)
 
+11月13日更新：烧录器支持[本地固件选择与GitHub最新版本下载](docs/start/QUICK_FLASH.md)；核心壳和充电壳已做[结构加固](hardware/enclosure/PRINT_STRENGTHENING.md)，核心壳须三件配套重打。
+
 ## 目录
 
 - [背景](#背景)
@@ -83,7 +85,7 @@ sudo bash Install_Server.sh
 ### 第一次互动
 
 1. **准备设备。** 空白开发板用 Windows 完整包内的 `Flash_ESP32.cmd` 烧录。已有设备先核对版本和连接，保留原校准、配对及历史。 [一键烧录](docs/start/QUICK_FLASH.md)
-2. **确认在线。** 在手机或电脑核对设备 ID。首次无线配网时，连着娃娃热点才能打开 `http://192.168.4.1/`。完成配网后，切回家庭网络使用设备。 [配网与找回设备](docs/daily/WIFI_CONNECTION.md)
+2. **确认在线。** 在手机或电脑核对设备 ID。首次无线配网时，连着娃娃热点才能打开 `http://192.168.4.1/setup`。完成配网后，切回家庭网络使用设备。 [配网与找回设备](docs/daily/WIFI_CONNECTION.md)
 3. **试一个部位。** 把实际装好的端口设为“已接入”，填入部位并完成校准。按压并松开一次，检查历史是否出现该部位的记录。 [接线与端口](docs/daily/SENSOR_CHANNELS.md) · [压力校准](docs/daily/CALIBRATION_AND_DAILY_MODE.md)
 4. **核对聊天接入。** Operit 绑定聊天后可开启“触摸主动回复”。使用 MCP 的客户端可以先让 AI 查询设备，核对返回的 ID。 [MCP 聊天验证](docs/integrations/CHAT_MCP.md)
 

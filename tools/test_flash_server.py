@@ -1,5 +1,6 @@
 """Protect physical flashing from unintended web requests and duplicate clicks."""
 import json
+import io
 import tempfile
 import threading
 import unittest
@@ -7,9 +8,11 @@ from pathlib import Path
 from unittest.mock import patch
 import urllib.error
 import urllib.request
+import zipfile
 
 import flash_server as ui
 import flash_esp32
+from flash_sources import FILES
 
 
 class FlashPageTests(unittest.TestCase):
@@ -17,6 +20,7 @@ class FlashPageTests(unittest.TestCase):
         self.folder=tempfile.TemporaryDirectory();self.root=Path(self.folder.name)
         self.patch=patch.object(flash_esp32,'ROOT',self.root);self.patch.start()
         self.page=ui.Flasher()
+        self.page.cache=self.root/'sources'
         self.server=ui.ExclusiveLoopbackServer(('127.0.0.1',0),ui.make_handler(self.page))
         self.thread=threading.Thread(target=self.server.serve_forever,daemon=True);self.thread.start()
         self.url=f'http://127.0.0.1:{self.server.server_port}'
@@ -26,8 +30,8 @@ class FlashPageTests(unittest.TestCase):
         self.server.shutdown();self.server.server_close();self.thread.join(2)
         self.patch.stop();self.folder.cleanup()
 
-    def request(self, data, headers=None):
-        request=urllib.request.Request(self.url+'/api/start',data=json.dumps(data).encode(),
+    def request(self, data, headers=None, path='/api/start'):
+        request=urllib.request.Request(self.url+path,data=data if isinstance(data,bytes) else json.dumps(data).encode(),
             headers=headers or {'X-CSRF-Token':self.page.csrf,'Content-Type':'application/json'})
         try:
             with self.opener.open(request,timeout=2) as r:return r.status,json.load(r)
@@ -88,6 +92,57 @@ class FlashPageTests(unittest.TestCase):
             code,result=self.request({'factory':False})
         self.assertEqual(code,500)
         self.assertIn('保存烧录记录',result['error'])
+
+    def test_import_does_not_flash_and_selected_files_reach_the_worker(self):
+        stream=io.BytesIO()
+        with zipfile.ZipFile(stream,'w') as archive:
+            for name in FILES:
+                archive.write(ui.ROOT/'firmware/prebuilt'/name,'firmware/prebuilt/'+name)
+        finished=threading.Event()
+        original=(ui.ROOT/'firmware/prebuilt/FLASH_MANIFEST.json').read_bytes()
+        def fake(args,job):
+            self.assertNotEqual(args.images,ui.ROOT/'firmware/prebuilt')
+            self.assertEqual(args.images.parent,self.page.cache)
+            self.assertEqual((args.images/'FLASH_MANIFEST.json').read_bytes(),original)
+            finished.set()
+        with patch.object(ui,'flash',side_effect=fake) as run:
+            code,source=self.request(stream.getvalue(),{'X-CSRF-Token':self.page.csrf,
+                'Content-Type':'application/zip'},'/api/firmware/local')
+            self.assertEqual(code,200);self.assertEqual(source['kind'],'local')
+            run.assert_not_called()
+            self.assertEqual(self.request({'source_id':'stale'})[0],400)
+            self.assertEqual(self.request({'source_id':source['source_id']})[0],202)
+            self.assertTrue(finished.wait(2))
+        self.assertEqual((ui.ROOT/'firmware/prebuilt/FLASH_MANIFEST.json').read_bytes(),original)
+
+    def test_failed_import_keeps_current_source(self):
+        previous=self.page.images
+        with patch.object(ui,'flash') as write:
+            code,_=self.request(b'broken zip',{'X-CSRF-Token':self.page.csrf,
+                'Content-Type':'application/zip'},'/api/firmware/local')
+            self.assertEqual(code,400)
+            self.assertEqual(self.page.images,previous)
+            self.assertFalse(self.page.preparing)
+            write.assert_not_called()
+
+    def test_release_query_is_read_only_and_preparation_blocks_writes(self):
+        hold=threading.Event();entered=threading.Event()
+        def query():
+            entered.set();hold.wait(3)
+            return {'tag':'v9','asset_name':'firmware.zip'}
+        responses=[]
+        with patch.object(ui,'latest_release',side_effect=query),patch.object(ui,'flash') as write:
+            worker=threading.Thread(target=lambda:responses.append(self.request({},path='/api/releases/latest')))
+            worker.start()
+            try:
+                self.assertTrue(entered.wait(2))
+                self.assertEqual(self.request({})[0],409)
+                self.assertEqual(self.request({},path='/api/firmware/bundled')[0],409)
+                self.assertTrue(self.page.state()['preparing'])
+            finally:
+                hold.set();worker.join(3)
+            self.assertEqual(responses[0][0],200)
+            write.assert_not_called()
 
 
 if __name__=='__main__':unittest.main()

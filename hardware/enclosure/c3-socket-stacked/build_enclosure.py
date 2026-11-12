@@ -111,11 +111,12 @@ def build():
             post = box(xx, yy, tray_z, dx, p['support_length'], bz-tray_z)
             tray = tray.fuse(post)
     stops = []
-    for yy, xs in [(oy-1.15, [ox, ox+bw-1.8]), (oy+bl+.35, [ox, ox+bw-1.8])]:
+    stop_t = p['stop_thickness']
+    for yy, xs in [(oy-.35-stop_t, [ox, ox+bw-1.8]), (oy+bl+.35, [ox, ox+bw-1.8])]:
         for xx in xs:
-            stops.append((xx, yy, 1.8, .8))
-    for xx in [ox-1.15, ox+bw+.35]:
-        stops.append((xx, oy+29.5, .8, 3.0))
+            stops.append((xx, yy, 2.4, stop_t))
+    for xx in [ox-.35-stop_t, ox+bw+.35]:
+        stops.append((xx, oy+29.5, stop_t, 4.0))
     for xx, yy, dx, dy in stops:
         # Stops join the removable tray and transfer load to the shell rails.
         if xx < W/2:
@@ -151,32 +152,49 @@ def build():
     inset = wall+p['lid_guide_clearance']
     ring_radius=p['corner_radius']-inset
     ring = rounded(inset,inset,roof-1.6,W-2*inset,H-2*inset,1.8,ring_radius)
-    ring = ring.cut(rounded(inset+1,inset+1,roof-1.8,W-2*(inset+1),H-2*(inset+1),2.2,ring_radius-1))
+    ring = ring.cut(rounded(inset+p['guide_wall'],inset+p['guide_wall'],roof-1.8,W-2*(inset+p['guide_wall']),H-2*(inset+p['guide_wall']),2.2,ring_radius-p['guide_wall']))
     for xx, side in clips:
         yy = wall if side == 'front' else H-wall-3
         ring = ring.cut(box(xx-p['snap_width']/2-.6,yy,roof-2,p['snap_width']+1.2,3,3))
     lid = lid.fuse(ring)
     # Open-top sockets let the populated PCB/carrier lift out vertically.
     # Lid tabs close the unused upper part of each slot after insertion.
-    for port in ports:
-        sz,yy=port['width'],port['yWorld'];zz=port_bottom+p['header_port_height']
-        xx=.2 if port['side']=='left' else W-wall+.2
-        lid=lid.fuse(box(xx,yy-sz/2+.25,zz,wall-.4,sz-.5,roof-zz+.1))
+    # One broad opening/band per side removes the 1 mm tall comb teeth.
+    for side in ('left','right'):
+        group=[port for port in ports if port['side']==side]
+        low=min(port['yWorld']-port['width']/2 for port in group)
+        high=max(port['yWorld']+port['width']/2 for port in group)
+        for exit_port in p['wire_exits']:
+            if exit_port['side']==side:
+                low=min(low,exit_port['y']-slot_width/2)
+                high=max(high,exit_port['y']+slot_width/2)
+        xx=-.3 if side=='left' else W-wall-.3
+        base=base.cut(box(xx,low,port_bottom,wall+.6,high-low,roof-port_bottom+1))
+        xx=.2 if side=='left' else W-wall+.2
+        zz=port_bottom+p['header_port_height']
+        lid=lid.fuse(box(xx,low+.25,zz,wall-.4,high-low-.5,roof-zz+.1))
     slot_top = slot_bottom + slot_width
     for exit_port in p['wire_exits']:
         x = .2 if exit_port['side'] == 'left' else W-wall+.2
         lid = lid.fuse(box(x, exit_port['y']-slot_width/2+.25, slot_top,
                            wall-.4, slot_width-.5, roof-slot_top+.1))
+    # Wide wall-backed blades replace isolated narrow hold-down posts.
+    # Root flares start above the declared headers; their 45-degree slopes print from the lid.
     for sy in p['support_y']:
-        yy = oy+sy-p['support_length']/2
-        for xx, end in [(wall+.25,ox+p['support_overlap']),
-                        (ox+bw-p['support_overlap'], W-wall-.25)]:
-            zz = top_z+p['board_retention_gap']
-            lid = lid.fuse(box(xx,yy,zz,end-xx,p['support_length'],roof-zz+.1))
-    # Three spaced fingers retain the insulating tray and clear the switch well.
-    for xx, yy in [(3.5,4.0),(W-3.5,4.0),(3.5,H-4.0)]:
-        zz = tray_top+.25
-        lid = lid.fuse(box(xx-.55,yy-.7,zz,1.1,1.4,roof-zz+.1))
+        cy = oy+sy
+        half = p['lid_support_length']/2
+        zz = top_z+p['board_retention_gap']
+        flare_z = top_z+p.get('header_height', 6.5)+.3
+        wide = 2.0
+        for xx, end in [(.2,ox+p['support_overlap']),
+                        (ox+bw-p['support_overlap'], W-.2)]:
+            profile=[(cy-half,zz),(cy+half,zz),(cy+half,flare_z),
+                     (cy+wide,flare_z+wide-half),(cy+wide,roof+.1),
+                     (cy-wide,roof+.1),(cy-wide,flare_z+wide-half),(cy-half,flare_z)]
+            rib=(cq.Workplane('YZ').polyline(profile).close().extrude(end-xx)
+                 .translate((xx,0,0)).val())
+            lid=lid.fuse(rib)
+    # No slender tray pins: PCB edge ribs capture the populated removable carrier.
     snap_shapes = []
     for xx, side in clips:
         inside = wall+p['snap_clearance']
@@ -274,6 +292,13 @@ def build():
                       usb['opening_width'],usb_face_y+.3,usb['opening_height'])
     base=base.cut(usb_opening)
     lid=lid.cut(usb_opening)
+    # Put the USB opening roof on the lid: the base no longer bridges a 15 mm gap.
+    base=base.cut(box(usb_x-usb['opening_width']/2,-.3,
+                      usb_center_z-usb['opening_height']/2,
+                      usb['opening_width'],wall+.6,roof-usb_center_z+usb['opening_height']/2+1))
+    lip_z=usb_center_z+usb['opening_height']/2
+    lid=lid.fuse(box(usb_x-usb['opening_width']/2+.2,.2,lip_z,
+                     usb['opening_width']-.4,wall-.4,roof-lip_z+.1))
     base, tray, lid = base.clean(), tray.clean(), lid.clean()
     pcb = cq.Workplane('XY').polyline(r['outline']).close().extrude(bt).translate((ox,oy,bz)).val()
     components = []
@@ -417,6 +442,7 @@ def build():
                 scope='Exported topology, declared rigid clearances and sampled clip envelope. Not stress, continuous insertion, thermal or RF validation.',
                 pending=['actual component and switch measurements','battery seam and upward lead bend','connector and wire route above PCB',
                          'switch lever finger access','PETG snap fit and fatigue','RF with battery below antenna','temperature and drop test'])
+    report['printStructure'] = dict(p['print_structure'], trayThicknessMm=p['tray_thickness'], supportLengthMm=p['support_length'], ribWidthMm=p['lid_support_length'], snapThicknessMm=p['snap_thickness'], snapWidthMm=p['snap_width'], guideWallMm=p['guide_wall'], stopThicknessMm=p['stop_thickness'])
     (OUT/'audit.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     assert not issues, f'Geometry collision: {collisions}; parts={assembly_overlaps}; clearances={clearances}; snaps={snap_checks}'
     files=['base.step','base.stl','tray.step','tray.stl','lid.step','lid.stl','assembly_reference.step']

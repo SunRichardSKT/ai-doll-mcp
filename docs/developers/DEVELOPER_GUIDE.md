@@ -65,6 +65,8 @@ node --version
 
 构建后运行 `.\.venv\Scripts\python.exe -X utf8 tools/export_firmware.py`，导出本次三个编译镜像并为完整四文件更新清单。网页嵌入头文件在构建前生成，不提交。正式 USB 烧录使用 `Flash_ESP32.cmd` 或 `tools/flash_esp32.py`，才能生成新的内部设备编号、可选显示名及完整日志；PlatformIO 的直接 Upload 仅供开发调试，保留既有设备编号。
 
+烧录器的`flash_sources.py`共用本地五文件／ZIP和GitHub正式Release选择逻辑。只提取同目录的四镜像及`FLASH_MANIFEST.json`，经地址、大小和SHA-256校验后保存到私有`build/flash-sources/`；下载还核对同版发布包的`SHA256SUMS.txt`。GitHub查询走公开Release页面，避免依赖未认证API额度。查询、下载和烧录分开，准备期间禁止更换来源或开始烧录，实际烧录记录所选来源和清单哈希。相关检查为`test_flash_sources.py`、`test_flash_server.py`、`test_flash_esp32.py`及`test_flash_ui.cjs`；不需访问真实开发板。
+
 原生源码 `firmware/src/archive_lease.h`，随源码包保留；它只包含有限归档租约策略，不改变NVS、Flash分区或电气参数。二维码网页使用随包的 `clients/operit/vendor/qrcodegen.js` 与 `tools/pairing_connection.js`。构建前会额外生成 `firmware/src/pairing_asset.h`、`firmware/src/setup_page_asset.h`、`firmware/src/wifi_feedback_asset.h`及工具清单的`firmware/src/device_tools_asset.h`，与其他 `*_asset.h` 一样由来源生成，不提交或重新加入源码允许列表；修改来源后重新编译和导出镜像，不能只替换网页源码。
 
 [当前固件](../reports/FIRMWARE_INPUTS.md)保留压力与干接点，`expansion_inputs.h`只保留开关去抖。温度、OneWire、LIS3DH、PWM执行器代码已移除。构建保留原分区、SDK回溯与coredump；`check_firmware.py`核对能力标识、版本及镜像。`test_expansion.py`检查压力阈值与旧扩展配置隔离，后台历史仍兼容旧事件。

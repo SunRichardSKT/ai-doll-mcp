@@ -12,7 +12,7 @@ FILES=['POWER_WIRING.md','README.md','parameters.json','requirements-cad.txt','b
 
 def run():
     audit=json.loads((HERE/'output/audit.json').read_text(encoding='utf-8'))
-    assert audit['revision']=='CHARGER-P02-FOUR-WIRE'
+    assert audit['revision']=='CHARGER-P03-RUGGED-FOUR-WIRE'
     assert set(audit['checks'])=={'base','lid'}
     for check in audit['checks'].values():
         assert check['validBrep'] and check['meshWatertight'] and check['meshBodies']==1
@@ -21,18 +21,18 @@ def run():
         assert hashlib.sha256((HERE/name).read_bytes()).hexdigest()==expected,name
     assert json.loads((HERE/'output/preview_check.json').read_text(encoding='utf-8'))['passed']
     for name in FILES: assert (HERE/name).is_file(),name
-    out=ROOT/'delivery'/'AI_Doll_Charger_Enclosure_P02.zip'
+    out=ROOT/'delivery'/'AI_Doll_Charger_Enclosure_P03.zip'
     out.parent.mkdir(parents=True,exist_ok=True)
-    manifest={'revision':'CHARGER-P02-FOUR-WIRE','files':{'AI_Doll_Charger_P02/'+name:hashlib.sha256((HERE/name).read_bytes()).hexdigest() for name in FILES}}
+    manifest={'revision':'CHARGER-P03-RUGGED-FOUR-WIRE','files':{'AI_Doll_Charger_P03/'+name:hashlib.sha256((HERE/name).read_bytes()).hexdigest() for name in FILES}}
     licenses={name:(ROOT/name).read_bytes() for name in ('LICENSE','LICENSING.md','hardware/LICENSE')}
     manifest['files'].update({name:hashlib.sha256(raw).hexdigest() for name,raw in licenses.items()})
     with zipfile.ZipFile(out,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=9) as z:
-        for name in FILES: z.write(HERE/name,'AI_Doll_Charger_P02/'+name)
+        for name in FILES: z.write(HERE/name,'AI_Doll_Charger_P03/'+name)
         for name,raw in licenses.items():z.writestr(name,raw)
         z.writestr('MANIFEST.json',json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
     with zipfile.ZipFile(out) as z:
         assert z.testzip() is None
-        for name in FILES: assert z.read('AI_Doll_Charger_P02/'+name)==(HERE/name).read_bytes()
+        for name in FILES: assert z.read('AI_Doll_Charger_P03/'+name)==(HERE/name).read_bytes()
     out.with_suffix('.zip.sha256').write_text(hashlib.sha256(out.read_bytes()).hexdigest()+'  '+out.name+'\n',encoding='utf-8')
     print(json.dumps({'path':str(out),'files':len(FILES),'bytes':out.stat().st_size,'physicalFitTested':False},ensure_ascii=False))
 

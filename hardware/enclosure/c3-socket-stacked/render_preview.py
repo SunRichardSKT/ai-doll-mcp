@@ -65,7 +65,7 @@ def run():
         '20.4 / 1.8 mm':f"{data['dimensions']['height']:.1f} / 1.8 mm",
         '4 × M2':'前后四点卡扣',
         '为当前布线板留出的空间':'缩小长宽，电池下置',
-        '边缘托座固定 PCB，不使用板上的线束固定孔。线束从敞口槽放入，盖上的挡片补齐槽口，无需让 SM 塑壳穿过小孔。':'电池平放在底层，长边沿外壳长度方向。1.4 mm可拆绝缘托板同时承托主板，将载荷传到壳壁侧轨。托板上方给2.8 mm底面元件及修剪后的焊脚再留1 mm间隙。',
+        '边缘托座固定 PCB，不使用板上的线束固定孔。线束从敞口槽放入，盖上的挡片补齐槽口，无需让 SM 塑壳穿过小孔。':'电池平放在底层，长边沿外壳长度方向。1.8 mm可拆绝缘托板同时承托主板，将载荷传到壳壁侧轨。托板上方给2.8 mm底面元件及修剪后的焊脚再留1 mm间隙。',
         '正面独立 J9 出线口与开关检修口；松开上盖后操作 USB、BOOT / RST。天线端不布置紧固螺钉。':'需要打印底壳、绝缘托板、上盖三件。托板隔离底面元件和电芯，并可单独取出更换电池。前后墙卡扣避开八路侧面线槽。USB从正面直插；BOOT、RST开盖维护。',
         '元件高度、板厚与线径为预留假设。灰色元件是包络参考，USB 不是已验证插拔模型。':f"开关移到右后方，顶部与右侧可拨动；正面USB口15 × 9 mm，按14 × 8 mm直头胶壳校核插入通道。导向单边间隙{p['lid_guide_clearance']:.2f} mm，挂钩咬合{p['wall']-p['snap_tip_inset']:.2f} mm。",
         '先打印 fit_tray，再检查焊点、线束弯折和开关可达性。此结构没有防水等级，也不包含电池。':'电池净空36 × 52 × 12 mm，出线向上经过托板开口；短边水平余量约1.85 mm，原厂线弯曲及封边必须试装。建议PETG，不压电芯。103450为3.7V 2000mAh，PH2.0接头留在壳外，接独立充电模块；J9接模块5V输出。',
@@ -88,9 +88,11 @@ def run():
     extra='<div class="card"><h2>从底面向上的层叠高度</h2>'+''.join(
         f'<div class="spec"><span>{name}</span><strong>{value:.1f} mm</strong></div>' for name,value in rows)+\
         '</div><p><a href="../README.md">试装与打印说明</a> · <a href="stack.svg">带尺寸侧剖示意</a></p>'
+    extra+='<div class="card"><h2>结构加固版 · 2026-11-13</h2><p>取消细长托板压杆，改用主板边缘宽肋；托板承托加宽至4 mm，限位挡块加厚至1.6 mm。侧面上部细隔片合并为连续窗口和宽盖边。</p><p>卡扣宽根连接，活动段厚1.25 mm；导向边厚1.4 mm。底壳、托板、上盖须整套重打，不与旧件混用。</p><p>PETG、0.16～0.20 mm层高、4道壁。按STL现有方向切片；实际扣合与耐久需首件试装。</p></div>'
     page=page.replace('</aside>',extra+'</aside>')
     page=page.replace('V2.2','C3插座版').replace('P02','第一代最终版').replace('46.29 × 56.45','42.89 × 56.45').replace('侧面线孔','侧插窗口').replace('8 × 4.4 mm','8 × 7 mm + 1 × 9 mm').replace('侧面线槽','侧面插座').replace('八路带线传感输入','八路锁扣板载插座')
     page=page.replace('下沉开关口','右后方开关 · 左侧BAT出线／5V锁扣座').replace('缩小长宽，电池下置','板载插座，电池下置')
+    page=page.replace('第一代最终版 · 卡扣电池壳','第一代最终版 · 加固电池壳').replace('8 × 7 mm + 1 × 9 mm','左右连通窗口').replace('2026-11-09','2026-11-13')
     (OUT/'preview.html').write_text(page.replace('__DATA__',json.dumps(data,separators=(',',':'))),encoding='utf-8')
     side_diagram(audit,p)
     from render_wiring import run as draw_wiring

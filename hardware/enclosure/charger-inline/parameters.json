@@ -1,5 +1,5 @@
 {
-  "revision": "CHARGER-P02-FOUR-WIRE",
+  "revision": "CHARGER-P03-RUGGED-FOUR-WIRE",
   "units": "mm",
   "case": {
     "width": 22.0,
@@ -56,14 +56,14 @@
       8.0,
       20.5
     ],
-    "width": 3.8,
-    "thickness": 0.7,
-    "length": 6.0,
+    "width": 5.2,
+    "thickness": 1.1,
+    "length": 7.8,
     "inside_x": 1.65,
     "tip_x": 1.05,
-    "hook_top": 5.25,
-    "window_bottom": 3.8,
-    "window_top": 5.3
+    "hook_top": 3.5,
+    "window_bottom": 2.2,
+    "window_top": 3.55
   },
   "measurement_status": "Seller drawing: PCB 12 x 16.2 mm, module total height 4.4 mm, USB projection about 1.3 mm. PCB thickness, LED positions, lower components, solder and wire diameters require physical fit check.",
   "side_wire_channels": {
@@ -95,5 +95,14 @@
       "source": "Labeled input/output positive and negative pads in the supplied seller diagram"
     }
   ],
-  "electrical_status": "Four pad assignments established from the user supplied annotated seller diagram; actual voltage, load current and charge/boost transitions not measured."
+  "electrical_status": "Four pad assignments established from the user supplied annotated seller diagram; actual voltage, load current and charge/boost transitions not measured.",
+  "print_structure": {
+    "guide_wall": 1.2,
+    "removed_thin_side_guides": true,
+    "rear_stop_length": 2.0,
+    "pressure_pad_length": 3.0,
+    "clip_root_gusset": 0.8,
+    "elastic_fit_tested": false,
+    "usb_roof_on_lid": true
+  }
 }

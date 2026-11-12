@@ -1,5 +1,5 @@
 {
-  "revision": "CHARGER-P02-FOUR-WIRE",
+  "revision": "CHARGER-P03-RUGGED-FOUR-WIRE",
   "dimensionsMm": {
     "width": 22.0,
     "length": 36.0,
@@ -12,9 +12,9 @@
       "meshWatertight": true,
       "meshWindingConsistent": true,
       "meshBodies": 1,
-      "volumeMm3": 2671.224252580676,
-      "stepRoundtripVolumeError": 2.5920599000528455e-11,
-      "stlRelativeVolumeError": 1.81009275757028e-05
+      "volumeMm3": 2646.5702525806737,
+      "stepRoundtripVolumeError": 2.6830093702301383e-11,
+      "stlRelativeVolumeError": 1.8272680179211667e-05
     },
     "lid": {
       "validBrep": true,
@@ -22,9 +22,9 @@
       "meshWatertight": true,
       "meshWindingConsistent": true,
       "meshBodies": 1,
-      "volumeMm3": 1894.434525566759,
-      "stepRoundtripVolumeError": 1.2505552149377763e-11,
-      "stlRelativeVolumeError": 3.0174992918375254e-06
+      "volumeMm3": 2184.979078848477,
+      "stepRoundtripVolumeError": 2.6830093702301383e-11,
+      "stlRelativeVolumeError": 2.416389858242532e-06
     }
   },
   "partIntersectionsMm3": {
@@ -77,5 +77,17 @@
     "reference_wire_center_z": 3.2
   },
   "source": "Seller drawing: PCB 12 x 16.2 mm, module total height 4.4 mm, USB projection about 1.3 mm. PCB thickness, LED positions, lower components, solder and wire diameters require physical fit check.",
-  "scope": "BREP/STL topology, STEP roundtrip and declared rigid envelopes; excludes unmeasured component placement, plug, wire grip, thermal and fatigue tests."
+  "scope": "BREP/STL topology, STEP roundtrip and declared rigid envelopes; excludes unmeasured component placement, plug, wire grip, thermal and fatigue tests.",
+  "printStructure": {
+    "guide_wall": 1.2,
+    "removed_thin_side_guides": true,
+    "rear_stop_length": 2.0,
+    "pressure_pad_length": 3.0,
+    "clip_root_gusset": 0.8,
+    "elastic_fit_tested": false,
+    "usb_roof_on_lid": true,
+    "clipThicknessMm": 1.1,
+    "clipWidthMm": 5.2,
+    "clipLengthMm": 7.8
+  }
 }

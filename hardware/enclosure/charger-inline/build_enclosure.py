@@ -65,14 +65,11 @@ def build():
         ax=t-.1 if xx<W/2 else xx
         aw=xx+.45-ax if xx<W/2 else W-t+.1-ax
         base=base.fuse(box(ax,yy,c['floor']-.05,aw,1.2,pz-c['floor']+.05))
-    for xx in [px-.6,px+m['width']-.2]:
-        base=base.fuse(box(xx,end_y+.18,c['floor']-.05,.8,.8,pcbtop-c['floor']+.05))
-    for xx in [px-.65,px+m['width']+.2]:
-        base=base.fuse(box(xx,12.8,c['floor']-.05,.45,1.8,pcbtop-c['floor']+.05))
-        ax=t-.1 if xx<W/2 else xx
-        aw=xx+.45-ax if xx<W/2 else W-t+.1-ax
-        base=base.fuse(box(ax,12.8,c['floor']-.05,aw,1.8,pz-c['floor']-.05))
-    base=base.cut(box((W-u['cutout_width'])/2,-.5,u['cutout_bottom'],u['cutout_width'],t+1.5,u['cutout_height']))
+    # A broad floor-backed rear stop replaces four isolated sub-millimetre posts.
+    base=base.fuse(box(px-.2,end_y+.18,c['floor']-.05,
+                      m['width']+.4,p['print_structure']['rear_stop_length'],pcbtop-c['floor']+.05))
+    # An open-top U notch avoids a long unsupported roof in the upright base.
+    base=base.cut(box((W-u['cutout_width'])/2,-.5,u['cutout_bottom'],u['cutout_width'],t+1.5,roof-u['cutout_bottom']+1))
     cy,cl,bedtop=w['clamp_y'],w['clamp_length'],w['bed_top']
     base=base.fuse(box(1.65,cy,c['floor']-.05,W-3.3,cl,bedtop-c['floor']+.05))
     bar=box(1.8,cy,w['bar_bottom'],W-3.6,cl,w['bar_thickness'])
@@ -88,9 +85,13 @@ def build():
                 else: bar=bar.cut(flare)
     bartop=w['bar_bottom']+w['bar_thickness']
     lid=rounded(0,0,roof,W,L,c['lid'],c['radius'])
+    lip_z=u['cutout_bottom']+u['cutout_height']
+    lid=lid.fuse(box((W-u['cutout_width'])/2+.2,.2,lip_z,
+                     u['cutout_width']-.4,t-.4,roof-lip_z+.1))
     inset=t+.2
     ring=rounded(inset,inset,roof-1,W-2*inset,L-2*inset,1.1,c['radius']-inset)
-    ring=ring.cut(rounded(inset+.7,inset+.7,roof-1.1,W-2*(inset+.7),L-2*(inset+.7),1.4,c['radius']-inset-.7))
+    guide=p['print_structure']['guide_wall']
+    ring=ring.cut(rounded(inset+guide,inset+guide,roof-1.1,W-2*(inset+guide),L-2*(inset+guide),1.4,c['radius']-inset-guide))
     snaps=[]
     for yy in sn['centers_y']:
         for right in [False,True]:
@@ -98,25 +99,34 @@ def build():
             base=base.cut(box(xx,yy-sn['width']/2-.2,sn['window_bottom'],t+.4,sn['width']+.4,sn['window_top']-sn['window_bottom']))
             ring=ring.cut(box(W-4 if right else -.1,yy-sn['width']/2-.35,roof-1.2,4.1,sn['width']+.7,1.5))
             inside,thick,tip,hook=sn['inside_x'],sn['thickness'],sn['tip_x'],sn['hook_top']
-            pts=[(inside+thick,roof-sn['length']),(inside,roof-sn['length']),(tip,hook-1),(tip,hook),(inside,hook),(inside,roof+.1),(inside+thick,roof+.1)]
+            pts=[(inside+thick,roof-sn['length']),(inside,roof-sn['length']),
+                 (inside,hook-1.1),(tip,hook-1),(tip,hook),(inside,hook),
+                 (inside,roof+.1),(inside+thick,roof+.1)]
             shape=(cq.Workplane('XZ').polyline(pts).close().extrude(sn['width']).translate((0,yy+sn['width']/2,0)).val())
             if right: shape=shape.mirror('YZ',(W/2,0,0))
             snaps.append((shape,right))
     lid=lid.fuse(ring)
     for shape,_ in snaps: lid=lid.fuse(shape)
+    # A sloped root increases the joint area without thickening the flexing tip.
+    for yy in sn['centers_y']:
+        for right in (False,True):
+            x=sn['inside_x']+sn['thickness'];g=p['print_structure']['clip_root_gusset']
+            root=(cq.Workplane('XZ').polyline([(x-.05,roof-1.6),(x+g,roof+.1),(x-.05,roof+.1)])
+                  .close().extrude(sn['width']).translate((0,yy+sn['width']/2,0)).val())
+            if right:root=root.mirror('YZ',(W/2,0,0))
+            lid=lid.fuse(root)
     for xx,yy in seats:
         ax=inset if xx<W/2 else xx
         aw=xx+.4-ax if xx<W/2 else W-inset-ax
-        lid=lid.fuse(box(ax,yy,pcbtop+.15,aw,1.2,roof-pcbtop-.05))
+        length=p['print_structure']['pressure_pad_length']
+        lid=lid.fuse(box(ax,yy-.3,pcbtop+.15,aw,length,roof-pcbtop-.05))
     led=p['led_window']
     lid=lid.cut(rounded((W-led['width'])/2,led['center_y']-led['length']/2,roof-.2,led['width'],led['length'],c['lid']+.4,.65))
     for xx in [6,9,12]: lid=lid.cut(box(xx,14,roof-.2,1,3,c['lid']+.4))
     # A continuous grip block prints from the lid face without a suspended bridge.
     lid=lid.fuse(box(1.8,cy,bartop-.1,W-3.6,cl,roof-bartop+.2))
     lid=lid.fuse(bar)
-    # Side guides prevent the integral clamp from shifting when wires are pulled.
-    for xx in [t-.05,W-t-.3]:
-        base=base.fuse(box(xx,cy+1,c['floor']-.05,.35,cl-2,bartop-c['floor']+.05))
+    # The continuous lid guide and full-width clamp replace the fragile .35 mm fins.
     # Independent insulated-wire bypass lanes avoid the snap arms. They also
     # allow two wires to be stacked vertically on one side if actual pads require it.
     ch=p['side_wire_channels']
@@ -169,6 +179,7 @@ def build():
     dims=dict(width=W,length=L,height=H)
     (OUT/'meshes.json').write_text(json.dumps(dict(dimensions=dims,parts=meshes),separators=(',',':')),encoding='utf-8')
     audit=dict(revision=p['revision'],dimensionsMm=dims,checks=checks,partIntersectionsMm3=intersections,moduleIntersectionsMm3=refhits,retractedClipChecksMm3=release,moduleToRoofMm=roof-pz-m['total_height'],boardBelowClearanceMm=pz-c['floor'],nominalWireDiameterMm=w['nominal_insulation_diameter'],clampMinimumChannelHeightMm=w['bar_groove_center_z']+w['groove_radius']-(bedtop-w['groove_radius']),physicalFitTested=False,status='offline-verified',electricalStatus=p['electrical_status'],sideWireChannels=ch,source=p['measurement_status'],scope='BREP/STL topology, STEP roundtrip and declared rigid envelopes; excludes unmeasured component placement, plug, wire grip, thermal and fatigue tests.')
+    audit['printStructure']=dict(p['print_structure'],clipThicknessMm=sn['thickness'],clipWidthMm=sn['width'],clipLengthMm=sn['length'])
     (OUT/'audit.json').write_text(json.dumps(audit,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     files=sorted(OUT.glob('*.stl'))+sorted(OUT.glob('*.step'))
     (HERE/'SHA256SUMS.txt').write_text(''.join(hashlib.sha256(f.read_bytes()).hexdigest()+'  output/'+f.name+'\n' for f in files),encoding='utf-8')

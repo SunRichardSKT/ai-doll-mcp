@@ -180,6 +180,11 @@ class FlashTests(unittest.TestCase):
         calls=[c.args[0] for c in tool.call_args_list]
         self.assertFalse(any('erase_flash' in c for c in calls))
         self.assertEqual(result['device_id'],'AI-Doll-'+job.suffix)
+        self.assertEqual(result['setup_url'],'http://192.168.4.1/setup')
+
+    def test_updated_setup_page_url_is_accepted_from_device(self):
+        result,_,_=self.run_flash(state_changes={'configuration_url':'http://192.168.4.1/setup'})
+        self.assertEqual(result['status'],'success')
 
     def test_factory_explicitly_erases_before_writing(self):
         result,tool,_=self.run_flash(factory=True)

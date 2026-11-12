@@ -13,7 +13,15 @@
 
 用 USB 数据线连接开发板，双击根目录 **Flash_ESP32.cmd**。浏览器自动打开电脑上的 `http://127.0.0.1:8770/`。
 
-看到“已找到开发板”后，保留“标准烧录”，选择名称后点击 **一键烧录**。只有一块开发板时，不用填写串口。
+看到“已找到开发板”后，选择固件来源，保留“标准烧录”，选择名称后点击 **一键烧录**。只有一块开发板时，不用填写串口。
+
+| 固件来源 | 怎么选 |
+| --- | --- |
+| 随包固件 | 默认选项，无需下载。 |
+| 选择本地固件 | 选择项目固件 ZIP 或 Windows 完整包 ZIP；也可一次选中 `FLASH_MANIFEST.json`、`bootloader.bin`、`partitions.bin`、`boot_app0.bin` 和 `firmware.bin` 五个文件。 |
+| GitHub 最新正式版 | 点击“查询最新版本”，核对版本后点击“下载并选用”。查询公开 Release，无需填写 GitHub 账号或令牌。 |
+
+选择、查询和下载都不会写入开发板。校验通过后，再点击“一键烧录”。单独一个 `firmware.bin` 不包含完整 USB 烧录配置，不能直接导入；请下载配套固件 ZIP。在线下载失败时可选已下载的本地包，原固件选择保持不变。最新正式版指 GitHub 的 `releases/latest`，不包含草稿或预发布版本。
 
 设备名称默认自动生成，也可以选择 **自定义名称**，例如“小樱”。这个名字同时用作设备显示名和配网热点名，最多 32 个 UTF-8 字节（中文通常每字 3 字节）。重新烧录时选择随机名称，会恢复为本次自动生成的名称。
 
@@ -27,9 +35,9 @@
 
 ## 4. 找到设备设置页
 
-手机连接成功页面显示的 Wi-Fi 热点（自定义名称或 `AI-Doll-…`），在浏览器地址栏输入 **http://192.168.4.1/**。这是临时热点内的固定设置入口；0.1.1中首次窗口最长10分钟，新配网成功后约90秒关闭。标准升级若保留了家庭Wi-Fi，正常不开热点；需要时运行中长按BOOT约3秒再松开，不按RST。烧录成功以实际启动和编号回读为准，不要求已配网设备一直广播热点。
+手机连接成功页面显示的 Wi-Fi 热点（自定义名称或 `AI-Doll-…`），在浏览器地址栏输入 **http://192.168.4.1/setup**。这是临时热点内的配网入口；0.1.1中首次窗口最长10分钟，新配网成功后约90秒关闭。标准升级若保留了家庭Wi-Fi，正常不开热点；需要时运行中长按BOOT约3秒再松开，不按RST。烧录成功以实际启动和编号回读为准，不要求已配网设备一直广播热点。
 
-手机提示“没有互联网”时，选择继续连接。这个热点用来设置娃娃；电脑的烧录页面和娃娃设置页面是两个地址。
+手机提示“没有互联网”时，选择继续连接。这个热点用来设置娃娃；电脑的烧录页面和娃娃设置页面是两个地址。切回家庭 Wi-Fi 后，从已配对的 Operit 或电脑管理中心打开设备设置，不再使用 `192.168.4.1`。
 
 ## 自动连接失败怎么办
 
@@ -59,8 +67,10 @@ python -m pip install -r requirements-flash.txt
 python tools/flash_esp32.py --list-ports
 python tools/flash_esp32.py --port /dev/ttyACM0
 python tools/flash_esp32.py --port /dev/ttyACM0 --name "小樱"
+python tools/flash_esp32.py --images AI_Doll_Firmware_v0.1.1.zip --check
+python tools/flash_esp32.py --latest --check
 ```
 
-Windows 命令行仍可运行 `Flash_ESP32.cmd --check` 只验证镜像，或 `Flash_ESP32.cmd --port COM4 --name "小樱"` 烧录并自定义名称；省略 `--name` 使用随机名称。`--factory` 明确清空设备。源码构建见 [开发指南](../developers/DEVELOPER_GUIDE.md)。
+Windows 命令行仍可运行 `Flash_ESP32.cmd --check` 只验证镜像，或 `Flash_ESP32.cmd --port COM4 --name "小樱"` 烧录并自定义名称；省略 `--name` 使用随机名称。`--images` 接受固件目录或项目 ZIP；`--latest --check` 只下载并校验最新正式版，去掉 `--check` 才开始烧录。下载仅保存到 `build/flash-sources/`，不会覆盖随包固件。`--factory` 明确清空设备。源码构建见 [开发指南](../developers/DEVELOPER_GUIDE.md)。
 
 下一步：[配网与电脑连接](../daily/WIFI_CONNECTION.md)，再按 [压力校准](../daily/CALIBRATION_AND_DAILY_MODE.md)检查实体传感器。烧录成功本身不证明传感器或电机正常。

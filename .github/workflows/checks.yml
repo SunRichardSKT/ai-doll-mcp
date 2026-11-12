@@ -29,6 +29,10 @@ jobs:
         run: python tools/check_firmware.py
       - name: Core behavior and native network and archive policies
         run: python -m unittest test_shared_core test_companion_experience test_hotspot_policy test_archive_lease test_embed_assets test_firmware_delivery test_firmware_compat
+      - name: Firmware selection and flasher regressions without USB writes
+        run: |
+          python -m unittest test_flash_esp32 test_flash_server test_flash_sources
+          node tools/test_flash_ui.cjs
       - name: Build and validate ToolPkg, including storage and queue regressions
         run: python tools/package_operit.py
       - name: Actual MCP SDK over HTTP and STDIO

@@ -1,26 +1,26 @@
 {
   "passed": true,
-  "revision": "GEN1-FINAL-ENC",
+  "revision": "GEN1-RUGGED-P01",
   "dimensionsMm": {
     "width": 42.89,
     "length": 56.45,
-    "height": 33.5
+    "height": 33.9
   },
   "checks": {
     "base": {
       "validSingleStep": true,
       "watertightStl": true,
-      "relativeVolumeError": 4.7508212966472954e-05
+      "relativeVolumeError": 4.910495478470664e-05
     },
     "tray": {
       "validSingleStep": true,
       "watertightStl": true,
-      "relativeVolumeError": 1.3202275427140749e-06
+      "relativeVolumeError": 1.2636811125545488e-06
     },
     "lid": {
       "validSingleStep": true,
       "watertightStl": true,
-      "relativeVolumeError": 7.919715453949392e-06
+      "relativeVolumeError": 6.702240336471301e-06
     }
   },
   "batteryInsertionSampleMm": 2,
@@ -128,11 +128,11 @@
   "physicalFitTested": false,
   "scope": "Independent exports and sampled rigid vertical insertion/removal; no connector mating force, continuous sweep, fatigue or physical assembly proof.",
   "files": {
-    "base.stl": "ff8921eac709e6a4055c7fa657cec92eedfdd701e246a55818eef74ace2e27e4",
-    "base.step": "5a91c6cdffb490221dab8e87b3b3c1b88d82f9e0731a43221bc8f1cc9c16dda9",
-    "tray.stl": "7790a6200550fa12739ac9729f139404fa72d5f635b9017615e6e80c42559d5f",
-    "tray.step": "d00e039a467c0c6795a6fc5d999ad3828ebc31d83834b008d5fa2d7c0b56fb5e",
-    "lid.stl": "08846a143a6e5eaad5afe847013eb2f808f46d613b15894572c0e1f83635af61",
-    "lid.step": "45dec53ce68a16026b93e51884306b48e3e7caaf1518d32a333c9efb410497b8"
+    "base.stl": "a464b8701fb98cabae7af0271727cd9dcddd96ec0bac51151e6315736f3e1a05",
+    "base.step": "5107bf1241c0a6d7f89b433018be9215ef3907f1bbf832003877218f7ba9f7ed",
+    "tray.stl": "4ca039c6abf065832ff2e060a3f9fe3da6546b785b83f5b4cced8ee7b67bbf44",
+    "tray.step": "7f6dd44302399634b2f36704af5707f547674ce6a4a5b5a8112bd4316e319ca5",
+    "lid.stl": "1c9e4255aac6372a232a4eb032a0ebcd94a4f5a5da5fc31d45933c340fbef6dc",
+    "lid.step": "3075eabe3edd25c82d2dd0e648f6a13e601458798c09677f0ca08be71ca40bad"
   }
 }
