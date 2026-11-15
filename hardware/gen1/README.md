@@ -8,11 +8,11 @@
 | --- | --- |
 | 已制双排通孔SuperMini带线板 | [PCB、BOM与制造文件](pcb/README.md#早期已制带线板) · [带线板堆叠壳](enclosure/ordered-v2-stacked/README.md) |
 | 居中靠下开关的C3 PCB修订 | [历史扩展接线](expansion/current-board/README.md)；仍属第一代，按实际固件能力选择扩展 |
-| 第一代最终PA2.0锁扣插座板 | [工程与制造资料](pcb/candidates/c3-socket-20261105/README.md) · [配套103450电池壳](enclosure/c3-socket-stacked/README.md) |
+| 第一代最终PA2.0锁扣插座板（手焊焊盘修订） | [工程与制造资料](pcb/candidates/c3-socket-20261105/README.md) · [配套103450电池壳](enclosure/c3-socket-stacked/README.md) |
 | 独立Type-C充电／升压小板 | [保护壳与四线接法](enclosure/charger-inline/README.md) |
 | NTC温度与湿润感应片 | [现板扩展接线、配件和配置](expansion/resistive-inputs/README.md) |
 
-SuperMini手焊焊盘的后续修改也归第一代板型修订，不据此升级产品代际。制造数据、原生工程文件名和现有STL／STEP保留，避免与实物批次混淆。
+当前SuperMini手焊焊盘修订已并入最终版主板目录，仍属于第一代。制造数据、原生工程文件名和现有STL／STEP保留，避免与实物批次混淆。
 
 ## 软件和能力
 
