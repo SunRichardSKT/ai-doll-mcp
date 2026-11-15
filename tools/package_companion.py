@@ -343,6 +343,8 @@ def server_package(delivery, operit_package=None):
     contents['delivery/AI_Doll_Operit.toolpkg']=(operit_package or ROOT/'delivery/AI_Doll_Operit.toolpkg').read_bytes()
     if b'\r' in contents['Install_Server.sh']:
         raise ValueError('Linux installer must use LF line endings; save Install_Server.sh with LF before packaging')
+    if f'\nAPP_VERSION={VERSION}\n'.encode() not in contents['Install_Server.sh']:
+        raise ValueError('Linux installer version must match the server package')
     vendor = ROOT/'clients/operit/vendor'
     for asset in ('qrcodegen.js', 'qrcodegen.LICENSE', 'SOURCES.json'):
         contents['clients/operit/vendor/'+asset] = (vendor/asset).read_bytes()

@@ -3,8 +3,8 @@
     {
       "file": "AI_Doll_Code_v0.1.2.zip",
       "files": 2894,
-      "bytes": 32134981,
-      "sha256": "bc6b72dc2a2ff5c4369d8374ef7b704f28105dc175df0828d20c437f82c15d53"
+      "bytes": 32135125,
+      "sha256": "b769613fd1f7f8fb95cf4d77eedbbe07b4c182dac38055c467b3f768aac89a36"
     },
     {
       "file": "AI_Doll_Firmware_v0.1.2.zip",
@@ -21,8 +21,8 @@
     {
       "file": "AI_Doll_Server_v0.1.2.tar.gz",
       "files": 50,
-      "bytes": 352702,
-      "sha256": "51b26b57ce5e237490795a58935e60702255c75a68752b40f44fa85788925ca9",
+      "bytes": 352784,
+      "sha256": "9ddfad75d618f33077a08ebaa3aeac191cd92f66ade712b0bfcc2ae88dc31144",
       "checksum_file": "AI_Doll_Server_v0.1.2.tar.gz.sha256"
     },
     {

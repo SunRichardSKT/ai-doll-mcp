@@ -31,6 +31,7 @@ class RemoteInstallTests(unittest.TestCase):
     def test_installer_uses_LF_and_matches_the_package(self):
         source = (ROOT/'Install_Server.sh').read_bytes()
         self.assertNotIn(b'\r', source)
+        self.assertIn(f'\nAPP_VERSION={VERSION}\n'.encode(),source)
         result = subprocess.run([str(BASH), '--noprofile', '--norc', '-n'],
                                 input=source, capture_output=True, timeout=10)
         self.assertEqual(result.returncode, 0, result.stderr)
