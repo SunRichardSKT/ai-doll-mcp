@@ -6,8 +6,9 @@ static bool sensorEnabled=false,resumeInputs=false;
 static int sensorOn=1200,sensorOff=800;
 #include "channel_devices.h"
 static ContactInput contacts[MAX_CHANNELS];
+static TemperatureInput temperatures[MAX_CHANNELS];static WetInput wetInputs[MAX_CHANNELS];
 static void refreshExpansionInputs(){for(const auto &c:channels)if(c.configured&&c.driver==ChannelDriver::GPIO_SWITCH)pinMode(c.gpio,INPUT);}
-static void stopDigitalInputs(){for(auto &c:contacts)c=ContactInput();}
+static void stopDigitalInputs(){for(int i=0;i<MAX_CHANNELS;i++){contacts[i]=ContactInput();temperatures[i]=TemperatureInput();wetInputs[i]=WetInput();}}
 static void disarmOutputs(){} // Compatibility hook used by OTA; this build has no outputs.
 static void initOutputPins(){}
 static String touchBoot;
@@ -135,7 +136,7 @@ static __attribute__((noinline)) bool setChannelState(JsonVariantConst a,String 
  // End only this port's old event before changing its label/source. Other
  // channels, calibration thresholds and GPIO bindings remain intact.
  if(changed&&touches[ch].active)touchInject(ch,0);
- channels[ch]=next[ch];if(changed){readings[ch]=ChannelReading();sensorDebounce[ch]=0;contacts[ch]=ContactInput();}resumeInputs=resume;
+ channels[ch]=next[ch];if(changed){readings[ch]=ChannelReading();sensorDebounce[ch]=0;contacts[ch]=ContactInput();temperatures[ch]=TemperatureInput();wetInputs[ch]=WetInput();}resumeInputs=resume;
  if(modeRequested&&sensorEnabled!=resume)applyInputEnabled(resume);
  refreshExpansionInputs();
  return true;
@@ -189,13 +190,13 @@ static void readChannels(JsonObject out){
   String quality=!c.enabled?"disabled":!s.sampled?"not_sampled":(s.source=="sensor"&&!sensorEnabled)?"inputs_disabled":!s.valid?s.fault:((s.source=="sensor"&&now-s.at>max(5000,c.sampleMs*3))?"stale":"ok");p["quality"]=quality;
   if(quality=="ok")p["value"]=s.value;else p["value"]=nullptr;
   p["raw"]=s.raw;if(s.mv>=0)p["adc_mv"]=s.mv;else p["adc_mv"]=nullptr;
-  if(c.kind==DeviceKind::SWITCH)p["active"]=s.value>=0.5f;
+  if(c.kind==DeviceKind::SWITCH||c.kind==DeviceKind::WETNESS)p["active"]=s.value>=0.5f;
   if(c.kind==DeviceKind::PRESSURE){p["active"]=touches[ch].active;p["press_threshold"]=c.on;p["release_threshold"]=c.off;p["calibrating"]=calibration.engaged&&calibration.channel==ch;}
  }
 }
 static void expansionRecord(int ch,const String &phase,float value,const String &source,bool valid=true,const String &fault=""){
  auto &v=readings[ch];v.sampled=true;v.valid=valid;v.value=value;v.at=touchNow();v.source=source;v.fault=fault;
- auto &r=newRecord(ch,phase);r.value=value;r.valid=valid;r.source=source;r.quality=valid?"ok":fault;
+ auto &r=newRecord(ch,phase);r.value=value;r.valid=valid;r.source=source;r.quality=valid?"ok":fault;r.raw=v.raw;r.peak=v.raw;r.mv=v.mv;
  persistTouchRecord(r);
 }
 static bool simulateInput(JsonVariantConst a,String &error){
@@ -212,7 +213,16 @@ static bool simulateInput(JsonVariantConst a,String &error){
  }else if(channels[ch].kind==DeviceKind::SWITCH){
   if(unit!="boolean"||(value!=0&&value!=1)){error="Switch: boolean value 0 or1";return false;}
   expansionRecord(ch,value?"close":"open",value,"simulation");
- }else{error="Only pressure and switch simulation are supported";return false;}
+ }else if(channels[ch].kind==DeviceKind::TEMPERATURE){
+  if(unit!="degC"||value<-20||value>80){error="Temperature: degC -20..80";return false;}
+  readings[ch].mv=-1;readings[ch].raw=0;expansionRecord(ch,"sample",value,"simulation");
+ }else if(channels[ch].kind==DeviceKind::WETNESS){
+  if(unit!="boolean"||(value!=0&&value!=1)){error="Wetness: boolean 0 dry or 1 wet";return false;}
+  // Tests of the wet pad alone are records; a wipe also needs a simulated pressure.
+  bool rising=value&&readings[ch].value<.5f;expansionRecord(ch,value?"wet":"dry",value,"simulation");
+  int pc=channels[ch].wet.pressureChannel;
+  if(rising&&validChannel(pc)&&touches[pc].active&&touches[pc].simulated)expansionRecord(ch,"wipe",1,"simulation");
+ }else{error="Unsupported simulation input";return false;}
  return true;
 }
 static void sensorConfig(JsonObject out){
@@ -295,10 +305,27 @@ static void touchTick(){
    if(changed||initial)expansionRecord(ch,initial?"sample":contacts[ch].active?"close":"open",v.value,"sensor");
    continue;
   }
+  if(c.kind==DeviceKind::TEMPERATURE&&v.sampled&&now-v.at<(uint32_t)c.sampleMs)continue;
   int gpio=c.driver==ChannelDriver::MUX_ADC?0:c.gpio;
   if(c.driver==ChannelDriver::MUX_ADC){digitalWrite(3,c.mux&1);digitalWrite(4,(c.mux>>1)&1);digitalWrite(5,(c.mux>>2)&1);delayMicroseconds(500);}
   analogRead(gpio);int sum=0;for(int j=0;j<4;j++)sum+=analogRead(gpio);int raw=sum/4;sensorRaw[ch]=raw;v.raw=raw;
-  v.sampled=true;v.valid=true;v.value=raw;v.at=now;v.source="sensor";
+  bool previouslyValid=v.valid;v.sampled=true;v.valid=true;v.value=raw;v.at=now;v.source="sensor";v.fault="";
+  if(c.kind==DeviceKind::TEMPERATURE){
+   uint32_t millivolts=0;for(int j=0;j<4;j++)millivolts+=analogReadMilliVolts(gpio);v.mv=millivolts/4;
+   float temperature=0;
+   if(!ntcTemperature(v.mv,c.ntc,temperature)){v.valid=false;v.fault="probe_open_short_or_out_of_range";temperatures[ch]=TemperatureInput();
+    if(previouslyValid)expansionRecord(ch,"fault",0,"sensor",false,v.fault);
+   }else{v.value=temperature;bool initial=!temperatures[ch].ready;if(temperatures[ch].sample(temperature,now,c.ntc))expansionRecord(ch,initial?"baseline":"sample",temperature,"sensor");}
+   continue;
+  }
+  if(c.kind==DeviceKind::WETNESS){
+   int pc=c.wet.pressureChannel;bool pressed=validChannel(pc)&&physicalChannel(channels[pc])&&touches[pc].active&&!touches[pc].simulated;
+   uint8_t flags=wetInputs[ch].sample(raw,c.on,c.off,pressed,now,c.wet);v.value=wetInputs[ch].wet?1:0;
+   if(flags&1)expansionRecord(ch,"wet",1,"sensor");
+   if(flags&2)expansionRecord(ch,"wipe",1,"sensor");
+   if(flags&4)expansionRecord(ch,"dry",0,"sensor");
+   continue;
+  }
   if(calibration.engaged&&calibration.channel==ch){if(calibration.capturing)calibration.stages[calibration.stage].add(raw);sensorDebounce[ch]=0;continue;}
   TouchState &s=touches[ch];bool transition=s.active?raw<=c.off:raw>=c.on;if(s.active){s.raw=raw;s.peak=max(s.peak,raw);}
   if(!transition){sensorDebounce[ch]=0;continue;}if(++sensorDebounce[ch]>=3){sensorDebounce[ch]=0;touchInject(ch,s.active?0:raw,false);}

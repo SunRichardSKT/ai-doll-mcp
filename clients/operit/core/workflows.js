@@ -70,8 +70,8 @@ async function ensure(cfg,kind) {
     description(cfg,kind),nodes(kind),connections,false);
   if (!created.id) throw Error('宿主没有返回工作流编号。');
   // Save ownership before rereading: failed readback must not create duplicates.
-  cfg.workflows[kind]=created.id;
-  await store.write('settings.json',cfg);
+  const saved=await store.updateConfig(current=>({workflows:{...current.workflows,[kind]:created.id}}));
+  cfg.workflows=saved.workflows;
   return verify(cfg,kind,await Tools.Workflow.get(created.id));
 }
 function localTime(epoch) {
@@ -79,12 +79,21 @@ function localTime(epoch) {
   return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+' '+
     pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
 }
+async function activate(cfg,id,changes){
+  const generation=cfg.control_generation||0;
+  if(((await store.config()).control_generation||0)!==generation)throw Error('后台任务已停止，不再安排旧请求。');
+  await Tools.Workflow.update(id,changes);
+  if(((await store.config()).control_generation||0)!==generation){
+    await Tools.Workflow.update(id,{enabled:false});
+    throw Error('后台任务已停止，不再安排旧请求。');
+  }
+}
 async function schedule(cfg,kind,job) {
   const flow=await ensure(cfg,kind);
   // trigger() waits for the whole task. Schedule one bounded native WorkManager
   // job instead, so the UI control returns without recursively waiting on chat.
   const at=localTime(Date.now()+(job.delay_ms||10000));
-  await Tools.Workflow.update(flow.id,{nodes:nodes(kind,job.id,at),connections,enabled:true});
+  await activate(cfg,flow.id,{nodes:nodes(kind,job.id,at),connections,enabled:true});
   const confirmed=verify(cfg,kind,await Tools.Workflow.get(flow.id));
   if (confirmed.enabled!==true || !confirmed.nodes.some(n=>n.type==='trigger'&&n.triggerType==='schedule'&&
       n.triggerConfig?.specific_time===at&&n.triggerConfig?.repeat==='false'&&n.triggerConfig?.enabled==='true') ||
@@ -97,7 +106,7 @@ async function watchdog(cfg) {
   const list=nodes('watchdog','watchdog:'+cfg.binding);
   list[0].triggerType='schedule';
   list[0].triggerConfig={schedule_type:'interval',interval_ms:'900000',repeat:'true',enabled:'true'};
-  await Tools.Workflow.update(flow.id,{nodes:list,connections,enabled:true});
+  await activate(cfg,flow.id,{nodes:list,connections,enabled:true});
   const saved=verify(cfg,'watchdog',await Tools.Workflow.get(flow.id));
   if(saved.enabled!==true||saved.nodes[0].triggerConfig?.repeat!=='true')throw Error('常开恢复任务未确认。');
 }

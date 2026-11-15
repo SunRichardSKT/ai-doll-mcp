@@ -141,6 +141,8 @@ TOOLS = (
     'package_chatgpt_plugin.py',
     'launch_companion_mcp.ps1',
     'test_expansion.py',
+    'test_resistive_inputs.py',
+    'test_resistive_ui.cjs',
     'test_expansion_ui.cjs',
     'test_digital_mcp.py',
     'test_digital_ui.cjs',
@@ -242,13 +244,14 @@ DOCS = (
     'reports/FIRMWARE_NETWORK.md',
     'reports/FIRMWARE_TRIM.md',
     'reports/FIRMWARE_INPUTS.md',
+    'reports/RESISTIVE_INPUTS_012.md',
     'reports/WIFI_FEEDBACK.md',
     'start/AI_INSTALL.md',
     'start/FACTORY_SETTINGS.md',
     'start/MCP_TRANSPORT_DECISION.md',
     'start/QUICK_FLASH.md',
 )
-SOURCE = ('device_tools.json', 'remote_uplink.h', 'expansion_inputs.h', 'ota_update.h', 'event_storage.h', 'event_integrity.h', 'lab_main.cpp', 'device_page.h', 'setup_page.h', 'touch_events.h', 'network_state.h', 'network_policy.h',
+SOURCE = ('device_tools.json', 'remote_uplink.h', 'expansion_inputs.h', 'resistive_inputs.h', 'ota_update.h', 'event_storage.h', 'event_integrity.h', 'lab_main.cpp', 'device_page.h', 'setup_page.h', 'touch_events.h', 'network_state.h', 'network_policy.h',
           'channel_devices.h', 'channel_rpc.h', 'pressure_calibration.h', 'device_discovery.h', 'archive_lease.h')
 PREBUILT = ('firmware.bin', 'bootloader.bin', 'partitions.bin', 'boot_app0.bin', 'FLASH_MANIFEST.json', 'README.md')
 SHARED_SOURCE = ('src/ai_doll/__init__.py', 'src/ai_doll/core/__init__.py', 'src/ai_doll/core/version.py',
@@ -261,7 +264,7 @@ PCB_FILES = (
 )
 PCB_PACKAGE = f'AI_Doll_PCB_v{VERSION}.zip'
 CODE_README = (ROOT/'README.md').read_bytes().decode('utf-8')
-PCB_README = '# AI Doll PCB · 内测0.1.1版\n\n第一代最终版为34.29 × 44.45 mm双层C3八路锁扣插座板。下方保留早期已制带线板资料，按实物区分。\n\n- [主板与采购说明](hardware/rev-v2/README.md)\n- [早期已制带线板工程](hardware/rev-v2/AI_Doll_V2_丝印镜像修正_20261016.epro2)\n- [采购BOM](hardware/rev-v2/AI_Doll_V2_标准化采购BOM_20261003.csv)\n- [板外器件与测试点](hardware/rev-v2/AI_Doll_V2_板外器件与测试点_20261003.csv)\n- [在用制造资料](hardware/rev-v2/ordered-gerber-20260920/已下单PCB封装核对.md)\n- [第一代最终版锁扣插座板](hardware/rev-v2/candidates/c3-socket-20261105/README.md)\n\nJ9要求5V输入，主板不包含锂电池充电、升压或保护电路。第一代最终版采用后置开关和三针锁扣电源座，配套103450/PH2.0核心电池壳及独立充电板壳；首板先核对实际插头、开关和电池。\n\n[接线教程](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/daily/SENSOR_CHANNELS.md) · [外壳选择](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/README.md)\n'
+PCB_README = '# AI Doll PCB · 0.1.2 内测版\n\n第一代最终版为34.29 × 44.45 mm双层C3八路锁扣插座板。下方保留早期已制带线板资料，按实物区分。\n\n- [主板与采购说明](hardware/rev-v2/README.md)\n- [早期已制带线板工程](hardware/rev-v2/AI_Doll_V2_丝印镜像修正_20261016.epro2)\n- [采购BOM](hardware/rev-v2/AI_Doll_V2_标准化采购BOM_20261003.csv)\n- [板外器件与测试点](hardware/rev-v2/AI_Doll_V2_板外器件与测试点_20261003.csv)\n- [在用制造资料](hardware/rev-v2/ordered-gerber-20260920/已下单PCB封装核对.md)\n- [第一代最终版锁扣插座板](hardware/rev-v2/candidates/c3-socket-20261105/README.md)\n\nJ9要求5V输入，主板不包含锂电池充电、升压或保护电路。第一代最终版采用后置开关和三针锁扣电源座，配套103450/PH2.0核心电池壳及独立充电板壳；首板先核对实际插头、开关和电池。\n\n[接线教程](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/daily/SENSOR_CHANNELS.md) · [外壳选择](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/README.md)\n'
 
 
 def link_unbundled_docs(contents):
@@ -351,7 +354,7 @@ def server_package(delivery, operit_package=None):
         '[本版说明](../CHANGELOG.md) · [AI使用说明书](ai/AI_GUIDE.md) · [检查记录](reports/VALIDATION.md)\n\n'
         '[完整教程目录](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/README.md)\n').encode()
     contents['README.md'] = ('# AI Doll Linux 服务包\n\n'
-        f'{VERSION} · 内测0.1.1版；从解压目录运行安装入口，保留原部署数据。\n\n'
+        f'{VERSION} · 0.1.2 内测版；从解压目录运行安装入口，保留原部署数据。\n\n'
         '准备 Ubuntu / Debian 服务器，将域名解析到它，并放行 TCP 80 / 443。\n\n'
         '上传并解压此包，在解压目录运行：\n\n'
         '```bash\nsudo bash Install_Server.sh\n```\n\n'
@@ -405,11 +408,11 @@ def main():
     files += sorted((ROOT/'docs/images').glob('*.png'))
     files.append(ROOT/'docs/images/ai-doll-logo.svg')
     files += [ROOT/'templates'/name for name in ('chatgpt-mcp-config.json','README.md','host-event.example.json','openclaw-hook.example.json')]
-    files += [p for p in (ROOT/'hardware/expansion/current-board').iterdir() if p.is_file()]
+    files += [p for directory in ('current-board','resistive-inputs') for p in (ROOT/'hardware/expansion'/directory).iterdir() if p.is_file()]
     files += [ROOT/'firmware/src'/name for name in SOURCE]
     files += [ROOT/'firmware/prebuilt'/name for name in PREBUILT]
     outputs = [package(delivery/f'AI_Doll_Code_v{VERSION}.zip', files, CODE_README, f'doll-bridge-{VERSION}')]
-    firmware_readme = f'# AI Doll 固件 · 内测{VERSION}\n\n配套设备程序；普通Windows用户可直接下载完整包运行Flash_ESP32.cmd。\n\n[镜像与地址](firmware/prebuilt/README.md) · [OTA升级](docs/daily/OTA_UPDATE.md)\n\n仅支持压力和干接点；板载状态灯、网络、历史及OTA保留。温度、动作和外接输出已移除，旧扩展配置隔离保存。升级保留校准与历史，不执行全片擦除。\n'
+    firmware_readme = f'# AI Doll 固件 · 内测{VERSION}\n\n配套设备程序；普通Windows用户可直接下载完整包运行Flash_ESP32.cmd。\n\n[镜像与地址](firmware/prebuilt/README.md) · [OTA升级](docs/daily/OTA_UPDATE.md)\n\n支持压力、两线NTC温度、擦眼泪湿润感应片和干接点；板载状态灯、网络、历史及OTA保留。动作、数字温度和外接输出仍不支持。旧隔离配置保留且不自动恢复。升级保留校准与历史，不执行全片擦除。\n'
     firmware_files = [ROOT/'firmware/prebuilt'/name for name in PREBUILT] + [ROOT/'LICENSE', ROOT/'docs/daily/OTA_UPDATE.md']
     outputs.append(package(delivery/f'AI_Doll_Firmware_v{VERSION}.zip', firmware_files, firmware_readme, f'doll-lab-{VERSION}'))
     hardware = ROOT/'hardware/rev-v2'
@@ -439,7 +442,7 @@ def main():
         checksums[name] = hashlib.sha256((delivery/name).read_bytes()).hexdigest()
     checksums['Install_Server.sh'] = hashlib.sha256((ROOT/'Install_Server.sh').read_bytes()).hexdigest()
     (delivery/'SHA256SUMS.txt').write_text(''.join(digest+'  '+name+'\n' for name,digest in sorted(checksums.items())), encoding='ascii',newline='\n')
-    readme = f'# 下载与交付文件\n\n**{VERSION} · 内测0.1.1版 / 固件0.1.1**，更新于2026-11-13。[下载本版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v{VERSION})。\n\n本次更新烧录器：支持选择本地项目固件、查询和下载GitHub最新正式版，配网入口为`http://192.168.4.1/setup`。三种外壳均改为加固结构，核心壳底壳、托板和上盖须整套重打。Windows完整包内置Python，无需另装；保留原有配置和历史。固件镜像与电气参数未变。\n\n'
+    readme = f'# 下载与交付文件\n\n**{VERSION} · 0.1.2 内测版 / 固件0.1.2**，更新于2026-11-15。[下载本版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v{VERSION})。\n\n本版修复Operit配置并发覆盖和设备重启恢复，新增NTC10k/B3435和擦眼泪感应片，使用现板两个PA2.0传感器口，可保留六路压力。温度与擦眼泪分别设置只记录／允许回复；配套固件为resistive-inputs-v1。Windows完整包内置Python，保留原历史、设置及校准；未自动给已有设备烧录。接线和感应片制作见[现板电阻扩展](../hardware/expansion/resistive-inputs/README.md)。\n\n'
     readme += '## 应该下载哪个\n\n| 包 | 适合谁 | 解压后做什么 |\n| --- | --- | --- |\n'
     purposes = {
         f'AI_Doll_Firmware_v{VERSION}.zip': ('已有软件／仅升级开发板', '按固件说明使用OTA应用镜像或配套烧录工具，不全片擦除'),
@@ -463,7 +466,7 @@ def main():
         readme += f"- `{item['file']}`：`{item['sha256']}`\n"
     readme += '\n## 交付范围\n\n公共包只包含代码、文档、固件、PCB 和公共模板，不包含个人配对、Wi-Fi、令牌或互动数据库。更新保留自己的 build 数据，远程部署保留数据卷。\n\n'
     readme += '新板烧录：双击 Flash_ESP32.cmd，可选随包固件、本地项目固件 ZIP 或查询 GitHub 最新正式版，校验后点击一键烧录。日常管理：双击 AI_Doll.cmd。手机连接娃娃热点后，配网页为 http://192.168.4.1/setup，首次热点最长10分钟，新配网成功后约90秒关闭；正常重启不开热点，运行中长按BOOT约3秒重新开启。\n\n'
-    readme += '每次 USB 烧录产生新内部配对编号；可选择自定义显示名和热点名并保留独立日志；标准烧录保留设置，恢复出厂才清空设备。CH0 实体按压/释放及电脑归档已实测；其他硬件、普通 Chat 空闲唤醒和真实公网部署仍按 [验证汇总](../docs/reports/VALIDATION.md)列出的范围。\n'
+    readme += '每次 USB 烧录产生新内部配对编号；可选择自定义显示名和热点名并保留独立日志；标准烧录保留设置，恢复出厂才清空设备。安装后按实际通道检查采样与聊天接入，检查记录见[验证汇总](../docs/reports/VALIDATION.md)。\n'
     (delivery/'README.md').write_text(readme, encoding='utf-8',newline='\n')
     for item in outputs:
         print(item['file'], item['files'], 'files, verified')

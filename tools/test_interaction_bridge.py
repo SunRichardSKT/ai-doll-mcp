@@ -68,7 +68,9 @@ class BridgeTests(unittest.TestCase):
         self.event(.2,kind='temperature',phase='sample',value=25.3)
         self.event(.3,kind='temperature',phase='sample',value=25.3,channel=1)
         self.event(.4,kind='temperature',phase='sample',value=None)
-        self.assertEqual(self.count(),2)
+        self.assertEqual(self.count(),0)  # First sample per channel is a silent baseline.
+        self.event(.5,kind='temperature',phase='sample',value=26.5)
+        self.assertEqual(self.count(),1)
 
     def test_stale_and_disallowed_simulation_skip(self):
         self.subscribe(policy=dict(allow_simulation=False));self.event()

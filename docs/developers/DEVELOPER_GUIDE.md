@@ -1,11 +1,8 @@
 # 开发、接口与打包
 
-> 开发者参考；普通用户可以跳过。 [全部目录](../README.md)
+从源码构建固件、维护服务与接口，并生成交付包。[教程目录](../README.md) · [完整包安装](../start/AI_INSTALL.md)
 
-
-普通使用者不需要编译，按 [首次安装](../start/AI_INSTALL.md)使用完整包。本页面向维护代码、定制接口和制作交付包的开发者。
-
-当前版本为 **0.1.1内测0.1.1版／固件0.1.1**。[下载](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.1) · [更新说明](../../CHANGELOG.md)。源码中的`delivery/`只保存入口和校验元数据，完整包放在Releases。
+当前源码与交付包为 **0.1.2 内测版／固件 0.1.2**。[下载](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.2) · [更新说明](../../CHANGELOG.md)。源码中的`delivery/`只保存入口和校验元数据，完整包放在Releases。
 
 ## 项目结构
 
@@ -69,7 +66,7 @@ node --version
 
 原生源码 `firmware/src/archive_lease.h`，随源码包保留；它只包含有限归档租约策略，不改变NVS、Flash分区或电气参数。二维码网页使用随包的 `clients/operit/vendor/qrcodegen.js` 与 `tools/pairing_connection.js`。构建前会额外生成 `firmware/src/pairing_asset.h`、`firmware/src/setup_page_asset.h`、`firmware/src/wifi_feedback_asset.h`及工具清单的`firmware/src/device_tools_asset.h`，与其他 `*_asset.h` 一样由来源生成，不提交或重新加入源码允许列表；修改来源后重新编译和导出镜像，不能只替换网页源码。
 
-[当前固件](../reports/FIRMWARE_INPUTS.md)保留压力与干接点，`expansion_inputs.h`只保留开关去抖。温度、OneWire、LIS3DH、PWM执行器代码已移除。构建保留原分区、SDK回溯与coredump；`check_firmware.py`核对能力标识、版本及镜像。`test_expansion.py`检查压力阈值与旧扩展配置隔离，后台历史仍兼容旧事件。
+[当前固件](../reports/RESISTIVE_INPUTS_012.md)支持压力、NTC、湿润片与干接点。`expansion_inputs.h`保留开关去抖，`resistive_inputs.h`实现NTC与湿润片；OneWire、LIS3DH及PWM执行器不在当前驱动范围。构建保留原分区、SDK回溯与coredump；`check_firmware.py`核对能力标识、版本及镜像。`test_expansion.py`检查压力阈值与旧扩展配置隔离，后台历史仍兼容旧事件。
 
 ## 验证原则与入口
 
@@ -93,13 +90,13 @@ Node / Playwright 页面测试需要开发者另装对应环境，运行 `tools/
 
 ```powershell
 .\.venv\Scripts\python.exe -X utf8 tools/build_portable_python.py
-.\.venv\Scripts\python.exe -X utf8 hardware/enclosure/package_enclosures.py --output delivery/AI_Doll_Enclosures_v0.1.1.zip --stacked-output delivery/AI_Doll_Stacked_Enclosure_v0.1.1.zip
+.\.venv\Scripts\python.exe -X utf8 hardware/enclosure/package_enclosures.py --output delivery/AI_Doll_Enclosures_v0.1.2.zip --stacked-output delivery/AI_Doll_Stacked_Enclosure_v0.1.2.zip
 .\.venv\Scripts\python.exe -X utf8 tools/package_companion.py
-.\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Code_v0.1.1.zip
-.\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Server_v0.1.1.tar.gz
+.\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Code_v0.1.2.zip
+.\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Server_v0.1.2.tar.gz
 .\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --repository .
-.\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --archive delivery/AI_Doll_Code_v0.1.1.zip
-.\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --archive delivery/AI_Doll_Server_v0.1.1.tar.gz
+.\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --archive delivery/AI_Doll_Code_v0.1.2.zip
+.\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --archive delivery/AI_Doll_Server_v0.1.2.tar.gz
 ```
 
 `build_portable_python.py` 从官方 CPython 和固定 wheel 构建 Windows x64 运行环境，需要联网。已有完整运行环境时先验证并复用，不要再次覆盖运行中的 `python/`；确需重建时，在停止本项目服务后，将整个已有 `python/` 移到项目内明确的备份位置，再恢复源码的 README、许可和版本元数据后构建。不要打包开发用 `.venv`。
@@ -121,6 +118,8 @@ Node / Playwright 页面测试需要开发者另装对应环境，运行 `tools/
 ## Operit 统一入口
 
 手机主源码在 `clients/operit/`，运行 `.\.venv\Scripts\python.exe -X utf8 tools/package_operit.py` 生成单个 `.toolpkg`。完整包构建会自动包含它。当前 Android 调度、文件选择器和真实后台回复边界见 [统一使用指南](../integrations/OPERIT_SETUP.md)。
+
+运行中的配置修改使用 `settings.updateConfig`，将读取、局部修改和保存放在同一队列中。跨网络等待的操作提交时核对 `control_generation`；停止操作递增该值，使旧请求失效。设备恢复使用明确错误码：`device_restarted` 可重试，`device_identity_changed` 与 `direct_upload_enabled` 停止当前直连任务。相关回归在 `test_operit_storage.cjs` 和 `test_operit_sync_lifecycle.cjs`。
 
 公开工具直接返回结果或Promise，交由Operit按调用完成；不要在await之后调用环境`complete`。1.12.2并发前台与后台调用时，该环境回调可能指向另一调用。`test_operit_registration.cjs --upstream 本地官方runtime目录`用官方运行代码复现旧结果错位，并验证两个返回值隔离；官方脚本缓存仅放在`build/`，不随包交付。
 
@@ -159,3 +158,7 @@ Node / Playwright 页面测试需要开发者另装对应环境，运行 `tools/
 `network_policy.h`中的NetworkRecovery为纯策略，`network_state.h`负责无线电操作。`setup_page.h`由构建生成gzip网页，热点及常见手机探测入口进入简洁向导；认证策略保持原样。新增测试为`test_setup_page.cjs`（可加`--firmware`读取实际嵌入字节），现有`test_hotspot_policy.py`及`test_event_integrity.cpp`检查恢复与历史文件兼容。源包必须包含setup_page.h，不提交派生头文件。
 
 空间测量及取舍见[网络优化报告](../reports/FIRMWARE_NETWORK.md)，BLE尺寸探针不进入任何交付包。
+
+## 0.1.2电阻扩展
+
+实现位置为`firmware/src/resistive_inputs.h`（纯换算与时序）、`channel_devices.h`（能力／配置）、`touch_events.h`（实际采样）。`test_resistive_inputs.py`编译生产状态机，`test_expansion.py`编译真实配置解析；`test_resistive_ui.cjs`检查端口转换与阈值保留。手机与电脑以`wetness/wipe`为唯一擦眼泪回复阶段，wet/dry仅归档。详见[实现报告](../reports/RESISTIVE_INPUTS_012.md)。

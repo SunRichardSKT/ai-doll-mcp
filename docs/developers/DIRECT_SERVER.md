@@ -5,7 +5,7 @@
 
 ESP32 主动向接收服务上传，服务保存 SQLite 历史，再向原应用提供事件。手机只负责首次配置，不中转数据；部署远程后电脑无需常开。
 
-**0.1.1内测0.1.1版／固件0.1.1**支持动态二维码连接、稳定服务器实例标识、设备归档租约和限时热点。从[本版Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.1)下载配套包。
+**v0.1.1 内测版／固件 0.1.1**支持动态二维码连接、稳定服务器实例标识、设备归档租约和限时热点。从[本版Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.1)下载配套包。
 
 ## 先完成安装
 
@@ -124,7 +124,7 @@ await bridge.start({idle_timeout_sec:3600, ttl_sec:3600});
 
 普通状态只归档。开始互动后，浏览器可以空闲等待，事件直接调用原生成队列，不要求正在执行一轮 AI 工具调用。结束、会话空闲到期、订阅到期后不再触发。时长最多一小时；前端可以在用户明确开启的互动模式内续订，不默认永久开启。限时测试可传 `duration_sec:60, ttl_sec:60`，原无参 `start()` 继续兼容。
 
-希望浏览器关闭后仍生成消息时，由**原服务器后端**持续监听 SSE 或调用 `POST /d/<ID>/bridge/next`（`subscription_id`、`wait_sec` 0..20），调用原模型，再经应用原有 WebSocket / SSE / 推送展示。`/bridge/next` 返回的字段与浏览器流一致，续租 `/bridge/renew`，确认 `/bridge/ack`。它不控制手机操作系统后台唤醒权限，不承诺页面关闭后浏览器脚本继续运行。
+希望浏览器关闭后仍生成消息时，由**原服务器后端**持续监听 SSE 或调用 `POST /d/<ID>/bridge/next`（`subscription_id`、`wait_sec` 0..20），调用原模型，再经应用原有 WebSocket / SSE / 推送展示。`/bridge/next` 返回的字段与浏览器流一致，续租 `/bridge/renew`，确认 `/bridge/ack`。页面关闭后由服务器后端继续处理，手机通知使用应用原有推送能力。
 
 ## 接口与故障约定
 

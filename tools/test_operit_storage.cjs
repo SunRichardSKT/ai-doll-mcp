@@ -2,6 +2,8 @@
 const assert=require('node:assert/strict'),path=require('node:path');
 const {fixture}=require('./operit_test_host.cjs');
 const settings=path.resolve(__dirname,'../clients/operit/core/settings.js');
+let finished=false;
+process.on('beforeExit',()=>{if(!finished){console.error('FAIL unresolved storage test');process.exitCode=1;}});
 async function main(){
   const f=fixture();await f.prepare();const original=f.cfg();
   const store=f.load(settings);await store.write('settings.json',{...original,continuous_enabled:true,auto_sync_enabled:true,sync_paused:false});
@@ -62,5 +64,62 @@ async function main(){
     assert.equal((await invalidBackup.invoke('status')).recovery_required,true);
     assert.equal((await invalidBackup.invoke('stop')).stopped,true);
   }
+  const concurrent=fixture();await concurrent.prepare();const updates=concurrent.load(settings);
+  await Promise.all([updates.updateConfig({reply_prompt:'新的回应方式'}),updates.updateConfig({response_wait_sec:3})]);
+  assert.equal(concurrent.cfg().reply_prompt,'新的回应方式');assert.equal(concurrent.cfg().response_wait_sec,3);
+  console.log('PASS storage: concurrent partial updates preserve both fields');
+
+  for(const action of ['prompt','stop']){
+    const pending=fixture();await pending.prepare();const http=pending.tools.Net.http;
+    let arrived,release;const entered=new Promise(resolve=>arrived=resolve);
+    pending.tools.Net.http=async request=>{
+      const body=JSON.parse(request.body);
+      if(body.params?.name==='update_companion_preferences'){
+        arrived();await new Promise(resolve=>release=resolve);
+        return {statusCode:200,content:JSON.stringify({jsonrpc:'2.0',id:body.id,result:{structuredContent:{
+          preferences:{proactive_enabled:true,chat_integration_enabled:true}}}})};
+      }
+      return await http(request);
+    };
+    const enabling=pending.invoke('set_experience',{enabled:true});await entered;
+    if(action==='prompt'){
+      await pending.invoke('set_experience',{reply_prompt:'在请求期间保存的新回应方式'});
+      release();await enabling;
+      assert.equal(pending.cfg().reply_prompt,'在请求期间保存的新回应方式');
+    }else{
+      await pending.invoke('stop');const generation=pending.cfg().control_generation;
+      release();await assert.rejects(enabling,/已停止/);
+      assert.equal(pending.cfg().control_generation,generation);assert.equal(pending.cfg().sync_paused,true);
+      assert.equal(pending.cfg().continuous_enabled,false);
+      assert.ok([...pending.flows.values()].every(flow=>!flow.enabled));
+    }
+    console.log('PASS storage: delayed enable preserves later '+action);
+  }
+  const scheduling=fixture();await scheduling.prepare();
+  const create=scheduling.tools.Workflow.create;let arrived,release;
+  const entered=new Promise(resolve=>arrived=resolve);
+  scheduling.tools.Workflow.create=async(...args)=>{arrived();await new Promise(resolve=>release=resolve);return await create(...args);};
+  const creating=scheduling.invoke('check_connection');await entered;
+  await scheduling.invoke('stop');const stoppedGeneration=scheduling.cfg().control_generation;
+  scheduling.tools.Workflow.create=create;release();await creating;
+  assert.equal(scheduling.cfg().control_generation,stoppedGeneration);assert.equal(scheduling.cfg().sync_paused,true);
+  assert.ok(scheduling.cfg().workflows.probe,'new disabled workflow ownership is retained after stop');
+  assert.ok([...scheduling.flows.values()].every(flow=>!flow.enabled));
+  const flows=scheduling.load(path.resolve(__dirname,'../clients/operit/core/workflows.js'));
+  await assert.rejects(flows.schedule({...scheduling.cfg(),control_generation:stoppedGeneration-1},'probe',{id:'old-request'}),/已停止/);
+  assert.ok([...scheduling.flows.values()].every(flow=>!flow.enabled));
+  console.log('PASS storage: workflow creation preserves stop and cannot activate an older request');
+  const update=scheduling.tools.Workflow.update;let activating,finishActivation;
+  const activationStarted=new Promise(resolve=>activating=resolve);
+  scheduling.tools.Workflow.update=async(id,changes)=>{
+    if(changes.enabled===true){activating();await new Promise(resolve=>finishActivation=resolve);}
+    return await update(id,changes);
+  };
+  const activation=flows.schedule(scheduling.cfg(),'probe',{id:'before-stop'});await activationStarted;
+  await scheduling.invoke('stop');finishActivation();await assert.rejects(activation,/已停止/);
+  assert.ok([...scheduling.flows.values()].every(flow=>!flow.enabled));
+  assert.equal(scheduling.cfg().sync_paused,true);
+  console.log('PASS storage: delayed workflow activation is disabled when stop wins');
+  finished=true;
 }
 main().catch(e=>{console.error(e);process.exitCode=1;});

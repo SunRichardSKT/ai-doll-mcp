@@ -1,14 +1,14 @@
 # Windows 首次安装与 AI 接入
 
-> Windows 电脑负责采集和保存互动记录。先让管理中心读到娃娃，再接 AI。[全部目录](../README.md)
+Windows 电脑采集并保存触摸记录，通过 MCP 提供给聊天客户端。安装分为启动、连接设备、接入 AI 三步。[教程目录](../README.md)
 
-本页对应 **v0.1.1 内测版**。需要仅用安卓手机或自己部署服务时，分别查看 [Operit 直连](../integrations/OPERIT_NO_PC.md) 与 [Linux 部署](../integrations/REMOTE_SERVER_SETUP.md)。
+本页对应 **v0.1.2 内测版**。需要仅用安卓手机或自己部署服务时，分别查看 [Operit 直连](../integrations/OPERIT_NO_PC.md) 与 [Linux 部署](../integrations/REMOTE_SERVER_SETUP.md)。
 
 ## 准备好这三样
 
 - 一台 Windows 64 位电脑，能联网。
 - 已烧录并供电的娃娃；空白开发板先按 [一键烧录](QUICK_FLASH.md)。
-- [Windows完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.1/AI_Doll_Code_v0.1.1.zip)，按本版Release的`SHA256SUMS.txt`校验后完整解压，保留 `python/`、`src/`、`tools/`、`clients/`、`delivery/`。GitHub 的“Download ZIP”是源码，不能替代自带运行环境的完整包。
+- [Windows完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.2/AI_Doll_Code_v0.1.2.zip)，按本版Release的`SHA256SUMS.txt`校验后完整解压，保留 `python/`、`src/`、`tools/`、`clients/`、`delivery/`。GitHub 的“Download ZIP”是源码，不能替代自带运行环境的完整包。
 
 ## 第一步：打开管理中心
 
@@ -34,13 +34,13 @@
 
 MCP 就是 AI 读取娃娃的工具接口。配置保存在 `build/device-lab/mcp-client-config.json`，里面使用本安装目录的完整路径。移动软件后要重新生成。
 
-## 第四步：让 AI 真正调用一次
+## 第四步：确认聊天连接
 
 在已经添加连接的原聊天发这句话：
 
-> 请实际调用 get_installation_status 和 doll_get_status，告诉我设备 ID 和当前连接状态。没有工具就说明没有工具，不要用文档或旧结果代替。
+> 请调用 get_installation_status 和 doll_get_status，按本次结果告诉我设备 ID 和连接状态。
 
-设备 ID 应与管理中心一致。工具连接成功后，按 [聊天测试](../integrations/CHAT_MCP.md)查一次历史和试一次限时互动。上传说明 ZIP 并不等于连接了运行中的服务。
+核对设备 ID 与管理中心一致，再按[聊天测试](../integrations/CHAT_MCP.md)查询历史、体验限时互动。
 
 ## 安装完成后每天怎么用
 

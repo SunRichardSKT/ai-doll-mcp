@@ -188,7 +188,7 @@ async function Screen(ctx) {
    note(history.loading?'正在读取记录……':history.error?'读取失败：'+history.error:history.events.length?'已显示'+history.events.length+'条记录。':'没有找到记录；可换日期查询。'),
    ...(history.scope==='recent_index'?[note('当前为手机近期索引。按日期查询可读取已经归档的记录，设备离线也可查看。')]:[])
   ]),
-  ...history.events.map((e,i)=>card((e.body_part||'未命名部位')+' · '+({start:'按下',end:'松开',summary:'持续按压'}[e.phase]||e.sensor_type||'事件'),[
+  ...history.events.map((e,i)=>card((e.body_part||'未命名部位')+' · '+({start:'按下',end:'松开',summary:'持续按压',wet:'感应片湿润',dry:'感应片干燥',wipe:'擦眼泪',sample:'采样',baseline:'温度基线',fault:'探头异常'}[e.phase]||e.sensor_type||'事件'),[
    text(Number.isFinite(e.at)?new Date(e.at*1000).toLocaleString():'时间未确认'),
    note('CH'+(e.channel??'?')+' · '+(e.source==='simulation'?'模拟测试':e.source==='sensor'?'真实传感器':e.source||'来源未知')+
     (Number.isFinite(e.duration_ms)?' · 持续 '+(e.duration_ms/1000).toFixed(2)+' 秒':''))
@@ -200,7 +200,7 @@ async function Screen(ctx) {
    ...(!panel.port_writes?[note('当前固件不支持直接修改端口三态。可先打开设备设置，或升级固件后在此操作。')]:[]),
    button('刷新端口与读数',()=>refresh()),button('打开设备设置',()=>go('device'))]),
   card('扩展传感器回复',[note('默认只保存记录。允许回复后仍需开启主动回复并绑定聊天；生成期间的事件继续排队。开关打开和姿态初始样本不另行回应。'),
-   ...[['temperature_enabled','温度变化'],['motion_enabled','朝向变化与摇晃'],['switch_enabled','开关闭合']].map(([key,label])=>button(label+' · '+(panel.input_policy?.[key]?'允许回复':'只记录'),async()=>{await call('set_sensor_rules',{[key]:!panel.input_policy?.[key]});await refresh();setMessage('扩展回复规则已保存。');})),note('温度默认相差1℃才回应；第一条样本建立基线，不是体温或发热判断。')]),
+   ...[['temperature_enabled','温度变化'],['wetness_enabled','擦眼泪'],['motion_enabled','朝向变化与摇晃'],['switch_enabled','开关闭合']].map(([key,label])=>button(label+' · '+(panel.input_policy?.[key]?'允许回复':'只记录'),async()=>{await call('set_sensor_rules',{[key]:!panel.input_policy?.[key]});await refresh();setMessage('扩展回复规则已保存。');})),note('温度默认相差1℃才回应；第一条样本建立基线，不是体温或发热判断。')]),
   ...ports.filter(c=>c.direction!=='output'&&!['vibration','light'].includes(c.type)).map(c=>{
    const v=(panel.overview?.values||[]).find(x=>x.channel===c.channel);
    return card('CH'+c.channel+(c.mux_port!==undefined?' · J'+(c.mux_port+1):'')+' · '+({off:'关闭',simulation:'模拟',connected:'已接入'}[c.mode]||'待核对'),[

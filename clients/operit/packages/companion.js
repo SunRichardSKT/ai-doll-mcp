@@ -2,7 +2,7 @@
 {
   "name": "ai_doll_companion",
   "enabledByDefault": true,
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "AI Doll 统一入口。配置与启动请使用工具箱的 AI Doll 面板；不从目标聊天递归等待或发送。",
   "category": "NETWORK",
   "tools": [
@@ -277,8 +277,14 @@
     },
     {
       "name": "set_sensor_rules",
-      "description": "扩展默认只记录；允许温度变化、动作或开关闭合进入原聊天队列。",
+      "description": "扩展默认只记录；允许温度变化、擦眼泪、动作或开关闭合进入原聊天队列。",
       "parameters": [
+        {
+          "name": "wetness_enabled",
+          "type": "boolean",
+          "required": false,
+          "description": "允许擦眼泪互动回复"
+        },
         {
           "name": "motion_enabled",
           "type": "boolean",
@@ -384,14 +390,21 @@ async function status(p={}) {
 }
 function wantsSync(cfg){return !!(cfg.connection?.kind==='ai-doll-device-connection'&&cfg.auto_sync_enabled&&!cfg.sync_paused&&!cfg.sync_identity_changed);}
 async function commitConnection(connection){
-  const cfg=await store.config(),same=store.sameConnection(cfg.connection,connection);
+  let cfg=await store.config();const same=store.sameConnection(cfg.connection,connection),recovering=!!cfg.recovery_required,changes={};
   if(cfg.recovery_required){cfg.installation=store.id();delete cfg.recovery_required;cfg.storage_recovery='连接已重新核对；请选择原聊天后再开启，原归档文件保留。';}
   if(!same){await refreshJob();await store.noRunningJob();if(cfg.continuous_enabled)throw Error('请先停止当前陪伴再更换设备。');}
   if(connection.kind==='ai-doll-device-connection')connection={...connection,storage_key:same?cfg.connection.storage_key:(connection.storage_key||store.id())};
   if(!same){if(cfg.connection)cfg.chat=null;cfg.binding=store.id();cfg.background_verified=false;cfg.probe_file=null;cfg.continuous_enabled=false;
     cfg.auto_sync_enabled=connection.kind==='ai-doll-device-connection';cfg.sync_paused=false;}
   cfg.sync_identity_changed=false;
-  cfg.connection=connection;await store.checkedWrite('settings.json',cfg);
+  if(recovering){
+    cfg.connection=connection;await store.checkedWrite('settings.json',cfg);
+  }else{
+    Object.assign(changes,{connection,sync_identity_changed:false});
+    if(!same)Object.assign(changes,{chat:cfg.chat,binding:cfg.binding,background_verified:false,probe_file:null,
+      continuous_enabled:false,auto_sync_enabled:cfg.auto_sync_enabled,sync_paused:false});
+    cfg=await store.updateConfig(changes,cfg.control_generation||0);
+  }
   let syncScheduled=false,syncError=null;
   if(wantsSync(cfg)){
     const active=await refreshJob();
@@ -422,8 +435,8 @@ async function setup_device(p) {
 }
 async function set_record_sync(p){
   if(typeof p.enabled!=='boolean')throw Error('请选择是否自动同步记录。');
-  const cfg=await store.config();if(cfg.connection?.kind!=='ai-doll-device-connection')throw Error('自动同步用于手机直连；服务器自行保存设备上传记录。');
-  cfg.auto_sync_enabled=p.enabled;cfg.sync_paused=false;if(p.enabled)delete cfg.storage_recovery;await store.checkedWrite('settings.json',cfg);
+  let cfg=await store.config();if(cfg.connection?.kind!=='ai-doll-device-connection')throw Error('自动同步用于手机直连；服务器自行保存设备上传记录。');
+  cfg=await store.updateConfig({auto_sync_enabled:p.enabled,sync_paused:false,...(p.enabled?{storage_recovery:undefined}:{})},cfg.control_generation||0);
   const job=await refreshJob();
   if(p.enabled){if(!job||!['scheduled','running','handoff'].includes(job.phase))await schedule({kind:'sync'});}
   else if(job?.kind==='sync')await stopSyncOnly(cfg,job);
@@ -435,10 +448,10 @@ async function stopSyncOnly(cfg,job){
   try{const tool=await interaction.connect(cfg.connection.mcp_url,cfg.connection);await tool('_stop_record_sync');}catch(_){}
 }
 async function sync_now(){
-  const cfg=await store.config();if(cfg.connection?.kind!=='ai-doll-device-connection')throw Error('服务器收到上传后会自动同步，可刷新设备状态。');
+  let cfg=await store.config();if(cfg.connection?.kind!=='ai-doll-device-connection')throw Error('服务器收到上传后会自动同步，可刷新设备状态。');
   const job=await refreshJob();
   if(job&&['scheduled','running','handoff'].includes(job.phase))return {scheduled:true,reused:true,message:'正在复用当前采集任务同步记录。'};
-  cfg.sync_paused=false;delete cfg.storage_recovery;await store.write('settings.json',cfg);
+  cfg=await store.updateConfig({sync_paused:false,storage_recovery:undefined},cfg.control_generation||0);
   const once={schema:1,id:store.id(),binding:cfg.binding,kind:'sync',phase:'running',worker_deadline:Date.now()+30000};
   await store.write('job.json',once);
   try{
@@ -449,12 +462,11 @@ async function sync_now(){
   }catch(error){once.phase='failed';once.error=String(error.message||error);await store.write('job.json',once);throw error;}
 }
 async function update_computer_address(p) {
-  const cfg=await store.config(),connection=store.replaceComputerIP(cfg.connection,p.host);
+  let cfg=await store.config();const connection=store.replaceComputerIP(cfg.connection,p.host),generation=cfg.control_generation||0;
   // Probe the candidate before touching jobs, binding or durable send receipts.
   const tool=await interaction.connect(connection.mcp_url,connection);
   await tool('get_installation_status');
-  cfg.continuous_enabled=false;
-  await store.write('settings.json',cfg);
+  cfg=await store.updateConfig({continuous_enabled:false},generation);
   await flows.disable(cfg);
   const job=await refreshJob();
   if(job&&['scheduled','running','handoff','stopping','interrupted'].includes(job.phase)){
@@ -463,7 +475,7 @@ async function update_computer_address(p) {
     if(cfg.chat&&cfg.binding)await interaction.stop_interaction({...store.parameters(cfg),connection,mcp_url:connection.mcp_url});
     job.phase='stopped';job.error=null;await store.write('job.json',job);
   }
-  cfg.connection=connection;await store.write('settings.json',cfg);
+  cfg=await store.updateConfig({connection},generation);
   return {saved:true,host:connection.mcp_url.match(/^https?:\/\/([^/:]+)/)[1],chat_preserved:true,delivery_preserved:true,
     message:'电脑地址已更新，聊天绑定与发送记录保留。可在原聊天重新开始互动。'};
 }
@@ -474,16 +486,24 @@ async function set_experience(p) {
   if(p.continuous!==undefined&&typeof p.continuous!=='boolean')throw Error('请明确选择常开或限时。');
   if(p.response_wait_sec!==undefined&&(!Number.isFinite(p.response_wait_sec)||p.response_wait_sec<0||p.response_wait_sec>30))throw Error('合并等待时间应为0～30秒。');
   if(p.reply_prompt!==undefined&&(typeof p.reply_prompt!=='string'||p.reply_prompt.length>4000))throw Error('触摸回应提示词最多4000字。');
-  const cfg=await store.config();
+  let cfg=await store.config();
   if(cfg.continuous_enabled&&(p.continuous!==undefined||p.duration_sec!==undefined)&&p.enabled!==false)throw Error('请先关闭常开，再修改陪伴方式。');
+  const generation=cfg.control_generation||0,changes={};
+  for(const key of ['duration_sec','continuous','response_wait_sec'])if(p[key]!==undefined)changes[key]=p[key];
+  if(p.reply_prompt!==undefined)changes.reply_prompt=p.reply_prompt.trim();
   let preferences;
   if(p.enabled!==undefined){
     if(!cfg.connection)throw Error('请先保存连接。');
-    if(!p.enabled){cfg.continuous_enabled=false;cfg.active_reply_requested=false;await store.write('settings.json',cfg);}
+    if(!p.enabled){
+      Object.assign(changes,{continuous_enabled:false,active_reply_requested:false});
+      cfg=await store.updateConfig({continuous_enabled:false,active_reply_requested:false},generation);
+    }
     const tool=await interaction.connect(cfg.connection.mcp_url,cfg.connection);
     const result=await tool('update_companion_preferences',{changes:{chat_integration_enabled:true,proactive_enabled:p.enabled}});
     if(result.preferences?.proactive_enabled!==p.enabled||result.preferences?.chat_integration_enabled!==true)throw Error('回应开关未确认保存。');
     preferences=result.preferences;
+    if(p.enabled)Object.assign(changes,{sync_paused:false,storage_recovery:undefined});
+    cfg=await store.updateConfig(changes,generation);
     if(!p.enabled){
       try{if(cfg.chat)await interaction.stop_interaction(store.parameters(cfg));}catch(_){}
       const job=await refreshJob();
@@ -491,13 +511,10 @@ async function set_experience(p) {
         if(wantsSync(cfg)){job.kind='sync';job.continuous=true;await store.write('job.json',job);}
         else await stop();
       }
-    }else {cfg.sync_paused=false;delete cfg.storage_recovery;}
+    }
+  }else{
+    cfg=await store.updateConfig(changes);
   }
-  if(p.duration_sec!==undefined)cfg.duration_sec=p.duration_sec;
-  if(p.continuous!==undefined)cfg.continuous=p.continuous;
-  if(p.response_wait_sec!==undefined)cfg.response_wait_sec=p.response_wait_sec;
-  if(p.reply_prompt!==undefined)cfg.reply_prompt=p.reply_prompt.trim();
-  await store.write('settings.json',cfg);
   return {saved:true,duration_sec:cfg.duration_sec,response_wait_sec:cfg.response_wait_sec??1,continuous:!!cfg.continuous,preferences,
     auto_sync_enabled:!!cfg.auto_sync_enabled,message:p.enabled===false&&wantsSync(cfg)?'触摸主动回复已关闭，记录同步继续。':undefined};
 }
@@ -513,11 +530,10 @@ async function bind_chat(p) {
   if (!p.chat_id || p.chat_id==='main') throw Error('请在已有聊天列表中选择。');
   const result=await Tools.Chat.findChat({query:p.chat_id,match:'exact',index:0});
   if (result.chat?.id!==p.chat_id) throw Error('该已有聊天未找到，未更改绑定。');
-  const cfg=await store.config();
+  let cfg=await store.config();
   if(cfg.continuous_enabled)throw Error('请先关闭常开，再更换聊天。');
-  if (cfg.chat?.id!==p.chat_id) {cfg.binding=store.id();cfg.background_verified=false;cfg.probe_file=null;}
-  cfg.chat={id:p.chat_id,title:result.chat.title||'未命名聊天'};
-  await store.write('settings.json',cfg);
+  cfg=await store.updateConfig({chat:{id:p.chat_id,title:result.chat.title||'未命名聊天'},
+    ...(cfg.chat?.id!==p.chat_id?{binding:store.id(),background_verified:false,probe_file:null}:{})},cfg.control_generation||0);
   if(priorJob?.kind==='sync'){priorJob.binding=cfg.binding;await store.write('job.json',priorJob);await flows.watchdog(cfg);}
   return {bound:true,chat:cfg.chat};
 }
@@ -554,8 +570,7 @@ async function schedule(p) {
     if(!context.preferences?.proactive_enabled||!context.preferences.chat_integration_enabled)throw Error('请先开启触摸主动回复。');
     const journal=await store.read('delivery_'+cfg.binding+'.json');
     if(journal?.pending?.phase==='sending')throw Error('上次发送结果尚未确认，请先核对原聊天并恢复。');
-    cfg.active_reply_requested=true;
-    if(cfg.continuous)cfg.continuous_enabled=true;await store.write('settings.json',cfg);
+    Object.assign(cfg,await store.updateConfig({active_reply_requested:true,...(cfg.continuous?{continuous_enabled:true}:{})},cfg.control_generation||0));
     current.kind='interaction';current.continuous=!!cfg.continuous;await store.write('job.json',current);
     return {state:current.phase,reused:true,message:'当前采集任务将接入原聊天陪伴，不会重复启动。'};
   }
@@ -584,14 +599,13 @@ async function schedule(p) {
   const job={schema:1,id:store.id(),binding:cfg.binding,kind:p.kind,phase:'scheduled',
     created_at:Date.now(),expires_at:Date.now()+90000,display_verified:false};
   if(p.kind==='interaction'&&cfg.continuous){
-    cfg.continuous_enabled=true;await store.write('settings.json',cfg);
+    Object.assign(cfg,await store.updateConfig({continuous_enabled:true},cfg.control_generation||0));
     job.continuous=true;job.slot='interaction';
     await flows.ensure(cfg,'interaction_alt');await flows.watchdog(cfg);
   }
   if (p.kind==='probe') {
     job.probe_file='probe_'+cfg.binding+'_'+job.id+'.json';
-    cfg.probe_file=job.probe_file;
-    await store.write('settings.json',cfg);
+    Object.assign(cfg,await store.updateConfig({probe_file:job.probe_file},cfg.control_generation||0));
   }
   await store.write('job.json',job);
   try {return {...await flows.schedule(cfg,p.kind,job),message:'任务已安排，请返回绑定聊天；手机调度可能延迟。'};}
@@ -636,7 +650,7 @@ async function executeTask(p) {
   if (!job || job.id!==p.job_id || job.phase!=='scheduled' || job.binding!==cfg.binding || Date.now()>job.expires_at)
     throw Error('任务已结束、过期或不属于当前绑定，不会发送。');
   if(job.continuous&&!cfg.continuous_enabled&&!wantsSync(cfg))throw Error('后台任务已关闭，不再启动。');
-  if(job.kind==='interaction'&&cfg.active_reply_requested){cfg.active_reply_requested=false;await store.write('settings.json',cfg);}
+  if(job.kind==='interaction'&&cfg.active_reply_requested)Object.assign(cfg,await store.updateConfig({active_reply_requested:false},cfg.control_generation||0));
   const chunk=job.continuous?240:cfg.duration_sec;
   const generation=cfg.control_generation||0;
   job.phase='running';job.worker_deadline=Date.now()+chunk*1000+125000;
@@ -667,7 +681,7 @@ async function executeTask(p) {
       if (result.error) job.error=result.error;
       await store.write('job.json',job);
       if(job.continuous&&result.state==='disabled'&&!wantsSync(await store.config())){
-        const latest=await store.config();latest.continuous_enabled=false;await store.write('settings.json',latest);await flows.disable(latest);
+        const latest=await store.updateConfig({continuous_enabled:false});await flows.disable(latest);
       }
       job.binding=(await store.config()).binding;
       if((job.continuous&&result.state!=='disabled')||wantsSync(await store.config()))await continueListening(job);
@@ -678,11 +692,11 @@ async function executeTask(p) {
     if (active?.id===job.id && active.phase==='running') {
       job.phase='failed';job.error=String(error.message||error);await store.write('job.json',job);
       if(recovery.fatal(error)){
-        const latest=await store.config();latest.sync_identity_changed=true;latest.continuous_enabled=false;await store.write('settings.json',latest);await flows.disable(latest);
+        const latest=await store.updateConfig({sync_identity_changed:true,continuous_enabled:false});await flows.disable(latest);
       }else if(recovery.retryable(error)&&(job.continuous||wantsSync(await store.config())))await continueListening(job,60000);
       else if(/main_chat_send/.test(job.error)){if(wantsSync(await store.config()))await continueListening(job,60000);}
       else{
-        const latest=await store.config();latest.sync_paused=true;latest.continuous_enabled=false;await store.write('settings.json',latest);await flows.disable(latest);
+        const latest=await store.updateConfig({sync_paused:true,continuous_enabled:false});await flows.disable(latest);
       }
     }
     throw error;
@@ -696,9 +710,9 @@ async function executeTask(p) {
   }
 }
 async function stop() {
-  const cfg=await store.config(),job=await store.read('job.json');
+  let cfg=await store.config();const job=await store.read('job.json');
   if(cfg.recovery_required)return {stopped:true,cleanup_pending:true,message:cfg.storage_recovery};
-  cfg.continuous_enabled=false;cfg.active_reply_requested=false;cfg.sync_paused=true;cfg.control_generation=(cfg.control_generation||0)+1;await store.write('settings.json',cfg);
+  cfg=await store.updateConfig(current=>({continuous_enabled:false,active_reply_requested:false,sync_paused:true,control_generation:(current.control_generation||0)+1}));
   if (job && ['scheduled','running','handoff','stopping','interrupted'].includes(job.phase)) {
     job.phase='stopped';await store.write('job.json',job);
   }
@@ -718,7 +732,7 @@ async function confirm_probe() {
   const cfg=await store.config(),journal=cfg.probe_file?await store.read(cfg.probe_file):null;
   if (!journal?.result?.probe_id) throw Error('请先运行一次原聊天自检。');
   // This is an explicit user report, not a host display receipt.
-  cfg.background_verified=cfg.binding; await store.write('settings.json',cfg);
+  await store.updateConfig({background_verified:cfg.binding},cfg.control_generation||0);
   journal.phase='completed';journal.user_confirmed=true;await store.write(cfg.probe_file,journal);
   return {user_reported_seen:true,display_verified:false};
 }

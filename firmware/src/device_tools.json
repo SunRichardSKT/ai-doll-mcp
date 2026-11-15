@@ -117,7 +117,7 @@
   },
   {
     "name": "get_channel_capabilities",
-    "description": "Read pressure/switch input drivers, port modes and GPIO limits. This firmware has no temperature, motion or actuator drivers.",
+    "description": "Read pressure, NTC temperature, wet-pad and dry-contact input drivers, port modes and GPIO limits. No motion or actuator drivers.",
     "inputSchema": {
       "type": "object",
       "properties": {},
@@ -245,7 +245,7 @@
   },
   {
     "name": "set_channel_config",
-    "description": "Replace pressure/switch channel configuration; explicit modes resume connected inputs. Preserve calibration and retired settings. Prefer set_channel_state for one port.",
+    "description": "Persist full input configuration; preserve all existing rows and pressure calibration. NTC defaults 10k/B3435 with existing 4.7k/10k divider. Wetness shares an ADC port and references an existing pressure channel. Discover capabilities first.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -274,7 +274,9 @@
                 "type": "string",
                 "enum": [
                   "pressure",
-                  "switch"
+                  "switch",
+                  "temperature",
+                  "wetness"
                 ]
               },
               "mode": {
@@ -332,7 +334,7 @@
   },
   {
     "name": "simulate_channel_input",
-    "description": "Simulate an enabled pressure or dry-contact input configured in simulation mode; never drives physical outputs.",
+    "description": "Simulate an explicitly simulated input: pressure adc_raw 0..4095, NTC degC -20..80, wetness/switch boolean 0/1. Wetness tests only emit wipe with simulated associated pressure.",
     "inputSchema": {
       "type": "object",
       "properties": {

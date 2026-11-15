@@ -62,8 +62,10 @@ def envelope(event, target_id):
     if not data.get('session_id') or not data.get('device_id') or not data.get('events'):
         raise ValueError('Missing device, session or input events')
     for item in data['events']:
-        if item.get('direction') != 'input' or item.get('sensor_type') not in ('pressure', 'temperature'):
+        if item.get('direction') != 'input' or item.get('sensor_type') not in ('pressure', 'temperature', 'wetness'):
             raise ValueError('Output commands cannot wake a touch conversation')
+        if item.get('sensor_type') == 'wetness' and item.get('phase') != 'wipe':
+            raise ValueError('Wet/dry records do not wake a conversation')
         if item.get('source') not in ('sensor', 'simulation') or item.get('delivery_quality') == 'offline_replay':
             raise ValueError('Historical/offline records cannot wake a conversation')
     expires = dt.datetime.fromisoformat(event['timestamp']).timestamp() + 30

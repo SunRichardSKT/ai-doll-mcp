@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "channels": [
+    {
+      "channel": 0,
+      "name": "部位0",
+      "type": "pressure",
+      "driver": "mux_adc",
+      "mux_port": 0,
+      "enabled": true,
+      "mode": "connected",
+      "options": {
+        "press_threshold": 1200,
+        "release_threshold": 800
+      }
+    },
+    {
+      "channel": 1,
+      "name": "部位1",
+      "type": "pressure",
+      "driver": "mux_adc",
+      "mux_port": 1,
+      "enabled": true,
+      "mode": "connected",
+      "options": {
+        "press_threshold": 1200,
+        "release_threshold": 800
+      }
+    },
+    {
+      "channel": 2,
+      "name": "部位2",
+      "type": "pressure",
+      "driver": "mux_adc",
+      "mux_port": 2,
+      "enabled": true,
+      "mode": "connected",
+      "options": {
+        "press_threshold": 1200,
+        "release_threshold": 800
+      }
+    },
+    {
+      "channel": 3,
+      "name": "部位3",
+      "type": "pressure",
+      "driver": "mux_adc",
+      "mux_port": 3,
+      "enabled": true,
+      "mode": "connected",
+      "options": {
+        "press_threshold": 1200,
+        "release_threshold": 800
+      }
+    },
+    {
+      "channel": 4,
+      "name": "部位4",
+      "type": "pressure",
+      "driver": "mux_adc",
+      "mux_port": 4,
+      "enabled": true,
+      "mode": "connected",
+      "options": {
+        "press_threshold": 1200,
+        "release_threshold": 800
+      }
+    },
+    {
+      "channel": 5,
+      "name": "部位5",
+      "type": "pressure",
+      "driver": "mux_adc",
+      "mux_port": 5,
+      "enabled": true,
+      "mode": "connected",
+      "options": {
+        "press_threshold": 1200,
+        "release_threshold": 800
+      }
+    },
+    {
+      "channel": 6,
+      "name": "掌心温度",
+      "type": "temperature",
+      "driver": "mux_adc",
+      "mux_port": 6,
+      "enabled": false,
+      "mode": "off",
+      "options": {
+        "model": "ntc",
+        "r25_ohm": 10000,
+        "beta": 3435,
+        "pull_down_ohm": 10000,
+        "series_ohm": 4700,
+        "supply_mv": 3300,
+        "offset_c": 0,
+        "change_c": 1,
+        "sample_ms": 1000,
+        "report_ms": 30000
+      }
+    },
+    {
+      "channel": 7,
+      "name": "擦眼泪",
+      "type": "wetness",
+      "driver": "mux_adc",
+      "mux_port": 7,
+      "enabled": false,
+      "mode": "off",
+      "options": {
+        "wet_threshold": 500,
+        "dry_threshold": 250,
+        "hold_ms": 600,
+        "dry_ms": 1000,
+        "pressure_channel": 0
+      }
+    }
+  ]
+}

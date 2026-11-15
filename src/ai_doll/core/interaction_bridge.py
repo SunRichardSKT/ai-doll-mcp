@@ -17,7 +17,7 @@ from .input_observations import pressure_observations
 from .version import BRIDGE_VERSION as VERSION
 DEFAULT_QUIET = dict(enabled=False, start='23:00', end='07:00', timezone='Asia/Shanghai')
 DEFAULT_POLICY = dict(merge_ms=300, cooldown_ms=1500, max_age_sec=30,
-                      allow_simulation=True, temperature_enabled=False,
+                      allow_simulation=True, temperature_enabled=False, wetness_enabled=False,
                       temperature_delta_c=1.0, motion_enabled=False, switch_enabled=False, notify_pressure_patterns=False,
                       long_press_ms=1500, tap_max_ms=600, tap_gap_ms=600,
                       simultaneous_ms=300, quiet_hours=DEFAULT_QUIET)
@@ -40,7 +40,7 @@ def validated_policy(value):
                       ('tap_gap_ms', 50, 5000), ('simultaneous_ms', 0, 1000)]:
         if type(result[k]) is not int or not lo <= result[k] <= hi:
             raise ValueError(f'{k} outside supported range')
-    for k in ['allow_simulation', 'temperature_enabled', 'motion_enabled', 'switch_enabled', 'notify_pressure_patterns']:
+    for k in ['allow_simulation', 'temperature_enabled', 'wetness_enabled', 'motion_enabled', 'switch_enabled', 'notify_pressure_patterns']:
         if type(result[k]) is not bool:
             raise ValueError(k+' must be boolean')
     v = result['temperature_delta_c']
@@ -236,7 +236,7 @@ class EventBridge:
         if event.get('direction', 'input') != 'input':
             return
         kind = event.get('sensor_type', 'pressure')
-        if kind not in ('pressure', 'temperature', 'motion', 'switch') or (kind == 'pressure' and event.get('phase') not in ('start','end')):
+        if kind not in ('pressure', 'temperature', 'motion', 'switch', 'wetness') or (kind == 'pressure' and event.get('phase') not in ('start','end')):
             return
         if event.get('quality','ok') != 'ok' or event.get('source') not in ('sensor','simulation'):
             return
@@ -250,6 +250,8 @@ class EventBridge:
                 continue
             if kind == 'motion' and (not policy['motion_enabled'] or event.get('phase') not in ('shake', 'orientation')):
                 continue
+            if kind == 'wetness' and (not policy['wetness_enabled'] or event.get('phase') != 'wipe'):
+                continue
             if kind == 'switch' and (not policy['switch_enabled'] or event.get('phase') != 'close'):
                 continue
             if kind == 'pressure' and event.get('phase') == 'end':
@@ -261,7 +263,13 @@ class EventBridge:
             if kind == 'temperature':
                 value = event.get('value')
                 baseline = self.db.execute('SELECT value FROM bridge_temperature_baselines WHERE subscription_id=? AND channel=?', (sub['id'],event.get('channel'))).fetchone()
-                if (not policy['temperature_enabled'] or event.get('quality') != 'ok' or
+                if event.get('phase') == 'baseline' and type(value) in (int,float) and math.isfinite(value):
+                    self.db.execute('INSERT OR REPLACE INTO bridge_temperature_baselines VALUES(?,?,?)', (sub['id'],event['channel'],value))
+                    continue
+                if baseline is None and event.get('phase') == 'sample' and type(value) in (int,float) and math.isfinite(value):
+                    self.db.execute('INSERT OR REPLACE INTO bridge_temperature_baselines VALUES(?,?,?)', (sub['id'],event['channel'],value))
+                    continue
+                if (not policy['temperature_enabled'] or event.get('phase') != 'sample' or event.get('quality') != 'ok' or
                     type(value) not in (int, float) or not math.isfinite(value) or
                     (baseline is not None and abs(value-baseline['value']) < policy['temperature_delta_c'])):
                     continue
@@ -281,7 +289,7 @@ class EventBridge:
                 payload = json.loads(pending['payload']); payload['data']['events'].append(snapshot)
                 self.db.execute('UPDATE bridge_outbox SET payload=? WHERE id=?', (json.dumps(payload, ensure_ascii=False), pending['id']))
             else:
-                if now < sub['next_allowed']:
+                if now < sub['next_allowed'] and kind != 'wetness':
                     # Continue archiving repeated touches, without scheduling a second
                     # main reply for the same continuous cooldown fragment.
                     continue

@@ -102,6 +102,13 @@ class ForwarderTests(unittest.TestCase):
         with self.assertRaises(ValueError): self.worker.accept(event())
         self.assertEqual(self.requests, [])
 
+    def test_wetness_only_forwards_confirmed_wipe(self):
+        data=event();item=data['data']['events'][0];item.update(sensor_type='wetness',phase='wipe',value=1,unit='boolean')
+        self.assertEqual(envelope(data,'chat')['event']['data']['events'][0]['phase'],'wipe')
+        for phase in ('wet','dry'):
+            item['phase']=phase
+            with self.assertRaises(ValueError):envelope(data,'chat')
+
     def test_outputs_and_offline_records_are_rejected(self):
         for field, value in [('direction','output'),('source','offline'),('delivery_quality','offline_replay')]:
             data=event(); data['data']['events'][0][field]=value

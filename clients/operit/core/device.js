@@ -14,8 +14,8 @@ function localHost(input) {
 }
 function identity(status,expected) {
   if(typeof status.device_id!=='string'||!status.device_id||status.device_id.length>128||
-      (expected&&status.device_id!==expected))throw Error('设备身份与保存的绑定不符，请重新连接设备，不会读取其他设备。');
-  if(status.remote_server?.enabled)throw Error('设备已开启直传服务器。请使用服务器模式，或先在设备设置页关闭直传，再连接手机。');
+      (expected&&status.device_id!==expected))throw recovery.failure('device_identity_changed','设备身份与保存的绑定不符，请重新连接设备，不会读取其他设备。');
+  if(status.remote_server?.enabled)throw recovery.failure('direct_upload_enabled','设备已开启直传服务器。请使用服务器模式，或先在设备设置页关闭直传，再连接手机。');
   return status;
 }
 async function pair(host,token,prior) {
@@ -77,8 +77,8 @@ async function connect(c) {
         await write('network',{url,hostname:learned||(fixed?hostname:null),ip:status.ip||null,checked_at:now()});
         candidate.setTimeouts({connect_timeout:2000,read_timeout:5000});remote=candidate;return;
       }catch(e){
-        if(String(e.message).includes('直传服务器'))throw e;
-        if(String(e.message).includes('身份'))identityFailure=e;
+        if(e.code==='direct_upload_enabled')throw e;
+        if(e.code==='device_identity_changed')identityFailure=e;
         failure=e;
       }
     }
@@ -98,7 +98,7 @@ async function connect(c) {
     }
   };
   const defaults={chat_integration_enabled:true,proactive_enabled:false,allow_simulation:false,persona_source:'chat',doll_persona:'',
-    tone:'温柔自然',max_characters:160,merge_ms:300,cooldown_ms:1500,muted:false,motion_enabled:false,switch_enabled:false,temperature_enabled:false,temperature_delta_c:1};
+    tone:'温柔自然',max_characters:160,merge_ms:300,cooldown_ms:1500,muted:false,motion_enabled:false,switch_enabled:false,temperature_enabled:false,wetness_enabled:false,temperature_delta_c:1};
   const prefs=async()=>({...defaults,...await read('preferences',{})});
   async function archive(){return await durable.index();}
   async function session(){const s=await read('session');return s&&!s.ended&&s.deadline>now()?s:null;}
@@ -161,7 +161,8 @@ async function connect(c) {
       const after=sameBoot?(a.cursor||0):0;
       const batch=await native('get_touch_events',{after,boot_id:st.boot_id,include_persistent:false});
       active();
-      if(batch.device_id!==c.device_id||batch.boot_id!==st.boot_id)throw Error('同步期间设备身份或启动发生变化，请重新读取。');
+      if(batch.device_id!==c.device_id)throw recovery.failure('device_identity_changed','同步期间设备身份发生变化，请重新配对。');
+      if(batch.boot_id!==st.boot_id)throw recovery.failure('device_restarted','设备已重启，请重新同步。');
       if(!Array.isArray(batch.events)||!Number.isInteger(batch.next_cursor)||!Number.isFinite(batch.uptime_ms))throw Error('设备事件格式无效。');
       // A session boundary marks old RAM records as history; normal background
       // collection keeps its own first-seen sequence boundary across reconnects.
@@ -193,7 +194,8 @@ async function connect(c) {
         if(shouldRead){
         const backlog=await native('get_touch_events',{after:batch.next_cursor,boot_id:st.boot_id,include_persistent:true,
           ...(held?{archive_lease_id:held.lease_id}:{})});
-        if(backlog.device_id!==c.device_id||backlog.boot_id!==st.boot_id)throw Error('设备已重启，尚未确认任何旧游标。');
+        if(backlog.device_id!==c.device_id)throw recovery.failure('device_identity_changed','同步期间设备身份发生变化，请重新配对。');
+        if(backlog.boot_id!==st.boot_id)throw recovery.failure('device_restarted','设备已重启，尚未确认任何旧游标。');
         active();
         const committed=await durable.ingest(backlog,{persistent:true});
         added+=committed.added;
@@ -216,7 +218,7 @@ async function connect(c) {
         }
         await write('sync',state);
       }
-      if(changed)throw Error('设备已重启，本次互动结束；常开恢复后只读取新触摸。');
+      if(changed)throw recovery.failure('device_restarted','设备已重启，本次互动结束；常开恢复后只读取新触摸。');
       return {synchronized:true,added,observed_live:result.observed_live||0,sync:state};
     })().catch(async error=>{
       const prior=await read('sync',{});await write('sync',{...prior,last_error:String(error.message||error)});throw error;
@@ -245,14 +247,16 @@ async function connect(c) {
     const base={chat_id:args.chat_id,context_protocol:'leased-batch-v1',preferences:p,persona:p.doll_persona||'',persona_priority:p.persona_source==='doll'?'saved_doll':'current_chat',feedback:{tone:p.tone,max_characters:p.max_characters,language:'zh-CN'},
       events:[],updates:[],receipt_id:null,next_cursor:after,last_sync:a.last_sync,history_source:'android_local',channels:config.channels,
       proactive_delivery_allowed:!!(p.proactive_enabled&&p.chat_integration_enabled&&!p.muted)};
-    base.response_policy={merge_ms:p.merge_ms,cooldown_ms:p.cooldown_ms,motion_enabled:p.motion_enabled,switch_enabled:p.switch_enabled,temperature_enabled:p.temperature_enabled};
+    base.response_policy={merge_ms:p.merge_ms,cooldown_ms:p.cooldown_ms,motion_enabled:p.motion_enabled,switch_enabled:p.switch_enabled,wetness_enabled:p.wetness_enabled,temperature_enabled:p.temperature_enabled};
     if(a.delivery_recovery_required)return {...base,proactive_delivery_allowed:false,delivery_recovery_required:true};
     if(!p.chat_integration_enabled||p.muted)return base;
     const baselines=new Map(),temperatureAllowed=e=>{
       if(e.sensor_type!=='temperature')return true;
-      const acknowledged=[...a.seen].reverse().find(x=>x.chat_id===args.chat_id&&x.sensor_type==='temperature'&&x.channel===e.channel&&x.source===e.source&&Number.isFinite(x.value));
+      let acknowledged=[...a.seen].reverse().find(x=>x.chat_id===args.chat_id&&x.boot===e.boot&&x.sensor_type==='temperature'&&x.channel===e.channel&&x.source===e.source&&Number.isFinite(x.value));
+      const fresh=[...a.events].reverse().find(x=>x.boot===e.boot&&x.channel===e.channel&&x.source===e.source&&x.sensor_type==='temperature'&&x.phase==='baseline'&&x.quality==='ok'&&Number.isFinite(x.value)&&x.id<=e.id);
+      if(fresh&&(!acknowledged||fresh.id>acknowledged.id))acknowledged=fresh;
       if(acknowledged&&e.id<=acknowledged.id)return false;
-      const key=e.channel+':'+e.source;
+      const key=e.channel+':'+e.source+':'+e.boot+':'+(fresh?.id||0);
       if(!baselines.has(key)){
         const first=a.events.find(x=>x.boot===e.boot&&x.channel===e.channel&&x.source===e.source&&x.sensor_type==='temperature'&&x.quality==='ok'&&Number.isFinite(x.value));
         baselines.set(key,acknowledged?.value??first?.value??e.value);
@@ -264,7 +268,7 @@ async function connect(c) {
       e.quality==='ok'&&['sensor','simulation'].includes(e.source)&&(e.source!=='simulation'||p.allow_simulation)&&
       e.delivery_quality==='live'&&sourceAllowed(e)&&inputEvents.key(e)&&e.at<=now()+2&&now()-e.at<=30&&
       !a.seen.some(x=>x.chat_id===args.chat_id&&x.boot===e.boot&&((x.interaction_key||x.touch_id)===inputEvents.key(e)||
-        (!args.session_id&&e.at>=x.at&&e.at-x.at<=Math.max(p.cooldown_ms,p.merge_ms)/1000)))).filter(temperatureAllowed).slice(0,limit)
+        (e.sensor_type!=='wetness'&&!args.session_id&&e.at>=x.at&&e.at-x.at<=Math.max(p.cooldown_ms,p.merge_ms)/1000)))).filter(temperatureAllowed).slice(0,limit)
       .map(e=>({...e,body_preferences:{feedback_level:'normal',aliases:[],interaction_hint:''}}));
     if(!selected.length)return base;
     const ids=selected.map(e=>e.event_id).join('|');
@@ -304,8 +308,8 @@ async function connect(c) {
     if(name==='get_chat_context')return await context(args);
     if(name==='update_companion_preferences'){
       const changes={...args.changes};
-      if(changes.policy){if(Object.keys(changes.policy).some(k=>!['motion_enabled','switch_enabled','temperature_enabled','temperature_delta_c'].includes(k)))throw Error('手机直连的扩展规则支持温度、动作和开关。');Object.assign(changes,changes.policy);delete changes.policy;}
-      const keys=['chat_integration_enabled','proactive_enabled','allow_simulation','muted','persona_source','doll_persona','motion_enabled','switch_enabled','temperature_enabled','temperature_delta_c'];
+      if(changes.policy){if(Object.keys(changes.policy).some(k=>!['motion_enabled','switch_enabled','temperature_enabled','wetness_enabled','temperature_delta_c'].includes(k)))throw Error('手机直连的扩展规则支持温度、擦眼泪、动作和开关。');Object.assign(changes,changes.policy);delete changes.policy;}
+      const keys=['chat_integration_enabled','proactive_enabled','allow_simulation','muted','persona_source','doll_persona','motion_enabled','switch_enabled','temperature_enabled','wetness_enabled','temperature_delta_c'];
       if(Object.keys(changes).some(k=>!keys.includes(k)||(!['persona_source','doll_persona','temperature_delta_c'].includes(k)&&typeof changes[k]!=='boolean')))
         throw Error('不支持的陪伴设置。');
       if(changes.temperature_delta_c!==undefined&&(!Number.isFinite(changes.temperature_delta_c)||changes.temperature_delta_c<.1||changes.temperature_delta_c>30))throw Error('温度变化门限应为0.1～30℃。');
@@ -350,7 +354,7 @@ async function connect(c) {
     throw Error('手机直连不提供此服务器工具：'+name);
   };
   adapter.update=next=>{
-    if(next.device_id!==c.device_id)throw Error('设备身份与归档绑定不符，请重新连接设备。');
+    if(next.device_id!==c.device_id)throw recovery.failure('device_identity_changed','设备身份与归档绑定不符，请重新连接设备。');
     if(next.mcp_url!==c.mcp_url||next.token!==c.token)remote=null;
     c=next;return adapter;
   };

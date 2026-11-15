@@ -1,7 +1,12 @@
 // Shared by the ESP32 portal and the computer page; labels are always rendered as text.
 let channelDraft=[],channelCapabilities={};
-const channelTypeLabels={pressure:'压力输入',temperature:'温度输入',vibration:'振动输出',motion:'姿态与摇晃',light:'单色灯输出',switch:'开关输入'};
+const channelTypeLabels={pressure:'压力输入',wetness:'擦眼泪感应片',temperature:'温度输入',vibration:'振动输出',motion:'姿态与摇晃',light:'单色灯输出',switch:'开关输入'};
 const channelDriverLabels={simulation:'仅模拟',mux_adc:'4051 模拟输入',gpio_adc:'独立 ADC',gpio_pwm:'独立 GPIO PWM',ds18b20:'DS18B20 数字温度',lis3dh:'LIS3DH 加速度',gpio_switch:'干接点开关'};
+
+function resistiveDefaults(type){
+ return type==='temperature'?{model:'ntc',r25_ohm:10000,beta:3435,pull_down_ohm:10000,series_ohm:4700,supply_mv:3300,offset_c:0,change_c:1,sample_ms:1000,report_ms:30000}:
+  type==='wetness'?{wet_threshold:500,dry_threshold:250,hold_ms:600,dry_ms:1000,pressure_channel:channelDraft.find(c=>c.type==='pressure')?.channel??0}:{};
+}
 const isOutput=c=>c.type==='vibration'||c.type==='light';
 const portModeLabels={off:'关闭',simulation:'模拟',connected:'已接入'};
 function portMode(c){return c.mode||(!c.enabled?'off':c.driver==='simulation'?'simulation':'connected');}
@@ -30,9 +35,9 @@ function fillChannelSelects(){
 }
 function inputTypeChanged(){
  const c=channelDraft.find(c=>c.channel===Number($('channel').value));
- const temp=c&&c.type==='temperature',motion=c?.type==='motion',contact=c?.type==='switch',input=$('pressure');
- input.min=temp?(c.driver==='ds18b20'?-55:-40):0;input.max=temp?125:motion?4:contact?1:4095;input.step=(temp||motion)?0.1:1;
- input.value=temp?32:motion?2:contact?1:3200;if($('inputUnit'))$('inputUnit').textContent=temp?'模拟温度（℃）':motion?'模拟摇晃（g）':contact?'模拟开关（0 开／1 合）':'压力原始值（0 表示释放）';
+ const temp=c&&c.type==='temperature',motion=c?.type==='motion',contact=['switch','wetness'].includes(c?.type),input=$('pressure');
+ input.min=temp?(c.driver==='ds18b20'?-55:-20):0;input.max=temp?(c.driver==='ds18b20'?125:80):motion?4:contact?1:4095;input.step=(temp||motion)?0.1:1;
+ input.value=temp?32:motion?2:contact?1:3200;if($('inputUnit'))$('inputUnit').textContent=temp?'模拟温度（℃）':motion?'模拟摇晃（g）':contact?(c.type==='wetness'?'模拟湿润（0 干／1 湿）':'模拟开关（0 开／1 合）'):'压力原始值（0 表示释放）';
  if($('release'))$('release').disabled=!c||c.type!=='pressure';
 }
 function renderChannelEditor(){
@@ -78,7 +83,9 @@ function renderChannelEditor(){
    if(c.type==='switch')options.value=JSON.stringify({active_low:true,debounce_ms:40},null,2);
    updateBinding();
   }catch(e){$('error').textContent=e.message}};
-  type.onchange=()=>{try{channelDraft=readChannelDraft();const next=channelDraft.find(x=>x.channel===c.channel);next.driver='simulation';next.mode='off';next.enabled=false;next.options={};delete next.mux_port;delete next.gpio;delete next.address;delete next.rom;renderChannelEditor()}catch(e){$('error').textContent=e.message}};
+  type.onchange=()=>{try{channelDraft=readChannelDraft();const next=channelDraft.find(x=>x.channel===c.channel);const analog=['temperature','wetness','pressure'].includes(next.type)&&channelCapabilities.types.find(t=>t.type===next.type)?.drivers.includes('mux_adc');const port=c.mux_port;
+   next.driver=analog&&Number.isInteger(port)?'mux_adc':'simulation';next.mode='off';next.enabled=false;next.options=resistiveDefaults(next.type);delete next.mux_port;delete next.gpio;delete next.address;delete next.rom;if(next.driver==='mux_adc')next.mux_port=port;
+   if(next.type==='wetness')next.options.pressure_channel=channelDraft.find(x=>x.channel!==next.channel&&x.type==='pressure')?.channel??0;renderChannelEditor()}catch(e){$('error').textContent=e.message}};
   $('parts').append(box);
  }
  fillChannelSelects();
@@ -99,7 +106,7 @@ async function loadChannels(){
   return;
  }
  renderChannelEditor();
- if(channelCapabilities.retired_channel_count&&$('partResult'))$('partResult').textContent='已停用 '+channelCapabilities.retired_channel_count+' 个本固件不支持的旧扩展通道，原配置已保留；压力和开关可继续使用。';
+ if(channelCapabilities.retired_channel_count&&$('partResult'))$('partResult').textContent='已停用 '+channelCapabilities.retired_channel_count+' 个本固件不支持的旧扩展通道，原配置已保留；现有输入配置继续保留。';
  $('addChannel').onclick=()=>{try{channelDraft=readChannelDraft();const id=Array.from({length:channelCapabilities.max_channels},(_,i)=>i).find(i=>!channelDraft.some(c=>c.channel===i));if(id===undefined)throw Error('已达到逻辑通道上限');channelDraft.push({channel:id,name:'CH'+id,type:'pressure',driver:'simulation',enabled:true,options:{}});channelDraft.sort((a,b)=>a.channel-b.channel);renderChannelEditor()}catch(e){$('error').textContent=e.message}};
  await installSensorExperience();
 }
@@ -110,7 +117,7 @@ async function saveChannelEditor(){
 }
 async function simulateSelected(){
  const c=channelDraft.find(c=>c.channel===Number($('channel').value));if(!c)throw Error('请先配置一个输入通道');
- return tool('simulate_channel_input',{channel:c.channel,value:Number($('pressure').value),unit:c.type==='temperature'?'degC':c.type==='motion'?'g':c.type==='switch'?'boolean':'adc_raw'});
+ return tool('simulate_channel_input',{channel:c.channel,value:Number($('pressure').value),unit:c.type==='temperature'?'degC':c.type==='motion'?'g':['switch','wetness'].includes(c.type)?'boolean':'adc_raw'});
 }
 
 function installExpansionControls(){
@@ -118,16 +125,17 @@ function installExpansionControls(){
   const section=document.createElement('section');section.id='expansionControls';
   section.innerHTML='<h2>现板扩展</h2><p>新通道先关闭，接线核对后再设为已接入。LIS3DH 使用 GPIO6/7，不能与这两脚的 PWM 共用；灯和开关占用 UART20/21。温度探头需扫描并选择地址。</p><select id="expansionType" aria-label="扩展类型"></select><button id="addExpansion" type="button">添加关闭的扩展通道</button><p>添加到草稿后，检查并保存全部硬件配置；不会改动已有压力阈值。</p><details id="lightTest"><summary>单色灯测试</summary><select id="lightChannel" aria-label="灯通道"></select><select id="lightPattern" aria-label="灯效"><option value="steady">常亮</option><option value="breathe">呼吸</option><option value="blink">闪烁</option></select><button id="tryLight" type="button">亮度 20% · 2秒</button><button id="stopLight" type="button">关闭灯</button><p>物理灯需先在开发者输出测试中确认限流电阻并开启输出。</p></details>';
   $('parts').closest('section').after(section);
-  const presets={temperature:{driver:'ds18b20',gpio:1,rom:'',options:{model:'ds18b20',sample_ms:1000,report_ms:30000}},motion:{driver:'lis3dh',address:24,options:{sample_ms:40,shake_threshold_g:.6,cooldown_ms:2000}},vibration:{driver:'gpio_pwm',gpio:10,options:{}},light:{driver:'gpio_pwm',gpio:20,options:{}},switch:{driver:'gpio_switch',gpio:21,options:{active_low:true,debounce_ms:40}}};
+  const presets={wetness:{driver:'mux_adc',options:resistiveDefaults('wetness')},temperature:{driver:'ds18b20',gpio:1,rom:'',options:{model:'ds18b20',sample_ms:1000,report_ms:30000}},motion:{driver:'lis3dh',address:24,options:{sample_ms:40,shake_threshold_g:.6,cooldown_ms:2000}},vibration:{driver:'gpio_pwm',gpio:10,options:{}},light:{driver:'gpio_pwm',gpio:20,options:{}},switch:{driver:'gpio_switch',gpio:21,options:{active_low:true,debounce_ms:40}}};
+  if(channelCapabilities.types.find(t=>t.type==='temperature')?.drivers.includes('mux_adc'))presets.temperature={driver:'mux_adc',options:resistiveDefaults('temperature')};
   for(const kind of Object.keys(presets))if(channelCapabilities.types.some(t=>t.type===kind))$('expansionType').add(new Option(channelTypeLabels[kind],kind));
   $('addExpansion').disabled=!$('expansionType').options.length;
   $('addExpansion').onclick=()=>{try{
    const draft=readChannelDraft(),id=Array.from({length:channelCapabilities.max_channels},(_,i)=>i).find(i=>!draft.some(c=>c.channel===i));if(id===undefined)throw Error('逻辑通道已满，请先核对未使用的通道。');
-   const type=$('expansionType').value;draft.push({channel:id,name:channelTypeLabels[type],type,...structuredClone(presets[type]),enabled:false,mode:'off'});channelDraft=draft.sort((a,b)=>a.channel-b.channel);renderChannelEditor();
+   const type=$('expansionType').value;if(presets[type].driver==='mux_adc'){const port=Array.from({length:8},(_,i)=>i).find(i=>!draft.some(c=>c.driver==='mux_adc'&&c.mux_port===i));if(port===undefined)throw Error('八个实体端口已分配，请在现有空闲端口的硬件高级设置中切换类型，不要新增逻辑通道。');presets[type].mux_port=port;}draft.push({channel:id,name:channelTypeLabels[type],type,...structuredClone(presets[type]),enabled:false,mode:'off'});channelDraft=draft.sort((a,b)=>a.channel-b.channel);renderChannelEditor();
   }catch(e){$('error').textContent=e.message}};
   for(const [id,brightness] of [['tryLight',20],['stopLight',0]])$(id).onclick=async()=>{try{await tool('set_light',{channel:Number($('lightChannel').value),brightness,pattern:$('lightPattern').value,duration_ms:2000});}catch(e){$('error').textContent=e.message}};
  }
- if(channelCapabilities.physical_outputs_supported===false){$('lightTest').hidden=true;$('expansionControls').querySelector('p').textContent='当前固件仅支持压力与干接点开关输入。温度、动作及马达和外接灯输出已移除。';}
+ if(channelCapabilities.physical_outputs_supported===false){$('lightTest').hidden=true;$('expansionControls').querySelector('p').textContent='当前设备按能力提供输入类型。温度与擦眼泪感应片各占一个现有传感器口；请先在对应端口的硬件高级设置中切换类型，核对接线后再设为已接入。';}
  const select=$('lightChannel');select.replaceChildren();for(const c of channelDraft.filter(c=>c.type==='light'&&c.enabled))select.add(new Option('CH'+c.channel+' · '+c.name,c.channel));
  for(const id of ['tryLight','stopLight'])$(id).disabled=!select.options.length;
 }

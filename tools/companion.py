@@ -278,7 +278,8 @@ class Companion:
         elif (sid and event.get('direction','input')=='input' and event.get('source') in ('sensor','simulation')
               and event.get('quality')=='ok' and event.get('delivery_quality')=='live' and
               ((event.get('sensor_type')=='motion' and event.get('phase') in ('orientation','shake')) or
-               (event.get('sensor_type')=='switch' and event.get('phase')=='close'))):
+               (event.get('sensor_type')=='switch' and event.get('phase')=='close') or
+               (event.get('sensor_type')=='wetness' and event.get('phase')=='wipe'))):
             self.db.execute('UPDATE sessions SET last_activity=MAX(last_activity,?) WHERE id=?',(at,sid))
         self.bridge.enqueue(inserted.lastrowid,device,at,sid,event,received)
 

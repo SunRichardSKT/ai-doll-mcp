@@ -86,20 +86,35 @@ async function rawWrite(name, value) {
 async function verify(name,value){
   if(JSON.stringify(await rawRead(name))!==JSON.stringify(value))throw Error('文件写入校验失败，未提交新的状态。');
 }
-async function write(name,value){
-  if(!critical(name))return await rawWrite(name,value);
+function enqueue(name,operation){
+  const next=(writes.get(name)||Promise.resolve()).then(operation);
+  writes.set(name,next.catch(()=>{}));return next;
+}
+async function writeCritical(name,value){
   if(!valid(name,value))throw Error('无法保存不完整的设置或任务。');
   value=JSON.parse(JSON.stringify(value));
-  const previous=writes.get(name)||Promise.resolve();
-  const next=previous.then(async()=>{
-    let old;try{old=await rawRead(name);if(old!==null&&!valid(name,old))await preserveDamaged(name);}catch(_){await preserveDamaged(name);}
-    const backupName=name.replace('.json','_backup.json');
-    const backup=async data=>{const envelope={schema:1,data,checksum:digest(data)};await rawWrite(backupName,envelope);await verify(backupName,envelope);};
-    if(valid(name,old))await backup(old);
-    await rawWrite(name,value);await verify(name,value);
-    await backup(value);
+  let old;try{old=await rawRead(name);if(old!==null&&!valid(name,old))await preserveDamaged(name);}catch(_){await preserveDamaged(name);}
+  const backupName=name.replace('.json','_backup.json');
+  const backup=async data=>{const envelope={schema:1,data,checksum:digest(data)};await rawWrite(backupName,envelope);await verify(backupName,envelope);};
+  if(valid(name,old))await backup(old);
+  await rawWrite(name,value);await verify(name,value);
+  await backup(value);
+  return value;
+}
+async function write(name,value){
+  if(!critical(name))return await rawWrite(name,value);
+  const snapshot=JSON.parse(JSON.stringify(value));
+  return await enqueue(name,()=>writeCritical(name,snapshot));
+}
+async function updateConfig(changes,generation){
+  return await enqueue('settings.json',async()=>{
+    const cfg=await read('settings.json');
+    if(!valid('settings.json',cfg))throw Error('请先完成插件设置。');
+    if(generation!==undefined&&(cfg.control_generation||0)!==generation)
+      throw Error('后台任务已停止，本次设置未提交。');
+    const patch=typeof changes==='function'?changes(cfg):changes;
+    return await writeCritical('settings.json',{...cfg,...patch});
   });
-  writes.set(name,next.catch(()=>{}));return await next;
 }
 async function checkedWrite(name,value){
   await write(name,value);
@@ -183,6 +198,7 @@ async function noRunningJob() {
     throw Error('请先停止当前后台任务，再更改连接、绑定或开始新任务。');
 }
 exports.read=read; exports.write=write; exports.config=config; exports.path=path;
+exports.updateConfig=updateConfig;
 exports.id=id; exports.parameters=parameters; exports.validateConnection=validateConnection;
 exports.noRunningJob=noRunningJob;
 exports.replaceComputerIP=replaceComputerIP;

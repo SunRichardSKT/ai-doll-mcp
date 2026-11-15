@@ -50,6 +50,40 @@ test('identity mismatch disables retries/watchdog while keeping history and cali
   await p.f.invoke('run_task',{job_id:'watchdog:'+p.f.cfg().binding});assert.equal(p.f.job().id,id);
   assert.equal(p.f.cfg().connection.device_id,p.c.device_id);
 });
+
+test('a reboot between status and live read resumes sync with the same device identity',async()=>{
+  const p=await phone();p.emit();await p.tool('_sync_records');
+  await configure(p,{auto_sync_enabled:true});await p.f.invoke('schedule',{kind:'sync'});
+  let rebooted=false,emitted=false;
+  p.options.beforeCall=async(name,args,state)=>{
+    if(name==='get_touch_events'&&!rebooted){rebooted=true;state.boot='same-device-new-boot';state.seq=0;state.events=[];}
+    else if(name==='doll_get_status'&&rebooted&&!emitted){emitted=true;p.emit();}
+  };
+  await p.f.invoke('run_task',{job_id:p.f.job().id});
+  assert.ok(rebooted&&emitted);assert.notEqual(p.f.cfg().sync_identity_changed,true);
+  assert.equal(p.f.cfg().sync_paused,false);assert.equal(p.f.cfg().connection.device_id,p.c.device_id);
+  assert.equal(p.f.job().phase,'scheduled');assert.equal(p.f.job().kind,'sync');
+  const records=(await p.archive.query()).events;
+  assert.equal(records.length,2);assert.ok(records.some(e=>e.boot==='boot-new'));assert.ok(records.some(e=>e.boot==='same-device-new-boot'));
+  assert.equal(p.f.messages.length,0);
+});
+
+test('identity change in a live page still stops automatic recovery',async()=>{
+  const p=await phone();await configure(p,{auto_sync_enabled:true});await p.f.invoke('schedule',{kind:'sync'});
+  p.options.beforeCall=async(name,args,state)=>{if(name==='get_touch_events')state.device='different-device';};
+  await assert.rejects(p.f.invoke('run_task',{job_id:p.f.job().id}),error=>error.code==='device_identity_changed');
+  assert.equal(p.f.cfg().sync_identity_changed,true);assert.ok([...p.f.flows.values()].every(flow=>!flow.enabled));
+  assert.equal(p.f.cfg().connection.device_id,p.c.device_id);assert.equal(p.state.acks.length,0);
+});
+
+test('interaction errors retain the reboot code for the workflow recovery path',async()=>{
+  const p=await phone();await configure(p,{auto_sync_enabled:true,continuous:true});
+  await p.f.invoke('set_experience',{enabled:true});await p.f.invoke('schedule',{kind:'interaction'});
+  p.options.beforeCall=async(name,args,state)=>{if(name==='get_touch_events')state.boot='reboot-during-interaction';};
+  await assert.rejects(p.f.invoke('run_task',{job_id:p.f.job().id}),error=>error.code==='device_restarted');
+  assert.notEqual(p.f.cfg().sync_identity_changed,true);assert.equal(p.f.cfg().continuous_enabled,true);
+  assert.equal(p.f.job().phase,'scheduled');assert.equal(p.f.messages.length,0);
+});
 test('file failures stop background renewal instead of retrying as network failures',async()=>{
   const p=await phone();await configure(p,{auto_sync_enabled:true});await p.f.invoke('schedule',{kind:'sync'});p.backlog(24);
   const write=p.f.tools.Files.write;p.f.tools.Files.write=async(name,...args)=>name.includes('_segment_')?{successful:false}:write(name,...args);

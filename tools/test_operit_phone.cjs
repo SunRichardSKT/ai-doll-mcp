@@ -208,5 +208,16 @@ function phone(options={}){
   await et('get_interaction_device_events',{chat_id:'extensions',session_id:es.id,after:4});
   const tc=await et('get_chat_context',{chat_id:'temperature-chat'});assert.deepEqual(tc.events.map(e=>e.value),[26.2]);
   await et('acknowledge_chat_context',{chat_id:'temperature-chat',receipt_id:tc.receipt_id});assert.equal((await et('get_chat_context',{chat_id:'temperature-chat'})).events.length,0);
+  await ext.f.invoke('set_sensor_rules',{wetness_enabled:true,temperature_enabled:false});
+  ext.f.advance(100);
+  ext.emit('wet',{sensor_type:'wetness',touch_id:undefined,unit:'boolean',value:1});
+  ext.emit('wipe',{sensor_type:'wetness',touch_id:undefined,unit:'boolean',value:1});
+  ext.emit('dry',{sensor_type:'wetness',touch_id:undefined,unit:'boolean',value:0});
+  await et('get_interaction_device_events',{chat_id:'extensions',session_id:es.id,after:7});
+  const wc=await et('get_chat_context',{chat_id:'wet-chat'});assert.deepEqual(wc.events.map(e=>e.phase),['wipe']);
+  assert.equal((await et('get_chat_context',{chat_id:'wet-chat'})).receipt_id,wc.receipt_id);
+  await et('acknowledge_chat_context',{chat_id:'wet-chat',receipt_id:wc.receipt_id});
+  assert.equal((await et('get_chat_context',{chat_id:'wet-chat'})).events.length,0);
+  assert.equal((await et('get_chat_context',{chat_id:'second-wet-chat'})).events.length,1);
   console.log('PASS phone-only modules: pairing, auth, history, typed extension events, opt-in rules, temperature delta, receipts, chat isolation, reboot and original MAIN chat. ESP32/Android are doubles.');
 })().catch(e=>{console.error(e);process.exitCode=1;});

@@ -1,19 +1,18 @@
 # MCP 工具目录
 
-> 开发者参考；普通用户可以跳过。 [全部目录](../README.md)
+按连接路线选择工具配置，调用参数以客户端当前发现的 schema 为准。[教程目录](../README.md) · [选择连接方式](../start/MCP_TRANSPORT_DECISION.md)
 
+本页工具目录适用 **v0.1.1 内测版／固件0.1.1**。配套文件见[0.1.1 Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.1)，旧安装以实际工具发现为准。
 
-先按 [连接方式](../start/MCP_TRANSPORT_DECISION.md)安装。工具不会自行启动 AI 对话；实际可用范围以当前客户端发现的 schema 为准。
+0.1.1 的[压力／开关固件](../reports/FIRMWARE_INPUTS.md)使用 `pressure-switch-v1`：设备公开 23 工具，STDIO 保留 53 工具兼容旧设备，HTTP 配置为 2／9／19。0.1.2 源码候选的 `resistive-inputs-v1` 增加 NTC 与湿润片，配置见[扩展指南](../../hardware/expansion/resistive-inputs/README.md)。
 
-本页工具目录适用 **0.1.1内测0.1.1版／固件0.1.1**。配套文件见[0.1.1 Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.1)，旧安装以实际工具发现为准。
-
-当前[压力/开关固件](../reports/FIRMWARE_INPUTS.md)为`pressure-switch-v1`，原生公开23工具，STDIO保留53工具用于兼容旧设备；HTTP profile仍为2/9/19。温度、动作、马达和外接灯驱动已移除，`scan_input_devices`、`set_output_enabled`、`set_vibration`、`set_light`在该固件明确返回不支持。下方STDIO兼容工具不代表当前固件全部可用，硬件工具以设备能力为准。
+调用硬件工具前读取设备能力。数字温度、动作、马达及外接灯当前无驱动；相关兼容工具返回不支持。
 
 ## 不同连接有多少工具
 
 | 连接 | 数量 | 数据与用途 |
 | --- | --- | --- |
-| 电脑 STDIO：`tools/companion_mcp.py` | 53 | 0.1.1内测0.1.1版；设备管理、端口状态、电脑历史、人设、会话与维护 |
+| 电脑 STDIO：`tools/companion_mcp.py` | 53 | v0.1.1 内测版；设备管理、端口状态、电脑历史、人设、会话与维护 |
 | 设备 `/mcp` | 23 | 0.1.1固件；设备操作、端口状态、归档租约、缓存确认和校时；没有电脑长期历史 |
 | HTTP `status` | 2 | `get_installation_status`、`doll_get_status` |
 | HTTP `history` | 9 | status，加能力、配置、人设、偏好、历史、摘要、统计 |

@@ -1,17 +1,12 @@
 # 远程服务器：快速安装
 
-> 按本页步骤操作即可；无需读完开发者资料。 [全部目录](../README.md)
+在自己的 Linux 服务器接收娃娃上传、保存历史，并向手机提供 MCP 连接。使用小型服务包即可。[教程目录](../README.md) · [选择连接方式](../start/MCP_TRANSPORT_DECISION.md)
 
-
-适用于你自己的 Linux 服务器。首次选择方式可先看 [连接方式](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/start/MCP_TRANSPORT_DECISION.md)。电脑端的 Windows 启动程序和内置 Python 不需要上传到服务器。
-
-本页按 **0.1.1内测0.1.1版**编写，安装入口、Linux包与Operit手机包从[同一Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.1)下载。新部署和升级均推荐从完整包解压目录运行安装器；同版独立脚本也可下载配套服务包。
-
-[0.1.1更新说明](../../CHANGELOG.md)。从完整包解压目录运行安装器，升级保留原部署目录与数据卷。
+本页对应 **v0.1.2 内测版**。从[同一 Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.2)下载 Linux 包、安装器和 Operit 工具包，在解压目录运行安装器；升级保留原部署目录与数据卷。[更新说明](../../CHANGELOG.md)
 
 整个流程是：**准备服务器和域名 → 运行安装入口 → 打开管理页面 → 手机连接娃娃 → 将 MCP 地址接入原聊天**。小型包同时包含接收服务和 MCP，原前端与 MCP 可以部署在同一台服务器。
 
-这条路线需要已有的 Linux 服务器和域名。没有服务器也能先用 Windows 本机方式测试，不需要为了试按压就购买服务器。
+准备已有的 Linux 服务器和域名。使用手机直连或 Windows 采集时，选择相应[安装路线](../README.md)。
 
 Operit 用户部署后可直接在服务器管理页下载手机工具包与设备连接文件，电脑无需运行。仅安卓手机且无服务器时，可改用家庭局域网直连，见 [Operit 免电脑指南](OPERIT_NO_PC.md)。
 
@@ -25,13 +20,13 @@ Operit 用户部署后可直接在服务器管理页下载手机工具包与设�
 
 ## 2. 上传并运行发布包
 
-将本机 `delivery/AI_Doll_Server_v0.1.1.tar.gz` 与同目录的 `.sha256` 文件上传到服务器同一目录。在 SSH 终端校验、解压，然后运行**包内**入口：
+将本机 `delivery/AI_Doll_Server_v0.1.2.tar.gz` 与同目录的 `.sha256` 文件上传到服务器同一目录。在 SSH 终端校验、解压，然后运行**包内**入口：
 
 ```bash
-sha256sum -c AI_Doll_Server_v0.1.1.tar.gz.sha256
-mkdir ai-doll-server-0.1.1
-tar -xzf AI_Doll_Server_v0.1.1.tar.gz -C ai-doll-server-0.1.1
-cd ai-doll-server-0.1.1
+sha256sum -c AI_Doll_Server_v0.1.2.tar.gz.sha256
+mkdir ai-doll-server-0.1.2
+tar -xzf AI_Doll_Server_v0.1.2.tar.gz -C ai-doll-server-0.1.2
+cd ai-doll-server-0.1.2
 sudo bash Install_Server.sh
 ```
 

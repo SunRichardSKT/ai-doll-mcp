@@ -10,9 +10,9 @@
 
 让 AI 感知你对娃娃的真实触摸，在聊天里回应，并留下可查询的互动记录。
 
-[下载 v0.1.1 内测版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.1) · [完整教程](docs/README.md) · [故障排查](docs/TROUBLESHOOTING.md) · [AI 使用说明书](docs/ai/AI_GUIDE.md)
+[下载 v0.1.2 内测版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.2) · [完整教程](docs/README.md) · [故障排查](docs/TROUBLESHOOTING.md) · [AI 使用说明书](docs/ai/AI_GUIDE.md)
 
-11月13日更新：烧录器支持[本地固件选择与GitHub最新版本下载](docs/start/QUICK_FLASH.md)；核心壳和充电壳已做[结构加固](hardware/enclosure/PRINT_STRENGTHENING.md)，核心壳须三件配套重打。
+**v0.1.2 内测版**支持六路压力＋NTC 温度＋擦眼泪感应片，并修复 Operit 配置覆盖与重启恢复。见[接线与制作指南](hardware/expansion/resistive-inputs/README.md)。
 
 ## 目录
 
@@ -41,14 +41,14 @@
 
 ## 安装
 
-普通用户从 [v0.1.1 内测版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.1) 下载对应附件。Windows 请下载完整包，GitHub 的 **Download ZIP** 用于获取开发源码。需要核对附件完整性时，使用同版 [SHA256SUMS.txt](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.1/SHA256SUMS.txt)。
+普通用户从 [v0.1.2 内测版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.2) 下载对应附件。Windows 请下载完整包，GitHub 的 **Download ZIP** 用于获取开发源码。需要核对附件完整性时，使用同版 [SHA256SUMS.txt](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.2/SHA256SUMS.txt)。
 
 | 你的使用方式 | 下载 | 使用时需要运行 |
 | --- | --- | --- |
-| 只有安卓手机，使用 Operit | [Operit 工具包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.1/AI_Doll_Operit.toolpkg) | 已烧录的娃娃和同一局域网内的手机 |
-| Windows 采集，接 Operit 或本地 MCP | [Windows 完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.1/AI_Doll_Code_v0.1.1.zip) | 娃娃和运行采集服务的电脑 |
-| Windows 采集，接 ChatGPT | [Windows 完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.1/AI_Doll_Code_v0.1.1.zip) | 娃娃、电脑采集服务和 Secure MCP Tunnel |
-| 自有 Linux 服务器，接 Operit 或其他客户端 | [Linux 服务包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.1/AI_Doll_Server_v0.1.1.tar.gz) | 娃娃和接收服务器 |
+| 只有安卓手机，使用 Operit | [Operit 工具包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.2/AI_Doll_Operit.toolpkg) | 已烧录的娃娃和同一局域网内的手机 |
+| Windows 采集，接 Operit 或本地 MCP | [Windows 完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.2/AI_Doll_Code_v0.1.2.zip) | 娃娃和运行采集服务的电脑 |
+| Windows 采集，接 ChatGPT | [Windows 完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.2/AI_Doll_Code_v0.1.2.zip) | 娃娃、电脑采集服务和 Secure MCP Tunnel |
+| 自有 Linux 服务器，接 Operit 或其他客户端 | [Linux 服务包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.2/AI_Doll_Server_v0.1.2.tar.gz) | 娃娃和接收服务器 |
 
 ### 安卓手机直连
 
@@ -68,13 +68,13 @@
 
 ### Linux 服务器
 
-准备可通过 SSH 访问的 Ubuntu 或 Debian 服务器和已解析的域名。上传服务包与同版 [校验文件](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.1/AI_Doll_Server_v0.1.1.tar.gz.sha256)，在 SSH 终端运行以下命令。
+准备可通过 SSH 访问的 Ubuntu 或 Debian 服务器和已解析的域名。上传服务包与同版 [校验文件](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.2/AI_Doll_Server_v0.1.2.tar.gz.sha256)，在 SSH 终端运行以下命令。
 
 ```bash
-sha256sum -c AI_Doll_Server_v0.1.1.tar.gz.sha256
-mkdir ai-doll-server-0.1.1
-tar -xzf AI_Doll_Server_v0.1.1.tar.gz -C ai-doll-server-0.1.1
-cd ai-doll-server-0.1.1
+sha256sum -c AI_Doll_Server_v0.1.2.tar.gz.sha256
+mkdir ai-doll-server-0.1.2
+tar -xzf AI_Doll_Server_v0.1.2.tar.gz -C ai-doll-server-0.1.2
+cd ai-doll-server-0.1.2
 sudo bash Install_Server.sh
 ```
 
@@ -94,7 +94,7 @@ sudo bash Install_Server.sh
 | 你想做什么 | 怎么做 |
 | --- | --- |
 | 让 Operit 在触摸后回复 | 在已绑定的聊天上开启“触摸主动回复”，可先试 1 分钟再选常开。常开取决于安卓后台任务和网络。 |
-| 在普通 ChatGPT 体验触摸 | 在已连接的聊天里说“开始 60 秒互动”，等待会话开始后按压。普通 Chat 的空闲主动唤醒尚未验证。 |
+| 在普通 ChatGPT 体验触摸 | 在已连接的聊天里说“开始 60 秒互动”，等待会话开始后按压。 |
 | 查询或导出互动记录 | 在 Operit 查看历史，或在已连接 MCP 的聊天里说“查询今天的互动，按部位汇总”。已经同步的历史在设备离线时仍可查询。 |
 | 暂停回复但保留历史同步 | 关闭“触摸主动回复”，保留“自动同步记录”。 |
 | 打开设备设置或更换 Wi-Fi | 从已配对客户端打开“设备设置”。需要重新配网时，在设备运行中长按 BOOT 约 3 秒，再连娃娃热点。 |
@@ -111,7 +111,9 @@ sudo bash Install_Server.sh
 
 [下载第一代硬件最终版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/hardware-gen1-final)：PCB工程与制造文件、103450核心电池壳、独立充电板壳。
 
-按实际 PCB 选打印件。插座样板的首板实体装配和八路采样待验证。当前固件支持压力与干接点输入。 [固件功能范围](docs/reports/FIRMWARE_INPUTS.md) · [固件、PCB 与外壳下载清单](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/delivery/README.md)
+按实际 PCB 选择打印件，核心壳的底壳、托板和上盖配套打印。[结构加固与打印说明](hardware/enclosure/PRINT_STRENGTHENING.md)提供装配尺寸和建议。
+
+0.1.1 固件支持压力与干接点，0.1.2 增加 NTC 和湿润片。[固件功能](docs/reports/FIRMWARE_INPUTS.md) · [交付文件](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/delivery/README.md) · [检查记录](docs/reports/VALIDATION.md)
 
 ## 开发与接口
 

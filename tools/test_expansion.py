@@ -23,7 +23,7 @@ class NativeExpansionTests(unittest.TestCase):
 #include <cstdio>
 #include <iostream>
 #include <assert.h>
-class String:public std::string{public:using std::string::string;String(const std::string&s):std::string(s){}bool isEmpty()const{return empty();}size_t write(uint8_t c){push_back((char)c);return 1;}size_t write(const uint8_t*s,size_t n){append((const char*)s,n);return n;}};
+class String:public std::string{public:using std::string::string;String(const std::string&s):std::string(s){}bool isEmpty()const{return empty();}int indexOf(const String&s)const{auto p=find(s);return p==npos?-1:(int)p;}size_t write(uint8_t c){push_back((char)c);return 1;}size_t write(const uint8_t*s,size_t n){append((const char*)s,n);return n;}};
 #include <ArduinoJson.h>
 namespace ArduinoJson {template<>struct Converter<String>{
  static String fromJson(JsonVariantConst v){return v.as<const char*>()?v.as<const char*>():"";}
@@ -37,8 +37,17 @@ bool accepts(const std::string&rows){JsonDocument a;assert(!deserializeJson(a,"{
 int main(){
  std::string head=R"({"channel":0,"name":"head","type":"pressure","driver":"mux_adc","mux_port":0,"mode":"connected","options":{"press_threshold":699,"release_threshold":295}})";
  std::string contact=R"({"channel":13,"name":"contact","type":"switch","driver":"gpio_switch","gpio":21,"mode":"off","options":{"debounce_ms":40}})";
+ std::string temp=R"({"channel":6,"name":"surface","type":"temperature","driver":"mux_adc","mux_port":6,"mode":"connected","options":{"model":"ntc","beta":3435}})";
+ std::string wet=R"({"channel":7,"name":"paw","type":"wetness","driver":"mux_adc","mux_port":7,"mode":"connected","options":{"pressure_channel":0}})";
+ assert(accepts(head+","+temp+","+wet));assert(!accepts(wet));
+ assert(!accepts(head+","+std::string(R"({"channel":7,"name":"bad","type":"wetness","driver":"mux_adc","mux_port":0})")));
+ assert(!accepts(R"({"channel":6,"name":"bad","type":"temperature","driver":"mux_adc","mux_port":6,"options":{"beta":0}})"));
+ assert(!accepts(R"({"channel":6,"name":"bad","type":"temperature","driver":"mux_adc","mux_port":6,"options":{"model":"ds18b20"}})"));
+ JsonDocument all;deserializeJson(all,"{\"channels\":["+head+","+temp+","+wet+"]}");ChannelConfig original[MAX_CHANNELS];String configError;assert(parseChannels(all.as<JsonVariantConst>(),original,configError));
+ JsonDocument encoded;encodeChannels(encoded.to<JsonObject>(),original);ChannelConfig roundtrip[MAX_CHANNELS];assert(parseChannels(encoded.as<JsonVariantConst>(),roundtrip,configError));
+ assert(roundtrip[0].on==699&&roundtrip[6].ntc.beta==3435&&roundtrip[6].ntc.series==4700&&roundtrip[7].wet.holdMs==600&&roundtrip[7].wet.pressureChannel==0);
  assert(accepts(head+","+contact));assert(!accepts(head+","+head));
- for(const char* kind:{"temperature","motion","vibration","light"})assert(!accepts(std::string("{\"channel\":8,\"name\":\"removed\",\"type\":\"")+kind+"\",\"driver\":\"simulation\"}"));
+ for(const char* kind:{"motion","vibration","light"})assert(!accepts(std::string("{\"channel\":8,\"name\":\"removed\",\"type\":\"")+kind+"\",\"driver\":\"simulation\"}"));
  assert(!accepts(R"({"channel":0,"name":"wrong","type":"switch","driver":"gpio_switch","gpio":20})"));
  JsonDocument saved;deserializeJson(saved,"{\"channels\":["+head+","+contact+R"(,{"channel":8,"name":"probe","type":"temperature","driver":"ds18b20","gpio":1,"rom":"savedROM"},{"channel":11,"name":"motor","type":"vibration","driver":"gpio_pwm","gpio":10}]})");
  retireUnsupportedChannels(saved);assert(saved["channels"].size()==2&&retiredChannelCount==2);
@@ -46,7 +55,7 @@ int main(){
  JsonDocument retired;assert(!deserializeJson(retired,retiredChannels));assert(retired[0]["rom"]=="savedROM"&&retired[1]["gpio"]==10);
  JsonDocument persisted;encodeChannels(persisted.to<JsonObject>(),next);persisted["retired_channels"]=serialized(retiredChannels);persisted["resume_inputs"]=true;
  std::string savedBlob;serializeJson(persisted,savedBlob);retiredChannels="[]";deserializeJson(persisted,savedBlob);retireUnsupportedChannels(persisted);assert(retiredChannelCount==2&&persisted["channels"].size()==2); // Reboot never duplicates or activates retired rows.
- JsonDocument caps;channelCapabilities(caps.to<JsonObject>());assert(caps["types"].size()==2&&caps["physical_outputs_supported"]==false);
+ JsonDocument caps;channelCapabilities(caps.to<JsonObject>());assert(caps["types"].size()==4&&caps["physical_outputs_supported"]==false);
 }
 '''
         with tempfile.TemporaryDirectory(prefix='aidoll-config-') as folder:

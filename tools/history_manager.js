@@ -31,7 +31,7 @@
  async function statistics(){const s=await call('get_history_statistics',{filters:filters()});
   el('historyStatistics').textContent=`${s.events} 条事件 · ${s.pressure_starts} 次压力开始 · ${s.completed} 次已完成压力记录 · 已完成总时长 ${(s.duration_ms/1000).toFixed(1)} 秒 · ${s.unknown_time_events} 条时间未知`;
   const groups=el('historyGroups');groups.replaceChildren();
-  const types={pressure:'压力',temperature:'温度',vibration:'震动命令'},sources={simulation:'模拟',sensor:'真实输入',actuator:'真实输出命令'};
+  const types={pressure:'压力',temperature:'温度',wetness:'擦眼泪感应片',vibration:'震动命令'},sources={simulation:'模拟',sensor:'真实输入',actuator:'真实输出命令'};
   for(const [title,items,names] of [['类型',s.by_type,types],['部位',s.by_body_part,{}],['来源',s.by_source,sources]]){
    const line=document.createElement('p');line.textContent=title+'：'+items.map(x=>`${names[x.label]??x.label??'未标记'} ${x.events} 条`).join('、');groups.append(line);
   }

@@ -19,7 +19,7 @@ static int lastWifi=-1;
 static constexpr int LED_PIN=8; // Common SuperMini blue LED, active low.
 static bool scanBusy=false;
 static uint32_t scanStartedAt=0;
-static const char* VERSION="doll-lab-0.1.1";
+static const char* VERSION="doll-lab-0.1.2";
 static const char* PROTOCOL="2025-11-25";
 
 static String encode(const JsonDocument &d){String s;serializeJson(d,s);return s;}
@@ -48,7 +48,7 @@ static void status(JsonObject o){
  o["boot_id"]=touchBoot;o["event_cursor"]=touchSeq;
  o["firmware"]=VERSION;o["device_id"]=apName;o["uptime_ms"]=millis();o["free_heap"]=ESP.getFreeHeap();
  o["minimum_free_heap"]=ESP.getMinFreeHeap();o["largest_free_block"]=ESP.getMaxAllocHeap();o["retired_channel_count"]=retiredChannelCount;
- o["feature_set"]="pressure-switch-v1";
+ o["feature_set"]="resistive-inputs-v1";
  o["flash_id"]=prefs.getString("flash_id","");o["factory_profile"]=prefs.getString("profile","legacy");
  o["configuration_url"]="http://192.168.4.1/";o["configuration_hotspot"]=deviceName;o["device_name"]=deviceName;
  o["wifi_connected"]=networkReady();o["wifi_associated"]=WiFi.status()==WL_CONNECTED;o["wifi_status"]=(int)WiFi.status();o["ssid"]=ssid;

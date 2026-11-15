@@ -1,5 +1,7 @@
 # 压力与开关精简固件
 
+> 历史压力／开关精简记录。当前0.1.2已按现板扩展需求恢复NTC并增加湿润片，见[0.1.2实现报告](RESISTIVE_INPUTS_012.md)；其余被移除驱动没有恢复。
+
 2026-11-01 · 本地候选，版本基线0.1.0，`feature_set=pressure-switch-v1`、`network_revision=2`。未烧录或发布GitHub。
 
 [教程目录](../README.md) · [上轮精简](FIRMWARE_TRIM.md) · [现板说明](../../hardware/expansion/current-board/SOFTWARE.md)

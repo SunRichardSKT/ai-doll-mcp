@@ -22,7 +22,7 @@ def build_package(python: Path, output: Path) -> dict:
         raise ValueError('Python must be an executable file')
     manifest = {
         '$schema': 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json',
-        'name': 'ai-doll-local', 'version': '0.1.1',
+        'name': 'ai-doll-local', 'version': '0.1.2',
         'description': 'Local Windows MCP connection to the installed AI Doll service. Actual Chat support requires testing.',
         'author': {'name': 'SunRichardSKT'},
         'homepage': REPOSITORY, 'repository': REPOSITORY,
