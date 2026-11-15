@@ -2,7 +2,7 @@
 
 手机可以直接采集娃娃的触摸，也可以从自己的服务器读取记录。两条路线使用同一个 [AI_Doll_Operit.toolpkg](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.3/AI_Doll_Operit.toolpkg)。
 
-本页三步向导适用于 **内测0.1.3版**，下载对应0.1.3附件。温度与擦眼泪使用配套 0.1.2 软件、Operit 和固件，见[制作指南](../../hardware/expansion/resistive-inputs/README.md)。
+本页三步向导适用于 **内测0.1.3版**，下载对应0.1.3附件。温度与擦眼泪使用配套 0.1.2 软件、Operit 和固件，见[制作指南](../../hardware/gen1/expansion/resistive-inputs/README.md)。
 
 | 用法 | 使用时保持运行 | 历史保存位置 | 手机网络 |
 | --- | --- | --- | --- |

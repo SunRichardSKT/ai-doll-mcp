@@ -27,7 +27,7 @@ MCP URL 使用连接器提供的地址，源码链接、管理页和隧道编号
 ## 2. 下载与保留数据
 
 - 普通安装使用 [v0.1.3 Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.3) 的同批次附件和 `SHA256SUMS.txt`。Windows 完整包自带 Python；Linux 使用小型服务包。
-- 温度／擦眼泪使用配套 0.1.2 软件、固件与 Operit；从同版 Release 下载，接线见[制作指南](../../hardware/expansion/resistive-inputs/README.md)和[开发指南](../developers/DEVELOPER_GUIDE.md)。
+- 温度／擦眼泪使用配套 0.1.2 软件、固件与 Operit；从同版 Release 下载，接线见[制作指南](../../hardware/gen1/expansion/resistive-inputs/README.md)和[开发指南](../developers/DEVELOPER_GUIDE.md)。
 - 升级保留历史、校准、聊天绑定、插件目录和服务器数据卷。设备升级以启动回读为准。
 - Operit 同 ID 无法覆盖时，停止 AI Doll 后台任务，删除工具包文件再导入新版，保留独立插件数据与应用数据。日常任务从设置面板启动。
 
@@ -93,9 +93,9 @@ USB 烧录在用户要求升级或写板时执行。使用 `Flash_ESP32.cmd`，�
 
 ### 主板、电源与外壳
 
-按实物区分[居中开关现板](../../hardware/expansion/current-board/README.md)和[第一代最终锁扣板](../../hardware/rev-v2/candidates/c3-socket-20261105/README.md)。最终锁扣板开关在后右侧，J9 在后左侧；传感器使用 PA2.0 2P，电源口 PA2.0 3P 为 **1=GND、2=NC、3=5V**。旧两针电源口为 1=GND、2=5V，接线按对应板型。TP4 ADC 测试点在底面。
+按实物区分[居中开关现板](../../hardware/gen1/expansion/current-board/README.md)和[第一代最终锁扣板](../../hardware/gen1/pcb/candidates/c3-socket-20261105/README.md)。最终锁扣板开关在后右侧，J9 在后左侧；传感器使用 PA2.0 2P，电源口 PA2.0 3P 为 **1=GND、2=NC、3=5V**。旧两针电源口为 1=GND、2=5V，接线按对应板型。TP4 ADC 测试点在底面。
 
-103450 电池（3.7V、2000mAh、PH2.0）接独立充放模块 B+/B−，模块 5V 输出接 J9。主板需要 5V，电池通过充放模块升压供电。核心与充电板分别装壳；保留用户最终丝印。模型选择、配套打印与尺寸见[外壳加固说明](../../hardware/enclosure/PRINT_STRENGTHENING.md)。
+103450 电池（3.7V、2000mAh、PH2.0）接独立充放模块 B+/B−，模块 5V 输出接 J9。主板需要 5V，电池通过充放模块升压供电。核心与充电板分别装壳；保留用户最终丝印。模型选择、配套打印与尺寸见[外壳加固说明](../../hardware/gen1/enclosure/PRINT_STRENGTHENING.md)。
 
 ### 操作与发布
 
@@ -105,7 +105,7 @@ USB 烧录在用户要求升级或写板时执行。使用 `Flash_ESP32.cmd`，�
 
 ## 现板温度与擦眼泪（0.1.2）
 
-配置前读取 `feature_set=resistive-inputs-v1` 及 `temperature`／`wetness` 能力。常用组合为 **六路压力＋一路 NTC＋一路湿润片**，占用现板八个口；传感器直接焊 PA2.0 2P 线束。[制作与设置](../../hardware/expansion/resistive-inputs/README.md)
+配置前读取 `feature_set=resistive-inputs-v1` 及 `temperature`／`wetness` 能力。常用组合为 **六路压力＋一路 NTC＋一路湿润片**，占用现板八个口；传感器直接焊 PA2.0 2P 线束。[制作与设置](../../hardware/gen1/expansion/resistive-inputs/README.md)
 
 NTC 默认 R25=10k、B3435，计算包含 4.7k 串联和 10k 下拉，使用校准毫伏值。探头放薄布下感知局部接触升温，深埋时测娃娃内部温度。第一条有效样本建立基线，默认变化 1℃ 后可回应；故障值单独报告。
 

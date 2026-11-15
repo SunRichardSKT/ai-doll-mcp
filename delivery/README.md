@@ -2,7 +2,7 @@
 
 **内测0.1.3版 / 固件0.1.3**，更新于2026-11-15。[下载 v0.1.3](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.3)。
 
-本版简化首次连接：Operit 三步向导保存设置进度，配网页按客户端显示下一步，Windows 优先 USB 配网及自动配对，并按 ChatGPT、Claude、DeepSeek DSH、Gemini、Operit 与其他客户端分别引导；支持用户自定义多个部位组合，如前胸＋后背＝拥抱。保留 NTC10k/B3435 和擦眼泪感应片扩展。温度与擦眼泪分别设置只记录／允许回复；配套固件为resistive-inputs-v1。Windows完整包内置Python，保留原历史、设置及校准；未自动给已有设备烧录。接线和感应片制作见[现板电阻扩展](../hardware/expansion/resistive-inputs/README.md)。
+本版简化首次连接：Operit 三步向导保存设置进度，配网页按客户端显示下一步，Windows 优先 USB 配网及自动配对，并按 ChatGPT、Claude、DeepSeek DSH、Gemini、Operit 与其他客户端分别引导；支持用户自定义多个部位组合，如前胸＋后背＝拥抱。保留 NTC10k/B3435 和擦眼泪感应片扩展。温度与擦眼泪分别设置只记录／允许回复；配套固件为resistive-inputs-v1。Windows完整包内置Python，保留原历史、设置及校准；未自动给已有设备烧录。接线和感应片制作见[现板电阻扩展](../hardware/gen1/expansion/resistive-inputs/README.md)。
 
 ## 应该下载哪个
 
@@ -18,7 +18,7 @@
 
 Operit 无需为了取得手机工具包下载 Windows 包。服务器管理页可导出连接文件、连接码与临时二维码；仅手机模式默认从设备热点读取，不要求实体标签。原电脑入口继续兼容，完整包内含相同工具包。[统一安装](../docs/integrations/OPERIT_SETUP.md) · [免电脑指南](../docs/integrations/OPERIT_NO_PC.md)。
 
-Windows包内置Python。Linux小型包不含Windows运行环境，由容器准备。PCB包保留第一代最终版与已制板参考资料；按[硬件目录](../hardware/rev-v2/README.md)区分版本，第一代最终版见[锁扣插座板](../hardware/rev-v2/candidates/c3-socket-20261105/README.md)。
+Windows包内置Python。Linux小型包不含Windows运行环境，由容器准备。PCB包保留第一代最终版与已制板参考资料；按[硬件目录](../hardware/gen1/pcb/README.md)区分版本，第一代最终版见[锁扣插座板](../hardware/gen1/pcb/candidates/c3-socket-20261105/README.md)。
 
 [Windows 首次安装](../docs/start/AI_INSTALL.md) · [远程部署](../docs/integrations/REMOTE_SERVER_SETUP.md) · [给 AI 的执行指南](../docs/ai/AI_GUIDE.md) · [全部文档](../docs/README.md)
 

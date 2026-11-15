@@ -58,15 +58,15 @@ LIS3DH只提供加速度。本方案定义朝向变化、静止/运动、摇晃�
 
 ## 资料与原板
 
-- [主板资料与版本区分](../../rev-v2/README.md)
-- [通道与校准说明](../../../docs/daily/SENSOR_CHANNELS.md)
-- [DS18B20接线](../../../docs/daily/DIGITAL_TEMPERATURE.md)
-- [给AI的规则](../../../docs/ai/AI_GUIDE.md)
+- [主板资料与版本区分](../../pcb/README.md)
+- [通道与校准说明](../../../../docs/daily/SENSOR_CHANNELS.md)
+- [DS18B20接线](../../../../docs/daily/DIGITAL_TEMPERATURE.md)
+- [给AI的规则](../../../../docs/ai/AI_GUIDE.md)
 
 原生工程记录中的候选、制造待核对事项仍保留。本次依据用户指认的实物布局制定现板支持方案，不把旧DRC或软件测试改写成扩展板制造/实物验证。
 
-本版已加入[网络恢复与手机配网页优化](../../../docs/reports/FIRMWARE_NETWORK.md)，以原生状态network_revision=2识别。
+本版已加入[网络恢复与手机配网页优化](../../../../docs/reports/FIRMWARE_NETWORK.md)，以原生状态network_revision=2识别。
 
-本版已清理重复调试与旧工具列表，详见[固件精简说明](../../../docs/reports/FIRMWARE_TRIM.md)。
+本版已清理重复调试与旧工具列表，详见[固件精简说明](../../../../docs/reports/FIRMWARE_TRIM.md)。
 
-当前本地固件已改为仅压力/开关的`pressure-switch-v1`，温度、动作和外接输出设计不再是当前驱动能力。见[最新固件说明](../../../docs/reports/FIRMWARE_INPUTS.md)。
+当前本地固件已改为仅压力/开关的`pressure-switch-v1`，温度、动作和外接输出设计不再是当前驱动能力。见[最新固件说明](../../../../docs/reports/FIRMWARE_INPUTS.md)。

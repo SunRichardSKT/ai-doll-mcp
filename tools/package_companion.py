@@ -278,7 +278,7 @@ PCB_FILES = (
 )
 PCB_PACKAGE = f'AI_Doll_PCB_v{VERSION}.zip'
 CODE_README = (ROOT/'README.md').read_bytes().decode('utf-8')
-PCB_README = '# AI Doll PCB · 内测0.1.3版\n\n第一代最终版为34.29 × 44.45 mm双层C3八路锁扣插座板。下方保留早期已制带线板资料，按实物区分。\n\n- [主板与采购说明](hardware/rev-v2/README.md)\n- [早期已制带线板工程](hardware/rev-v2/AI_Doll_V2_丝印镜像修正_20261016.epro2)\n- [采购BOM](hardware/rev-v2/AI_Doll_V2_标准化采购BOM_20261003.csv)\n- [板外器件与测试点](hardware/rev-v2/AI_Doll_V2_板外器件与测试点_20261003.csv)\n- [在用制造资料](hardware/rev-v2/ordered-gerber-20260920/已下单PCB封装核对.md)\n- [第一代最终版锁扣插座板](hardware/rev-v2/candidates/c3-socket-20261105/README.md)\n\nJ9要求5V输入，主板不包含锂电池充电、升压或保护电路。第一代最终版采用后置开关和三针锁扣电源座，配套103450/PH2.0核心电池壳及独立充电板壳；首板先核对实际插头、开关和电池。\n\n[接线教程](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/daily/SENSOR_CHANNELS.md) · [外壳选择](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/README.md)\n'
+PCB_README = '# AI Doll PCB · 内测0.1.3版\n\n第一代最终版为34.29 × 44.45 mm双层C3八路锁扣插座板。下方保留早期已制带线板资料，按实物区分。\n\n- [主板与采购说明](hardware/gen1/pcb/README.md)\n- [早期已制带线板工程](hardware/gen1/pcb/AI_Doll_V2_丝印镜像修正_20261016.epro2)\n- [采购BOM](hardware/gen1/pcb/AI_Doll_V2_标准化采购BOM_20261003.csv)\n- [板外器件与测试点](hardware/gen1/pcb/AI_Doll_V2_板外器件与测试点_20261003.csv)\n- [在用制造资料](hardware/gen1/pcb/ordered-gerber-20260920/已下单PCB封装核对.md)\n- [第一代最终版锁扣插座板](hardware/gen1/pcb/candidates/c3-socket-20261105/README.md)\n\nJ9要求5V输入，主板不包含锂电池充电、升压或保护电路。第一代最终版采用后置开关和三针锁扣电源座，配套103450/PH2.0核心电池壳及独立充电板壳；首板先核对实际插头、开关和电池。\n\n[接线教程](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/daily/SENSOR_CHANNELS.md) · [外壳选择](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/gen1/enclosure/README.md)\n'
 
 
 def link_unbundled_docs(contents):
@@ -400,15 +400,13 @@ def server_package(delivery, operit_package=None):
                 sha256=digest,checksum_file=checksum.name)
 
 
-def main():
-    from check_firmware import check
-    check()
-    delivery = ROOT/'delivery'
+def code_files():
+    """Collect the public Windows sources without writing release artifacts."""
     files = [ROOT/'Install_Server.sh', ROOT/'AI_Doll_Server.cmd', ROOT/'AI_Doll.cmd', ROOT/'Flash_ESP32.cmd', ROOT/'AGENTS.md', ROOT/'CHANGELOG.md', ROOT/'requirements-flash.txt', ROOT/'requirements-flash-runtime.txt', ROOT/'requirements-companion.txt', ROOT/'.gitignore', ROOT/'LICENSE', ROOT/'firmware/platformio.ini']
     files.append(ROOT/'requirements-firmware.txt')
-    from package_operit import build as build_operit, FILES as OPERIT_FILES
-    phone_package = build_operit()
-    server_output = server_package(delivery)
+    files += [ROOT/name for name in ('firmware/README.md','hardware/README.md','hardware/gen1/README.md','hardware/gen2/README.md')]
+    files += [ROOT/'hardware/gen2/research'/name for name in ('问卷全文.md','尺寸示意图.png','尺寸示意图.svg')]
+    from package_operit import FILES as OPERIT_FILES
     files += [ROOT/'clients/operit'/name for name in OPERIT_FILES]
     files += [ROOT/'delivery/AI_Doll_Operit.toolpkg']
     files += [ROOT/'tools'/name for name in TOOLS]
@@ -423,21 +421,39 @@ def main():
     files += [ROOT/'docs'/name for name in DOCS]
     files += sorted((ROOT/'docs/images').glob('*.png'))
     files += [ROOT/'templates'/name for name in ('chatgpt-mcp-config.json','README.md','host-event.example.json','openclaw-hook.example.json')]
-    files += [p for directory in ('current-board','resistive-inputs') for p in (ROOT/'hardware/expansion'/directory).iterdir() if p.is_file()]
+    files += [p for directory in ('current-board','resistive-inputs') for p in (ROOT/'hardware/gen1/expansion'/directory).iterdir() if p.is_file()]
     files += [ROOT/'firmware/src'/name for name in SOURCE]
     files += [ROOT/'firmware/prebuilt'/name for name in PREBUILT]
+    return files
+
+
+def pcb_files():
+    hardware = ROOT/'hardware/gen1/pcb'
+    if not hardware.exists():
+        return []
+    files = [hardware/name for name in PCB_FILES]
+    for directory in ('ordered-gerber-20260920','verification/catalog-20261003',
+                      'verification/silkscreen-mirror-20261016','candidates/c3-socket-20261105',
+                      'candidates/c3-socket-20261105/manufacturing'):
+        files += [p for p in (hardware/directory).iterdir() if p.is_file()
+                  and p.suffix.lower() in {'.pdf','.json','.png','.svg','.md','.csv','.txt','.epro2','.drl','.gko','.gbl','.gbp','.gbo','.gbs','.gdl','.gdd','.gtl','.gtp','.gto','.gts'}]
+    return files
+
+
+def main():
+    from check_firmware import check
+    from package_operit import build as build_operit
+    check()
+    delivery = ROOT/'delivery'
+    phone_package = build_operit()
+    server_output = server_package(delivery)
+    files = code_files()
     outputs = [package(delivery/f'AI_Doll_Code_v{VERSION}.zip', files, CODE_README, f'doll-bridge-{VERSION}')]
     firmware_readme = f'# AI Doll 固件 · 内测{VERSION}\n\n配套设备程序；普通Windows用户可直接下载完整包运行Flash_ESP32.cmd。\n\n[镜像与地址](firmware/prebuilt/README.md) · [OTA升级](docs/daily/OTA_UPDATE.md)\n\n支持压力、两线NTC温度、擦眼泪湿润感应片和干接点；板载状态灯、网络、历史及OTA保留。动作、数字温度和外接输出仍不支持。旧隔离配置保留且不自动恢复。升级保留校准与历史，不执行全片擦除。\n'
     firmware_files = [ROOT/'firmware/prebuilt'/name for name in PREBUILT] + [ROOT/'LICENSE', ROOT/'docs/daily/OTA_UPDATE.md']
     outputs.append(package(delivery/f'AI_Doll_Firmware_v{VERSION}.zip', firmware_files, firmware_readme, f'doll-lab-{VERSION}'))
-    hardware = ROOT/'hardware/rev-v2'
-    if hardware.exists():
-        pcb = [hardware/name for name in PCB_FILES]
-        for directory in ('ordered-gerber-20260920','verification/catalog-20261003',
-                          'verification/silkscreen-mirror-20261016','candidates/c3-socket-20261105',
-                          'candidates/c3-socket-20261105/manufacturing'):
-            pcb += [p for p in (hardware/directory).iterdir() if p.is_file()
-                    and p.suffix.lower() in {'.pdf','.json','.png','.svg','.md','.csv','.txt','.epro2','.drl','.gko','.gbl','.gbp','.gbo','.gbs','.gdl','.gdd','.gtl','.gtp','.gto','.gts'}]
+    pcb = pcb_files()
+    if pcb:
         outputs.append(package(delivery/PCB_PACKAGE, pcb, PCB_README, f'ai-doll-pcb-{VERSION}'))
     outputs.append(server_output)
     outputs.append(dict(phone_package, bytes=(delivery/phone_package['file']).stat().st_size))
@@ -457,7 +473,7 @@ def main():
         checksums[name] = hashlib.sha256((delivery/name).read_bytes()).hexdigest()
     checksums['Install_Server.sh'] = hashlib.sha256((ROOT/'Install_Server.sh').read_bytes()).hexdigest()
     (delivery/'SHA256SUMS.txt').write_text(''.join(digest+'  '+name+'\n' for name,digest in sorted(checksums.items())), encoding='ascii',newline='\n')
-    readme = f'# 下载与交付文件\n\n**内测{VERSION}版 / 固件{VERSION}**，更新于2026-11-15。[下载 v0.1.3](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.3)。\n\n本版简化首次连接：Operit 三步向导保存设置进度，配网页按客户端显示下一步，Windows 优先 USB 配网及自动配对，并按 ChatGPT、Claude、DeepSeek DSH、Gemini、Operit 与其他客户端分别引导；支持用户自定义多个部位组合，如前胸＋后背＝拥抱。保留 NTC10k/B3435 和擦眼泪感应片扩展。温度与擦眼泪分别设置只记录／允许回复；配套固件为resistive-inputs-v1。Windows完整包内置Python，保留原历史、设置及校准；未自动给已有设备烧录。接线和感应片制作见[现板电阻扩展](../hardware/expansion/resistive-inputs/README.md)。\n\n'
+    readme = f'# 下载与交付文件\n\n**内测{VERSION}版 / 固件{VERSION}**，更新于2026-11-15。[下载 v0.1.3](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.3)。\n\n本版简化首次连接：Operit 三步向导保存设置进度，配网页按客户端显示下一步，Windows 优先 USB 配网及自动配对，并按 ChatGPT、Claude、DeepSeek DSH、Gemini、Operit 与其他客户端分别引导；支持用户自定义多个部位组合，如前胸＋后背＝拥抱。保留 NTC10k/B3435 和擦眼泪感应片扩展。温度与擦眼泪分别设置只记录／允许回复；配套固件为resistive-inputs-v1。Windows完整包内置Python，保留原历史、设置及校准；未自动给已有设备烧录。接线和感应片制作见[现板电阻扩展](../hardware/gen1/expansion/resistive-inputs/README.md)。\n\n'
     readme += '## 应该下载哪个\n\n| 包 | 适合谁 | 解压后做什么 |\n| --- | --- | --- |\n'
     purposes = {
         f'AI_Doll_Firmware_v{VERSION}.zip': ('已有软件／仅升级开发板', '按固件说明使用OTA应用镜像或配套烧录工具，不全片擦除'),
@@ -472,7 +488,7 @@ def main():
         who, action = purposes[item['file']]
         readme += f"| [{item['file']}](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v{VERSION}/{item['file']}) · {item['bytes']/1048576:.2f} MiB | {who} | {action} |\n"
     readme += '\nOperit 无需为了取得手机工具包下载 Windows 包。服务器管理页可导出连接文件、连接码与临时二维码；仅手机模式默认从设备热点读取，不要求实体标签。原电脑入口继续兼容，完整包内含相同工具包。[统一安装](../docs/integrations/OPERIT_SETUP.md) · [免电脑指南](../docs/integrations/OPERIT_NO_PC.md)。\n'
-    readme += '\nWindows包内置Python。Linux小型包不含Windows运行环境，由容器准备。PCB包保留第一代最终版与已制板参考资料；按[硬件目录](../hardware/rev-v2/README.md)区分版本，第一代最终版见[锁扣插座板](../hardware/rev-v2/candidates/c3-socket-20261105/README.md)。\n\n'
+    readme += '\nWindows包内置Python。Linux小型包不含Windows运行环境，由容器准备。PCB包保留第一代最终版与已制板参考资料；按[硬件目录](../hardware/gen1/pcb/README.md)区分版本，第一代最终版见[锁扣插座板](../hardware/gen1/pcb/candidates/c3-socket-20261105/README.md)。\n\n'
     readme += '[Windows 首次安装](../docs/start/AI_INSTALL.md) · [远程部署](../docs/integrations/REMOTE_SERVER_SETUP.md) · [给 AI 的执行指南](../docs/ai/AI_GUIDE.md) · [全部文档](../docs/README.md)\n\n'
     readme += '## 许可\n\n软件 AGPL-3.0-only，硬件 CERN-OHL-S-2.0，第三方资源保留各自声明。具体适用范围见 [项目许可](../LICENSING.md)。\n\n'
     readme += f'## 如何校验发布包\n\n使用本版 Release 附带的固定清单，不混用旧版或 main 的滚动清单。\n\n[DELIVERY_MANIFEST.json](DELIVERY_MANIFEST.json) 与 [SHA256SUMS.txt](SHA256SUMS.txt) 记录哈希；ZIP / TAR 内的 MANIFEST.json 记录逐文件校验，ToolPkg 使用 CHECKSUMS.json。Linux 包另有同目录 `.sha256`。\n\n'

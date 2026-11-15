@@ -16,8 +16,8 @@
 
 ## 机械与主板
 
-- 已制板堆叠壳使用P02上盖，底壳与托板几何保留；模型回读、装配间隙和旧底壳兼容检查见[外壳说明](../../hardware/enclosure/ordered-v2-stacked/README.md)。打印手感仍以试装为准。
-- 原制造Gerber对应在用通孔板；紧凑贴片板仍为研发参考，手焊焊盘和制造确认事项见[主板说明](../../hardware/rev-v2/README.md)。
+- 已制板堆叠壳使用P02上盖，底壳与托板几何保留；模型回读、装配间隙和旧底壳兼容检查见[外壳说明](../../hardware/gen1/enclosure/ordered-v2-stacked/README.md)。打印手感仍以试装为准。
+- 原制造Gerber对应在用通孔板；紧凑贴片板仍为研发参考，手焊焊盘和制造确认事项见[主板说明](../../hardware/gen1/pcb/README.md)。
 
 历史阶段记录已从当前目录清理，Git提交历史保留。用户排查与操作规则见[AI指南](../ai/AI_GUIDE.md)及[故障排查](../TROUBLESHOOTING.md)。
 

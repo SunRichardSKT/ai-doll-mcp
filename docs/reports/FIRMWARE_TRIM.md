@@ -2,7 +2,7 @@
 
 2026-11-01 · 本地候选；沿用0.1.0基线、`current-board-expansion-v1`与`network_revision=2`。未烧录、未发布。
 
-[教程目录](../README.md) · [此前网络优化与蓝牙测量](FIRMWARE_NETWORK.md) · [现板扩展](../../hardware/expansion/current-board/SOFTWARE.md)
+[教程目录](../README.md) · [此前网络优化与蓝牙测量](FIRMWARE_NETWORK.md) · [现板扩展](../../hardware/gen1/expansion/current-board/SOFTWARE.md)
 
 ## 实际空间
 

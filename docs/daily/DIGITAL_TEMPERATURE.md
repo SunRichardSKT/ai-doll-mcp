@@ -1,6 +1,6 @@
 # DS18B20 温度探头
 
-> 历史数字温度方案：当前0.1.1／0.1.2不包含DS18B20驱动。现板两线NTC请用[电阻扩展](../../hardware/expansion/resistive-inputs/README.md)，不要按下文接入后声称可用。
+> 历史数字温度方案：当前0.1.1／0.1.2不包含DS18B20驱动。现板两线NTC请用[电阻扩展](../../hardware/gen1/expansion/resistive-inputs/README.md)，不要按下文接入后声称可用。
 
 > 历史扩展参考。v0.1.1 当前固件支持压力与干接点，DS18B20 步骤仅适用于仍带该驱动的旧扩展固件。[当前固件功能](../reports/FIRMWARE_INPUTS.md) · [全部目录](../README.md)
 

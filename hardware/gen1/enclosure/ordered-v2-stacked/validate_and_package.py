@@ -141,7 +141,7 @@ def package(target, report):
     files['SHA256SUMS.txt']=sums.encode('utf-8')
     manifest['files']['SHA256SUMS.txt']=hashlib.sha256(files['SHA256SUMS.txt']).hexdigest()
     for name in ('LICENSE', 'LICENSING.md', 'hardware/LICENSE'):
-        files[name]=(HERE.parents[2]/name).read_bytes()
+        files[name]=(HERE.parents[3]/name).read_bytes()
         manifest['files'][name]=hashlib.sha256(files[name]).hexdigest()
     files['MANIFEST.json']=json.dumps(manifest,ensure_ascii=False,indent=2).encode('utf-8')
     target.parent.mkdir(parents=True,exist_ok=True)
@@ -161,7 +161,7 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--validate-only',action='store_true')
     parser.add_argument('--baseline',type=Path,help='Optional previous P01 output directory for lid-only compatibility checks')
-    parser.add_argument('--output',type=Path,default=HERE.parents[2]/'delivery/AI_Doll_Stacked_Enclosure_v0.1.0.zip')
+    parser.add_argument('--output',type=Path,default=HERE.parents[3]/'delivery/AI_Doll_Stacked_Enclosure_v0.1.0.zip')
     args=parser.parse_args()
     result=validate(args.baseline)
     print(json.dumps(dict(passed=result['passed'],dimensionsMm=result['dimensionsMm'],tailCount=len(result['tailChecks'])),ensure_ascii=False))

@@ -2,7 +2,7 @@
 
 适用于现有八路 FSR 电路，包括已制带线板和第一代最终锁扣插座板。**替换两路传感器，得到 6 路压力＋1 路 NTC 温度＋1 路擦眼泪感应片。** 使用现有八个插口；需要保留八路压力再加探头时，另加分压小板与采样接口。
 
-[通道操作](../../../docs/daily/SENSOR_CHANNELS.md) · [软件实现与检查](../../../docs/reports/RESISTIVE_INPUTS_012.md) · [接线示意](wiring.svg) · [配置示例](six-pressure-temperature-wetness.json) · [采购清单](bom.csv)
+[通道操作](../../../../docs/daily/SENSOR_CHANNELS.md) · [软件实现与检查](../../../../docs/reports/RESISTIVE_INPUTS_012.md) · [接线示意](wiring.svg) · [配置示例](six-pressure-temperature-wetness.json) · [采购清单](bom.csv)
 
 ## 版本和已有数据
 
@@ -83,4 +83,4 @@ T(℃) = 1 / (1/298.15 + ln(Rntc/R25)/B) - 273.15 + offset_c
 - [Espressif C3 ADC](https://docs.espressif.com/projects/esp-idf/en/release-v4.4/esp32c3/api-reference/peripherals/adc.html)：ADC范围与校准。
 - [TDK NTC技术资料](https://product.tdk.com/system/files/dam/doc/product/sensor/ntc/chip-ntc-thermistor/catalog/tpd_automotive_ntc-thermistor_ntcg_en.pdf)：自热与热响应的设计参考。
 
-软件 AGPL-3.0-only；本目录接线、感应片结构和制造设计 CERN-OHL-S-2.0，详见[许可范围](../../../LICENSING.md)。
+软件 AGPL-3.0-only；本目录接线、感应片结构和制造设计 CERN-OHL-S-2.0，详见[许可范围](../../../../LICENSING.md)。

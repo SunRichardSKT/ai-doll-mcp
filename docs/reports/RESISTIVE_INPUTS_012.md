@@ -2,7 +2,7 @@
 
 2026-11-14 · 当前源码／同版候选包。设备能力 `resistive-inputs-v1`，网络版本仍为2。硬件仍为第一代C3，未重新设计PCB。
 
-[制作与接线](../../hardware/expansion/resistive-inputs/README.md) · [通道操作](../daily/SENSOR_CHANNELS.md) · [给AI的说明](../ai/AI_GUIDE.md)
+[制作与接线](../../hardware/gen1/expansion/resistive-inputs/README.md) · [通道操作](../daily/SENSOR_CHANNELS.md) · [给AI的说明](../ai/AI_GUIDE.md)
 
 ## 硬件和固件兼容
 

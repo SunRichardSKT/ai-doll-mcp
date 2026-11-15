@@ -74,6 +74,11 @@ Claude Code 专用入口和配置导出已加入 `main` 源码；已发布的0.1
 
 ### 现板功能与硬件
 
+| 产品代际 | 当前范围 | 资料 |
+| --- | --- | --- |
+| **第一代 · ESP32-C3** | 所有已制带线板、V2／V2.2 PCB修订、最终PA2.0插座板及手焊焊盘改进 | [一代文件总览](hardware/gen1/README.md) |
+| **第二代 · ESP32-S3路线** | 开发板与模块化多媒体核心预研；问卷已有模板及发布记录，原理图／PCB／专用固件尚未交付 | [二代研发进度](hardware/gen2/README.md) |
+
 适用于第一代 **ESP32-C3 SuperMini 核心**，包括已制带线板及最终 PA2.0 锁扣插座板；外壳按实际 PCB 型号选择。
 
 | 功能或硬件 | 当前支持范围 |
@@ -81,7 +86,7 @@ Claude Code 专用入口和配置导出已加入 `main` 源码；已发布的0.1
 | **压力／触摸输入** | 标准现板8路薄膜压力输入，支持按压、释放、部位命名、端口开关、阈值校准和互动记录。 |
 | **温度感知** | 两线无源 NTC 10kΩ／B3435 探头，占用一个现有传感器口，感知探头附近温度。 |
 | **湿润／擦眼泪互动** | 两片导电材料组成湿润感应片，占用一个现有口，与另一路压力事件共同触发擦眼泪互动。 |
-| **压力＋温度＋湿润组合** | 例如6路压力＋1路 NTC＋1路湿润，共用原有8路接口。[接线与制作](hardware/expansion/resistive-inputs/README.md) |
+| **压力＋温度＋湿润组合** | 例如6路压力＋1路 NTC＋1路湿润，共用原有8路接口。[接线与制作](hardware/gen1/expansion/resistive-inputs/README.md) |
 | **干接点开关与独立 ADC** | 固件保留 GPIO21 干接点、GPIO1 独立 ADC 扩展；需按电路另行接线与配置，不是新增的板载插座。[通道说明](docs/daily/SENSOR_CHANNELS.md) |
 | **自定义组合动作** | 可保存多组压力部位组合，例如“前胸＋后背＝拥抱”；各部位在设定时间内按下并同时保持，沿用现有回复队列。 |
 | **记录与维护** | 支持历史查询、统计、导出、设备有限离线缓存与重连补传、网络状态灯、Wi-Fi 找回、USB 烧录及 OTA。 |
@@ -178,15 +183,17 @@ sudo bash Install_Server.sh
 
 ## 主板与外壳
 
+全部C3硬件已统一到[第一代目录](hardware/gen1/README.md)；历史工程名中的V2／V2.2表示PCB修订。软件版本与产品代际分别管理。[完整硬件分类](hardware/README.md)
+
 | 你手里的板或模块 | 对应资料 |
 | --- | --- |
-| 已制带线板 | [主板、采购与制造资料](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/rev-v2/README.md) · [按板型选外壳](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/README.md) |
-| 第一代最终版 · C3八路锁扣插座板 | [嘉立创工程、Gerber 和正反面图](https://github.com/SunRichardSKT/ai-doll-mcp/tree/main/hardware/rev-v2/candidates/c3-socket-20261105) · [第一代最终版电池壳](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/c3-socket-stacked/README.md) |
-| 独立 Type-C 充放模块 | [四线防拉脱保护壳](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/charger-inline/README.md) |
+| 已制带线板 | [主板、采购与制造资料](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/gen1/pcb/README.md) · [按板型选外壳](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/gen1/enclosure/README.md) |
+| 第一代最终版 · C3八路锁扣插座板 | [嘉立创工程、Gerber 和正反面图](https://github.com/SunRichardSKT/ai-doll-mcp/tree/main/hardware/gen1/pcb/candidates/c3-socket-20261105) · [第一代最终版电池壳](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/gen1/enclosure/c3-socket-stacked/README.md) |
+| 独立 Type-C 充放模块 | [四线防拉脱保护壳](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/gen1/enclosure/charger-inline/README.md) |
 
 [下载第一代硬件最终版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/hardware-gen1-final)：PCB工程与制造文件、103450核心电池壳、独立充电板壳。
 
-按实际 PCB 选择打印件，核心壳的底壳、托板和上盖配套打印。[结构加固与打印说明](hardware/enclosure/PRINT_STRENGTHENING.md)提供装配尺寸和建议。
+按实际 PCB 选择打印件，核心壳的底壳、托板和上盖配套打印。[结构加固与打印说明](hardware/gen1/enclosure/PRINT_STRENGTHENING.md)提供装配尺寸和建议。
 
 0.1.1 固件支持压力与干接点，0.1.2 增加 NTC 和湿润片。[固件功能](docs/reports/FIRMWARE_INPUTS.md) · [交付文件](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/delivery/README.md) · [检查记录](docs/reports/VALIDATION.md)
 

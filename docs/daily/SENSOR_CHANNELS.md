@@ -2,7 +2,7 @@
 
 按实际安装，为每个端口设置输入类型、身体部位和采样状态。八个实体口 J1～J8 对应 MUX 0～7；逻辑通道最多 16 个，实体插口仍为八个。
 
-[教程目录](../README.md) · [扩展接线与配件](../../hardware/expansion/resistive-inputs/README.md)
+[教程目录](../README.md) · [扩展接线与配件](../../hardware/gen1/expansion/resistive-inputs/README.md)
 
 ## 按实际固件选择
 
@@ -37,7 +37,7 @@ NTC 放在手掌或胸前薄布下可感知局部接触升温；深埋填充棉�
 
 擦眼泪在湿润持续 600ms、关联压力按下时产生一次 `wipe`；干燥持续 1000ms 后复位。`wet`／`dry` 进入历史，同一湿润阶段回应一次。初始干湿阈值为 250／500，按实际干布、湿布读数调整。
 
-具体分压电路、感应片结构和参数见[制作指南](../../hardware/expansion/resistive-inputs/README.md)。本板 GPIO4 用于 4051 选择，扩展探头接 J1～J8 中选定的传感器口。
+具体分压电路、感应片结构和参数见[制作指南](../../hardware/gen1/expansion/resistive-inputs/README.md)。本板 GPIO4 用于 4051 选择，扩展探头接 J1～J8 中选定的传感器口。
 
 ## 压力校准和测试
 

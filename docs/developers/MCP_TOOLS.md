@@ -4,7 +4,7 @@
 
 本页工具目录适用 **v0.1.1 内测版／固件0.1.1**。配套文件见[0.1.1 Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.1)，旧安装以实际工具发现为准。
 
-0.1.1 的[压力／开关固件](../reports/FIRMWARE_INPUTS.md)使用 `pressure-switch-v1`：设备公开 23 工具，STDIO 保留 53 工具兼容旧设备，HTTP 配置为 2／9／19。0.1.2 源码候选的 `resistive-inputs-v1` 增加 NTC 与湿润片，配置见[扩展指南](../../hardware/expansion/resistive-inputs/README.md)。
+0.1.1 的[压力／开关固件](../reports/FIRMWARE_INPUTS.md)使用 `pressure-switch-v1`：设备公开 23 工具，STDIO 保留 53 工具兼容旧设备，HTTP 配置为 2／9／19。0.1.2 源码候选的 `resistive-inputs-v1` 增加 NTC 与湿润片，配置见[扩展指南](../../hardware/gen1/expansion/resistive-inputs/README.md)。
 
 调用硬件工具前读取设备能力。数字温度、动作、马达及外接灯当前无驱动；相关兼容工具返回不支持。
 

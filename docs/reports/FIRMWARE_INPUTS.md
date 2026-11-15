@@ -4,7 +4,7 @@
 
 2026-11-01 · 本地候选，版本基线0.1.0，`feature_set=pressure-switch-v1`、`network_revision=2`。未烧录或发布GitHub。
 
-[教程目录](../README.md) · [上轮精简](FIRMWARE_TRIM.md) · [现板说明](../../hardware/expansion/current-board/SOFTWARE.md)
+[教程目录](../README.md) · [上轮精简](FIRMWARE_TRIM.md) · [现板说明](../../hardware/gen1/expansion/current-board/SOFTWARE.md)
 
 ## 当前功能
 

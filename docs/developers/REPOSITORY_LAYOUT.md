@@ -11,7 +11,9 @@
 | `firmware/prebuilt/` | 当前四个镜像及清单 |
 | `tools/` | 当前服务、构建、维护和对应测试 |
 | `docs/` | 当前使用说明、开发资料与AI指南 |
-| `hardware/` | 在用主板、研发中的紧凑板、采购资料及各自当前外壳 |
+| `hardware/gen1/` | 全部C3主板、外壳、采购与扩展接线；V2／V2.2是第一代PCB修订 |
+| `hardware/gen2/` | S3二代的需求调查、方案预研及后续工程入口 |
+| `hardware/rev-v2/`、`hardware/enclosure/` | 只保留已发布包所需的旧链接跳转页，实际资料在gen1 |
 | `deploy/`、`templates/` | 部署文件和公共连接模板 |
 | `python/` | 源码只保留运行环境说明和元数据，完整环境在Release |
 | `delivery/` | 当前下载入口及校验清单 |

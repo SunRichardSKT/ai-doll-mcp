@@ -29,4 +29,4 @@ python/*
 delivery/*.toolpkg
 
 # CAD triangle intermediates are generated; offline previews already embed this data.
-hardware/enclosure/**/output/meshes.json
+hardware/gen1/enclosure/**/output/meshes.json

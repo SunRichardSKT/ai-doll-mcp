@@ -3,6 +3,7 @@
 面向人类的教程从 [docs/README.md](docs/README.md)开始。AI 安装、调用和硬件测试规则在 [docs/ai/AI_GUIDE.md](docs/ai/AI_GUIDE.md)。开发、构建与交付见 [docs/developers/DEVELOPER_GUIDE.md](docs/developers/DEVELOPER_GUIDE.md)。
 
 - 根据本次实际文件、进程、工具返回和设备身份继续工作，不把旧报告当作当前状态。
+- 所有ESP32-C3板型及V2／V2.2等PCB修订属于第一代，硬件从hardware/gen1查找；第二代S3研发状态从hardware/gen2开始，不把计划或问卷当作工程交付。
 - USB 烧录每次产生新设备名称；在配对更新和测试中使用新返回的 ID，不硬编码某个用户的设备编号。
 - 只接了 CH0 时，只能据此验收 CH0；模拟数据不能证明实体传感器可用。
 - 固定配置页 192.168.4.1 需要连接设备热点；127.0.0.1 的管理页只能在运行软件的电脑打开。
