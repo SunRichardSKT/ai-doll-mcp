@@ -7,6 +7,7 @@
 | ChatGPT 官方网页，电脑采集 | OpenAI 私有隧道 | 选择“ChatGPT · 电脑私有隧道”，保存并启动后在 ChatGPT 添加隧道 |
 | ChatGPT 官方网页，自有服务器 | 公网 HTTPS MCP | 复制服务器设备卡片的完整 MCP 地址，在 Plugins 添加 Server URL |
 | Claude Desktop 本机连接 | 本机 MCP 配置 | 选择“Claude 桌面版”，一键写入配置或下载后合并 |
+| Claude Code（CLI） | 本机 STDIO 或服务器 HTTP | 选择“Claude Code · 命令行”，下载专用配置；服务器设备卡可复制 HTTP 配置 |
 | Claude 网页／手机 | 远程 HTTPS MCP | 选择“Claude 网页／手机”，在官方连接器中添加设备专用地址 |
 | DeepSeek DSH（官方 Harness） | STDIO 或 Streamable HTTP | 选择“DeepSeek DSH”生成配置；服务器设备卡可复制远程配置 |
 | Gemini 官方网页／手机 | 公网 HTTPS MCP | 网页 Connected Apps 添加自定义应用，连接后可在手机使用 |
@@ -30,6 +31,46 @@ ChatGPT 的自定义 MCP 入口和隧道权限分别受账号、工作区设置�
 Windows 配置位于 `%APPDATA%\Claude\claude_desktop_config.json`。未安装或未初始化时，先启动一次 Claude Desktop。配置格式错误时原文件保持。也可下载本机配置并手动合并；移动项目目录后重新生成。
 
 本机连接不需要公网域名，使用期间保持电脑采集服务运行。[Claude 本机说明](https://support.claude.com/en/articles/10949351-getting-started-with-local-mcp-servers-on-claude-desktop) · [MCP SDK 配置说明](https://py.sdk.modelcontextprotocol.io/get-started/real-host/)
+
+## Claude Code（CLI）
+
+### 电脑采集：下载配置即可使用
+
+Claude Code 专用入口与 `--client claude_code` 导出在0.1.3发布后加入 `main`。使用已发布的0.1.3完整包时，可在项目目录生成原有通用配置并加载：
+
+```powershell
+.\python\python.exe -X utf8 tools/install_companion_mcp.py
+claude --mcp-config ./build/device-lab/mcp-client-config.json
+```
+
+使用当前源码时，可按下面的专用入口操作：
+
+1. 启动 `AI_Doll.cmd`，完成娃娃连接，让电脑采集保持运行。
+2. 在 AI 接入步骤选择“Claude Code · 命令行”，下载 `AI_Doll_Claude_Code.json`。
+3. 在文件保存目录打开终端，运行：
+
+```text
+claude --mcp-config ./AI_Doll_Claude_Code.json
+```
+
+在 Claude Code 中输入 `/mcp` 查看 `ai_doll`，按提示允许工具使用，再让它调用 `get_installation_status`、`doll_get_status` 和 `get_chat_context`。配置使用本机 Python 与适配器的绝对路径，移动安装目录后重新生成。
+
+也可在项目根目录直接导出并启动：
+
+```powershell
+.\python\python.exe -X utf8 tools/install_companion_mcp.py --client claude_code
+claude --mcp-config ./build/device-lab/AI_Doll_Claude_Code.json
+```
+
+源码开发环境使用开发指南中的 `.venv` Python 运行导出命令。文件加载方式保留现有客户端设置；如需跨项目保存，可使用 Claude Code 官方 `claude mcp add --transport stdio --scope user`，参数使用导出文件中的 `command` 和 `args`。
+
+### 自有服务器：复制 HTTP 配置
+
+在服务器设备卡选择“Claude Code · CLI”，复制配置并保存为 `AI_Doll_Claude_Code.json`，再用同一条启动命令加载。远程条目包含 `type: "http"` 和完整 `url`；保留设备专用私密路径，仅在自己电脑保存。
+
+连接由运行 CLI 的环境发起：同一网络可使用可达的局域网 HTTP 服务，公网使用 HTTPS。Windows 导出的本机配置供原生 Windows CLI 使用；在 WSL、Linux 或 macOS 中运行时，可选择服务器路线，或在对应系统准备 Python 后重新导出本机配置。
+
+互动仍通过现有查询和限时互动工具进入当前会话。空闲主动唤醒需要宿主事件支持。[Claude Code 官方 MCP 说明](https://code.claude.com/docs/en/mcp)
 
 ## Claude 网页和手机：远程连接
 

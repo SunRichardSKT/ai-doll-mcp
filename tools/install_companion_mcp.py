@@ -1,4 +1,4 @@
-"""Generate portable MCP configuration; optionally register it in local Codex."""
+"""Generate native client configurations; optionally register Desktop/Codex."""
 import argparse
 import os
 import json
@@ -15,6 +15,8 @@ def client_config(client, server):
     if client == 'deepseek':
         return [dict(id='ai-doll-mcp', name='@deepseek-ai/dsh-mcp-client',
                      config=dict(serverName='ai_doll', transport='stdio', **server))]
+    if client == 'claude_code':
+        return {'mcpServers': {'ai_doll': dict(server, type='stdio')}}
     if client in ('claude', 'gemini', 'local'):
         return {'mcpServers': {'ai_doll': dict(server)}}
     raise ValueError('Unsupported local MCP client')
@@ -42,13 +44,18 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--codex', action='store_true', help='Install/update only ai_doll in the local Codex config')
     parser.add_argument('--claude', action='store_true', help='Merge ai_doll into the Windows Claude Desktop config')
-    parser.add_argument('--client', choices=['claude', 'gemini', 'deepseek', 'local'], default='local')
+    parser.add_argument('--client', choices=['claude', 'claude_code', 'gemini', 'deepseek', 'local'], default='local')
     args = parser.parse_args()
     work = ROOT/'build/device-lab'
     work.mkdir(parents=True, exist_ok=True)
     server = {'command': sys.executable, 'args': [str(ROOT/'tools/companion_mcp.py')]}
     output = work/'mcp-client-config.json'
     output.write_text(json.dumps(client_config(args.client, server), ensure_ascii=False, indent=2), encoding='utf-8')
+    if args.client == 'claude_code':
+        code_output = work/'AI_Doll_Claude_Code.json'
+        code_output.write_bytes(output.read_bytes())
+        print('Claude Code config:', code_output)
+        print('From the project directory: claude --mcp-config ./build/device-lab/AI_Doll_Claude_Code.json')
     if args.claude:
         base = os.environ.get('APPDATA')
         if os.name != 'nt' or not base:

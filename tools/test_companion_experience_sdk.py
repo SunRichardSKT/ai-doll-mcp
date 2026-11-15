@@ -54,7 +54,11 @@ class LocalSDKTests(ChatGatewayTests):
         finally:fixture.tearDown()
 
     async def test_stdio_new_tools(self):
-        parameters=StdioServerParameters(command=sys.executable,args=['-X','utf8',str(Path(__file__).resolve()),'--stdio-fixture'])
+        from install_companion_mcp import client_config
+        config=client_config('claude_code',{'command':sys.executable,'args':['-X','utf8',str(Path(__file__).resolve()),'--stdio-fixture']})
+        entry=config['mcpServers']['ai_doll']
+        self.assertEqual(entry['type'],'stdio')
+        parameters=StdioServerParameters(command=entry['command'],args=entry['args'])
         async with stdio_client(parameters) as (read,write):
             async with ClientSession(read,write) as client:
                 await client.initialize();await exercise(client)

@@ -25,6 +25,7 @@ const {chromium}=require('playwright');
       if(action==='operit-stop'){state.operit.running=false;result.stopped=true;}
       if(action==='client-config'||action==='claude-config'){
         const config={mcpServers:{ai_doll:{command:'C:/runtime/python.exe',args:['C:/project/tools/companion_mcp.py']}}};
+        if(data.client==='claude_code')config.mcpServers.ai_doll.type='stdio';
         result=action==='claude-config'?{saved:true,config}:config;
       }
       if(action==='usb'){state.connection={transport:'usb',serial_port:data.port};state.collector={running:true,transport:'usb',device_ip:'192.168.1.50'};}
@@ -58,6 +59,17 @@ const {chromium}=require('playwright');
     assert.equal(actions.at(-1).action,'claude-config');
     const localDownload=page.waitForEvent('download');await page.click('#downloadLocalConfig');
     assert.equal((await localDownload).suggestedFilename(),'AI_Doll_Local_MCP.json');
+    await page.selectOption('#hostChoice','claude_code');
+    assert.equal(await page.locator('#claudeCodeActions').isVisible(),true);
+    assert.equal(await page.locator('#installClaude').isVisible(),false);
+    assert.match(await page.textContent('#claudeCodeActions'),/claude --mcp-config/);
+    const codeDownload=page.waitForEvent('download');await page.click('#downloadLocalConfig');
+    assert.equal((await codeDownload).suggestedFilename(),'AI_Doll_Claude_Code.json');
+    assert.equal(actions.at(-1).data.client,'claude_code');
+    assert.equal(JSON.parse(await page.textContent('#localConfig')).mcpServers.ai_doll.type,'stdio');
+    assert.equal(actions.filter(x=>x.action==='claude-config').length,1,'Code export never invokes Desktop config writer');
+    await page.click('[data-step="3"]');assert.match(await page.textContent('#mcpVerifyHint'),/Claude Code/);
+    await page.click('[data-step="2"]');
     await page.selectOption('#hostChoice','claude_http');
     assert.equal(await page.locator('#setupCloud').isVisible(),true);
     await page.fill('#cloudMcpURL','https://192.168.1.50/private/mcp');await page.click('#copyCloudMcp');

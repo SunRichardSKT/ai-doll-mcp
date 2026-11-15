@@ -29,7 +29,7 @@ async function devices(){
       info.append(label,address,copy);
       const clientLabel=document.createElement('label'),client=document.createElement('select'),guide=document.createElement('p');
       clientLabel.textContent='选择 AI 客户端';client.setAttribute('aria-label','选择 AI 客户端');guide.className='muted';
-      for(const [value,title] of [['','请选择'],['chatgpt','ChatGPT'],['claude','Claude 网页／手机'],['deepseek','DeepSeek DSH'],['gemini_app','Gemini 网页／手机'],['gemini','Gemini CLI'],['operit','Operit'],['other','其他 MCP 客户端']])client.add(new Option(title,value));
+      for(const [value,title] of [['','请选择'],['chatgpt','ChatGPT'],['claude','Claude 网页／手机'],['claude_code','Claude Code · CLI'],['deepseek','DeepSeek DSH'],['gemini_app','Gemini 网页／手机'],['gemini','Gemini CLI'],['operit','Operit'],['other','其他 MCP 客户端']])client.add(new Option(title,value));
       clientLabel.append(client);info.append(clientLabel,guide);
         const clientConfig=document.createElement('pre'),copyClient=document.createElement('button');
         copyClient.textContent='复制所选客户端配置';clientConfig.style.whiteSpace='pre-wrap';clientConfig.style.overflowWrap='anywhere';
@@ -50,10 +50,11 @@ async function devices(){
       client.onchange=()=>{
         phone.hidden=client.value!=='operit';
         const url=new URL(device.mcp_url),cloud=['chatgpt','claude','gemini_app'].includes(client.value);
-        clientConfig.hidden=copyClient.hidden=!['deepseek','gemini'].includes(client.value);
-          clientConfig.textContent=JSON.stringify(client.value==='deepseek'?[{id:'ai-doll-mcp',name:'@deepseek-ai/dsh-mcp-client',config:{serverName:'ai_doll',transport:'streamable-http',url:url.href}}]:{mcpServers:{ai_doll:{httpUrl:url.href}}},null,2);
+        clientConfig.hidden=copyClient.hidden=!['deepseek','gemini','claude_code'].includes(client.value);
+          clientConfig.textContent=JSON.stringify(client.value==='deepseek'?[{id:'ai-doll-mcp',name:'@deepseek-ai/dsh-mcp-client',config:{serverName:'ai_doll',transport:'streamable-http',url:url.href}}]:{mcpServers:{ai_doll:client.value==='claude_code'?{type:'http',url:url.href}:{httpUrl:url.href}}},null,2);
           guide.textContent=client.value==='chatgpt'?'在 ChatGPT Plugins 添加自定义 MCP，选择 Server URL，粘贴上方完整地址，选择无需身份验证；创建后安装并在聊天中启用。':
           client.value==='claude'?'在 Claude 连接器设置中添加自定义远程连接，粘贴上方完整地址，选择无需登录，在聊天中启用。此连接由 Claude 云端发起。':
+          client.value==='claude_code'?'Claude Code（CLI）：复制下方配置，保存为 AI_Doll_Claude_Code.json，在保存目录运行 claude --mcp-config ./AI_Doll_Claude_Code.json，然后用 /mcp 查看 ai_doll。连接由运行 CLI 的电脑发起；局域网 HTTP 需在同一网络，公网使用 HTTPS。配置包含私密地址，请自行保管。':
           client.value==='deepseek'?'DeepSeek DSH：在当前 profile 的 MCP 设置添加 ai_doll，transport 选 streamable-http，url 填上方完整私密地址。亦可将原生 dsh-mcp-client 条目合并到 cordis.patch.yml。':
             client.value==='gemini_app'?'在 Gemini 网页 Settings → Connected Apps → Custom apps 添加上方公网 HTTPS MCP 地址，连接后用 @ 选择应用，手机 App 也可使用。当前需美国地区、18岁以上个人账号、英文界面和开启 Keep Activity。没有入口可用 Gemini CLI；开发者可按官方 Gemini Apps Developer Mode 指南添加。':
             client.value==='gemini'?'Gemini CLI：在 .gemini/settings.json 的 mcpServers 添加 ai_doll，httpUrl 填上方完整地址；重开 CLI，用 /mcp 检查连接。':

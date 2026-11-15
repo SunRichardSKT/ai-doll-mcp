@@ -165,7 +165,7 @@
     if (action === 'ota') el('otaResult').textContent = '升级完成，新启动版本已验证：' + result.firmware;
   }
   async function run(action, data = {}) {
-    if(action==='client-config')data={...data,client:['deepseek','gemini','claude'].includes(el('hostChoice').value)?el('hostChoice').value:'local'};
+    if(action==='client-config')data={...data,client:['deepseek','gemini','claude','claude_code'].includes(el('hostChoice').value)?el('hostChoice').value:'local'};
     if (busy || state?.job.state === 'running') throw Error('请等待当前操作完成。');
     busy = true;
     setBusy(true);
@@ -300,7 +300,7 @@
   bind('downloadLocalConfig', async()=>{
     await run('client-config');
     const url=URL.createObjectURL(new Blob([configText],{type:'application/json'})),link=document.createElement('a');
-    link.href=url;link.download=el('hostChoice').value==='deepseek'?'AI_Doll_DSH.cordis.patch.yml':'AI_Doll_Local_MCP.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+    link.href=url;link.download=el('hostChoice').value==='deepseek'?'AI_Doll_DSH.cordis.patch.yml':el('hostChoice').value==='claude_code'?'AI_Doll_Claude_Code.json':'AI_Doll_Local_MCP.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
   });
   bind('installClaude',()=>run('claude-config'));
   bind('copyCloudMcp',async()=>{
@@ -347,7 +347,7 @@
   });
   function updateHostRoute(){
     const route=el('hostChoice').value,secure=route==='secure',operit=route==='operit';
-    const local=['local','claude','deepseek','gemini'].includes(route),cloud=['chatgpt_http','claude_http','gemini_http'].includes(route);
+    const local=['local','claude','claude_code','deepseek','gemini'].includes(route),cloud=['chatgpt_http','claude_http','gemini_http'].includes(route);
     el('setupSecure').hidden = !secure;
     el('setupLocal').hidden = !local;
     el('setupOperit').hidden=!operit;
@@ -355,9 +355,11 @@
     el('setupCloud').hidden=!cloud;
     el('setupDeepSeek').hidden=!['deepseek','gemini'].includes(route);
     el('claudeLocalActions').hidden=route!=='claude';
+    el('claudeCodeActions').hidden=route!=='claude_code';
     el('localClientHint').textContent=route==='claude'?'Claude Desktop 使用本机配置。可一键写入 ai_doll，或下载配置后合并到原 mcpServers 中；电脑采集需保持运行。':'生成配置后合并 ai_doll 项到客户端 MCP 设置，保留已有服务。电脑采集需保持运行。';
     if(route==='deepseek')el('localClientHint').textContent='DeepSeek DSH：生成原生 dsh-mcp-client 条目，合并到当前 profile 的 cordis.patch.yml；下载内容是合法 YAML 的 JSON 数组。保留其他条目，重启对应 profile 后调用设备状态。';
     if(route==='gemini')el('localClientHint').textContent='Gemini CLI：生成配置后合并 mcpServers.ai_doll 到用户目录 .gemini/settings.json；保留其他设置。重开 Gemini CLI，用 /mcp 查看连接并批准工具调用。';
+    if(route==='claude_code')el('localClientHint').textContent='Claude Code（CLI）：下载专用配置，在文件保存目录打开终端，运行下方命令。保持电脑采集服务运行，在 Claude Code 中用 /mcp 检查 AI Doll 并批准工具调用。';
     if(['deepseek','gemini'].includes(route))el('setupDeepSeek').textContent=route==='deepseek'?'此路线适用于 DeepSeek 官方 Harness（DSH）的桌面、Web 或 CLI profile；不是普通 DeepSeek 聊天 App。使用 MCP 的是运行 DSH 的电脑。':'此路线适用于 Google 官方 Gemini CLI。Gemini 普通网页／手机 App 的扩展入口与 CLI 不同。';
     const claudeCloud=route==='claude_http';
     el('cloudHeading').textContent=claudeCloud?'Claude 网页与手机：远程连接':'ChatGPT：远程 HTTPS 连接';
@@ -378,6 +380,7 @@
     el('verifyRouteHint').hidden=!!route;
     el('verifyRouteHint').textContent=route==='deepseek'?'DeepSeek 官方应用尚无已确认的自定义 MCP 连接步骤。请使用支持 MCP 的客户端，或在已有应用中桥接函数调用；不会将本页选择标记为连接成功。':'请返回上一步选择 AI 应用。';
     el('mcpVerifyHint').textContent=secure?'在 ChatGPT Plugins 添加自定义 MCP，选择隧道并填写下方 ID；安装后在聊天中启用，再调用设备状态。':route==='claude'?'完全退出并重新打开 Claude Desktop，在聊天中启用 AI Doll，再实际调用设备状态。':cloud?'在所选平台添加完整 HTTPS MCP 地址并启用，然后实际调用设备状态；能打开管理网页不代表 AI 已连接。':'在客户端合并本机配置并重新加载 MCP，再调用设备状态。';
+    if(route==='claude_code')el('mcpVerifyHint').textContent='用专用配置启动 Claude Code，在 /mcp 查看 ai_doll，然后实际调用下方两个状态工具。';
     el('connectionId').closest('.copybox').hidden = !secure;
     el('chatVerification').closest('details').hidden = !secure;
     document.querySelector('[data-step-panel="3"] [data-action="secure-status"]').hidden = !secure;

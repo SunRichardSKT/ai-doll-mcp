@@ -20,11 +20,13 @@
 
 DSH 使用官方 `dsh-mcp-client`；Gemini 官方网页在 Connected Apps 添加公网 HTTPS MCP，需符合 Google 当前账号条件，连接后手机也可使用。Gemini CLI 使用 `mcpServers`，远程 Streamable HTTP 字段为 `httpUrl`。复用现有 MCP 工具，按实际调用核对设备。
 
+Claude Code（CLI）可加载 `AI_Doll_Claude_Code.json`：本机条目为 `type: "stdio"`，远程条目为 `type: "http"` 配合完整 URL。用 `claude --mcp-config ./AI_Doll_Claude_Code.json` 启动，`/mcp` 查看连接。CLI 使用自身所在环境的网络与路径；保留已有客户端设置和工具权限，不修改 Claude Desktop 配置。具体操作见[官方客户端选择](../integrations/OFFICIAL_CLIENTS.md#claude-codecli)。
+
 MCP URL 使用连接器提供的地址，源码链接、管理页和隧道编号各按原用途使用。
 
 ## 2. 下载与保留数据
 
-- 普通安装使用 [v0.1.2 Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.3) 的同批次附件和 `SHA256SUMS.txt`。Windows 完整包自带 Python；Linux 使用小型服务包。
+- 普通安装使用 [v0.1.3 Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.3) 的同批次附件和 `SHA256SUMS.txt`。Windows 完整包自带 Python；Linux 使用小型服务包。
 - 温度／擦眼泪使用配套 0.1.2 软件、固件与 Operit；从同版 Release 下载，接线见[制作指南](../../hardware/expansion/resistive-inputs/README.md)和[开发指南](../developers/DEVELOPER_GUIDE.md)。
 - 升级保留历史、校准、聊天绑定、插件目录和服务器数据卷。设备升级以启动回读为准。
 - Operit 同 ID 无法覆盖时，停止 AI Doll 后台任务，删除工具包文件再导入新版，保留独立插件数据与应用数据。日常任务从设置面板启动。

@@ -111,6 +111,8 @@ Node / Playwright 页面测试需要开发者另装对应环境，运行 `tools/
 
 ## 扩展传感器 / 宿主
 
+Claude Code 本机配置通过 `tools/install_companion_mcp.py --client claude_code` 导出，保留绝对路径并显式声明 `type: "stdio"`；服务器页面导出 `type: "http"` 与完整设备地址。两者使用相同工具，配置不改写用户的全局 Claude 设置。客户端格式与导出回归在 `test_official_client_configs.py`，STDIO 协议在 `test_companion_experience_sdk.LocalSDKTests.test_stdio_new_tools`，界面在 `test_operit_setup_ui.cjs`、`test_operit_no_pc_ui.cjs`。
+
 新传感器需实现真实驱动、参数验证、资源冲突与故障质量，再加入能力列表，见 [通道扩展](../daily/SENSOR_CHANNELS.md)。原应用事件接入必须持久去重、处理取消和共享聊天队列，见 [原聊天指南](EXISTING_CHAT.md)。
 
 当前范围与后续工作见 [验证汇总](../reports/VALIDATION.md)和 [开发计划](DEVELOPMENT_PLAN.md)。
