@@ -193,11 +193,12 @@ def worker(action, data):
         from install_tunnel_client import install
         _, version = install()
         return dict(installed=True, version=version)
-    if action == 'client-config':
+    if action in ('client-config', 'claude-config'):
         import install_companion_mcp
-        sys.argv = [sys.argv[0]]
+        sys.argv = [sys.argv[0], '--client', data.get('client', 'local')] + (['--claude'] if action == 'claude-config' else [])
         install_companion_mcp.main()
-        return read_json(WORK / 'mcp-client-config.json')
+        config = read_json(WORK / 'mcp-client-config.json')
+        return dict(saved=True, config=config) if action == 'claude-config' else config
     if action == 'verify-chat':
         from verify_chat_calls import correlate
         return correlate(ROOT / 'build/device-lab/secure-mcp',
@@ -331,7 +332,7 @@ class Panel:
     def submit(self, action, data):
         allowed = {'install', 'pair', 'usb', 'usb-pair-wifi', 'discover', 'collector-start', 'collector-stop',
             'secure-save', 'secure-start', 'secure-repair', 'secure-stop', 'secure-status', 'secure-reset', 'collector-check',
-            'client-config', 'verify-chat', 'startup', 'tunnel-install', 'daily-start', 'repair-connection', 'ota',
+            'client-config', 'claude-config', 'verify-chat', 'startup', 'tunnel-install', 'daily-start', 'repair-connection', 'ota',
             'operit-save', 'operit-start', 'operit-stop', 'operit-status'}
         if action not in allowed:
             raise ValueError('未知操作。')
@@ -375,13 +376,17 @@ class Panel:
             task, messages = dict(self.job), list(self.messages)
         import operit_service
         operit = operit_service.status()
+        ports = []
+        if self.ready:
+            from serial.tools import list_ports
+            ports = [dict(port=p.device, label=p.description) for p in list_ports.comports()]
         return dict(environment_ready=self.ready, python_version=sys.version.split()[0],
             paired=bool(pairing.get('mcp_token') and pairing.get('device_id')),
             device_id=pairing.get('device_id'), connection=connection, collector=local,
             secure_config=dict(configured=bool(cfg), tunnel_id=cfg.get('tunnel_id', ''),
                 profile=cfg.get('profile', 'interaction'), key_saved=bool(cfg.get('runtime_api_key'))),
             secure=self.secure, job=task, messages=messages,
-            project=str(ROOT), version=VERSION, profile_counts=PROFILE_COUNTS, operit=operit)
+            project=str(ROOT), version=VERSION, profile_counts=PROFILE_COUNTS, operit=operit, serial_ports=ports)
 
 
 def make_handler(panel):

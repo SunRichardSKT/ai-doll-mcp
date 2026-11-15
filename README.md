@@ -1,7 +1,5 @@
 # AI 共感娃娃 _(ai-doll-mcp)_
 
-![AI 共感娃娃 Logo](docs/images/ai-doll-logo.svg)
-
 [![Release](https://img.shields.io/github/v/release/SunRichardSKT/ai-doll-mcp)](https://github.com/SunRichardSKT/ai-doll-mcp/releases/latest)
 [![Checks](https://img.shields.io/github/actions/workflow/status/SunRichardSKT/ai-doll-mcp/checks.yml?branch=main)](https://github.com/SunRichardSKT/ai-doll-mcp/actions/workflows/checks.yml)
 [![Software License: AGPL v3](https://img.shields.io/badge/software-AGPL--3.0--only-blue)](LICENSE)
@@ -10,7 +8,9 @@
 
 让 AI 感知你对娃娃的真实触摸，在聊天里回应，并留下可查询的互动记录。
 
-[下载 v0.1.2 内测版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.2) · [完整教程](docs/README.md) · [故障排查](docs/TROUBLESHOOTING.md) · [AI 使用说明书](docs/ai/AI_GUIDE.md)
+[下载 v0.1.3 内测版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.3) · [完整教程](docs/README.md) · [故障排查](docs/TROUBLESHOOTING.md) · [AI 使用说明书](docs/ai/AI_GUIDE.md)
+
+当前源码为 **内测0.1.3版**，新增三步连接、USB 配网、ChatGPT／Claude／DeepSeek DSH／Gemini 接入与多部位组合。下载对应0.1.3附件。
 
 **v0.1.2 内测版**支持六路压力＋NTC 温度＋擦眼泪感应片，并修复 Operit 配置覆盖与重启恢复。见[接线与制作指南](hardware/expansion/resistive-inputs/README.md)。
 
@@ -36,24 +36,29 @@
 
 - **触摸回应**。支持按压与释放识别，连续触摸可排队、合并回应。
 - **自定义部位**。按端口设置是否接入、身体部位和反馈偏好。
+- **组合动作**。自定义前胸＋后背＝拥抱等动作，按同时受压识别，原始记录保留。
 - **互动记录**。支持查询、统计、导出，并在重连后补传设备仍保留的记录。
 - **多种接入方式**。Operit 可在家中直连娃娃。电脑和 Linux 服务器可向兼容客户端提供 MCP 接口。
 
 ## 安装
 
-普通用户从 [v0.1.2 内测版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.2) 下载对应附件。Windows 请下载完整包，GitHub 的 **Download ZIP** 用于获取开发源码。需要核对附件完整性时，使用同版 [SHA256SUMS.txt](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.2/SHA256SUMS.txt)。
+普通用户从 [v0.1.3 内测版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.3) 下载对应附件。Windows 请下载完整包，GitHub 的 **Download ZIP** 用于获取开发源码。需要核对附件完整性时，使用同版 [SHA256SUMS.txt](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.3/SHA256SUMS.txt)。
 
 | 你的使用方式 | 下载 | 使用时需要运行 |
 | --- | --- | --- |
-| 只有安卓手机，使用 Operit | [Operit 工具包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.2/AI_Doll_Operit.toolpkg) | 已烧录的娃娃和同一局域网内的手机 |
-| Windows 采集，接 Operit 或本地 MCP | [Windows 完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.2/AI_Doll_Code_v0.1.2.zip) | 娃娃和运行采集服务的电脑 |
-| Windows 采集，接 ChatGPT | [Windows 完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.2/AI_Doll_Code_v0.1.2.zip) | 娃娃、电脑采集服务和 Secure MCP Tunnel |
-| 自有 Linux 服务器，接 Operit 或其他客户端 | [Linux 服务包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.2/AI_Doll_Server_v0.1.2.tar.gz) | 娃娃和接收服务器 |
+| 只有安卓手机，使用 Operit | [Operit 工具包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.3/AI_Doll_Operit.toolpkg) | 已烧录的娃娃和同一局域网内的手机 |
+| Windows 采集，接 Operit 或本地 MCP | [Windows 完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.3/AI_Doll_Code_v0.1.3.zip) | 娃娃和运行采集服务的电脑 |
+| Windows 采集，接 ChatGPT | [Windows 完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.3/AI_Doll_Code_v0.1.3.zip) | 娃娃、电脑采集服务和 Secure MCP Tunnel |
+| 自有 Linux 服务器，接 Operit 或其他客户端 | [Linux 服务包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.3/AI_Doll_Server_v0.1.3.tar.gz) | 娃娃和接收服务器 |
+
+成品用户可先看[6页图文新手说明书](docs/product/抱抱星_共感娃娃核心_新手说明书.pdf)；[产品介绍与图片](docs/product/README.md)可用于介绍和随包说明。
+
+先按[正在使用的 AI 应用](docs/integrations/OFFICIAL_CLIENTS.md)选择接入方式。Claude Desktop 支持生成或一键合并本机配置；云端连接使用对应 HTTPS 服务。
 
 ### 安卓手机直连
 
 1. 给已烧录的娃娃供电。在 Operit 的“包管理”导入 `AI_Doll_Operit.toolpkg`，再从工具箱打开“AI Doll · 连接与互动”。
-2. 点击“添加娃娃”。按提示连上设备热点、读取设备、配置家庭 **2.4 GHz Wi-Fi**，再把手机切回家庭网络完成配对。
+2. 点击“连接娃娃”。读取热点、配置家庭2.4 GHz Wi-Fi，点“返回向导并检查联网”保存地址，再切回家庭网络完成连接。
 3. 要在聊天里收到触摸回复，按标题选择聊天并确认绑定。只同步历史时可以先跳过绑定。
 
 手机通常无需手填 IP、令牌或聊天 ID。升级工具包、从电脑或服务器导入连接、换网恢复的步骤见 [Operit 完整指南](docs/integrations/OPERIT_SETUP.md)。
@@ -61,20 +66,20 @@
 ### Windows 采集
 
 1. 完整解压 Windows 包并双击 `AI_Doll.cmd`。包内已带 Python。管理中心地址为 `http://127.0.0.1:8769/`，在运行软件的电脑上打开。
-2. 用 USB 数据线连接开发板，在“设备连接”选 USB 和实际 COM 口，保存后确认设备 ID 和同步时间。改用无线时，先配家庭 Wi-Fi，再点“一键识别并配对 Wi-Fi”。
+2. 用 USB 数据线连接开发板，按向导选择实际串口，通过 USB 配网并自动配对 Wi-Fi；已联网设备跳过填写网络。
 3. 按客户端完成接入。Operit 使用“Operit 手机陪伴”导出的连接文件。本地 MCP 客户端使用“AI / MCP 连接”提供的配置。ChatGPT 路线需要有隧道权限的账号，按教程建立 Secure MCP Tunnel。
 
 [Windows 首次安装](docs/start/AI_INSTALL.md) · [Operit 电脑采集](docs/integrations/OPERIT_SETUP.md#电脑采集首次使用) · [ChatGPT 隧道配置](docs/integrations/SECURE_MCP.md)
 
 ### Linux 服务器
 
-准备可通过 SSH 访问的 Ubuntu 或 Debian 服务器和已解析的域名。上传服务包与同版 [校验文件](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.2/AI_Doll_Server_v0.1.2.tar.gz.sha256)，在 SSH 终端运行以下命令。
+准备可通过 SSH 访问的 Ubuntu 或 Debian 服务器和已解析的域名。上传服务包与同版 [校验文件](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.3/AI_Doll_Server_v0.1.3.tar.gz.sha256)，在 SSH 终端运行以下命令。
 
 ```bash
-sha256sum -c AI_Doll_Server_v0.1.2.tar.gz.sha256
-mkdir ai-doll-server-0.1.2
-tar -xzf AI_Doll_Server_v0.1.2.tar.gz -C ai-doll-server-0.1.2
-cd ai-doll-server-0.1.2
+sha256sum -c AI_Doll_Server_v0.1.3.tar.gz.sha256
+mkdir ai-doll-server-0.1.3
+tar -xzf AI_Doll_Server_v0.1.3.tar.gz -C ai-doll-server-0.1.3
+cd ai-doll-server-0.1.3
 sudo bash Install_Server.sh
 ```
 

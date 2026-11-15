@@ -2,7 +2,7 @@
 (() => {
   const el = id => document.getElementById(id);
   let currentView = 'overview', currentStep = 0, state = null, frame = null, framePanel = '';
-  let busy = false, configText = '', firstState = true, lastJobMessage = '';
+  let busy = false, configText = '', firstState = true, lastJobMessage = '', usbWifiOpen=false;
   el('pairForm').append(el('pairTemplate').content.cloneNode(true));
   el('secureForm').append(el('secureTemplate').content.cloneNode(true));
 
@@ -32,7 +32,7 @@
     el('globalNotice').hidden = !message;
   }
   function setBusy(value) {
-    for (const button of document.querySelectorAll('[data-action], #operitStart, #operitConnection, #operitToolpkg, #pairButton, #connectUsb, #autoPairUsb, #saveSecure, #saveStartSecure, #verifyChat, #saveStartup, #checkStartup, #upgradeSelected, #upgradeBundled')) button.disabled = value;
+    for (const button of document.querySelectorAll('[data-action], #installClaude, #downloadLocalConfig, #operitStart, #operitConnection, #operitToolpkg, #pairButton, #connectUsb, #autoPairUsb, #saveSecure, #saveStartSecure, #verifyChat, #saveStartup, #checkStartup, #upgradeSelected, #upgradeBundled')) button.disabled = value;
   }
   async function copy(text) {
     if (!text) throw Error('请先完成配置。');
@@ -44,8 +44,10 @@
       [state.environment_ready, '电脑环境已准备', '准备电脑运行环境'],
       [state.paired || state.connection.transport === 'usb', '设备已配对 / 已选择 USB', '通过 Wi-Fi 配对设备'],
       [state.collector.running, '电脑采集正在运行', '启动电脑采集服务'],
-      [state.secure.tunnel_connected, 'ChatGPT 隧道检查通过', state.secure_config.configured ? '检查 ChatGPT 隧道连接' : '使用普通 Chat 时配置 Secure 隧道'],
-      [state.secure.ordinary_chat_status_verified, '本次服务的 Chat 状态调用已核对', '在原聊天实际调用工具；本机检查不替代 Chat 验证']
+      ...(el('hostChoice').value==='secure'?[
+        [state.secure.tunnel_connected, 'ChatGPT 隧道检查通过', '检查 ChatGPT 隧道连接'],
+        [state.secure.ordinary_chat_status_verified, '本次服务的 Chat 状态调用已核对', '在原聊天实际调用工具']
+      ]:el('hostChoice').value==='operit'?[[state.operit?.running,'Operit 电脑连接服务已启动','手机独立连接，或启动 Operit 电脑连接服务']]:[])
     ];
     el('checklist').replaceChildren(...items.map(([done, yes, no]) => {
       const li = document.createElement('li'), badge = document.createElement('span');
@@ -81,7 +83,9 @@
     if(el('debugConnection').open)el('connectionDebug').textContent=JSON.stringify({device:local,local_mcp:remote.local_mcp_verified,tunnel:remote,operit:state.operit},null,2);
     if (firstState) {
       el('deviceHost').value = state.connection.device_host || '';
-      el('serialPort').value = state.connection.serial_port || 'COM3';
+      el('serialPort').value = state.connection.serial_port || (state.serial_ports?.length===1?state.serial_ports[0].port:'');
+      el('hostChoice').value=localStorage.getItem('ai-doll-host-route')||(cfg.configured?'secure':'');
+      updateHostRoute();
       el('tunnelId').value = cfg.tunnel_id;
       el('toolProfile').value = cfg.profile;
       currentStep = state.environment_ready ? ((state.paired || state.connection.transport === 'usb') ? 2 : 1) : 0;
@@ -90,6 +94,8 @@
       if (!state.environment_ready) navigate('setup');
     }
     const pending = busy || state.job.state === 'running';
+    el('serialPorts').replaceChildren(...(state.serial_ports||[]).map(p=>{const o=document.createElement('option');o.value=p.port;o.label=p.label;return o;}));
+    el('usbProgress').textContent=local.device_ip?'设备已联网：'+local.device_ip+'。可直接自动配对 Wi-Fi，无需再次填写密码。':local.transport==='usb'?'USB 已连接。请在下方配置家庭 Wi-Fi，看到已连接后点击“自动配对 Wi-Fi”。':'请先连接开发板；已联网设备将跳过 Wi-Fi 表单。';
     setBusy(pending);
     if (state.job.state === 'running') notice(state.job.message);
     if (state.job.state === 'error') notice(state.job.message, true);
@@ -124,11 +130,11 @@
   function handleResult(action, result) {
     if (action.startsWith('operit-')) el('operitStatus').textContent = result.error ||
       (result.protocol_connected ? 'MCP 已连接，19 个工具发现通过。手机后台回复请在原聊天验收。' : result.stopped ? '已停止手机连接，历史保留。' : '配置已保存。');
-    if (action === 'client-config') {
-      configText = JSON.stringify(result, null, 2);
+    if (action === 'client-config'||action==='claude-config') {
+      configText = JSON.stringify(action==='claude-config'?result.config:result, null, 2);
       el('localConfig').textContent = configText;
       el('mcpLocalConfig').textContent = configText;
-      toast('客户端配置已生成');
+      toast(action==='claude-config'?'已写入，请完全退出并重开 Claude Desktop':'客户端配置已生成');
     }
     if (action === 'pair') {
       el('deviceToken').value = '';
@@ -159,6 +165,7 @@
     if (action === 'ota') el('otaResult').textContent = '升级完成，新启动版本已验证：' + result.firmware;
   }
   async function run(action, data = {}) {
+    if(action==='client-config')data={...data,client:['deepseek','gemini','claude'].includes(el('hostChoice').value)?el('hostChoice').value:'local'};
     if (busy || state?.job.state === 'running') throw Error('请等待当前操作完成。');
     busy = true;
     setBusy(true);
@@ -206,7 +213,8 @@
       tab.setAttribute('aria-selected', Number(tab.dataset.step) === currentStep ? 'true' : 'false');
     }
     el('stepBack').disabled = currentStep === 0;
-    el('stepNext').textContent = currentStep === 3 ? '完成，返回概览' : '下一步';
+    el('stepNext').textContent = currentStep === 3 ? (el('hostChoice').value==='deepseek'?'返回概览':'完成，返回概览') : '下一步';
+    mountFrame();
   }
   function detachFrame() {
     frame?.remove();
@@ -217,6 +225,7 @@
     const slot = document.querySelector('#view-' + currentView + ' [data-embed]');
     if (!slot || (currentView==='simulation'&&!el('developerPanel').open)) { detachFrame(); return; }
     const panel = panelOverride || slot.dataset.embed;
+    if(panel==='wifi'&&(!usbWifiOpen||state?.collector.transport!=='usb'||(currentView==='setup'&&currentStep!==1))){detachFrame();return;}
     if (!state?.collector.running) {
       if (!slot.querySelector('.embed-empty')) {
         slot.replaceChildren();
@@ -249,10 +258,12 @@
     if (view === 'setup') el('pairForm').append(...el('devicePairSlot').childNodes);
     el('mcpFormSlot').append(...el('secureForm').childNodes);
     if (view === 'setup') el('secureForm').append(...el('mcpFormSlot').childNodes);
+    (view==='setup'?el('setupUsbSlot'):el('deviceUsbSlot')).append(el('usbControls'));
+    (view==='setup'?el('setupOperitSlot'):el('view-operit')).append(el('operitControls'));
     mountFrame();
     location.hash = view;
   }
-  for (const button of document.querySelectorAll('[data-view], [data-nav]')) button.onclick = () => navigate(button.dataset.view || button.dataset.nav);
+  for (const button of document.querySelectorAll('[data-view], [data-nav]')) button.onclick = () => {navigate(button.dataset.view || button.dataset.nav);if(button.dataset.stepTarget)showStep(Number(button.dataset.stepTarget));};
   for (const button of document.querySelectorAll('[data-step]')) button.onclick = () => showStep(Number(button.dataset.step));
   for (const button of document.querySelectorAll('[data-action]')) button.onclick = async () => {
     if (button.dataset.confirm && !confirm(button.dataset.confirm)) return;
@@ -261,17 +272,20 @@
   bind('stepBack', () => showStep(currentStep - 1));
   bind('stepNext', () => {
     if (currentStep === 0 && !state.environment_ready) throw Error('请先准备电脑运行环境。');
-    if (currentStep === 1 && !state.paired && state.connection.transport !== 'usb') throw Error('请先完成设备配对，或在“设备连接”选择 USB 测试。');
+    if (currentStep === 1 && !state.paired && state.connection.transport !== 'usb') throw Error('请先选择开发板完成 USB 配网及自动配对，或展开热点说明。');
+    if (currentStep === 2 && !el('hostChoice').value) throw Error('请选择你正在使用的 AI 应用。');
     if (currentStep === 3) navigate('overview'); else showStep(currentStep + 1);
   });
   bind('pairButton', () => run('pair', {host: el('deviceHost').value, token: el('deviceToken').value, admin_user: el('deviceAdminUser').value, admin_password: el('deviceAdminPassword').value}));
-  bind('connectUsb', () => run('usb', {port: el('serialPort').value}));
-  bind('autoPairUsb', () => run('usb-pair-wifi', {port: el('serialPort').value}));
+  bind('connectUsb', async () => {
+    await run('usb', {port: el('serialPort').value});
+    if(state.collector.device_ip){await run('usb-pair-wifi',{port:el('serialPort').value});return;}
+    usbWifiOpen=true;mountFrame('wifi');
+  });
+  bind('autoPairUsb', async () => {await run('usb-pair-wifi', {port: el('serialPort').value});usbWifiOpen=false;detachFrame();});
   bind('usbWifi', () => {
     if (state.collector.transport !== 'usb') throw Error('请先切换为 USB 连接。Wi-Fi 已连接时可直接打开设备设置页。');
-    const slot = document.createElement('div');
-    slot.dataset.embed = 'wifi';
-    el('view-device').append(slot);
+    usbWifiOpen=true;
     mountFrame('wifi');
   });
   const secureData = () => ({tunnel_id: el('tunnelId').value, api_key: el('runtimeKey').value, profile: el('toolProfile').value});
@@ -283,6 +297,21 @@
   });
   bind('verifyChat', () => run('verify-chat', {installation_call_id: el('installationCallId').value, device_call_id: el('deviceCallId').value}));
   bind('copyLocalConfig', () => copy(configText));
+  bind('downloadLocalConfig', async()=>{
+    await run('client-config');
+    const url=URL.createObjectURL(new Blob([configText],{type:'application/json'})),link=document.createElement('a');
+    link.href=url;link.download=el('hostChoice').value==='deepseek'?'AI_Doll_DSH.cordis.patch.yml':'AI_Doll_Local_MCP.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  });
+  bind('installClaude',()=>run('claude-config'));
+  bind('copyCloudMcp',async()=>{
+    let address;try{address=new URL(el('cloudMcpURL').value.trim());}catch{throw Error('请粘贴服务器设备卡片的完整 HTTPS MCP 地址。');}
+    const host=address.hostname.toLowerCase(),ip=host.split('.').map(Number);
+    const privateHost=host==='localhost'||host.endsWith('.localhost')||host.endsWith('.local')||host==='[::1]'||/^\[(fc|fd|fe80)/.test(host)||
+      (/^\d+\.\d+\.\d+\.\d+$/.test(host)&&(ip[0]===0||ip[0]===10||ip[0]===127||ip[0]>=224||ip[0]===169&&ip[1]===254||ip[0]===192&&ip[1]===168||ip[0]===172&&ip[1]>=16&&ip[1]<=31));
+    if(address.protocol!=='https:'||address.username||address.password||address.hash||address.search||privateHost||!address.pathname.endsWith('/mcp'))throw Error('远程连接请使用服务器的公网 HTTPS MCP 地址，包含完整私密路径；设备热点和本机地址不能用于云端连接。');
+    if(el('hostChoice').value==='claude_http'&&address.port&&address.port!=='443')throw Error('Claude 远程连接需使用标准 HTTPS 443 端口。');
+    await copy(address.href);notice('地址格式已核对并复制。请在所选 AI 中添加连接，再实际调用设备状态。');
+  });
   bind('copyMcpConfig', () => copy(configText));
   bind('copyTunnel', () => copy(el('connectionId').value));
   bind('copyVerify', () => copy(el('verificationPrompt').value));
@@ -316,15 +345,46 @@
     const link = document.createElement('a'); link.href = url; link.download = 'ai-doll-connection-diagnostics.json'; link.click();
     setTimeout(() => URL.revokeObjectURL(url), 5000);
   });
-  el('hostChoice').onchange = () => {
-    const secure = el('hostChoice').value === 'secure';
+  function updateHostRoute(){
+    const route=el('hostChoice').value,secure=route==='secure',operit=route==='operit';
+    const local=['local','claude','deepseek','gemini'].includes(route),cloud=['chatgpt_http','claude_http','gemini_http'].includes(route);
     el('setupSecure').hidden = !secure;
-    el('setupLocal').hidden = secure;
+    el('setupLocal').hidden = !local;
+    el('setupOperit').hidden=!operit;
+    el('chooseHostHint').hidden=!!route;
+    el('setupCloud').hidden=!cloud;
+    el('setupDeepSeek').hidden=!['deepseek','gemini'].includes(route);
+    el('claudeLocalActions').hidden=route!=='claude';
+    el('localClientHint').textContent=route==='claude'?'Claude Desktop 使用本机配置。可一键写入 ai_doll，或下载配置后合并到原 mcpServers 中；电脑采集需保持运行。':'生成配置后合并 ai_doll 项到客户端 MCP 设置，保留已有服务。电脑采集需保持运行。';
+    if(route==='deepseek')el('localClientHint').textContent='DeepSeek DSH：生成原生 dsh-mcp-client 条目，合并到当前 profile 的 cordis.patch.yml；下载内容是合法 YAML 的 JSON 数组。保留其他条目，重启对应 profile 后调用设备状态。';
+    if(route==='gemini')el('localClientHint').textContent='Gemini CLI：生成配置后合并 mcpServers.ai_doll 到用户目录 .gemini/settings.json；保留其他设置。重开 Gemini CLI，用 /mcp 查看连接并批准工具调用。';
+    if(['deepseek','gemini'].includes(route))el('setupDeepSeek').textContent=route==='deepseek'?'此路线适用于 DeepSeek 官方 Harness（DSH）的桌面、Web 或 CLI profile；不是普通 DeepSeek 聊天 App。使用 MCP 的是运行 DSH 的电脑。':'此路线适用于 Google 官方 Gemini CLI。Gemini 普通网页／手机 App 的扩展入口与 CLI 不同。';
+    const claudeCloud=route==='claude_http';
+    el('cloudHeading').textContent=claudeCloud?'Claude 网页与手机：远程连接':'ChatGPT：远程 HTTPS 连接';
+    el('cloudInstructions').textContent=claudeCloud?'在 Claude 的连接器设置中添加自定义远程连接，粘贴完整地址；按本项目设备卡片选择无需登录，再在聊天中启用。':'在 ChatGPT Plugins 添加自定义 MCP，选择 Server URL，粘贴完整地址并按本项目设置选择无需身份验证；创建后安装并在聊天中启用。';
+    el('cloudNetworkHint').textContent=claudeCloud?'连接由 Claude 云端发起，需要公网可达的 HTTPS 443 地址。设备热点、192.168…、127.0.0.1 和 OpenAI 隧道编号都不能填在这里。':'已有服务器可直接使用 HTTPS 地址；仅在电脑本机运行时选择 ChatGPT 私有隧道。';
+    el('cloudOfficial').href=claudeCloud?'https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp':'https://developers.openai.com/api/docs/guides/custom-mcp-server';
+    if(route==='gemini_http'){
+      el('cloudHeading').textContent='Gemini 官方网页与手机：自定义应用';
+      el('cloudInstructions').textContent='在 Gemini 网页 Settings → Connected Apps → Custom apps 添加完整 MCP 地址，按页面提示连接；在聊天输入 @ 选择该应用。首次添加在网页完成，连接后手机 App 也可使用。';
+      el('cloudNetworkHint').textContent='需要公网 HTTPS 地址。Google 当前要求美国地区、18岁以上的个人账号、英文界面且开启 Keep Activity；没有入口时可选择 Gemini CLI。也可按官方指南使用 Gemini Apps Developer Mode。';
+      el('cloudOfficial').href='https://support.google.com/gemini/answer/17209137?hl=en-45';
+    }
+    el('aiConnectionTitle').textContent=secure?'ChatGPT 隧道':'AI 接入方式';
+    el('tunnelMetric').closest('article').hidden=!secure;
+    document.querySelector('#view-overview [data-action="secure-status"]').hidden=!secure;
+    el('verifyOperit').hidden=!operit;
+    el('verifyMcp').hidden=operit||!route;
+    el('verifyRouteHint').hidden=!!route;
+    el('verifyRouteHint').textContent=route==='deepseek'?'DeepSeek 官方应用尚无已确认的自定义 MCP 连接步骤。请使用支持 MCP 的客户端，或在已有应用中桥接函数调用；不会将本页选择标记为连接成功。':'请返回上一步选择 AI 应用。';
+    el('mcpVerifyHint').textContent=secure?'在 ChatGPT Plugins 添加自定义 MCP，选择隧道并填写下方 ID；安装后在聊天中启用，再调用设备状态。':route==='claude'?'完全退出并重新打开 Claude Desktop，在聊天中启用 AI Doll，再实际调用设备状态。':cloud?'在所选平台添加完整 HTTPS MCP 地址并启用，然后实际调用设备状态；能打开管理网页不代表 AI 已连接。':'在客户端合并本机配置并重新加载 MCP，再调用设备状态。';
     el('connectionId').closest('.copybox').hidden = !secure;
     el('chatVerification').closest('details').hidden = !secure;
     document.querySelector('[data-step-panel="3"] [data-action="secure-status"]').hidden = !secure;
     el('verificationPrompt').value = secure ? '请实际调用 get_installation_status 和 doll_get_status，返回设备状态及两个结果中的 verification.call_id。没有工具时如实说明，不用阅读文档代替调用。' : '请实际调用 ai_doll 的 get_installation_status 和 doll_get_status，返回采集服务、设备连接与模拟模式状态。没有工具时如实说明，不用阅读文档代替调用。';
-  };
+    if(state)checklist();
+  }
+  el('hostChoice').onchange = () => {configText='';el('localConfig').textContent='请为所选客户端重新生成配置。';localStorage.setItem('ai-doll-host-route',el('hostChoice').value);updateHostRoute();};
   el('developerPanel').ontoggle=()=>mountFrame();
   el('debugConnection').ontoggle=()=>render();
   el('operitMode').insertAdjacentHTML('afterend','<label><input id=operitDeveloper type=checkbox>开发者：显示模拟演示模式</label>');

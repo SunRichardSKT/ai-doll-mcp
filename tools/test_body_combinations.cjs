@@ -1,0 +1,13 @@
+const assert=require('node:assert/strict');
+const {validate,recognize}=require('../clients/operit/core/body_combinations.js');
+const rules=validate([{name:'拥抱',channels:[1,0]}]);
+const a={id:1,at:100,channel:0,phase:'start',touch_id:'a',boot:'b',quality:'ok',source:'sensor'};
+const b={...a,id:2,at:100.5,channel:1,touch_id:'b'};
+assert.equal(recognize([a,b],rules)[0].name,'拥抱');
+for(const change of [{source:'simulation'},{boot:'new'},{at:102},{quality:'fault'},{delivery_quality:'offline_replay'}])assert.deepEqual(recognize([a,{...b,...change}],rules),[]);
+assert.deepEqual(recognize([{...a,ended_at:100.2},b],rules),[]);
+assert.deepEqual(recognize([a,{...a,id:3,phase:'end',at:100.2},b],rules),[]);
+assert.equal(recognize([a,b],rules,[b]).length,1);
+assert.deepEqual(recognize([a,b],rules,[a]),[]);
+for(const bad of [[{name:'x',channels:[0,0]}],[{name:1,channels:[0,1]}],[...rules,...rules]])assert.throws(()=>validate(bad));
+console.log('PASS configurable combinations: overlap, release, source/boot isolation, replay, cursor and validation');

@@ -129,7 +129,7 @@ const {fixture}=require('./operit_test_host.cjs');
   await nodes.find(x=>x.type==='Button'&&x.props.text==='选择已有聊天').props.onClick();
   assert.equal(state.chats?.length,2,'list_chats must reach the actual subpackage, not the container');
   assert.ok(uiCalls.every(name=>name.startsWith('ai_doll_companion:')),'strict namespace for every UI call');
-  state.page='connection';nodes.length=0;await ui.default(ctx);
+  state.page='connection_other';nodes.length=0;await ui.default(ctx);
   assert.ok(nodes.some(x=>x.type==='TextField'&&x.props.label==='电脑 IP（电脑重启后可修改）'));
   f.disk.set('/import.json',JSON.stringify(f.connection));
   await nodes.find(x=>x.type==='Button'&&x.props.text==='导入服务器／电脑连接').props.onClick();

@@ -18,13 +18,14 @@ function basicContext(context){
  return {ctx,state,invokeAction:(id,payload)=>actions.get(id)(payload)};
 }
 (async()=>{
+ let homeIP='0.0.0.0';
  const id='fixture-ui-pairing-device',token='fixture_ui_pairing_token_225';
- const f=fixture({realTime:true,tool:async name=>name==='doll_get_status'?{device_id:id,device_name:'同手机娃娃',hostname:'ai-doll-000000000002.local',ip:'192.168.1.26',boot_id:'fixture-boot',event_cursor:0,
+ const f=fixture({realTime:true,tool:async name=>name==='doll_get_status'?{device_id:id,device_name:'同手机娃娃',hostname:'ai-doll-000000000002.local',ip:homeIP,boot_id:'fixture-boot',event_cursor:0,
   remote_server:{enabled:false}}:name==='get_channel_config'?{channels:[]}:name==='read_channel_values'?{values:[]}:{ok:true}});
  if(!f.tools.Files.list)f.tools.Files.list=async()=>({entries:[]});
  const http=f.tools.Net.http;
  f.tools.Net.http=async p=>p.method==='GET'?{statusCode:200,content:JSON.stringify(p.url.endsWith('/api/setup')?{enabled:true,token}:
-  {device_id:id,hostname:'ai-doll-000000000002.local',ip:'192.168.1.26'})}:http(p);
+  {device_id:id,hostname:'ai-doll-000000000002.local',ip:homeIP})}:http(p);
  const returned=[],pickers=[];let picked={cancelled:true},pendingPicker=null,readerState={state:'ready'},reads=0,replyCode=null;
  const qr=f.load(path.join(root,'clients/operit/core/qr.js')),qrModule={...qr,html:()=>require('../clients/operit/core/qr.js').html({
   decoder:fs.readFileSync(path.join(root,'clients/operit/vendor/jsQR.js'),'utf8'),generator:fs.readFileSync(path.join(root,'clients/operit/vendor/qrcodegen.js'),'utf8')})};
@@ -55,23 +56,30 @@ function basicContext(context){
  vm.runInContext(fs.readFileSync(path.join(root,'clients/operit/ui/settings.ui.js'),'utf8'),context);
  const bundle=upstream>=0?context.OperitComposeDslRuntime.createContext({packageName:'org.ai_doll.companion'}):basicContext(context);
  let tree=await context.exports.default(bundle.ctx);
- await bundle.invokeAction(find(tree,'添加娃娃').props.onClick.__actionId);
- tree=await context.exports.default(bundle.ctx);assert.ok(find(tree,'读取热点设备'));
- await bundle.invokeAction(find(tree,'读取热点设备').props.onClick.__actionId);
+ await bundle.invokeAction(find(tree,'连接娃娃').props.onClick.__actionId);
+ tree=await context.exports.default(bundle.ctx);assert.ok(find(tree,'已连接热点，读取设备'));
+ await bundle.invokeAction(find(tree,'已连接热点，读取设备').props.onClick.__actionId);
  tree=await context.exports.default(bundle.ctx);
  assert.equal(f.cfg().connection,null,'hotspot draft leaves the current connection unchanged');
  assert.equal(JSON.stringify(returned.find(x=>x.name.endsWith('read_hotspot_pairing')).result).includes(token),false);
- await bundle.invokeAction(find(tree,'打开热点设置，配置家庭 Wi-Fi').props.onClick.__actionId);
- tree=await context.exports.default(bundle.ctx);assert.ok(find(tree,'返回配对向导'));
- await bundle.invokeAction(find(tree,'返回配对向导').props.onClick.__actionId);
+ const reopened=upstream>=0?context.OperitComposeDslRuntime.createContext({packageName:'org.ai_doll.companion'}):basicContext(context);
+ await context.exports.default(reopened.ctx);let resumed=await context.exports.default(reopened.ctx);
+ assert.ok(find(resumed,'继续上次设置 · 同手机娃娃'),'a new page instance offers persisted progress');
+ await reopened.invokeAction(find(resumed,'继续上次设置 · 同手机娃娃').props.onClick.__actionId);
+ resumed=await context.exports.default(reopened.ctx);assert.ok(find(resumed,'打开家庭 Wi-Fi 配网页'));
+ await bundle.invokeAction(find(tree,'打开家庭 Wi-Fi 配网页').props.onClick.__actionId);
+ tree=await context.exports.default(bundle.ctx);assert.ok(find(tree,'返回向导并检查联网'));
+ homeIP='192.168.1.26';
+ await bundle.invokeAction(find(tree,'返回向导并检查联网').props.onClick.__actionId);
  tree=await context.exports.default(bundle.ctx);
- await bundle.invokeAction(find(tree,'已切回家庭 Wi-Fi，完成配对').props.onClick.__actionId);
+ await bundle.invokeAction(find(tree,'检查并完成连接').props.onClick.__actionId);
  assert.equal(f.cfg().connection.device_id,id);assert.equal(f.cfg().auto_sync_enabled,true);
  assert.equal(f.cfg().chat,null,'pairing does not create a different chat');assert.equal(f.messages.length,0);
- tree=await context.exports.default(bundle.ctx);assert.ok(find(tree,'立即同步记录'));
+ tree=await context.exports.default(bundle.ctx);assert.ok(find(tree,'先查看记录'));
+ await bundle.invokeAction(find(tree,'进入陪伴首页').props.onClick.__actionId);tree=await context.exports.default(bundle.ctx);assert.ok(find(tree,'立即同步记录'));
  assert.ok(find(tree,'选择原聊天'),'the existing chat picker is still the next optional setup step');
  const original=f.disk.get('/managed/settings.json');
- bundle.state.page='connection';tree=await context.exports.default(bundle.ctx);
+ bundle.state.page='connection_other';tree=await context.exports.default(bundle.ctx);
  await bundle.invokeAction(find(tree,'拍照／相册读取连接二维码').props.onClick.__actionId);
  tree=await context.exports.default(bundle.ctx);
  const web=tree.children.find(node=>node.type==='WebView');assert.ok(web?.props.html.includes('window.aiDollQR'));
@@ -94,5 +102,13 @@ function basicContext(context){
  assert.ok(pendingPicker);const beforeCancel=f.disk.get('/managed/settings.json');
  await bundle.invokeAction(find(tree,'取消并返回连接').props.onClick.__actionId);pendingPicker();await late;
  assert.equal(bundle.state.page,'connection');assert.equal(f.disk.get('/managed/settings.json'),beforeCancel,'late picker result cannot commit after leaving QR');
+ bundle.state.page='pairing';bundle.state.pairStep=1;tree=await context.exports.default(bundle.ctx);
+ const originalCall=bundle.ctx.callTool;let releaseHotspot;
+ bundle.ctx.callTool=async(name,args)=>name.endsWith(':read_hotspot_pairing')?new Promise(resolve=>{releaseHotspot=()=>originalCall(name,args).then(resolve);}):originalCall(name,args);
+ const pendingRead=bundle.invokeAction(find(tree,'已连接热点，读取设备').props.onClick.__actionId);
+ tree=await context.exports.default(bundle.ctx);const exit=find(tree,'退出向导，稍后继续');assert.equal(exit.props.enabled,true);
+ await bundle.invokeAction(exit.props.onClick.__actionId);releaseHotspot();await pendingRead;
+ assert.equal(bundle.state.page,'home','a late hotspot read never navigates back to the abandoned wizard');
+ assert.equal(bundle.state.busy,false);bundle.ctx.callTool=originalCall;
  console.log('PASS: '+(upstream>=0?'official Operit 1.12.2 bridge':'explicit Compose double')+' hotspot→settings→home; camera/album cancellation, async QR validation, invalid candidate and late result preserve connection. Android/model remain unverified.');
 })().catch(error=>{console.error(error.stack||error);process.exitCode=1});

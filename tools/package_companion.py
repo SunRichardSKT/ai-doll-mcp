@@ -14,6 +14,7 @@ from _source_path import load
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 VERSION = load('ai_doll.core.version').VERSION
 TOOLS = (
+    'build_product_materials.py',
     'wifi_feedback.js',
     'test_wifi_feedback.cjs',
     'firmware_test_assets.cjs',
@@ -191,7 +192,7 @@ TOOLS = (
     'bridge_client.js',
     'bridge_demo.html',
     'install_bridge.ps1',
-    'test_interaction_bridge.py',
+    'test_interaction_bridge.py', 'test_body_combinations.py', 'test_body_combinations.cjs', 'test_body_combinations_ui.cjs', 'test_official_client_configs.py', 'body_combinations_ui.js',
     'test_bridge_ui.cjs',
     'test_bridge_client.cjs',
     'device_transport.py',
@@ -211,6 +212,18 @@ TOOLS = (
     'test_wireless_recovery_ui.cjs',
 )
 DOCS = (
+    'product/README.md',
+    'product/content.json',
+    'product/requirements.txt',
+    'product/产品介绍.md',
+    'product/新手说明书.md',
+    'product/抱抱星_共感娃娃核心_产品介绍.pdf',
+    'product/抱抱星_共感娃娃核心_新手说明书.pdf',
+    'product/assets/core-hero.png',
+    'product/assets/core-front.png',
+    'product/assets/board-reference.jpg',
+    'product/assets/IMAGE_NOTES.md',
+    'reports/ONBOARDING_013.md',
     'README.md',
     'TROUBLESHOOTING.md',
     'ai/AI_GUIDE.md',
@@ -234,6 +247,7 @@ DOCS = (
     'developers/REPOSITORY_LAYOUT.md',
     'integrations/CHAT_MCP.md',
     'integrations/HOST_INTEGRATIONS.md',
+    'integrations/OFFICIAL_CLIENTS.md',
     'integrations/OPERIT_NO_PC.md',
     'integrations/OPERIT_SETUP.md',
     'integrations/REMOTE_MCP.md',
@@ -254,7 +268,7 @@ DOCS = (
 SOURCE = ('device_tools.json', 'remote_uplink.h', 'expansion_inputs.h', 'resistive_inputs.h', 'ota_update.h', 'event_storage.h', 'event_integrity.h', 'lab_main.cpp', 'device_page.h', 'setup_page.h', 'touch_events.h', 'network_state.h', 'network_policy.h',
           'channel_devices.h', 'channel_rpc.h', 'pressure_calibration.h', 'device_discovery.h', 'archive_lease.h')
 PREBUILT = ('firmware.bin', 'bootloader.bin', 'partitions.bin', 'boot_app0.bin', 'FLASH_MANIFEST.json', 'README.md')
-SHARED_SOURCE = ('src/ai_doll/__init__.py', 'src/ai_doll/core/__init__.py', 'src/ai_doll/core/version.py',
+SHARED_SOURCE = ('src/ai_doll/__init__.py', 'src/ai_doll/core/__init__.py', 'src/ai_doll/core/version.py', 'src/ai_doll/core/body_combinations.py',
                  'src/ai_doll/core/interaction_bridge.py', 'src/ai_doll/core/input_observations.py',
                  'src/ai_doll/core/history_management.py', 'src/ai_doll/core/companion_experience.py')
 PCB_FILES = (
@@ -264,7 +278,7 @@ PCB_FILES = (
 )
 PCB_PACKAGE = f'AI_Doll_PCB_v{VERSION}.zip'
 CODE_README = (ROOT/'README.md').read_bytes().decode('utf-8')
-PCB_README = '# AI Doll PCB · 0.1.2 内测版\n\n第一代最终版为34.29 × 44.45 mm双层C3八路锁扣插座板。下方保留早期已制带线板资料，按实物区分。\n\n- [主板与采购说明](hardware/rev-v2/README.md)\n- [早期已制带线板工程](hardware/rev-v2/AI_Doll_V2_丝印镜像修正_20261016.epro2)\n- [采购BOM](hardware/rev-v2/AI_Doll_V2_标准化采购BOM_20261003.csv)\n- [板外器件与测试点](hardware/rev-v2/AI_Doll_V2_板外器件与测试点_20261003.csv)\n- [在用制造资料](hardware/rev-v2/ordered-gerber-20260920/已下单PCB封装核对.md)\n- [第一代最终版锁扣插座板](hardware/rev-v2/candidates/c3-socket-20261105/README.md)\n\nJ9要求5V输入，主板不包含锂电池充电、升压或保护电路。第一代最终版采用后置开关和三针锁扣电源座，配套103450/PH2.0核心电池壳及独立充电板壳；首板先核对实际插头、开关和电池。\n\n[接线教程](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/daily/SENSOR_CHANNELS.md) · [外壳选择](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/README.md)\n'
+PCB_README = '# AI Doll PCB · 内测0.1.3版\n\n第一代最终版为34.29 × 44.45 mm双层C3八路锁扣插座板。下方保留早期已制带线板资料，按实物区分。\n\n- [主板与采购说明](hardware/rev-v2/README.md)\n- [早期已制带线板工程](hardware/rev-v2/AI_Doll_V2_丝印镜像修正_20261016.epro2)\n- [采购BOM](hardware/rev-v2/AI_Doll_V2_标准化采购BOM_20261003.csv)\n- [板外器件与测试点](hardware/rev-v2/AI_Doll_V2_板外器件与测试点_20261003.csv)\n- [在用制造资料](hardware/rev-v2/ordered-gerber-20260920/已下单PCB封装核对.md)\n- [第一代最终版锁扣插座板](hardware/rev-v2/candidates/c3-socket-20261105/README.md)\n\nJ9要求5V输入，主板不包含锂电池充电、升压或保护电路。第一代最终版采用后置开关和三针锁扣电源座，配套103450/PH2.0核心电池壳及独立充电板壳；首板先核对实际插头、开关和电池。\n\n[接线教程](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/daily/SENSOR_CHANNELS.md) · [外壳选择](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/enclosure/README.md)\n'
 
 
 def link_unbundled_docs(contents):
@@ -337,8 +351,8 @@ def server_package(delivery, operit_package=None):
         'direct_server.py','direct_mcp.py','companion.py','interaction_bridge.py','input_observations.py',
         'history_management.py','private_storage.py','direct_server.html','direct_server.js','pairing_connection.js',
         'bridge_client.js','conversation_queue.js','channel_editor.js','history_manager.js',
-        'console_embed.js','companion.html','companion_experience.py','companion_experience.js')]
-    names += list(SHARED_SOURCE) + ['tools/_source_path.py', 'docs/integrations/OPERIT_NO_PC.md', 'docs/integrations/OPERIT_SETUP.md']
+        'console_embed.js','body_combinations_ui.js','companion.html','companion_experience.py','companion_experience.js')]
+    names += list(SHARED_SOURCE) + ['tools/_source_path.py', 'docs/integrations/OPERIT_NO_PC.md', 'docs/integrations/OPERIT_SETUP.md', 'docs/integrations/OFFICIAL_CLIENTS.md']
     contents = {name:(ROOT/name).read_bytes() for name in names}
     contents['delivery/AI_Doll_Operit.toolpkg']=(operit_package or ROOT/'delivery/AI_Doll_Operit.toolpkg').read_bytes()
     if b'\r' in contents['Install_Server.sh']:
@@ -348,7 +362,7 @@ def server_package(delivery, operit_package=None):
     vendor = ROOT/'clients/operit/vendor'
     for asset in ('qrcodegen.js', 'qrcodegen.LICENSE', 'SOURCES.json'):
         contents['clients/operit/vendor/'+asset] = (vendor/asset).read_bytes()
-    for name in ('docs/ai/AI_GUIDE.md', 'docs/reports/VALIDATION.md'):
+    for name in ('docs/ai/AI_GUIDE.md', 'docs/reports/VALIDATION.md', 'docs/reports/ONBOARDING_013.md'):
         contents[name] = (ROOT/name).read_bytes()
     contents['docs/README.md'] = ('# Linux服务包教程\n\n'
         '[远程部署](integrations/REMOTE_SERVER_SETUP.md) · [Operit免电脑使用](integrations/OPERIT_NO_PC.md) · '
@@ -356,7 +370,7 @@ def server_package(delivery, operit_package=None):
         '[本版说明](../CHANGELOG.md) · [AI使用说明书](ai/AI_GUIDE.md) · [检查记录](reports/VALIDATION.md)\n\n'
         '[完整教程目录](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/README.md)\n').encode()
     contents['README.md'] = ('# AI Doll Linux 服务包\n\n'
-        f'{VERSION} · 0.1.2 内测版；从解压目录运行安装入口，保留原部署数据。\n\n'
+        f'内测{VERSION}版；从解压目录运行安装入口，保留原部署数据。\n\n'
         '准备 Ubuntu / Debian 服务器，将域名解析到它，并放行 TCP 80 / 443。\n\n'
         '上传并解压此包，在解压目录运行：\n\n'
         '```bash\nsudo bash Install_Server.sh\n```\n\n'
@@ -408,7 +422,6 @@ def main():
     files += [ROOT/'deploy/direct-server'/name for name in ('Dockerfile','Dockerfile.dockerignore','compose.yml','compose.backend.yml','Caddyfile','.env.example')]
     files += [ROOT/'docs'/name for name in DOCS]
     files += sorted((ROOT/'docs/images').glob('*.png'))
-    files.append(ROOT/'docs/images/ai-doll-logo.svg')
     files += [ROOT/'templates'/name for name in ('chatgpt-mcp-config.json','README.md','host-event.example.json','openclaw-hook.example.json')]
     files += [p for directory in ('current-board','resistive-inputs') for p in (ROOT/'hardware/expansion'/directory).iterdir() if p.is_file()]
     files += [ROOT/'firmware/src'/name for name in SOURCE]
@@ -444,7 +457,7 @@ def main():
         checksums[name] = hashlib.sha256((delivery/name).read_bytes()).hexdigest()
     checksums['Install_Server.sh'] = hashlib.sha256((ROOT/'Install_Server.sh').read_bytes()).hexdigest()
     (delivery/'SHA256SUMS.txt').write_text(''.join(digest+'  '+name+'\n' for name,digest in sorted(checksums.items())), encoding='ascii',newline='\n')
-    readme = f'# 下载与交付文件\n\n**{VERSION} · 0.1.2 内测版 / 固件0.1.2**，更新于2026-11-15。[下载本版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v{VERSION})。\n\n本版修复Operit配置并发覆盖和设备重启恢复，新增NTC10k/B3435和擦眼泪感应片，使用现板两个PA2.0传感器口，可保留六路压力。温度与擦眼泪分别设置只记录／允许回复；配套固件为resistive-inputs-v1。Windows完整包内置Python，保留原历史、设置及校准；未自动给已有设备烧录。接线和感应片制作见[现板电阻扩展](../hardware/expansion/resistive-inputs/README.md)。\n\n'
+    readme = f'# 下载与交付文件\n\n**内测{VERSION}版 / 固件{VERSION}**，更新于2026-11-15。[下载 v0.1.3](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.3)。\n\n本版简化首次连接：Operit 三步向导保存设置进度，配网页按客户端显示下一步，Windows 优先 USB 配网及自动配对，并按 ChatGPT、Claude、DeepSeek DSH、Gemini、Operit 与其他客户端分别引导；支持用户自定义多个部位组合，如前胸＋后背＝拥抱。保留 NTC10k/B3435 和擦眼泪感应片扩展。温度与擦眼泪分别设置只记录／允许回复；配套固件为resistive-inputs-v1。Windows完整包内置Python，保留原历史、设置及校准；未自动给已有设备烧录。接线和感应片制作见[现板电阻扩展](../hardware/expansion/resistive-inputs/README.md)。\n\n'
     readme += '## 应该下载哪个\n\n| 包 | 适合谁 | 解压后做什么 |\n| --- | --- | --- |\n'
     purposes = {
         f'AI_Doll_Firmware_v{VERSION}.zip': ('已有软件／仅升级开发板', '按固件说明使用OTA应用镜像或配套烧录工具，不全片擦除'),
@@ -457,12 +470,12 @@ def main():
     }
     for item in outputs:
         who, action = purposes[item['file']]
-        readme += f"| {item['file']} · {item['bytes']/1048576:.2f} MiB | {who} | {action} |\n"
+        readme += f"| [{item['file']}](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v{VERSION}/{item['file']}) · {item['bytes']/1048576:.2f} MiB | {who} | {action} |\n"
     readme += '\nOperit 无需为了取得手机工具包下载 Windows 包。服务器管理页可导出连接文件、连接码与临时二维码；仅手机模式默认从设备热点读取，不要求实体标签。原电脑入口继续兼容，完整包内含相同工具包。[统一安装](../docs/integrations/OPERIT_SETUP.md) · [免电脑指南](../docs/integrations/OPERIT_NO_PC.md)。\n'
     readme += '\nWindows包内置Python。Linux小型包不含Windows运行环境，由容器准备。PCB包保留第一代最终版与已制板参考资料；按[硬件目录](../hardware/rev-v2/README.md)区分版本，第一代最终版见[锁扣插座板](../hardware/rev-v2/candidates/c3-socket-20261105/README.md)。\n\n'
     readme += '[Windows 首次安装](../docs/start/AI_INSTALL.md) · [远程部署](../docs/integrations/REMOTE_SERVER_SETUP.md) · [给 AI 的执行指南](../docs/ai/AI_GUIDE.md) · [全部文档](../docs/README.md)\n\n'
     readme += '## 许可\n\n软件 AGPL-3.0-only，硬件 CERN-OHL-S-2.0，第三方资源保留各自声明。具体适用范围见 [项目许可](../LICENSING.md)。\n\n'
-    readme += f'## 如何校验发布包\n\n使用[本版Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v{VERSION})附带的固定清单。\n\n[DELIVERY_MANIFEST.json](DELIVERY_MANIFEST.json) 与 [SHA256SUMS.txt](SHA256SUMS.txt) 记录哈希；ZIP / TAR 内的 MANIFEST.json 记录逐文件校验，ToolPkg 使用 CHECKSUMS.json。Linux 包另有同目录 `.sha256`。\n\n'
+    readme += f'## 如何校验发布包\n\n使用本版 Release 附带的固定清单，不混用旧版或 main 的滚动清单。\n\n[DELIVERY_MANIFEST.json](DELIVERY_MANIFEST.json) 与 [SHA256SUMS.txt](SHA256SUMS.txt) 记录哈希；ZIP / TAR 内的 MANIFEST.json 记录逐文件校验，ToolPkg 使用 CHECKSUMS.json。Linux 包另有同目录 `.sha256`。\n\n'
     readme += 'Linux安装入口位于本版TAR内和Release附件 `Install_Server.sh`；使用同版安装器，保留原目录、项目名与数据卷。大型文件仅放在Releases，源码目录保留下载链接与校验元数据。\n\n'
     for item in outputs:
         readme += f"- `{item['file']}`：`{item['sha256']}`\n"

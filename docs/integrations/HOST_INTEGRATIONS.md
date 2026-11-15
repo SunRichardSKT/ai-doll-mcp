@@ -3,6 +3,8 @@
 > 给维护原聊天应用的开发者；普通用户先读入门区。 [全部目录](../README.md)
 
 
+普通用户先看[ChatGPT、Claude、DeepSeek、Operit 平台选择](OFFICIAL_CLIENTS.md)。
+
 此页给开发者。普通 Chat 使用 [Secure](SECURE_MCP.md)。Operit 已提供统一工具包，用户报告原聊天能回应触摸；服务器与仅手机模式见 [免电脑指南](OPERIT_NO_PC.md)，需分别实测。OpenClaw / 微信仍未完成真实账号验收，下面的通用模板不能代替该验收。
 
 ## 先选通路

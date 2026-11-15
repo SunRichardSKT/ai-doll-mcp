@@ -59,7 +59,7 @@ class ExperienceTests(unittest.TestCase):
 
     def test_defaults_partial_preferences_and_atomic_errors(self):
         e=self.c.experience
-        self.assertEqual(e.preferences(),{'chat_integration_enabled':True,'proactive_enabled':False,'persona_source':'chat','doll_persona':''})
+        self.assertEqual(e.preferences(),{'chat_integration_enabled':True,'proactive_enabled':False,'persona_source':'chat','doll_persona':'','body_combinations':[]})
         e.update_preferences({'feedback':{'preferred_address':'亲爱的'}})
         self.assertEqual(self.c.bridge.preferences()['feedback']['tone'],'温柔自然')
         self.assertFalse(e.preferences()['proactive_enabled'])

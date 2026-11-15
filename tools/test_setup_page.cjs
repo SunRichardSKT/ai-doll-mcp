@@ -42,7 +42,17 @@ const {source}=require('./firmware_test_assets.cjs'),root=path.resolve(__dirname
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
    assert.deepEqual(errors,[]);assert.ok(calls.every(c=>!c.p.includes('tool')),'onboarding never fetches hardware/configuration tools');
    unreachable=false;await page.evaluate(()=>refresh());await page.locator('#entry').evaluate(e=>{e.blur();e.scrollLeft=0;});
-   await page.screenshot({path:path.join(root,'build/firmware-network/setup-'+colorScheme+'.png'),fullPage:true});await page.close();
+   await page.screenshot({path:path.join(root,'build/firmware-network/setup-'+colorScheme+'.png'),fullPage:true});
+   await page.goto('http://192.168.4.1/setup?client=operit');
+   await page.waitForFunction(()=>document.getElementById('operitHint').textContent.includes('设备已联网'));
+   assert.equal(await page.locator('#browserEntry').isVisible(),false,'embedded mode hides browser hand-off controls');
+   assert.match(await page.textContent('#operitHint'),/尚未完成配对/);
+   assert.equal(calls.filter(c=>c.p==='/api/wifi').length,1,'changing presentation never saves Wi-Fi again');
+   unreachable=true;await page.evaluate(()=>refresh());
+   assert.match(await page.textContent('#error'),/返回向导/,'embedded network loss never asks for a hidden browser entry');
+   assert.match(await page.textContent('#operitHint'),/尝试核对/);unreachable=false;await page.evaluate(()=>refresh());
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+   await page.screenshot({path:path.join(root,'build/firmware-network/setup-operit-'+colorScheme+'.png'),fullPage:true});await page.close();
   }
   // Verify identity before the browser presents a saved pairing credential.
   for(const mismatch of [true,false]){

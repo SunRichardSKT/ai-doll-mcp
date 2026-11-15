@@ -27,6 +27,18 @@ const {chromium}=require('playwright');
   });
   try{
     await page.goto('https://doll.example/');
+    await page.getByLabel('选择 AI 客户端').selectOption('claude');
+    assert.match(await page.locator('#devices').textContent(),/Claude 云端发起/);
+    assert.equal(await page.getByRole('link',{name:'下载 Operit 连接文件',exact:true}).isVisible(),false);
+    await page.getByLabel('选择 AI 客户端').selectOption('deepseek');
+    assert.match(await page.locator('#devices').textContent(),/dsh-mcp-client/);
+    await page.getByLabel('选择 AI 客户端').selectOption('gemini');
+    assert.match(await page.locator('#devices').textContent(),/httpUrl/);
+    assert.match(await page.locator('#devices').textContent(),/\.gemini\/settings.json/);
+    await page.getByLabel('选择 AI 客户端').selectOption('gemini_app');
+    assert.match(await page.locator('#devices').textContent(),/Connected Apps/);
+    assert.match(await page.locator('#devices').textContent(),/Keep Activity/);
+    await page.getByLabel('选择 AI 客户端').selectOption('operit');
     await page.getByRole('link',{name:'下载 Operit 连接文件',exact:true}).waitFor();
     const pkg=page.waitForEvent('download');await page.getByRole('link',{name:'下载手机工具包',exact:true}).click();
     assert.equal((await pkg).suggestedFilename(),'AI_Doll_Operit.toolpkg');
@@ -39,6 +51,6 @@ const {chromium}=require('playwright');
       await page.screenshot({path:path.join(out,'server-'+width+'.png'),fullPage:true});
     }
     assert.deepEqual(errors,[]);
-    console.log('PASS server Operit setup page: real HTML/JS, both downloads, device identity, mobile and desktop. Explicit API fixture.');
+    console.log('PASS server client selector: ChatGPT/Claude/DeepSeek/Operit guidance, downloads, device identity and responsive layout. Explicit API fixture.');
   }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

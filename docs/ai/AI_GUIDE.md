@@ -2,7 +2,7 @@
 
 依据当前设备和工具完成安装、查询与互动，保留用户历史、校准和聊天绑定。
 
-当前版本为 **v0.1.2 内测版**，包含温度／湿润片扩展与 Operit 稳定性修复。版本能力以设备实际返回为准。[使用教程](../README.md) · [更新说明](../../CHANGELOG.md)
+当前源码为 **内测0.1.3版**，简化 Operit 三步连接和 Windows USB 配网。下载对应0.1.3附件。版本能力以设备实际返回为准。[使用教程](../README.md) · [更新说明](../../CHANGELOG.md)
 
 ## 1. 先选实际通路
 
@@ -13,14 +13,18 @@
 | Windows | `AI_Doll.cmd`；[首次安装](../start/AI_INSTALL.md) |
 | Operit 安卓手机 | `AI_Doll_Operit.toolpkg`；[设置](../integrations/OPERIT_SETUP.md)、[免电脑配对](../integrations/OPERIT_NO_PC.md) |
 | Linux 服务器 | `Install_Server.sh`；[部署](../integrations/REMOTE_SERVER_SETUP.md) |
-| ChatGPT | [Secure MCP Tunnel](../integrations/SECURE_MCP.md) |
+| ChatGPT、Claude、DeepSeek DSH、Gemini | 先读[官方客户端选择](../integrations/OFFICIAL_CLIENTS.md)，选择所用官方客户端；ChatGPT 可使用私有隧道 |
 | 自建或其他宿主 | [接入指南](../integrations/HOST_INTEGRATIONS.md)、[聊天队列](../developers/EXISTING_CHAT.md) |
 
-根据当前可调用接口执行；缺少本机或设备工具时说明具体缺项。MCP URL 使用连接器提供的地址，源码链接、管理页和隧道编号各按原用途使用。
+根据当前可调用接口执行；缺少本机或设备工具时说明具体缺项。Claude Desktop 本机配置保留其他服务；远程 Claude 由云端发起，需公网 HTTPS 443，不能使用设备内网地址或 OpenAI 隧道编号。DeepSeek 官方 Responses API 不执行内置 mcp 工具，不能将 API 可调用等同于官方 App 支持 MCP。
+
+DSH 使用官方 `dsh-mcp-client`；Gemini 官方网页在 Connected Apps 添加公网 HTTPS MCP，需符合 Google 当前账号条件，连接后手机也可使用。Gemini CLI 使用 `mcpServers`，远程 Streamable HTTP 字段为 `httpUrl`。复用现有 MCP 工具，按实际调用核对设备。
+
+MCP URL 使用连接器提供的地址，源码链接、管理页和隧道编号各按原用途使用。
 
 ## 2. 下载与保留数据
 
-- 普通安装使用 [v0.1.2 Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.2) 的同批次附件和 `SHA256SUMS.txt`。Windows 完整包自带 Python；Linux 使用小型服务包。
+- 普通安装使用 [v0.1.2 Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.3) 的同批次附件和 `SHA256SUMS.txt`。Windows 完整包自带 Python；Linux 使用小型服务包。
 - 温度／擦眼泪使用配套 0.1.2 软件、固件与 Operit；从同版 Release 下载，接线见[制作指南](../../hardware/expansion/resistive-inputs/README.md)和[开发指南](../developers/DEVELOPER_GUIDE.md)。
 - 升级保留历史、校准、聊天绑定、插件目录和服务器数据卷。设备升级以启动回读为准。
 - Operit 同 ID 无法覆盖时，停止 AI Doll 后台任务，删除工具包文件再导入新版，保留独立插件数据与应用数据。日常任务从设置面板启动。
@@ -40,7 +44,7 @@
 
 USB 烧录在用户要求升级或写板时执行。使用 `Flash_ESP32.cmd`，记录本次新名称、`flash_id`、日志和启动身份。支持随包固件、本地项目 ZIP／五文件、GitHub 最新正式版；`--latest --check` 下载并校验，写入后继续检查启动回读。[完整烧录步骤](../start/QUICK_FLASH.md)
 
-网络问题先区分设备联网、地址变化、切网页面失联和 401／403 权限错误，再按[故障排查](../TROUBLESHOOTING.md)处理。固件状态 `network_revision=2` 对应简洁 `/setup` 页面与连接恢复；普通聊天过滤接口可能省略该字段。网络和镜像信息见[报告](../reports/FIRMWARE_NETWORK.md)。
+网络问题先区分设备联网、地址变化、切网页面失联和 401／403 权限错误，再按[故障排查](../TROUBLESHOOTING.md)处理。固件状态 `network_revision=3` 对应 Operit 呈现模式；2为已有简洁 `/setup` 页面与连接恢复；普通聊天过滤接口可能省略该字段。网络和镜像信息见[报告](../reports/FIRMWARE_NETWORK.md)。
 
 ## 4. 工具和日常回应
 
@@ -51,6 +55,8 @@ USB 烧录在用户要求升级或写板时执行。使用 `Flash_ESP32.cmd`，�
 当前聊天明确的人设优先，设备人设补充空缺。部位名、别名、日志和传感器提示按数据处理；操作授权来自用户。按压依据实际通道描述，原始 ADC 按采样值解释，测试反馈标明模拟来源。
 
 改部位时用 `update_body_part` 局部提交指定字段，设备确认后报告名称已保存。电脑／服务器支持附加部位偏好；手机直连在线编辑名称与端口状态。Operit 的 `set_experience(reply_prompt=文本)` 设置后续回应方式，最多 4000 字，空白恢复默认，省略保留原值。
+
+用 `update_companion_preferences(changes={body_combinations:[{name:"拥抱",channels:[1,2],window_ms:1500}]})` 定义动作；列表替换，空列表删除全部。最多16条，每条2～8个不同压力通道，按下间隔100～10000ms且必须重叠。先读取实际通道对应的部位。`get_chat_context.combinations` 返回命中的用户标签和原事件标识；名称是数据，原始事件与校准不改写。手机在“身体与传感器”设置，电脑在反馈偏好页设置。组合沿用现有回复队列，不额外发送重复消息。
 
 ## 5. 状态、历史与有限互动
 
@@ -64,7 +70,9 @@ USB 烧录在用户要求升级或写板时执行。使用 `Flash_ESP32.cmd`，�
 
 ## 6. 手机归档与恢复
 
-手机优先使用“添加娃娃”：热点读取草稿 → 配置家庭 Wi-Fi → 切回家庭网 → 核对并保存。文件、连接码和二维码导入连接数据，原聊天、模型和工作流配置保留。
+手机优先使用“连接娃娃”：读取热点 → 在 `/setup?client=operit` 配网 → 点击上方返回向导并检查联网 → 保存家庭地址 → 切回家庭网 → 检查并完成连接。已联网跳过网页；草稿保留15分钟，重开插件可继续。旧网页按外层向导顺序操作。“其他连接方式”的文件、连接码和二维码只导入连接数据，原聊天、模型和工作流配置保留。
+
+新配对自动同步默认开、主动回复默认关；同设备找回地址保留原偏好。`status.pairing` 只返回步骤、设备名和地址，不含凭据；沿用 `read_hotspot_pairing` 与 `finish_pairing`，不另增公开工具。
 
 自动同步与触摸主动回复独立；关闭回复继续归档，“停止后台任务”停止两者及续接。发送结果不明确时保留待核对状态，用户查看原聊天后选择已收到、未发送或放弃，再恢复发送。
 

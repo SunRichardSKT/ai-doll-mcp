@@ -10,7 +10,7 @@ const {chromium}=require('playwright');
   const state={environment_ready:true,project:'fixture',version:'0.1.1',paired:false,connection:{},
     collector:{running:false},secure_config:{profile:'interaction',configured:false},secure:{},
     profile_counts:{status:2,history:9,interaction:19},job:{state:'idle'},
-    operit:{configured:false,running:false,addresses:['192.168.1.20']}};
+    serial_ports:[{port:'COM8',label:'USB 开发板'}],operit:{configured:false,running:false,addresses:['192.168.1.20']}};
   await page.route('http://127.0.0.1:8769/**',async route=>{
     const request=route.request(),p=new URL(request.url()).pathname;
     let body,type='application/json';
@@ -23,6 +23,12 @@ const {chromium}=require('playwright');
       if(action==='operit-save'){state.operit={...state.operit,configured:true,host:data.host,mode:data.mode};result.saved=true;}
       if(action==='operit-start'){state.operit.running=true;result={running:true,protocol_connected:true,tool_count:19};}
       if(action==='operit-stop'){state.operit.running=false;result.stopped=true;}
+      if(action==='client-config'||action==='claude-config'){
+        const config={mcpServers:{ai_doll:{command:'C:/runtime/python.exe',args:['C:/project/tools/companion_mcp.py']}}};
+        result=action==='claude-config'?{saved:true,config}:config;
+      }
+      if(action==='usb'){state.connection={transport:'usb',serial_port:data.port};state.collector={running:true,transport:'usb',device_ip:'192.168.1.50'};}
+      if(action==='usb-pair-wifi'){state.paired=true;state.connection={transport:'wifi',device_host:'192.168.1.50'};state.collector={running:true,transport:'wifi',device_ip:'192.168.1.50'};}
       state.job={state:'done',action,message:'操作完成',result};body=JSON.stringify({accepted:true});
     } else if(p==='/api/operit-connection')body=JSON.stringify({schema:1,kind:'ai-doll-operit-connection',mcp_url:'http://192.168.1.20:8775/fixture/mcp'});
     else if(p==='/api/operit-toolpkg'){body=Buffer.from('ZIP fixture only');type='application/octet-stream';}
@@ -31,6 +37,55 @@ const {chromium}=require('playwright');
   });
   try {
     await page.goto('http://127.0.0.1:8769/#operit');await page.locator('#operitMode').waitFor({state:'visible'});
+    await page.click('[data-view="setup"]');await page.click('[data-step="1"]');
+    assert.equal(await page.inputValue('#serialPort'),'COM8','single detected board is selected');
+    assert.equal(await page.locator('#deviceHost').isVisible(),false,'manual credentials start folded');
+    await page.click('#connectUsb');await page.waitForFunction(()=>document.getElementById('globalNotice').textContent==='操作完成');
+    await page.waitForFunction(()=>document.getElementById('usbProgress').textContent.includes('192.168.1.50'));
+    assert.deepEqual(actions.slice(0,2).map(x=>x.action),['usb','usb-pair-wifi'],'already networked USB board pairs without a Wi-Fi form');
+    assert.equal(await page.locator('iframe').count(),0);
+    await page.click('[data-step="2"]');assert.equal(await page.inputValue('#hostChoice'),'','new users choose their app explicitly');
+    await page.selectOption('#hostChoice','operit');
+    assert.equal(await page.locator('#operitStart').isVisible(),true,'Operit startup is available directly in the wizard');
+    await page.click('[data-step="3"]');assert.equal(await page.locator('#verifyOperit').isVisible(),true);
+    assert.equal(await page.locator('#verificationPrompt').isVisible(),false,'Operit never requires ChatGPT call IDs');
+    await page.click('[data-step="2"]');await page.selectOption('#hostChoice','secure');
+    await page.click('[data-step="3"]');assert.equal(await page.locator('#connectionId').isVisible(),true);
+    await page.click('[data-step="2"]');await page.selectOption('#hostChoice','local');
+    assert.equal(await page.locator('#localConfig').isVisible(),true);
+    await page.selectOption('#hostChoice','claude');await page.click('#installClaude');
+    await page.waitForFunction(()=>document.getElementById('localConfig').textContent.includes('mcpServers'));
+    assert.equal(actions.at(-1).action,'claude-config');
+    const localDownload=page.waitForEvent('download');await page.click('#downloadLocalConfig');
+    assert.equal((await localDownload).suggestedFilename(),'AI_Doll_Local_MCP.json');
+    await page.selectOption('#hostChoice','claude_http');
+    assert.equal(await page.locator('#setupCloud').isVisible(),true);
+    await page.fill('#cloudMcpURL','https://192.168.1.50/private/mcp');await page.click('#copyCloudMcp');
+    assert.match(await page.textContent('#globalNotice'),/公网 HTTPS/);
+    await page.fill('#cloudMcpURL','https://fixture.example:8443/private/mcp');await page.click('#copyCloudMcp');
+    assert.match(await page.textContent('#globalNotice'),/443/);
+    await page.selectOption('#hostChoice','chatgpt_http');
+    assert.match(await page.textContent('#cloudInstructions'),/Server URL/);
+    await page.selectOption('#hostChoice','gemini_http');
+    assert.match(await page.textContent('#cloudInstructions'),/Connected Apps/);
+    assert.match(await page.textContent('#cloudNetworkHint'),/Keep Activity/);
+    assert.equal(await page.locator('#setupCloud').isVisible(),true);
+    await page.selectOption('#hostChoice','deepseek');
+    assert.equal(await page.locator('#setupDeepSeek').isVisible(),true);
+    assert.equal(await page.locator('#setupLocal').isVisible(),true);
+    assert.match(await page.textContent('#localClientHint'),/cordis.patch.yml/);
+    await page.click('#setupLocal [data-action="client-config"]');
+    await page.waitForFunction(()=>document.getElementById('globalNotice').textContent.startsWith('操作完成'));
+    assert.equal(actions.at(-1).data.client,'deepseek');
+    await page.click('[data-step="3"]');
+    assert.equal(await page.locator('#verificationPrompt').isVisible(),true);
+    await page.click('[data-step="2"]');await page.selectOption('#hostChoice','gemini');
+    assert.match(await page.textContent('#localClientHint'),/\.gemini\/settings.json/);
+    await page.click('#setupLocal [data-action="client-config"]');
+    await page.waitForFunction(()=>document.getElementById('globalNotice').textContent.startsWith('操作完成'));
+    assert.equal(actions.at(-1).data.client,'gemini');
+    await page.click('[data-step="2"]');
+    await page.selectOption('#hostChoice','operit');await page.click('[data-view="operit"]');actions.length=0;
     assert.equal(await page.inputValue('#operitMode'),'device','physical device is the ordinary default');
     await page.check('#operitDeveloper');await page.selectOption('#operitMode','simulation');await page.click('#operitStart');
     await page.waitForFunction(()=>document.getElementById('globalNotice').textContent.startsWith('操作完成'));
@@ -70,7 +125,7 @@ const {chromium}=require('playwright');
       await page.screenshot({path:path.join(output,'operit-'+width+'.png'),fullPage:true});
     }
     assert.deepEqual(errors,[]);
-    console.log('PASS actual Operit manager UI: navigation, mode choice, automatic network, saved startup and both downloads, desktop/mobile. API fixture, not device/Android proof.');
+    console.log('PASS manager UI: ChatGPT tunnel/HTTPS, Claude local/HTTPS, DeepSeek guidance, Operit, local MCP, USB pairing, downloads and responsive layout. API fixtures.');
   } catch(error) {console.error('UI state:',await page.textContent('#globalNotice'),'actions:',actions);throw error;}
   finally {if(errors.length)console.error('Browser errors:',errors);await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

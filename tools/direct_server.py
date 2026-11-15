@@ -428,10 +428,10 @@ def handler_for(app):
             if parsed.path == '/healthz':
                 ready = not app.mcp_info['enabled'] or app.mcp_thread.is_alive()
                 return self.send(200 if ready else 503, {'ready': ready, 'mode': 'device_push', 'mcp_enabled': app.mcp_info['enabled']})
-            if parsed.path in ('/', '/direct-server.js', '/bridge-client.js', '/conversation-queue.js', '/channel-editor.js', '/history-manager.js', '/console-embed.js', '/companion-experience.js'):
+            if parsed.path in ('/', '/direct-server.js', '/bridge-client.js', '/conversation-queue.js', '/channel-editor.js', '/history-manager.js', '/console-embed.js', '/body-combinations-ui.js', '/companion-experience.js'):
                 asset = {'/': 'direct_server.html', '/direct-server.js': 'direct_server.js',
                          '/bridge-client.js': 'bridge_client.js', '/conversation-queue.js': 'conversation_queue.js',
-                         '/channel-editor.js': 'channel_editor.js', '/history-manager.js': 'history_manager.js', '/console-embed.js': 'console_embed.js', '/companion-experience.js': 'companion_experience.js'}[parsed.path]
+                         '/channel-editor.js': 'channel_editor.js', '/history-manager.js': 'history_manager.js', '/console-embed.js': 'console_embed.js', '/body-combinations-ui.js':'body_combinations_ui.js', '/companion-experience.js': 'companion_experience.js'}[parsed.path]
                 raw = Path(__file__).with_name(asset).read_bytes()
                 self.begin_response(200, 'text/html; charset=utf-8' if asset.endswith('.html') else 'application/javascript; charset=utf-8', len(raw))
                 self.end_headers(); self.wfile.write(raw)

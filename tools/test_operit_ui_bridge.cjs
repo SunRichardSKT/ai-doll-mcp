@@ -117,7 +117,7 @@ async function test(ui) {
   assert.ok(good.calls.includes(prefix+'status')&&good.calls.includes(prefix+'list_chats')&&
     good.calls.includes(prefix+'bind_chat')&&good.calls.includes(prefix+'check_connection'));
   tree=await good.context.exports.default(good.bundle.ctx);
-  good.bundle.state.page='connection';tree=await good.context.exports.default(good.bundle.ctx);
+  good.bundle.state.page='connection_other';tree=await good.context.exports.default(good.bundle.ctx);
   const address=findField(tree,'电脑 IP（电脑重启后可修改）');
   assert.equal(address.props.value,'192.168.1.20');
   await good.bundle.invokeAction(address.props.onValueChange.__actionId,{__composeTextFieldPayload:true,value:'192.168.1.30'});
@@ -157,5 +157,25 @@ async function test(ui) {
   assert.equal(good.f.cfg().reply_prompt,'');
   assert.ok(good.bundle.state.replyPrompt.includes('自然简短回应'));
   assert.equal(good.f.messages.length,0,'style controls leave the original chat untouched');
+  const comboPorts=[{channel:0,name:'前胸',type:'pressure',mode:'connected'},{channel:1,name:'后背',type:'pressure',mode:'connected'}];
+  let comboPrefs={body_combinations:[]};
+  good.f.options.tool=async(name,args)=>{
+    if(name==='get_device_overview')return {online:true,channels:comboPorts,port_state_model:'per_port_v1',preferences:comboPrefs};
+    if(name==='get_settings_entry')return {entries:[]};
+    if(name==='get_persona')return {persona:''};
+    if(name==='update_companion_preferences'){comboPrefs={...comboPrefs,...args.changes};return {preferences:comboPrefs};}
+    return {};
+  };
+  good.bundle.state.page='body';good.bundle.state.panel={channels:comboPorts,preferences:comboPrefs};
+  for(const label of ['CH0 · 前胸','CH1 · 后背']){
+    tree=await good.context.exports.default(good.bundle.ctx);
+    await good.bundle.invokeAction(find(tree,label).props.onClick.__actionId);
+  }
+  tree=await good.context.exports.default(good.bundle.ctx);
+  await good.bundle.invokeAction(find(tree,'保存组合').props.onClick.__actionId);
+  assert.equal(comboPrefs.body_combinations[0].name,'拥抱');assert.deepEqual(comboPrefs.body_combinations[0].channels,[0,1]);
+  tree=await good.context.exports.default(good.bundle.ctx);
+  await good.bundle.invokeAction(find(tree,'删除').props.onClick.__actionId);
+  assert.deepEqual(comboPrefs.body_combinations,[]);
   console.log('PASS official Operit 1.12.2 UI bridge: old namespace failure reproduced; actual UI lists chats, confirms binding and checks MCP through exact subpackage names. Android/model remain unverified.');
 })().catch(e=>{console.error(e);process.exitCode=1;});

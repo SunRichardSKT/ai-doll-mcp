@@ -55,7 +55,9 @@ def update_body_part(channel: StrictInt, changes: dict) -> dict:
 
 @mcp.tool(annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False))
 def update_companion_preferences(changes: dict) -> dict:
-    """Patch integration/proactive flags, persona_source(chat/doll), doll_persona, feedback/policy on user intent. Proactive needs a chat-bound host worker/subscription. Preserve unspecified settings."""
+    """Patch integration/proactive flags, persona_source(chat/doll), doll_persona, feedback/policy on user intent.
+    body_combinations replaces the list: [{name:'拥抱',channels:[1,2],window_ms:1500}]; [] clears.
+    Each rule needs 2..8 distinct channels overlapping within 100..10000 ms. Proactive needs a chat-bound host worker/subscription. Preserve unspecified settings."""
     return call('update_companion_preferences', {'changes': changes})
 
 

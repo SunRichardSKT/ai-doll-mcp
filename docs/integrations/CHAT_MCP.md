@@ -3,15 +3,15 @@
 > 按本页步骤操作即可；无需读完开发者资料。 [全部目录](../README.md)
 
 
-先完成 [Windows 安装](../start/AI_INSTALL.md)与对应客户端连接。ChatGPT 普通 Chat 使用 [Secure MCP Tunnel](SECURE_MCP.md)，本机客户端使用生成的 STDIO 配置。
+先完成 [Windows 安装](../start/AI_INSTALL.md)与对应客户端连接。ChatGPT 使用私有隧道或 HTTPS；Claude Desktop 可本机连接，Claude 网页／手机使用远程 HTTPS。具体见[官方客户端选择](OFFICIAL_CLIENTS.md)。
 
 ## 第一步：确认真的能调用
 
 在已添加 AI Doll 连接的原聊天发送：
 
-> 请实际调用 get_installation_status 和 doll_get_status，返回设备状态及两个 verification.call_id。没有工具就如实说明，不要用文档或旧结果代替调用。
+> 请实际调用 get_installation_status 和 doll_get_status，返回本次设备身份、连接状态与最近同步情况。如果返回 verification.call_id，一并给出。
 
-返回的编号要与当前服务器的完成记录核对。STDIO 工具不一定提供同样的网关验证字段；有真实工具结果才算调用。插件 ZIP 上传成功、工具名称出现在说明里，都不证明服务已连通。
+使用 ChatGPT 私有隧道时，返回的编号与当前服务器完成记录核对。STDIO 工具不一定提供同样的网关验证字段；有真实工具结果才算调用。插件 ZIP 上传成功、工具名称出现在说明里，都不证明服务已连通。
 
 ## 第二步：查询历史与配置
 

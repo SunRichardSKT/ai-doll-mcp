@@ -235,6 +235,32 @@ class ControlPanelTests(unittest.TestCase):
                 self.panel.submit('powershell', {'command': 'arbitrary'})
             run.assert_not_called()
 
+    def test_claude_config_preserves_other_servers_and_settings(self):
+        from install_companion_mcp import register_claude
+        path = self.root/'claude_desktop_config.json'
+        original = {'mcpServers': {'existing': {'command': 'keep'}}, 'theme': 'dark'}
+        path.write_text(json.dumps(original), encoding='utf-8')
+        entry = {'command': 'C:/runtime/python.exe', 'args': ['C:/project/tools/companion_mcp.py']}
+        register_claude(path, entry)
+        saved = json.loads(path.read_text(encoding='utf-8'))
+        self.assertEqual(saved['mcpServers']['existing'], original['mcpServers']['existing'])
+        self.assertEqual(saved['mcpServers']['ai_doll'], entry)
+        self.assertEqual(saved['theme'], 'dark')
+        self.assertEqual(json.loads(path.with_suffix('.json.before-ai-doll').read_text(encoding='utf-8')), original)
+        register_claude(path, entry)
+        self.assertEqual(json.loads(path.with_suffix('.json.before-ai-doll').read_text(encoding='utf-8')), original)
+
+    def test_invalid_claude_config_is_not_replaced(self):
+        from install_companion_mcp import register_claude
+        path = self.root/'claude_desktop_config.json'
+        for source in ('{broken', '[]', '{"mcpServers": []}'):
+            path.write_text(source, encoding='utf-8')
+            with self.assertRaises(ValueError):
+                register_claude(path, {'command': 'unused'})
+            self.assertEqual(path.read_text(encoding='utf-8'), source)
+        with self.assertRaisesRegex(ValueError, '先安装'):
+            register_claude(self.root/'not-installed/claude_desktop_config.json', {})
+
     def test_ota_requires_confirmation_before_any_write(self):
         from ota_device import OtaClient
         with patch.object(OtaClient, 'upload') as upload:

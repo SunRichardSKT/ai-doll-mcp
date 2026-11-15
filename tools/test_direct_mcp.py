@@ -53,6 +53,11 @@ class DirectMCPTests(unittest.IsolatedAsyncioTestCase):
                 channels = await self.call(session, 'get_channel_config')
                 self.assertEqual(channels['channels'][0]['name'], '头')
                 self.assertEqual(channels['configuration_source'], 'server_sqlite')
+                configured = await self.call(session, 'update_companion_preferences', {'changes':{'body_combinations':[{'name':'拥抱','channels':[0,1],'window_ms':1500}]}})
+                self.assertEqual(configured['preferences']['body_combinations'][0]['name'], '拥抱')
+                context = await self.call(session, 'get_chat_context', {'chat_id':'combo-config-check'})
+                self.assertEqual(context['preferences']['body_combinations'][0]['channels'], [0,1])
+                self.assertEqual(context['combinations'], [])
                 started = await self.call(session, 'start_interaction', {'chat_id':'chat-a','duration_sec':60})
                 self.app.receive(self.pair['device_token'], packet(1))
                 values = {'chat_id':'chat-a','session_id':started['id'],'wait_seconds':0}

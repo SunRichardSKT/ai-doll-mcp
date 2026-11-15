@@ -83,6 +83,8 @@ exports.refreshOverview=refreshOverview;
 exports.sensorRules=async p=>{
  const policy={};for(const k of ['motion_enabled','switch_enabled','temperature_enabled','wetness_enabled'])if(p[k]!==undefined){if(typeof p[k]!=='boolean')throw Error('请选择只记录或允许回复。');policy[k]=p[k];}
  if(p.temperature_delta_c!==undefined){if(!Number.isFinite(p.temperature_delta_c)||p.temperature_delta_c<.1||p.temperature_delta_c>30)throw Error('温度变化门限应为0.1～30℃。');policy.temperature_delta_c=p.temperature_delta_c;}
- if(!Object.keys(policy).length)throw Error('请选择要修改的扩展回复规则。');
- const {call}=await tool();await call('update_companion_preferences',{changes:{policy}});return {saved:true,policy};
+ const changes={};if(Object.keys(policy).length)changes.policy=policy;
+ if(p.body_combinations!==undefined)changes.body_combinations=require('./body_combinations.js').validate(p.body_combinations);
+ if(!Object.keys(changes).length)throw Error('请选择要修改的扩展回复规则。');
+ const {call}=await tool();await call('update_companion_preferences',{changes});return {saved:true,...changes};
 };

@@ -19,7 +19,7 @@ static int lastWifi=-1;
 static constexpr int LED_PIN=8; // Common SuperMini blue LED, active low.
 static bool scanBusy=false;
 static uint32_t scanStartedAt=0;
-static const char* VERSION="doll-lab-0.1.2";
+static const char* VERSION="doll-lab-0.1.3";
 static const char* PROTOCOL="2025-11-25";
 
 static String encode(const JsonDocument &d){String s;serializeJson(d,s);return s;}
@@ -42,7 +42,7 @@ static void status(JsonObject o){
  o["wifi_radio_mode"]=(int)WiFi.getMode();o["ap_actual_ssid"]=WiFi.softAPSSID();o["ap_mac"]=WiFi.softAPmacAddress();
  o["ap_start_error"]=apStartError;o["ap_start_attempts"]=apStartAttempts;
  o["wifi_last_event"]=(int)lastRadioEvent;o["wifi_disconnect_reason"]=(int)lastDisconnectReason;
- o["network_ready"]=networkReady();o["wifi_retry_attempts"]=connectionRecovery.attempts;o["wifi_radio_restarts"]=connectionRecovery.resets;o["wifi_retry_in_ms"]=connectionRecovery.waitMs(millis());o["network_revision"]=2;
+ o["network_ready"]=networkReady();o["wifi_retry_attempts"]=connectionRecovery.attempts;o["wifi_radio_restarts"]=connectionRecovery.resets;o["wifi_retry_in_ms"]=connectionRecovery.waitMs(millis());o["network_revision"]=3;
  o["ap_radio_started"]=(bool)apRadioStarted;o["wifi_channel"]=WiFi.channel();o["tx_power_quarter_dbm"]=(int)WiFi.getTxPower();
  o["reset_reason"]=(int)esp_reset_reason();
  o["boot_id"]=touchBoot;o["event_cursor"]=touchSeq;

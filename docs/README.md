@@ -2,7 +2,11 @@
 
 让娃娃连接网络、记录触摸，并在聊天中回应。先按使用环境选一条安装路线。
 
-[项目首页](../README.md) · [下载 v0.1.2 内测版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.2) · [更新说明](../CHANGELOG.md)
+当前源码为内测0.1.3版，配网后按[ChatGPT、Claude、DeepSeek DSH、Gemini、Operit](integrations/OFFICIAL_CLIENTS.md)选择接入；下载对应0.1.3附件。[改动与检查](reports/ONBOARDING_013.md)
+
+[项目首页](../README.md) · [下载 v0.1.3 内测版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.3) · [更新说明](../CHANGELOG.md)
+
+成品用户可直接阅读[图文新手说明书](product/抱抱星_共感娃娃核心_新手说明书.pdf)，产品介绍和美化图片见[产品资料](product/README.md)。
 
 ## 入门
 

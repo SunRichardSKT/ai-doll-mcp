@@ -1,5 +1,5 @@
 // Shared by the lightweight setup page and full device settings; no external assets.
-function createWifiFeedback(api,onStatus){
+function createWifiFeedback(api,onStatus,{operit=false}={}){
  const el=id=>document.getElementById(id),scan=el('scan'),join=el('join'),hint=el('scanHint'),result=el('joinResult'),check=el('checkWifi');
  let scanning=false,saving=false,started=null,target='',last=null,scanStarted=0,offline=false;
  function message(node,text,tone='info'){node.textContent=text;node.dataset.tone=tone;node.setAttribute('role',tone==='error'?'alert':'status');}
@@ -11,16 +11,17 @@ function createWifiFeedback(api,onStatus){
   join.textContent=saving?'正在保存网络…':waiting?'正在连接 · '+elapsed+'秒':started!==null&&!matches(last||{})?'修改后重新连接':'保存并连接';
   scan.setAttribute('aria-busy',String(scanning));join.setAttribute('aria-busy',String(saving||waiting));
   if(scanning)message(hint,'正在查找2.4 GHz网络 · 已等待'+Math.floor((Date.now()-scanStarted)/1000)+'秒。请保持连接娃娃热点，通常需要几秒。');
-  if(offline){message(result,'暂时无法读取设备状态，不能据此确认联网成功。若已切回家庭Wi-Fi，请打开保存的设备入口；否则重新连接娃娃热点后检查。','warning');check.hidden=false;return;}
+  if(offline){message(result,offlineMessage(),'warning');check.hidden=false;return;}
   if(saving)return;
   if(started!==null){
-   if(matches(last||{})){message(result,'已连接 '+last.ssid+'。家庭IP：'+last.ip+'。先保存设备入口，再到手机系统设置切回家庭Wi-Fi。','success');check.hidden=true;}
+   if(matches(last||{})){message(result,'已连接 '+last.ssid+'。家庭IP：'+last.ip+'。'+(operit?'点击上方“返回向导并检查联网”，先保存地址。':'先保存设备入口，再到手机系统设置切回家庭Wi-Fi。'),'success');check.hidden=true;}
    else if(elapsed>=30){message(result,'等待较久，设备仍会自动重试。请核对Wi-Fi名称、密码及2.4 GHz网络，靠近路由器后可修改并重连。','warning');check.hidden=false;}
    else message(result,(last?.wifi_associated&&last?.ssid===target?'已连上路由器，正在获取家庭IP。':'设备正在尝试连接 '+target+'。')+' 已等待'+elapsed+'秒，请先留在当前页面，不要重复保存。');
   }
  }
  async function read(){try{const s=await api('/api/status');onStatus(s);}catch(_){disconnected();}}
- function disconnected(){offline=true;if(started!==null){message(result,'暂时无法读取设备状态，不能据此确认联网成功。若已切回家庭Wi-Fi，请打开保存的设备入口；否则重新连接娃娃热点后检查。','warning');check.hidden=false;}}
+ function offlineMessage(){return operit?'暂时无法读取设备状态。点击上方返回向导检查；若仍在热点，请等待或重新连接热点；若已切回家庭网络，可在向导尝试核对。':'暂时无法读取设备状态，不能据此确认联网成功。若已切回家庭Wi-Fi，请打开保存的设备入口；否则重新连接娃娃热点后检查。';}
+ function disconnected(){offline=true;if(started!==null){message(result,offlineMessage(),'warning');check.hidden=false;}}
  scan.onclick=async()=>{
   if(scan.disabled)return;scanning=true;scanStarted=Date.now();render();
   try{let r=await api('/api/scan',{start:true});for(let i=0;r.scanning&&i<35;i++){await new Promise(resolve=>setTimeout(resolve,800));r=await api('/api/scan',{start:false});}

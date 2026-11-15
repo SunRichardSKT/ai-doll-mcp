@@ -168,6 +168,9 @@ class EventBridge:
         rows = self.db.execute('SELECT * FROM events WHERE '+where+' ORDER BY at DESC,id DESC LIMIT 201',params).fetchall()
         values = [dict(json.loads(r['payload']), id=r['id'], device=r['device'], boot=r['boot'], at=r['at']) for r in reversed(rows[:200])]
         result = pressure_observations(values, policy, focus)
+        from .body_combinations import recognize
+        rules = self.c.experience.preferences()['body_combinations']
+        result['combinations'] = recognize(values, rules, [e for e in values if focus is None or e['id'] in focus])
         result.update(context_window_seconds=window, truncated=len(rows)>200)
         return result
 

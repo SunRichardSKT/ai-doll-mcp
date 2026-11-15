@@ -52,6 +52,20 @@ async function httpJson(url){
  if(response.statusCode!==200)throw Error(response.statusCode===401?'设备已开启登录保护。请在热点设置页登录并导出连接文件／二维码，或在高级入口填写已有设备令牌。':'尚未读到热点设备，请先连接娃娃热点并保持该 Wi-Fi。');
  try{return JSON.parse(response.content);}catch(_){throw Error('设备没有返回有效的连接信息。');}
 }
+const DRAFT_TTL=15*60*1000;
+function progress(draft){
+ if(!draft)return null;
+ const expired=Date.now()-draft.created_at>DRAFT_TTL;
+ return {candidate_id:draft.id,label:draft.connection.label,device_id:draft.connection.device_id,
+  hostname:draft.connection.hostname||null,home_ip:draft.home_ip,connected_to_home:!!draft.home_ip,
+  step:expired?1:draft.home_ip?3:2,expired,setup_remaining_sec:draft.setup_remaining_sec??null,
+  setup_url:'http://192.168.4.1/setup?client=operit'};
+}
+async function pending(){return progress(await store.read('pairing_draft.json'));}
+async function complete(candidateId){
+ const draft=await store.read('pairing_draft.json');
+ if(draft?.id===candidateId)await store.write('pairing_draft.json',null);
+}
 async function readHotspot(){
  const origin='http://192.168.4.1',identity=await httpJson(origin+'/api/identity'),setup=await httpJson(origin+'/api/setup');
  if(setup.enabled!==true)throw Error('请在设备设置页开启 MCP，然后重新读取。');
@@ -61,20 +75,24 @@ async function readHotspot(){
  const tool=await require('./mcp.js').connect(origin+'/mcp',connection.token),status=await tool('doll_get_status');
  if(status.device_id!==connection.device_id)throw Error('热点设备身份发生变化，请重新读取。');
  if(status.remote_server?.enabled)throw Error('该设备已开启直传服务器，请导入服务器连接，或先在设备设置页关闭直传。');
- const current=status.ip&&status.ip!=='0.0.0.0'&&status.ip!=='192.168.4.1'?status.ip:home;
+ // Older firmware reports only IP. New firmware must also confirm usable Wi-Fi.
+ const online=status.network_ready??status.wifi_connected??true;
+ const current=online?(status.ip&&status.ip!=='0.0.0.0'&&status.ip!=='192.168.4.1'?status.ip:home):null;
  if(current){require('./device.js').localHost(current);connection.mcp_url='http://'+current+'/mcp';}
  connection.label=String(status.device_name||connection.label).slice(0,80);
- const draft={schema:1,id:store.id(),created_at:Date.now(),connection,home_ip:current||null};
+ const previous=await store.read('pairing_draft.json');
+ const reuse=previous?.connection.device_id===connection.device_id&&Date.now()-previous.created_at<=DRAFT_TTL;
+ const draft={schema:1,id:reuse?previous.id:store.id(),created_at:Date.now(),connection,home_ip:current||null,
+  setup_remaining_sec:status.setup_remaining_sec??null};
  await store.write('pairing_draft.json',draft);
- return {candidate_id:draft.id,label:connection.label,device_id:connection.device_id,hostname:connection.hostname||null,
-  home_ip:draft.home_ip,connected_to_home:!!draft.home_ip,setup_remaining_sec:status.setup_remaining_sec??null,setup_url:origin+'/'};
+ return progress(draft);
 }
 async function finish(input,prior){
  let connection,hotspotDraft=false;
  if(input?.candidate_id){
   const draft=await store.read('pairing_draft.json');
-  if(!draft||draft.id!==input.candidate_id||Date.now()-draft.created_at>15*60*1000)throw Error('配对草稿已过期，请连接设备热点重新读取。');
-  if(!draft.home_ip&&!draft.connection.hostname)throw Error('请完成配网后重新读取家庭地址。热点已关闭时长按BOOT重新开启。');
+  if(!draft||draft.id!==input.candidate_id||Date.now()-draft.created_at>DRAFT_TTL)throw Error('配对草稿已过期，请连接设备热点重新读取。');
+  if(!draft.home_ip&&!draft.connection.hostname)throw Error('请返回向导检查联网。热点已关闭时，运行中长按 BOOT 约3秒重新开启。');
   connection=parse(draft.connection);
   hotspotDraft=true;
   if(!draft.home_ip)connection.mcp_url='http://'+connection.hostname+'/mcp';
@@ -84,7 +102,7 @@ async function finish(input,prior){
   for(const host of candidates){try{
    // Inspect the public identity before sending this paired device's credential.
    const identity=await httpJson('http://'+host+'/api/identity');
-   if(identity.device_id!==connection.device_id){identityFailure=Error('此地址不是待配对的设备，原连接保持。');continue;}
+   if(identity.device_id!==connection.device_id){identityFailure=Error('此地址不是待配对的设备。若已重新烧录，请重新配对；原连接保持。');continue;}
    if(hotspotDraft&&(!identity.ip||identity.ip==='0.0.0.0'||identity.ip==='192.168.4.1'))throw Error('设备尚未连接家庭 Wi-Fi，请先完成配网。');
    const result=await device.pair(host,connection.token,prior);
    if(result.device_id!==connection.device_id){identityFailure=Error('设备身份发生变化，请重新配对。');continue;}
@@ -106,3 +124,4 @@ async function finish(input,prior){
  return connection;
 }
 exports.parse=parse;exports.encode=encode;exports.readHotspot=readHotspot;exports.finish=finish;
+exports.pending=pending;exports.complete=complete;

@@ -99,7 +99,7 @@ async function connect(c) {
   };
   const defaults={chat_integration_enabled:true,proactive_enabled:false,allow_simulation:false,persona_source:'chat',doll_persona:'',
     tone:'温柔自然',max_characters:160,merge_ms:300,cooldown_ms:1500,muted:false,motion_enabled:false,switch_enabled:false,temperature_enabled:false,wetness_enabled:false,temperature_delta_c:1};
-  const prefs=async()=>({...defaults,...await read('preferences',{})});
+  const prefs=async()=>({...defaults,body_combinations:[],...await read('preferences',{})});
   async function archive(){return await durable.index();}
   async function session(){const s=await read('session');return s&&!s.ended&&s.deadline>now()?s:null;}
   async function status(){
@@ -245,7 +245,7 @@ async function connect(c) {
       return c&&c.mode!=='off'&&((c.mode==='simulation')===(e.source==='simulation'));
     };
     const base={chat_id:args.chat_id,context_protocol:'leased-batch-v1',preferences:p,persona:p.doll_persona||'',persona_priority:p.persona_source==='doll'?'saved_doll':'current_chat',feedback:{tone:p.tone,max_characters:p.max_characters,language:'zh-CN'},
-      events:[],updates:[],receipt_id:null,next_cursor:after,last_sync:a.last_sync,history_source:'android_local',channels:config.channels,
+      events:[],combinations:[],updates:[],receipt_id:null,next_cursor:after,last_sync:a.last_sync,history_source:'android_local',channels:config.channels,
       proactive_delivery_allowed:!!(p.proactive_enabled&&p.chat_integration_enabled&&!p.muted)};
     base.response_policy={merge_ms:p.merge_ms,cooldown_ms:p.cooldown_ms,motion_enabled:p.motion_enabled,switch_enabled:p.switch_enabled,wetness_enabled:p.wetness_enabled,temperature_enabled:p.temperature_enabled};
     if(a.delivery_recovery_required)return {...base,proactive_delivery_allowed:false,delivery_recovery_required:true};
@@ -264,17 +264,21 @@ async function connect(c) {
       if(Math.abs(e.value-baselines.get(key))<p.temperature_delta_c)return false;
       baselines.set(key,e.value);return true;
     };
+    const permitted=p.body_combinations.length?a.events.filter(e=>e.at>=now()-40&&e.at<=now()+2&&sourceAllowed(e)):[];
+    const matches=require('./body_combinations.js').recognize(permitted,p.body_combinations);
+    const combinationTriggers=new Set(matches.map(m=>m.trigger_event_id));
     const selected=a.events.filter(e=>e.id>after&&(args.through==null||e.id<=args.through)&&(!args.session_id||e.session_id===args.session_id)&&inputEvents.phase(e,p)&&e.direction==='input'&&
       e.quality==='ok'&&['sensor','simulation'].includes(e.source)&&(e.source!=='simulation'||p.allow_simulation)&&
       e.delivery_quality==='live'&&sourceAllowed(e)&&inputEvents.key(e)&&e.at<=now()+2&&now()-e.at<=30&&
       !a.seen.some(x=>x.chat_id===args.chat_id&&x.boot===e.boot&&((x.interaction_key||x.touch_id)===inputEvents.key(e)||
-        (e.sensor_type!=='wetness'&&!args.session_id&&e.at>=x.at&&e.at-x.at<=Math.max(p.cooldown_ms,p.merge_ms)/1000)))).filter(temperatureAllowed).slice(0,limit)
+        (e.sensor_type!=='wetness'&&!combinationTriggers.has(e.event_id??e.id)&&!args.session_id&&e.at>=x.at&&e.at-x.at<=Math.max(p.cooldown_ms,p.merge_ms)/1000)))).filter(temperatureAllowed).slice(0,limit)
       .map(e=>({...e,body_preferences:{feedback_level:'normal',aliases:[],interaction_hint:''}}));
     if(!selected.length)return base;
     const ids=selected.map(e=>e.event_id).join('|');
     let receipt=a.receipts.find(r=>r.chat_id===args.chat_id&&r.ids===ids&&!r.acked);
     if(!receipt){receipt={id:store.id(),chat_id:args.chat_id,ids,events:selected};a.receipts.push(receipt);}
-    return {...base,events:selected,receipt_id:receipt.id,expires_at:Math.min(...selected.map(e=>e.at+30)),next_cursor:selected[selected.length-1].id};
+    const selectedIds=new Set(selected.map(e=>e.event_id??e.id));
+    return {...base,events:selected,combinations:matches.filter(m=>selectedIds.has(m.trigger_event_id)),receipt_id:receipt.id,expires_at:Math.min(...selected.map(e=>e.at+30)),next_cursor:selected[selected.length-1].id};
     });
   }
   const adapter=async(name,args={})=>{
@@ -309,12 +313,13 @@ async function connect(c) {
     if(name==='update_companion_preferences'){
       const changes={...args.changes};
       if(changes.policy){if(Object.keys(changes.policy).some(k=>!['motion_enabled','switch_enabled','temperature_enabled','wetness_enabled','temperature_delta_c'].includes(k)))throw Error('手机直连的扩展规则支持温度、擦眼泪、动作和开关。');Object.assign(changes,changes.policy);delete changes.policy;}
-      const keys=['chat_integration_enabled','proactive_enabled','allow_simulation','muted','persona_source','doll_persona','motion_enabled','switch_enabled','temperature_enabled','wetness_enabled','temperature_delta_c'];
-      if(Object.keys(changes).some(k=>!keys.includes(k)||(!['persona_source','doll_persona','temperature_delta_c'].includes(k)&&typeof changes[k]!=='boolean')))
+      const keys=['body_combinations','chat_integration_enabled','proactive_enabled','allow_simulation','muted','persona_source','doll_persona','motion_enabled','switch_enabled','temperature_enabled','wetness_enabled','temperature_delta_c'];
+      if(Object.keys(changes).some(k=>!keys.includes(k)||(!['body_combinations','persona_source','doll_persona','temperature_delta_c'].includes(k)&&typeof changes[k]!=='boolean')))
         throw Error('不支持的陪伴设置。');
       if(changes.temperature_delta_c!==undefined&&(!Number.isFinite(changes.temperature_delta_c)||changes.temperature_delta_c<.1||changes.temperature_delta_c>30))throw Error('温度变化门限应为0.1～30℃。');
       if(changes.persona_source!==undefined&&!['chat','doll'].includes(changes.persona_source))throw Error('请选择当前聊天或娃娃人设。');
       if(changes.doll_persona!==undefined&&(typeof changes.doll_persona!=='string'||changes.doll_persona.length>4000))throw Error('娃娃人设最多4000字。');
+      if(changes.body_combinations!==undefined)changes.body_combinations=require('./body_combinations.js').validate(changes.body_combinations);
       const p={...await prefs(),...changes};await write('preferences',p);return {updated:true,preferences:p};
     }
     if(name==='start_interaction'){

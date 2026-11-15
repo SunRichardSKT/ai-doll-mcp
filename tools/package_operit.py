@@ -11,7 +11,7 @@ from _source_path import load
 ROOT = Path(__file__).resolve().parents[1]
 VERSION = load('ai_doll.core.version').VERSION
 FILES = ('manifest.json', 'main.js', 'core/settings.js', 'core/workflows.js',
-         'core/interaction.js', 'core/input_events.js', 'core/probe.js', 'core/mcp.js', 'core/device.js', 'core/controls.js',
+         'core/interaction.js', 'core/input_events.js', 'core/body_combinations.js', 'core/probe.js', 'core/mcp.js', 'core/device.js', 'core/controls.js',
          'core/archive.js', 'core/recovery.js', 'core/collector.js', 'core/pairing.js', 'core/qr.js',
          'packages/companion.js', 'ui/settings.ui.js', 'vendor/jsQR.js', 'vendor/qrcodegen.js',
          'vendor/jsQR.LICENSE', 'vendor/qrcodegen.LICENSE', 'vendor/qrcodegen.ts', 'vendor/SOURCES.json')
@@ -54,7 +54,7 @@ def build(output=None):
     node = shutil.which('node')
     if not node:
         raise ValueError('Developer build requires Node.js for the ToolPkg registration check')
-    checks = ['test_operit_registration.cjs', 'test_operit_unified.cjs', 'test_operit_phone.cjs', 'test_operit_address.cjs', 'test_operit_continuous.cjs', 'test_operit_controls.cjs', 'test_operit_queue.cjs']
+    checks = ['test_body_combinations.cjs', 'test_operit_registration.cjs', 'test_operit_unified.cjs', 'test_operit_phone.cjs', 'test_operit_address.cjs', 'test_operit_continuous.cjs', 'test_operit_controls.cjs', 'test_operit_queue.cjs']
     checks += ['test_operit_pairing.cjs', 'test_operit_pairing_ui.cjs', 'test_operit_qr.cjs',
                'test_operit_archive.cjs', 'test_operit_storage.cjs', 'test_operit_sync.cjs', 'test_operit_sync_lifecycle.cjs']
     upstream = ROOT / 'build/integration-research/operit-1.12.2/runtime/context.js'

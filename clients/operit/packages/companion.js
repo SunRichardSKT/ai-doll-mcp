@@ -2,7 +2,7 @@
 {
   "name": "ai_doll_companion",
   "enabledByDefault": true,
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "AI Doll 统一入口。配置与启动请使用工具箱的 AI Doll 面板；不从目标聊天递归等待或发送。",
   "category": "NETWORK",
   "tools": [
@@ -279,6 +279,7 @@
       "name": "set_sensor_rules",
       "description": "扩展默认只记录；允许温度变化、擦眼泪、动作或开关闭合进入原聊天队列。",
       "parameters": [
+        {"name":"body_combinations","type":"array","required":false,"description":"替换组合列表；每项含 name、channels（2～8个通道）、window_ms（100～10000）。空列表清空。"},
         {
           "name": "wetness_enabled",
           "type": "boolean",
@@ -373,7 +374,7 @@ async function status(p={}) {
     try{panel=await controls.refreshOverview(cfg,panel||{});}
     catch(e){panel={...panel,connection_error:String(e.message||e),overview:{...panel?.overview,online:false},checked_at:Date.now()};await store.write('panel_'+cfg.binding+'.json',panel);}
   }
-  return {configured:!!cfg.connection,connection:cfg.connection?{label:cfg.connection.label,mode:cfg.connection.mode,
+  return {configured:!!cfg.connection,pairing:await require('../core/pairing.js').pending(),connection:cfg.connection?{label:cfg.connection.label,mode:cfg.connection.mode,
     device_host:cfg.connection.kind==='ai-doll-device-connection'?(network?.hostname||cfg.connection.hostname||network?.ip||cfg.connection.mcp_url.replace(/^http:\/\//,'').split('/')[0]):null,
     computer_host:cfg.connection.kind==='ai-doll-operit-connection'&&cfg.connection.mode!=='server'?cfg.connection.mcp_url.match(/^https?:\/\/([^/:]+)/)?.[1]:null}:null,
     chat:cfg.chat,background_user_confirmed:cfg.background_verified===cfg.binding,
@@ -427,7 +428,9 @@ async function setup(p) {
 }
 async function read_hotspot_pairing(){return await require('../core/pairing.js').readHotspot();}
 async function finish_pairing(p){
-  const cfg=await store.config();return await commitConnection(await require('../core/pairing.js').finish({candidate_id:p.candidate_id},cfg.connection));
+  const cfg=await store.config(),pairing=require('../core/pairing.js');
+  const result=await commitConnection(await pairing.finish({candidate_id:p.candidate_id},cfg.connection));
+  await pairing.complete(p.candidate_id);return result;
 }
 async function import_connection_code(p){return await setup({connection_json:p.connection_code});}
 async function setup_device(p) {

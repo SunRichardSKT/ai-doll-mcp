@@ -4,7 +4,7 @@ const {fixture}=require('./operit_test_host.cjs');
 function phone(options={}){
   const f=fixture(),nativeCalls=[],requests=[];
   const token='test_device_token_1234567890';let boot='fixture-boot',device='AI-Doll-phone-fixture',events=[],seq=0;
-  const channels=[{channel:0,name:'头',type:'pressure',enabled:true,driver:'mux_adc',mode:'connected',calibration:{keep:42}}];
+  const channels=options.channels||[{channel:0,name:'头',type:'pressure',enabled:true,driver:'mux_adc',mode:'connected',calibration:{keep:42}}];
   const uptime=()=>100000+(f.shared.Date.now()-1700000000000);
   function emit(phase='start',change={}){
     events.push({seq:++seq,uptime_ms:uptime(),phase,touch_id:'touch-1',channel:0,body_part:'头',
@@ -219,5 +219,19 @@ function phone(options={}){
   await et('acknowledge_chat_context',{chat_id:'wet-chat',receipt_id:wc.receipt_id});
   assert.equal((await et('get_chat_context',{chat_id:'wet-chat'})).events.length,0);
   assert.equal((await et('get_chat_context',{chat_id:'second-wet-chat'})).events.length,1);
+  const combo=phone({channels:[0,1].map(channel=>({channel,name:channel?'后背':'前胸',type:'pressure',mode:'connected',enabled:true}))});await combo.prepare();
+  await combo.f.invoke('set_sensor_rules',{body_combinations:[{name:'拥抱',channels:[0,1]}]});
+  await combo.f.invoke('set_experience',{enabled:true});const ct=await combo.connect();
+  const cs=await ct('start_interaction',{chat_id:'hug-chat',duration_sec:60});
+  combo.emit('start',{channel:0,touch_id:'chest'});
+  await ct('get_interaction_device_events',{chat_id:'hug-chat',session_id:cs.id,after:0});
+  const first=await ct('get_chat_context',{chat_id:'hug-chat'});await ct('acknowledge_chat_context',{chat_id:'hug-chat',receipt_id:first.receipt_id});
+  combo.f.advance(500);combo.emit('start',{channel:1,touch_id:'back'});
+  await ct('get_interaction_device_events',{chat_id:'hug-chat',session_id:cs.id,after:1});
+  const hug=await ct('get_chat_context',{chat_id:'hug-chat',after:1});
+  assert.equal(hug.combinations[0].name,'拥抱','cross cursor combination survives single-touch cooldown');
+  assert.equal(hug.events.length,1,'original starts remain distinct');
+  await ct('acknowledge_chat_context',{chat_id:'hug-chat',receipt_id:hug.receipt_id});
+  assert.equal((await ct('get_chat_context',{chat_id:'hug-chat'})).events.length,0,'acknowledged combination is not resent');
   console.log('PASS phone-only modules: pairing, auth, history, typed extension events, opt-in rules, temperature delta, receipts, chat isolation, reboot and original MAIN chat. ESP32/Android are doubles.');
 })().catch(e=>{console.error(e);process.exitCode=1;});

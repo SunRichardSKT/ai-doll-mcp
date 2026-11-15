@@ -61,6 +61,8 @@ async function scenario({delay=45,duration=70,wait=0,disable=false,stop=false,ac
  const q=await scenario();assert.ifError(q.error);
  for(const inputKind of ['motion','switch','temperature']){const typed=await scenario({inputKind});assert.ifError(typed.error);assert.equal(typed.sends.length,2);assert.equal(typed.maxActive,1);const later=JSON.parse(typed.sends[1].text.split('\n').pop());assert.equal(later.events.length,5);assert.ok(later.events.every(e=>e.sensor_type===inputKind));}
  assert.equal(q.sends.length,2);assert.equal(q.maxActive,1);
+ assert.equal(q.sends[0].flags.runtime,'main','idle touch wakes the bound MAIN chat without a user chat message');
+ assert.equal(q.sends[0].flags.persist_turn,true);assert.equal(q.sends[0].flags.notify_reply,true);
  const first=JSON.parse(q.sends[0].text.split('\n').pop()),second=JSON.parse(q.sends[1].text.split('\n').pop());
  assert.equal(first.touch_count,1);assert.equal(second.touch_count,5);
  assert.deepEqual(second.events.map(e=>e.touch_id),['t1','t2','t3','t4','t5']);

@@ -3,6 +3,6 @@
 *.cmd text eol=crlf
 *.bin -text
 *.png -text
-*.pdf -text
+*.pdf binary
 *.epro2 -text
 hardware/** -text

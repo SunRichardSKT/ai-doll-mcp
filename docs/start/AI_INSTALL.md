@@ -2,13 +2,13 @@
 
 Windows 电脑采集并保存触摸记录，通过 MCP 提供给聊天客户端。安装分为启动、连接设备、接入 AI 三步。[教程目录](../README.md)
 
-本页对应 **v0.1.2 内测版**。需要仅用安卓手机或自己部署服务时，分别查看 [Operit 直连](../integrations/OPERIT_NO_PC.md) 与 [Linux 部署](../integrations/REMOTE_SERVER_SETUP.md)。
+本页对应 **内测0.1.3版**。下载对应0.1.3附件。需要仅用安卓手机或自己部署服务时，分别查看 [Operit 直连](../integrations/OPERIT_NO_PC.md) 与 [Linux 部署](../integrations/REMOTE_SERVER_SETUP.md)。
 
 ## 准备好这三样
 
 - 一台 Windows 64 位电脑，能联网。
 - 已烧录并供电的娃娃；空白开发板先按 [一键烧录](QUICK_FLASH.md)。
-- [Windows完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.2/AI_Doll_Code_v0.1.2.zip)，按本版Release的`SHA256SUMS.txt`校验后完整解压，保留 `python/`、`src/`、`tools/`、`clients/`、`delivery/`。GitHub 的“Download ZIP”是源码，不能替代自带运行环境的完整包。
+- [Windows完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.3/AI_Doll_Code_v0.1.3.zip)，按本版Release的`SHA256SUMS.txt`校验后完整解压，保留 `python/`、`src/`、`tools/`、`clients/`、`delivery/`。GitHub 的“Download ZIP”是源码，不能替代自带运行环境的完整包。
 
 ## 第一步：打开管理中心
 
@@ -18,9 +18,13 @@ Windows 电脑采集并保存触摸记录，通过 MCP 提供给聊天客户端�
 
 ## 第二步：连接娃娃
 
-先用 USB 数据线连接开发板。在“设备连接”选择 **USB** 和当前串口，再保存。串口拿不准时，观察插入开发板后新增的 COM 项。看到设备 ID、在线状态和新的同步时间后再继续。
+在首次安装第2步，用 USB 数据线连接开发板，选择列表中的实际串口，点击“连接开发板，检查联网”。
 
-想改用无线时，先给娃娃配家庭 Wi-Fi，再在管理中心点“一键识别并配对 Wi-Fi”。确认连接方式切换为 Wi-Fi 且同步时间更新后，可拔掉数据线并给娃娃独立供电。[配网与无线配对](../daily/WIFI_CONNECTION.md)
+- 已经联网：自动读取地址与令牌并配对，跳过填写网络。
+- 尚未联网：在下方 USB 配网页扫描、填写家庭2.4 GHz Wi-Fi，等待“已连接”，再点“已联网，自动配对 Wi-Fi”。
+- 没有 USB：展开热点说明；手填地址与令牌在“高级”内。
+
+确认连接切换为 Wi-Fi、设备 ID 和同步时间正常后，可改用独立供电。[配网与无线配对](../daily/WIFI_CONNECTION.md)
 
 “配网”让娃娃连上路由器；“配对”让电脑认出你的娃娃。两步都完成，电脑才可无线读取。
 
@@ -28,15 +32,23 @@ Windows 电脑采集并保存触摸记录，通过 MCP 提供给聊天客户端�
 
 | 你使用什么 | 接下来做什么 |
 | --- | --- |
-| ChatGPT | 按 [ChatGPT 连接教程](../integrations/SECURE_MCP.md)创建并保存隧道 |
+| Operit 安卓手机 |启动手机连接服务，下载工具包并导出连接，在手机导入；也可使用手机独立三步连接 |
+| ChatGPT | 电脑采集使用私有隧道；自有服务器可使用 HTTPS MCP 地址 |
+| Claude Desktop | 一键写入本机配置，保留其他服务；完全退出并重开 Claude |
+| Claude 网页／手机 | 使用公网 HTTPS 443 MCP 地址添加远程连接器 |
+| DeepSeek | 先区分官方应用与 MCP 客户端，见[平台选择说明](../integrations/OFFICIAL_CLIENTS.md) |
 | 支持本地 MCP 的客户端 | 在“AI / MCP 连接”复制本机配置，合并到客户端原设置 |
 | 自己开发的聊天应用 | 用 [本机接收服务](../integrations/SERVER_QUICKSTART.md)；接口在开发者区 |
+
+各平台步骤见[官方客户端连接](../integrations/OFFICIAL_CLIENTS.md)。首次使用先选择自己的应用，已有选择保留。
 
 MCP 就是 AI 读取娃娃的工具接口。配置保存在 `build/device-lab/mcp-client-config.json`，里面使用本安装目录的完整路径。移动软件后要重新生成。
 
 ## 第四步：确认聊天连接
 
-在已经添加连接的原聊天发这句话：
+Operit 选择聊天后即可开启触摸回复，发送自检在“测试与帮助”，按需使用。
+
+ChatGPT 或本地 MCP 客户端，在已添加连接的原聊天发这句话：
 
 > 请调用 get_installation_status 和 doll_get_status，按本次结果告诉我设备 ID 和连接状态。
 

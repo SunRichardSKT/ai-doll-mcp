@@ -7,9 +7,9 @@
   style.textContent = 'body{max-width:none;margin:0;padding:0 3px;background:#f3f1e9;font-family:"Segoe UI","Microsoft YaHei",sans-serif}body>h1,body>p:not(#error){display:none}body>section{display:none;margin:0 0 16px;padding:22px;border:1px solid #d9dfd4;background:#fffefa;border-radius:14px}body>section.console-visible{display:block}#error:empty{display:none}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #2b6249;outline-offset:3px}';
   document.head.append(style);
   const selectors = {
-    channels: ['#parts', '#sensorExperience'],
+    channels: ['#parts', '#sensorExperience', '#body', '#bodyCombinations'],
     simulation: ['#developerSection'],
-    persona: ['#persona'], preferences: ['#feedbackSettings'],
+    persona: ['#persona'], preferences: ['#feedbackSettings', '#bodyCombinations'],
     history: ['#history', '#historyManagement'], maintenance: ['#storageStatus']
   };
   function show() {

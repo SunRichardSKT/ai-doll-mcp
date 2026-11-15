@@ -28,7 +28,7 @@ jobs:
       - name: Firmware integrity, source version, OTA reserve and fixed partitions
         run: python tools/check_firmware.py
       - name: Core behavior and native network and archive policies
-        run: python -m unittest test_shared_core test_companion_experience test_hotspot_policy test_archive_lease test_embed_assets test_firmware_delivery test_firmware_compat
+        run: python -m unittest test_shared_core test_companion_experience test_body_combinations test_official_client_configs test_hotspot_policy test_archive_lease test_embed_assets test_firmware_delivery test_firmware_compat
       - name: Firmware selection and flasher regressions without USB writes
         run: |
           python -m unittest test_flash_esp32 test_flash_server test_flash_sources
@@ -42,8 +42,8 @@ jobs:
       - name: Build and audit Linux delivery
         run: |
           python -c "from pathlib import Path; from package_companion import server_package; server_package(Path('delivery'))"
-          python tools/audit_delivery.py delivery/AI_Doll_Server_v0.1.2.tar.gz
-          python tools/check_documentation.py --archive delivery/AI_Doll_Server_v0.1.2.tar.gz
+          python tools/audit_delivery.py delivery/AI_Doll_Server_v0.1.3.tar.gz
+          python tools/check_documentation.py --archive delivery/AI_Doll_Server_v0.1.3.tar.gz
   firmware:
     runs-on: ubuntu-latest
     timeout-minutes: 20
