@@ -25,6 +25,10 @@ def check(root=ROOT):
     revision = re.search(r'o\["network_revision"\]=(\d+)', source)
     if revision and (manifest.get('network_revision') != int(revision[1]) or b'network_revision' not in image):
         raise ValueError('Network revision differs; rebuild and export first')
+    factory_revision = re.search(r'o\["factory_sample_revision"\]=(\d+)', source)
+    if factory_revision and (manifest.get('factory_sample_revision') != int(factory_revision[1])
+                             or b'factory_sample' not in image):
+        raise ValueError('Factory sampling revision differs; rebuild and export first')
     entries = {}
     table = (folder/'partitions.bin').read_bytes()
     for offset in range(0, len(table), 32):

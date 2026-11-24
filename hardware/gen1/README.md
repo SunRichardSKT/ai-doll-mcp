@@ -11,6 +11,7 @@
 | 第一代最终PA2.0锁扣插座板（手焊焊盘修订） | [工程与制造资料](pcb/candidates/c3-socket-20261105/README.md) · [配套103450电池壳](enclosure/c3-socket-stacked/README.md) |
 | 独立Type-C充电／升压小板 | [保护壳与四线接法](enclosure/charger-inline/README.md) |
 | NTC温度与湿润感应片 | [现板扩展接线、配件和配置](expansion/resistive-inputs/README.md) |
+| PA2.0泪水感应片批量制作 | [R01结构、裁切图、材料和检验规格](expansion/tear-pad/README.md) |
 
 当前SuperMini手焊焊盘修订已并入最终版主板目录，仍属于第一代。制造数据、原生工程文件名和现有STL／STEP保留，避免与实物批次混淆。
 

@@ -2,6 +2,7 @@
 .pio/
 build/
 outputs/
+output/factory/
 __pycache__/
 *.log
 .vscode/

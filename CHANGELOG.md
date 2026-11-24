@@ -1,9 +1,13 @@
-# 内测0.1.3 · v0.1.3
+# 版本记录
 
-## 后续适配 · Claude Code
+## 0.1.4 · 2026-11-24 · 温度与端口设置
 
-- 管理中心新增 Claude Code（CLI）入口与专用 STDIO 配置导出，支持 `--mcp-config` 加载。
-- 服务器设备卡可复制 Claude Code 原生 HTTP 配置；补充本机、服务器和 WSL 使用说明。
+- 一代温度端口默认使用 10 kΩ B3950。已有温度端口保留参数，换探头后可一键应用新预设。
+- 设备网页和电脑设置页按 J 编号设置传感器类型、位置名称和接入状态。温度与探头异常直接显示在端口卡片上。
+- Windows 管理中心提供 Claude Code 的 STDIO 配置，服务器设备卡提供 HTTP 配置。
+- 补充 PA2.0 湿润片的裁切、装配和接线资料。
+
+[下载 v0.1.4](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.4) · [端口设置](docs/daily/SENSOR_CHANNELS.md)
 
 ## 0.1.3 · 2026-11-15 · 连接向导与组合动作
 

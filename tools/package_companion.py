@@ -1,4 +1,5 @@
 """Package the current code and PCB with explicit public-file allowlists."""
+import argparse
 import hashlib
 import json
 import pathlib
@@ -278,7 +279,7 @@ PCB_FILES = (
 )
 PCB_PACKAGE = f'AI_Doll_PCB_v{VERSION}.zip'
 CODE_README = (ROOT/'README.md').read_bytes().decode('utf-8')
-PCB_README = '# AI Doll PCB · 内测0.1.3版\n\n第一代最终版为34.29 × 44.45 mm双层C3八路锁扣插座板。下方保留早期已制带线板资料，按实物区分。\n\n- [主板与采购说明](hardware/gen1/pcb/README.md)\n- [早期已制带线板工程](hardware/gen1/pcb/AI_Doll_V2_丝印镜像修正_20261016.epro2)\n- [采购BOM](hardware/gen1/pcb/AI_Doll_V2_标准化采购BOM_20261003.csv)\n- [板外器件与测试点](hardware/gen1/pcb/AI_Doll_V2_板外器件与测试点_20261003.csv)\n- [在用制造资料](hardware/gen1/pcb/ordered-gerber-20260920/已下单PCB封装核对.md)\n- [第一代最终版锁扣插座板](hardware/gen1/pcb/candidates/c3-socket-20261105/README.md)\n\nJ9要求5V输入，主板不包含锂电池充电、升压或保护电路。第一代最终版采用后置开关和三针锁扣电源座，配套103450/PH2.0核心电池壳及独立充电板壳；首板先核对实际插头、开关和电池。\n\n[接线教程](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/daily/SENSOR_CHANNELS.md) · [外壳选择](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/gen1/enclosure/README.md)\n'
+PCB_README = f'# AI Doll PCB · 内测{VERSION}版\n\n第一代最终版为34.29 × 44.45 mm双层C3八路锁扣插座板。下方保留早期已制带线板资料，按实物区分。\n\n- [主板与采购说明](hardware/gen1/pcb/README.md)\n- [早期已制带线板工程](hardware/gen1/pcb/AI_Doll_V2_丝印镜像修正_20261016.epro2)\n- [采购BOM](hardware/gen1/pcb/AI_Doll_V2_标准化采购BOM_20261003.csv)\n- [板外器件与测试点](hardware/gen1/pcb/AI_Doll_V2_板外器件与测试点_20261003.csv)\n- [在用制造资料](hardware/gen1/pcb/ordered-gerber-20260920/已下单PCB封装核对.md)\n- [第一代最终版锁扣插座板](hardware/gen1/pcb/candidates/c3-socket-20261105/README.md)\n\nJ9要求5V输入，主板不包含锂电池充电、升压或保护电路。第一代最终版采用后置开关和三针锁扣电源座，配套103450/PH2.0核心电池壳及独立充电板壳；首板先核对实际插头、开关和电池。\n\n[接线教程](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/daily/SENSOR_CHANNELS.md) · [外壳选择](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/gen1/enclosure/README.md)\n'
 
 
 def link_unbundled_docs(contents):
@@ -421,7 +422,7 @@ def code_files():
     files += [ROOT/'docs'/name for name in DOCS]
     files += sorted((ROOT/'docs/images').glob('*.png'))
     files += [ROOT/'templates'/name for name in ('chatgpt-mcp-config.json','README.md','host-event.example.json','openclaw-hook.example.json')]
-    files += [p for directory in ('current-board','resistive-inputs') for p in (ROOT/'hardware/gen1/expansion'/directory).iterdir() if p.is_file()]
+    files += [p for directory in ('current-board','resistive-inputs','tear-pad') for p in (ROOT/'hardware/gen1/expansion'/directory).iterdir() if p.is_file()]
     files += [ROOT/'firmware/src'/name for name in SOURCE]
     files += [ROOT/'firmware/prebuilt'/name for name in PREBUILT]
     return files
@@ -440,7 +441,7 @@ def pcb_files():
     return files
 
 
-def main():
+def main(include_factory=False):
     from check_firmware import check
     from package_operit import build as build_operit
     check()
@@ -449,7 +450,10 @@ def main():
     server_output = server_package(delivery)
     files = code_files()
     outputs = [package(delivery/f'AI_Doll_Code_v{VERSION}.zip', files, CODE_README, f'doll-bridge-{VERSION}')]
-    firmware_readme = f'# AI Doll 固件 · 内测{VERSION}\n\n配套设备程序；普通Windows用户可直接下载完整包运行Flash_ESP32.cmd。\n\n[镜像与地址](firmware/prebuilt/README.md) · [OTA升级](docs/daily/OTA_UPDATE.md)\n\n支持压力、两线NTC温度、擦眼泪湿润感应片和干接点；板载状态灯、网络、历史及OTA保留。动作、数字温度和外接输出仍不支持。旧隔离配置保留且不自动恢复。升级保留校准与历史，不执行全片擦除。\n'
+    firmware_readme = (f'# AI Doll 固件 · 内测{VERSION}\n\n'
+                       '第一代 ESP32-C3 配套固件，支持压力、10 kΩ B3950 温度、湿润感应片和干接点。'
+                       '在传感器端口选择类型、填写位置并保存。\n\n'
+                       '[镜像与地址](firmware/prebuilt/README.md) · [OTA 升级](docs/daily/OTA_UPDATE.md)\n')
     firmware_files = [ROOT/'firmware/prebuilt'/name for name in PREBUILT] + [ROOT/'LICENSE', ROOT/'docs/daily/OTA_UPDATE.md']
     outputs.append(package(delivery/f'AI_Doll_Firmware_v{VERSION}.zip', firmware_files, firmware_readme, f'doll-lab-{VERSION}'))
     pcb = pcb_files()
@@ -467,13 +471,23 @@ def main():
                 assert hashlib.sha256(archive.read(relative)).hexdigest() == digest, relative
         outputs.append(dict(file=name, files=len(manifest['files']), bytes=path.stat().st_size,
                             sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
+    guide_outputs = outputs[:]
+    if include_factory:
+        from audit_delivery import audit
+        factory = delivery / f'AI_Doll_Factory_v{VERSION}.zip'
+        verified = audit(factory)
+        outputs.append(dict(file=factory.name, files=verified['files'], bytes=factory.stat().st_size,
+                            sha256=verified['sha256']))
     (delivery/'DELIVERY_MANIFEST.json').write_text(json.dumps({'packages': outputs}, ensure_ascii=False, indent=2), encoding='utf-8',newline='\n')
     checksums = {item['file']: item['sha256'] for item in outputs}
-    for name in ('DELIVERY_MANIFEST.json',):
+    for name in ('DELIVERY_MANIFEST.json', server_output['checksum_file']):
         checksums[name] = hashlib.sha256((delivery/name).read_bytes()).hexdigest()
     checksums['Install_Server.sh'] = hashlib.sha256((ROOT/'Install_Server.sh').read_bytes()).hexdigest()
     (delivery/'SHA256SUMS.txt').write_text(''.join(digest+'  '+name+'\n' for name,digest in sorted(checksums.items())), encoding='ascii',newline='\n')
-    readme = f'# 下载与交付文件\n\n**内测{VERSION}版 / 固件{VERSION}**，更新于2026-11-15。[下载 v0.1.3](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.3)。\n\n本版简化首次连接：Operit 三步向导保存设置进度，配网页按客户端显示下一步，Windows 优先 USB 配网及自动配对，并按 ChatGPT、Claude、DeepSeek DSH、Gemini、Operit 与其他客户端分别引导；支持用户自定义多个部位组合，如前胸＋后背＝拥抱。保留 NTC10k/B3435 和擦眼泪感应片扩展。温度与擦眼泪分别设置只记录／允许回复；配套固件为resistive-inputs-v1。Windows完整包内置Python，保留原历史、设置及校准；未自动给已有设备烧录。接线和感应片制作见[现板电阻扩展](../hardware/gen1/expansion/resistive-inputs/README.md)。\n\n'
+    readme = (f'# 下载与交付文件\n\n[内测 v{VERSION}](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v{VERSION})\n\n'
+              '一代固件默认支持 10 kΩ B3950。在同一张端口卡片上选择类型、填写位置并保存，温度会直接刷新。'
+              'Windows 和 Linux 包均提供 Claude Code 连接入口。'
+              '[端口设置](../docs/daily/SENSOR_CHANNELS.md) · [更新说明](../CHANGELOG.md)\n\n')
     readme += '## 应该下载哪个\n\n| 包 | 适合谁 | 解压后做什么 |\n| --- | --- | --- |\n'
     purposes = {
         f'AI_Doll_Firmware_v{VERSION}.zip': ('已有软件／仅升级开发板', '按固件说明使用OTA应用镜像或配套烧录工具，不全片擦除'),
@@ -484,7 +498,7 @@ def main():
         f'AI_Doll_Enclosures_v{VERSION}.zip': ('3D打印与机械修改', '最终插座板、已制带线板及独立充电模块的加固壳；按实物选STL或STEP'),
         f'AI_Doll_Stacked_Enclosure_v{VERSION}.zip': ('已制带线板上下堆叠壳', '长宽46.29×56.45mm，总高35.6mm；底壳、绝缘托板、上盖整套打印'),
     }
-    for item in outputs:
+    for item in guide_outputs:
         who, action = purposes[item['file']]
         readme += f"| [{item['file']}](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v{VERSION}/{item['file']}) · {item['bytes']/1048576:.2f} MiB | {who} | {action} |\n"
     readme += '\nOperit 无需为了取得手机工具包下载 Windows 包。服务器管理页可导出连接文件、连接码与临时二维码；仅手机模式默认从设备热点读取，不要求实体标签。原电脑入口继续兼容，完整包内含相同工具包。[统一安装](../docs/integrations/OPERIT_SETUP.md) · [免电脑指南](../docs/integrations/OPERIT_NO_PC.md)。\n'
@@ -493,8 +507,6 @@ def main():
     readme += '## 许可\n\n软件 AGPL-3.0-only，硬件 CERN-OHL-S-2.0，第三方资源保留各自声明。具体适用范围见 [项目许可](../LICENSING.md)。\n\n'
     readme += f'## 如何校验发布包\n\n使用本版 Release 附带的固定清单，不混用旧版或 main 的滚动清单。\n\n[DELIVERY_MANIFEST.json](DELIVERY_MANIFEST.json) 与 [SHA256SUMS.txt](SHA256SUMS.txt) 记录哈希；ZIP / TAR 内的 MANIFEST.json 记录逐文件校验，ToolPkg 使用 CHECKSUMS.json。Linux 包另有同目录 `.sha256`。\n\n'
     readme += 'Linux安装入口位于本版TAR内和Release附件 `Install_Server.sh`；使用同版安装器，保留原目录、项目名与数据卷。大型文件仅放在Releases，源码目录保留下载链接与校验元数据。\n\n'
-    for item in outputs:
-        readme += f"- `{item['file']}`：`{item['sha256']}`\n"
     readme += '\n## 交付范围\n\n公共包只包含代码、文档、固件、PCB 和公共模板，不包含个人配对、Wi-Fi、令牌或互动数据库。更新保留自己的 build 数据，远程部署保留数据卷。\n\n'
     readme += '新板烧录：双击 Flash_ESP32.cmd，可选随包固件、本地项目固件 ZIP 或查询 GitHub 最新正式版，校验后点击一键烧录。日常管理：双击 AI_Doll.cmd。手机连接娃娃热点后，配网页为 http://192.168.4.1/setup，首次热点最长10分钟，新配网成功后约90秒关闭；正常重启不开热点，运行中长按BOOT约3秒重新开启。\n\n'
     readme += '每次 USB 烧录产生新内部配对编号；可选择自定义显示名和热点名并保留独立日志；标准烧录保留设置，恢复出厂才清空设备。安装后按实际通道检查采样与聊天接入，检查记录见[验证汇总](../docs/reports/VALIDATION.md)。\n'
@@ -504,4 +516,6 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--include-factory', action='store_true', help='Add the audited factory archive to the release manifest')
+    main(parser.parse_args().include_factory)

@@ -1,48 +1,54 @@
 {
   "packages": [
     {
-      "file": "AI_Doll_Code_v0.1.3.zip",
-      "files": 2914,
-      "bytes": 42268446,
-      "sha256": "09e83ea3cd4ee0bb76faf27ba34f200af192f552a1ccef98ee3308a1b1a384f1"
+      "file": "AI_Doll_Code_v0.1.4.zip",
+      "files": 2928,
+      "bytes": 42578983,
+      "sha256": "b921a775b016355d377a2addb8a0a124c4e9cddf3cf049acdb980b785149ab2c"
     },
     {
-      "file": "AI_Doll_Firmware_v0.1.3.zip",
+      "file": "AI_Doll_Firmware_v0.1.4.zip",
       "files": 11,
-      "bytes": 797843,
-      "sha256": "37e22477995c0011ea50cbe8c11031c612d6e5061e41540f058ddde5a9536a12"
+      "bytes": 800398,
+      "sha256": "ff7a1372d024d0da9d7a3e272640bcb61452c1bd3a0a8ea833e2e6a4a1ad38c4"
     },
     {
-      "file": "AI_Doll_PCB_v0.1.3.zip",
-      "files": 77,
-      "bytes": 11572532,
-      "sha256": "3504e4ebf0b310200850b9ec6cbe79dc05eda9044c33a3723d8c08f5c27f79c3"
+      "file": "AI_Doll_PCB_v0.1.4.zip",
+      "files": 75,
+      "bytes": 11639615,
+      "sha256": "4b551cbf570f718180bbf8b1c69ef4498f06673c732ddc87616a765a650dca65"
     },
     {
-      "file": "AI_Doll_Server_v0.1.3.tar.gz",
+      "file": "AI_Doll_Server_v0.1.4.tar.gz",
       "files": 54,
-      "bytes": 366353,
-      "sha256": "87ca7dd3d7298c9c911ef27d14c44a21f68b30af12a9459eb7190043d32b055d",
-      "checksum_file": "AI_Doll_Server_v0.1.3.tar.gz.sha256"
+      "bytes": 369649,
+      "sha256": "dac2f35d7e23accdcd24017528decb2208faf67c3300c268fd64c2812656bdb7",
+      "checksum_file": "AI_Doll_Server_v0.1.4.tar.gz.sha256"
     },
     {
       "file": "AI_Doll_Operit.toolpkg",
-      "version": "0.1.3",
+      "version": "0.1.4",
       "files": 30,
-      "sha256": "95a78a32698dd1657b9cdc88123fc9ce524ea35ce4708b3841618131542c3a50",
-      "bytes": 230930
+      "sha256": "ebdc8916e75c09cb8d8177c7674419df7fbe68d5f92ab44891e9fcff49d14c35",
+      "bytes": 231021
     },
     {
-      "file": "AI_Doll_Enclosures_v0.1.3.zip",
+      "file": "AI_Doll_Enclosures_v0.1.4.zip",
       "files": 90,
-      "bytes": 5174451,
-      "sha256": "42abc897919df195f2b38b2e0c03754b8d214893d5fe93d5cc8817c0a4723375"
+      "bytes": 5174500,
+      "sha256": "2c6ea0de33f19ed479952773ae20a12f13d8261fd95f87eace152da15f3b330e"
     },
     {
-      "file": "AI_Doll_Stacked_Enclosure_v0.1.3.zip",
+      "file": "AI_Doll_Stacked_Enclosure_v0.1.4.zip",
       "files": 31,
-      "bytes": 1161830,
-      "sha256": "b7493b9e3b84840065408e17d7e3735d340699f27f19f1c4e8a546aa3f4f5645"
+      "bytes": 1161852,
+      "sha256": "fc3a8aad42ecb7cc27a623923dd4632bd1de5d4520647883ea833f0abb4bba78"
+    },
+    {
+      "file": "AI_Doll_Factory_v0.1.4.zip",
+      "files": 1111,
+      "bytes": 16564114,
+      "sha256": "12281522f60ed8581f5750e1a5f453547333f6cbcf25de882063a5c9304f2496"
     }
   ]
 }

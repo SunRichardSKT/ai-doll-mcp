@@ -36,14 +36,7 @@ Windows 配置位于 `%APPDATA%\Claude\claude_desktop_config.json`。未安装�
 
 ### 电脑采集：下载配置即可使用
 
-Claude Code 专用入口与 `--client claude_code` 导出在0.1.3发布后加入 `main`。使用已发布的0.1.3完整包时，可在项目目录生成原有通用配置并加载：
-
-```powershell
-.\python\python.exe -X utf8 tools/install_companion_mcp.py
-claude --mcp-config ./build/device-lab/mcp-client-config.json
-```
-
-使用当前源码时，可按下面的专用入口操作：
+从 v0.1.4 的 Windows 管理中心直接下载 Claude Code 配置。
 
 1. 启动 `AI_Doll.cmd`，完成娃娃连接，让电脑采集保持运行。
 2. 在 AI 接入步骤选择“Claude Code · 命令行”，下载 `AI_Doll_Claude_Code.json`。

@@ -19,7 +19,7 @@ static int lastWifi=-1;
 static constexpr int LED_PIN=8; // Common SuperMini blue LED, active low.
 static bool scanBusy=false;
 static uint32_t scanStartedAt=0;
-static const char* VERSION="doll-lab-0.1.3";
+static const char* VERSION="doll-lab-0.1.4";
 static const char* PROTOCOL="2025-11-25";
 
 static String encode(const JsonDocument &d){String s;serializeJson(d,s);return s;}
@@ -48,9 +48,9 @@ static void status(JsonObject o){
  o["boot_id"]=touchBoot;o["event_cursor"]=touchSeq;
  o["firmware"]=VERSION;o["device_id"]=apName;o["uptime_ms"]=millis();o["free_heap"]=ESP.getFreeHeap();
  o["minimum_free_heap"]=ESP.getMinFreeHeap();o["largest_free_block"]=ESP.getMaxAllocHeap();o["retired_channel_count"]=retiredChannelCount;
- o["feature_set"]="resistive-inputs-v1";
+ o["feature_set"]="resistive-inputs-v1";o["factory_sample_revision"]=1;
  o["flash_id"]=prefs.getString("flash_id","");o["factory_profile"]=prefs.getString("profile","legacy");
- o["configuration_url"]="http://192.168.4.1/";o["configuration_hotspot"]=deviceName;o["device_name"]=deviceName;
+ o["configuration_url"]="http://192.168.4.1/setup";o["configuration_hotspot"]=deviceName;o["device_name"]=deviceName;
  o["wifi_connected"]=networkReady();o["wifi_associated"]=WiFi.status()==WL_CONNECTED;o["wifi_status"]=(int)WiFi.status();o["ssid"]=ssid;
  o["ip"]=WiFi.localIP().toString();o["ap_ip"]=WiFi.softAPIP().toString();o["ap_ssid"]=deviceName;
  o["hostname"]=deviceHostname()+".local";o["mdns_active"]=mdnsActive;
@@ -195,6 +195,24 @@ static void serialCommand(const String &line){
   out["error"]="Upgrade in progress";if(in["serial_request_id"].is<String>())out["serial_request_id"]=in["serial_request_id"];serialJson(out);return;
  }
  if(cmd=="status")status(out.to<JsonObject>());
+ else if(cmd=="factory_sample"){
+  // USB production probe. Read every physical MUX port without changing saved
+  // installation state, calibration or simulated channel readings.
+  if(otaActive||otaCommitted||calibration.engaged){out["error"]="Finish upgrade/calibration before factory sampling";}
+  else{
+   int s0=digitalRead(3),s1=digitalRead(4),s2=digitalRead(5);
+   const bool temporaryPins=!sensorEnabled;
+   if(temporaryPins){pinMode(3,OUTPUT);pinMode(4,OUTPUT);pinMode(5,OUTPUT);analogReadResolution(12);analogSetPinAttenuation(0,ADC_11db);}
+   out["device_id"]=apName;out["boot_id"]=touchBoot;out["source"]="sensor";out["uptime_ms"]=millis();
+   JsonArray raw=out["raw"].to<JsonArray>();
+   for(int port=0;port<8;port++){
+    digitalWrite(3,port&1);digitalWrite(4,(port>>1)&1);digitalWrite(5,(port>>2)&1);delayMicroseconds(500);
+    analogRead(0);int sum=0;for(int j=0;j<4;j++)sum+=analogRead(0);raw.add(sum/4);
+   }
+   digitalWrite(3,s0);digitalWrite(4,s1);digitalWrite(5,s2);delayMicroseconds(500);
+   if(temporaryPins){pinMode(3,INPUT);pinMode(4,INPUT);pinMode(5,INPUT);}
+  }
+ }
  else if(cmd=="events")touchRead(out.to<JsonObject>(),in["after"]|0U,in["boot_id"]|"",true,in["archive_lease_id"]|"");
  else if(cmd=="ack_events"){String error;out["ok"]=acknowledgeStoredEvents(in.as<JsonVariantConst>(),error);if(error.length())out["error"]=error;}
  else if(cmd=="sync_time"){String error;out["ok"]=syncDeviceClock(in.as<JsonVariantConst>(),error);if(error.length())out["error"]=error;}

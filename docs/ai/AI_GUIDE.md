@@ -2,7 +2,7 @@
 
 依据当前设备和工具完成安装、查询与互动，保留用户历史、校准和聊天绑定。
 
-当前源码为 **内测0.1.3版**，简化 Operit 三步连接和 Windows USB 配网。下载对应0.1.3附件。版本能力以设备实际返回为准。[使用教程](../README.md) · [更新说明](../../CHANGELOG.md)
+当前配套版本为 **0.1.4**，支持 10 kΩ B3950 预设和单端口类型设置。配置前先读实际设备能力。[使用教程](../README.md) · [更新说明](../../CHANGELOG.md)
 
 ## 1. 先选实际通路
 
@@ -26,8 +26,8 @@ MCP URL 使用连接器提供的地址，源码链接、管理页和隧道编号
 
 ## 2. 下载与保留数据
 
-- 普通安装使用 [v0.1.3 Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.3) 的同批次附件和 `SHA256SUMS.txt`。Windows 完整包自带 Python；Linux 使用小型服务包。
-- 温度／擦眼泪使用配套 0.1.2 软件、固件与 Operit；从同版 Release 下载，接线见[制作指南](../../hardware/gen1/expansion/resistive-inputs/README.md)和[开发指南](../developers/DEVELOPER_GUIDE.md)。
+- 普通安装使用 [v0.1.4 Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.4) 的同批次附件和 `SHA256SUMS.txt`。Windows 完整包自带 Python；Linux 使用小型服务包。
+- 温度和擦眼泪使用同版软件、固件与 Operit，接线见[制作指南](../../hardware/gen1/expansion/resistive-inputs/README.md)和[开发指南](../developers/DEVELOPER_GUIDE.md)。
 - 升级保留历史、校准、聊天绑定、插件目录和服务器数据卷。设备升级以启动回读为准。
 - Operit 同 ID 无法覆盖时，停止 AI Doll 后台任务，删除工具包文件再导入新版，保留独立插件数据与应用数据。日常任务从设置面板启动。
 
@@ -107,7 +107,7 @@ USB 烧录在用户要求升级或写板时执行。使用 `Flash_ESP32.cmd`，�
 
 配置前读取 `feature_set=resistive-inputs-v1` 及 `temperature`／`wetness` 能力。常用组合为 **六路压力＋一路 NTC＋一路湿润片**，占用现板八个口；传感器直接焊 PA2.0 2P 线束。[制作与设置](../../hardware/gen1/expansion/resistive-inputs/README.md)
 
-NTC 默认 R25=10k、B3435，计算包含 4.7k 串联和 10k 下拉，使用校准毫伏值。探头放薄布下感知局部接触升温，深埋时测娃娃内部温度。第一条有效样本建立基线，默认变化 1℃ 后可回应；故障值单独报告。
+新温度端口默认使用两线 NTC 10 kΩ B3950。若能力中含 `port_type_update: true`，可直接用 `set_channel_state` 同时传 `channel`、`type`、`mode` 和 `name`；只改名时仅传 `channel` 和 `name`。旧版支持 NTC 的固件可在完整配置的目标行显式设置 `options.beta=3950`。温度计算包含 4.7k 串联和 10k 下拉，使用校准毫伏值。探头放薄布下感知局部接触升温，深埋时测娃娃内部温度。第一条有效样本建立基线，默认变化 1℃ 后可回应；故障值单独报告。
 
 湿润片持续湿润 600ms 且关联压力按下时生成一次 `wipe`，干燥 1000ms 后复位。真实输入与真实压力配合，模拟输入与模拟压力配合；`wet`／`dry` 归档，`wipe` 可进入回复。
 

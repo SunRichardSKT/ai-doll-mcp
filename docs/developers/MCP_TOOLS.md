@@ -22,7 +22,9 @@ history 的七个附加工具为 `get_channel_capabilities`、`get_channel_confi
 
 本机 HTTP 网关默认 `127.0.0.1:8771/mcp`；私密远程网关和 Secure 使用专用入口。GET返回405时不等于服务离线，客户端使用POST。interaction允许部位、单端口状态和陪伴偏好的局部写入，不开放模拟注入、完整硬件配置、删除或执行器控制。status/history仍只读。
 
-设备／STDIO提供`set_channel_state(channel, mode?, name?)`。mode为`off/simulation/connected`，必须先实际发现固件的`port_state_model=per_port_v1`。远程保持19个工具，经`update_body_part(channel, changes={mode:...})`使用同一局部操作，不对离线设备排队。改名不改变校准、采样和其他端口。连接状态来自保存的安装确认，不是自动插拔检测。`update_companion_preferences`另支持`persona_source=chat/doll`及`doll_persona`，只控制身体互动反馈，不改宿主聊天配置。
+设备和 STDIO 提供 `set_channel_state(channel, mode?, name?, type?, options?)`。先用 `get_channel_capabilities` 确认 `port_state_model=per_port_v1`，再设置 `off`、`simulation` 或 `connected`。支持 `port_type_update` 的固件可在同一次调用里设置类型、状态和名称。新温度端口默认使用 10 kΩ B3950。传入 `options` 会替换该口的整组参数，只改名时传 `channel` 和 `name` 即可。
+
+远程接口仍通过 `update_body_part(channel, changes={mode:...})` 改名或切换状态。连接状态来自保存的安装确认，离线设备上的修改需要等重新连接后提交。`update_companion_preferences` 支持 `persona_source=chat/doll` 和 `doll_persona`，用于身体互动反馈。
 
 ## 设备内部归档接口（0.1.1）
 

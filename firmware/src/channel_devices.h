@@ -42,7 +42,7 @@ static bool floatOption(JsonObjectConst o,const char* key,float &dst,float lo,fl
  if(!o[key].is<float>()){error=String(key)+" must be numeric";return false;}
  float v=o[key];if(!isfinite(v)||v<lo||v>hi){error=String(key)+" is outside supported range";return false;}dst=v;return true;
 }
-static bool parseChannels(JsonVariantConst a,ChannelConfig *next,String &error){
+static bool parseChannels(JsonVariantConst a,ChannelConfig *next,String &error,float defaultNtcBeta=NTC_DEFAULT_BETA){
  if(!a["channels"].is<JsonArrayConst>()||a["channels"].size()<1||a["channels"].size()>MAX_CHANNELS){error="Provide 1..16 channel configurations";return false;}
  if(!a["schema_version"].isNull()&&(!a["schema_version"].is<int>()||a["schema_version"].as<int>()!=1)){error="Unsupported schema_version";return false;}
  bool muxUsed[8]={},gpioUsed[22]={};
@@ -67,6 +67,7 @@ static bool parseChannels(JsonVariantConst a,ChannelConfig *next,String &error){
   if(c.off>=c.on){error="Lower threshold must be below upper threshold";return false;}
   if(c.kind==DeviceKind::WETNESS&&(!intOption(o,"hold_ms",c.wet.holdMs,100,10000,error)||!intOption(o,"dry_ms",c.wet.dryMs,100,10000,error)||!intOption(o,"pressure_channel",c.wet.pressureChannel,0,15,error)))return false;
  }else if(c.kind==DeviceKind::TEMPERATURE){
+  c.ntc.beta=defaultNtcBeta;
   if(!o["model"].isNull()&&o["model"]!="ntc"){error="Only two-wire NTC temperature probes supported";return false;}
   if(!floatOption(o,"r25_ohm",c.ntc.r25,1000,100000,error)||!floatOption(o,"beta",c.ntc.beta,2000,5000,error)||!floatOption(o,"pull_down_ohm",c.ntc.pullDown,1000,100000,error)||!floatOption(o,"series_ohm",c.ntc.series,0,100000,error)||!floatOption(o,"supply_mv",c.ntc.supplyMv,3000,3600,error)||!floatOption(o,"offset_c",c.ntc.offset,-10,10,error)||!floatOption(o,"change_c",c.ntc.delta,.1,30,error)||!intOption(o,"sample_ms",c.sampleMs,250,10000,error)||!intOption(o,"report_ms",c.ntc.reportMs,1000,3600000,error))return false;
   if(c.ntc.reportMs<c.sampleMs){error="report_ms must be >= sample_ms";return false;}
@@ -79,6 +80,31 @@ static bool parseChannels(JsonVariantConst a,ChannelConfig *next,String &error){
  }
  return true;
 }
+
+static bool parseChannelUpdate(JsonVariantConst update,int channel,ChannelConfig *next,String &error){
+ if(update["name"].isNull()&&update["mode"].isNull()&&update["type"].isNull()&&update["options"].isNull()){
+  error="Provide name, mode, type or options";
+  return false;
+ }
+ JsonDocument proposed;
+ encodeChannels(proposed.to<JsonObject>());
+ for(JsonObject row:proposed["channels"].as<JsonArray>()){
+  if(row["channel"].as<int>()!=channel)continue;
+  if(!update["name"].isNull())row["name"].set(update["name"]);
+  if(!update["mode"].isNull()){
+   row["mode"].set(update["mode"]);
+   row.remove("enabled");
+  }
+  if(!update["type"].isNull()&&update["type"]!=row["type"].as<const char*>()){
+   row["type"].set(update["type"]);
+   row.remove("options");
+  }
+  if(!update["options"].isNull())row["options"].set(update["options"]);
+  break;
+ }
+ return parseChannels(proposed.as<JsonVariantConst>(),next,error);
+}
+
 // Split only explicitly retired types. Unknown or corrupt input rows still fail validation.
 static void retireUnsupportedChannels(JsonDocument &stored){
  JsonDocument retired;if(deserializeJson(retired,retiredChannels))retired.to<JsonArray>();
@@ -91,6 +117,7 @@ static void retireUnsupportedChannels(JsonDocument &stored){
 static void channelCapabilities(JsonObject out){
  out["schema_version"]=1;out["max_channels"]=MAX_CHANNELS;out["mux_ports"]=8;out["adc_gpio"]=0;out["port_state_model"]="per_port_v1";out["presence_source"]="saved_installation_config";out["electrical_presence_detection"]=false;
  out["physical_inputs_enabled"]=sensorEnabled;out["physical_outputs_enabled"]=false;out["physical_outputs_supported"]=false;out["retired_channel_count"]=retiredChannelCount;
- JsonArray types=out["types"].to<JsonArray>();for(auto k:{DeviceKind::PRESSURE,DeviceKind::SWITCH,DeviceKind::TEMPERATURE,DeviceKind::WETNESS}){JsonObject t=types.add<JsonObject>();t["type"]=kindName(k);t["direction"]="input";t["unit"]=unitName(k);t["model"]=k==DeviceKind::PRESSURE?"fsr_adc":k==DeviceKind::TEMPERATURE?"ntc_10k_3435":k==DeviceKind::WETNESS?"conductive_pad":"dry_contact";JsonArray d=t["drivers"].to<JsonArray>();d.add("simulation");if(k!=DeviceKind::SWITCH){d.add("mux_adc");d.add("gpio_adc");}else d.add("gpio_switch");}
+ out["port_type_update"]=true;
+ JsonArray types=out["types"].to<JsonArray>();for(auto k:{DeviceKind::PRESSURE,DeviceKind::SWITCH,DeviceKind::TEMPERATURE,DeviceKind::WETNESS}){JsonObject t=types.add<JsonObject>();t["type"]=kindName(k);t["direction"]="input";t["unit"]=unitName(k);t["model"]=k==DeviceKind::PRESSURE?"fsr_adc":k==DeviceKind::TEMPERATURE?"ntc_10k_3950":k==DeviceKind::WETNESS?"conductive_pad":"dry_contact";JsonArray d=t["drivers"].to<JsonArray>();d.add("simulation");if(k!=DeviceKind::SWITCH){d.add("mux_adc");d.add("gpio_adc");}else d.add("gpio_switch");}
  out["direct_adc_gpio"]=1;out["switch_gpio"]=21;out["expansion"]="Pressure, NTC temperature and wetness share eight resistor ports; dry-contact switch on GPIO21. No motion or actuator drivers.";
 }

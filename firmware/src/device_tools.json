@@ -117,7 +117,7 @@
   },
   {
     "name": "get_channel_capabilities",
-    "description": "Read pressure, NTC temperature, wet-pad and dry-contact input drivers, port modes and GPIO limits. No motion or actuator drivers.",
+    "description": "Read pressure, NTC 10k/B3950 temperature, wet-pad and dry-contact drivers, port modes and GPIO limits.",
     "inputSchema": {
       "type": "object",
       "properties": {},
@@ -135,7 +135,7 @@
   },
   {
     "name": "set_channel_state",
-    "description": "Persist one input port as off, simulation or connected; optional body name. Preserve other ports, calibration and wiring. Connected is installed configuration, not electrical detection.",
+    "description": "Persist one input port's name, mode, compatible sensor type and options. Keep its binding and all other ports. Options replace that port's parameters. New temperature ports default to NTC 10k/B3950. Check port_type_update for type and options support.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -154,6 +154,18 @@
         },
         "name": {
           "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "pressure",
+            "temperature",
+            "wetness",
+            "switch"
+          ]
+        },
+        "options": {
+          "type": "object"
         }
       },
       "additionalProperties": false,
@@ -245,7 +257,7 @@
   },
   {
     "name": "set_channel_config",
-    "description": "Persist full input configuration; preserve all existing rows and pressure calibration. NTC defaults 10k/B3435 with existing 4.7k/10k divider. Wetness shares an ADC port and references an existing pressure channel. Discover capabilities first.",
+    "description": "Replace the full input configuration. Include existing rows and their calibrations. NTC defaults to 10k/B3950 with the board's 4.7k/10k divider. A wetness port references an existing pressure channel.",
     "inputSchema": {
       "type": "object",
       "properties": {

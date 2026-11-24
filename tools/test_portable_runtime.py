@@ -68,7 +68,7 @@ class PortableRuntimeTests(unittest.TestCase):
                 self.assertNotIn('error', json.loads(worker.stdout.splitlines()[-1]))
                 config = json.loads((root/'build/device-lab/mcp-client-config.json').read_text(encoding='utf-8'))
                 self.assertEqual(Path(config['mcpServers']['ai_doll']['command']), python)
-                asyncio.run(self.discover(python, root, env))
+                tool_count = asyncio.run(self.discover(python, root, env))
                 subprocess.run(['cmd.exe', '/c', str(root/'AI_Doll_Server.cmd'), '-Port','8792','-NoBrowser'],
                     env=env,cwd=root,check=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,timeout=20)
                 deadline=time.monotonic()+25
@@ -89,7 +89,7 @@ class PortableRuntimeTests(unittest.TestCase):
                 subprocess.run([str(python),'-X','utf8',str(root/'tools/start_direct_server.py'),
                     '--port','8792','--stop','--no-browser'],env=env,cwd=root,check=True,capture_output=True,timeout=10)
                 report = dict(passed=True, no_system_python=True, no_venv=True,
-                              root_cmd_start=True, worker=True, stdio_tools=52,
+                              root_cmd_start=True, worker=True, stdio_tools=tool_count,
                               server_root_cmd_start=True, server_repeat_reuses_process=True,
                               automatic_client_config=True, python='bundled_runtime', path_with_spaces_and_chinese=True)
                 folder = ROOT/'build/portable-acceptance';folder.mkdir(parents=True,exist_ok=True)
@@ -113,8 +113,13 @@ Get-Process -Name python,pythonw -ErrorAction SilentlyContinue | Where-Object {$
         async with stdio_client(parameters) as (read, write):
             async with ClientSession(read, write) as session:
                 await session.initialize()
-                tools = await session.list_tools()
-                self.assertEqual(len(tools.tools), 52)
+                tools = {tool.name: tool for tool in (await session.list_tools()).tools}
+                expected = {'doll_get_status', 'get_device_overview', 'get_channel_capabilities',
+                            'read_channel_values', 'set_channel_state', 'query_device_history'}
+                self.assertFalse(expected - tools.keys(), expected - tools.keys())
+                fields = tools['set_channel_state'].inputSchema['properties']
+                self.assertTrue({'channel', 'type', 'options', 'mode', 'name'} <= fields.keys())
+                return len(tools)
 
 
 if __name__ == '__main__':

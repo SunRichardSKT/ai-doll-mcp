@@ -118,25 +118,16 @@ static __attribute__((noinline)) bool setChannelState(JsonVariantConst a,String 
  if(!a["channel"].is<int>()){error="channel integer required";return false;}
  int ch=a["channel"];if(ch<0||ch>=MAX_CHANNELS||!channels[ch].configured||outputKind(channels[ch].kind)){error="Choose a configured input channel";return false;}
  if(calibration.engaged){error="Finish or cancel calibration before changing ports";return false;}
- ChannelConfig next[MAX_CHANNELS];for(int i=0;i<MAX_CHANNELS;i++)next[i]=channels[i];
- if(!a["name"].isNull()){
-  if(!a["name"].is<String>()||a["name"].as<String>().isEmpty()||a["name"].as<String>().length()>96){error="name must contain 1..96 UTF-8 bytes";return false;}
-  next[ch].name=a["name"].as<String>();
- }
- if(!a["mode"].isNull()){
-  String mode=a["mode"].as<String>();if(mode!="off"&&mode!="simulation"&&mode!="connected"){error="mode must be off, simulation or connected";return false;}
-  if(mode=="connected"&&next[ch].driver==ChannelDriver::SIMULATION){error="Physical binding required; configure the driver first";return false;}
-  next[ch].enabled=mode!="off";next[ch].simulate=mode=="simulation";
- }
- if(a["name"].isNull()&&a["mode"].isNull()){error="Provide name or mode";return false;}
+ ChannelConfig next[MAX_CHANNELS];if(!parseChannelUpdate(a,ch,next,error))return false;
  bool modeRequested=!a["mode"].isNull();
- bool changed=strcmp(channelMode(channels[ch]),channelMode(next[ch]))!=0;
+ bool changed=channels[ch].kind!=next[ch].kind||strcmp(channelMode(channels[ch]),channelMode(next[ch]))!=0||!a["options"].isNull();
  bool resume=resumeInputs;if(modeRequested){resume=false;for(const auto &c:next)if(physicalChannel(c))resume=true;}
  if(!persistChannels(next,error,resume))return false;
- // End only this port's old event before changing its label/source. Other
- // channels, calibration thresholds and GPIO bindings remain intact.
- if(changed&&touches[ch].active)touchInject(ch,0);
- channels[ch]=next[ch];if(changed){readings[ch]=ChannelReading();sensorDebounce[ch]=0;contacts[ch]=ContactInput();temperatures[ch]=TemperatureInput();wetInputs[ch]=WetInput();}resumeInputs=resume;
+ // Close the old event and start a fresh baseline only for the changed input.
+ if(changed&&touches[ch].active)touchInject(ch,0,touches[ch].simulated);
+ channels[ch]=next[ch];
+ if(changed){readings[ch]=ChannelReading();sensorRaw[ch]=0;sensorDebounce[ch]=0;contacts[ch]=ContactInput();temperatures[ch]=TemperatureInput();wetInputs[ch]=WetInput();}
+ resumeInputs=resume;
  if(modeRequested&&sensorEnabled!=resume)applyInputEnabled(resume);
  refreshExpansionInputs();
  return true;
@@ -150,7 +141,8 @@ static void touchInit(){
  if(!deserializeJson(stored,saved)&&stored["channels"].is<JsonArray>()){
   retireUnsupportedChannels(stored);
   JsonDocument retired;deserializeJson(retired,retiredChannels);for(JsonVariantConst row:retired.as<JsonArrayConst>())if(row["driver"]=="gpio_pwm"){int pin=row["gpio"]|-1;if(pin==6||pin==7||pin==10||pin==20){digitalWrite(pin,LOW);pinMode(pin,OUTPUT);}}
-  ChannelConfig next[MAX_CHANNELS];String error;if(stored["channels"].size()==0||parseChannels(stored.as<JsonVariantConst>(),next,error)){
+  // Earlier saved rows without an explicit beta used 3435.
+  ChannelConfig next[MAX_CHANNELS];String error;if(stored["channels"].size()==0||parseChannels(stored.as<JsonVariantConst>(),next,error,3435)){
    for(int i=0;i<MAX_CHANNELS;i++)channels[i]=next[i];
    resumeInputs=stored["resume_inputs"].is<bool>()&&stored["resume_inputs"].as<bool>();
   }

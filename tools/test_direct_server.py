@@ -1,6 +1,7 @@
 """Direct device upload: durable history, real HTTP and existing-chat dispatch."""
 import copy
 import json
+import math
 from pathlib import Path
 import tempfile
 import threading
@@ -78,13 +79,17 @@ class DirectTests(unittest.TestCase):
         c=self.device.c
         session=c.start('existing-chat',duration_sec=60)
         sub=c.bridge.subscribe(OWNER,'existing-chat',session['id'],'AI-Doll-test')
-        self.receive(packet(1))
+        live = packet(1)
+        event = live['batch']['persistent_events'][0]['event']
+        # The simulated device reports whole milliseconds, after this subscription.
+        event['device_time_ms'] = max(event['device_time_ms'], math.ceil(sub['created'] * 1000))
+        self.receive(live)
         delivery=c.bridge.claim(OWNER,sub['id'],now=time.time()+.4)
         self.assertIsNotNone(delivery)
         event=delivery['payload'];self.assertEqual(event['data']['events'][0]['body_part'],'头')
         self.assertEqual(event['data']['events'][0]['source'],'simulation')
         c.bridge.acknowledge(OWNER,sub['id'],event['eventId'],delivery['lease'],reply='模型回调测试替身',source='demo')
-        self.receive(packet(1))
+        self.receive(live)
         self.assertIsNone(c.bridge.claim(OWNER,sub['id'],now=time.time()+.4))
 
     def test_offline_history_and_no_late_commands(self):

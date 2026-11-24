@@ -90,7 +90,7 @@
       "options": {
         "model": "ntc",
         "r25_ohm": 10000,
-        "beta": 3435,
+        "beta": 3950,
         "pull_down_ohm": 10000,
         "series_ohm": 4700,
         "supply_mv": 3300,

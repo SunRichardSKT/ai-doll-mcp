@@ -1,3 +1,3 @@
 """Version shared by desktop, MCP and direct server adapters."""
-VERSION = "0.1.3"
+VERSION = "0.1.4"
 BRIDGE_VERSION = "doll-bridge-" + VERSION

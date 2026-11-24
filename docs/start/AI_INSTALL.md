@@ -2,13 +2,13 @@
 
 Windows 电脑采集并保存触摸记录，通过 MCP 提供给聊天客户端。安装分为启动、连接设备、接入 AI 三步。[教程目录](../README.md)
 
-本页对应 **内测0.1.3版**。下载对应0.1.3附件。需要仅用安卓手机或自己部署服务时，分别查看 [Operit 直连](../integrations/OPERIT_NO_PC.md) 与 [Linux 部署](../integrations/REMOTE_SERVER_SETUP.md)。
+请从同一 Release 下载配套附件。需要仅用安卓手机或自己部署服务时，分别查看 [Operit 直连](../integrations/OPERIT_NO_PC.md) 与 [Linux 部署](../integrations/REMOTE_SERVER_SETUP.md)。
 
 ## 准备好这三样
 
 - 一台 Windows 64 位电脑，能联网。
 - 已烧录并供电的娃娃；空白开发板先按 [一键烧录](QUICK_FLASH.md)。
-- [Windows完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.3/AI_Doll_Code_v0.1.3.zip)，按本版Release的`SHA256SUMS.txt`校验后完整解压，保留 `python/`、`src/`、`tools/`、`clients/`、`delivery/`。GitHub 的“Download ZIP”是源码，不能替代自带运行环境的完整包。
+- [Windows完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.4/AI_Doll_Code_v0.1.4.zip)，按本版Release的`SHA256SUMS.txt`校验后完整解压，保留 `python/`、`src/`、`tools/`、`clients/`、`delivery/`。GitHub 的“Download ZIP”是源码，不能替代自带运行环境的完整包。
 
 ## 第一步：打开管理中心
 

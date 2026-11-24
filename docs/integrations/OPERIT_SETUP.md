@@ -6,7 +6,7 @@
 
 主动回复：先选择已有聊天，再开启“触摸主动回复”；需要持续陪伴时选择“常开”。开启后由 Operit 后台任务接收触摸并触发所选聊天，无需每次手动发消息。关闭主动回复仍可保留自动同步记录；手机后台运行受系统电池管理影响。
 
-当前源码为 **内测0.1.3版**，改进三步配对与中途恢复，下载 [v0.1.3 AI_Doll_Operit.toolpkg](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.3/AI_Doll_Operit.toolpkg)。0.1.2 增加温度与擦眼泪，需配套软件和固件，见[扩展指南](../../hardware/gen1/expansion/resistive-inputs/README.md)。
+下载配套 [v0.1.4 AI_Doll_Operit.toolpkg](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.4/AI_Doll_Operit.toolpkg)。安装温度探头和湿润片时，见[扩展指南](../../hardware/gen1/expansion/resistive-inputs/README.md)。
 
 | 你的环境 | 安装路线 |
 | --- | --- |

@@ -26,7 +26,7 @@ def build(output=None):
     contents['README.md'] = ('# AI Doll Operit\n\n'
         '软件使用 AGPL-3.0-only，第三方资源保留原许可。'
         '适用范围见 [项目许可](LICENSING.md)。\n\n'
-        '[完整源码与构建脚本](https://github.com/SunRichardSKT/ai-doll-mcp) · '
+        f'[完整源码与构建脚本](https://github.com/SunRichardSKT/ai-doll-mcp/tree/v{VERSION}) · '
         '[安装指南](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/docs/integrations/OPERIT_SETUP.md)\n').encode('utf-8')
     for asset in json.loads(contents['vendor/SOURCES.json']):
         raw = contents.get('vendor/'+asset['file'])

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="210mm" height="297mm" viewBox="0 0 210 297">
+<style>text{font-family:"Microsoft YaHei",sans-serif;font-size:3.2px;fill:#253f50}.cut{fill:none;stroke:#172e40;stroke-width:.18}.guide{fill:none;stroke:#6197b7;stroke-width:.16;stroke-dasharray:1 1}</style>
+<rect width="210" height="297" fill="white"/>
+<text x="12" y="14" font-size="5.5" font-weight="700">泪水感应片 R01 · 1:1 裁切与定位图</text>
+<text x="12" y="22">A4 / 单位 mm / 100% 打印；关闭“适合页面”。黑实线为裁切；蓝虚线只定位。</text>
+<rect class="cut" x="15" y="36" width="30" height="35" rx="3"/>
+<text x="15" y="77">B1 背衬 ×1 / 30×35 R3</text>
+<rect class="cut" x="79" y="36" width="30" height="35" rx="3"/>
+<text x="79" y="77">I1 定位框 ×1 / 30×35 R3</text>
+<rect class="cut" x="88" y="41" width="4" height="15"/>
+<rect class="cut" x="96" y="41" width="4" height="15"/>
+<text x="79" y="83">双4×15窗口；原点为框左上角</text>
+<rect class="cut" x="147" y="36" width="20" height="18" rx="0"/>
+<text x="147" y="60">F1 面布 ×1 / 20×18</text>
+<rect class="cut" x="15" y="106" width="5" height="24" rx="0.8"/>
+<text x="15" y="136">E1／E2 电极，各1</text>
+<rect class="cut" x="30" y="106" width="5" height="24" rx="0.8"/>
+<text x="30" y="136"></text>
+<text x="15" y="143">每片 5×24，R0.8</text>
+<text x="15" y="150">布料方向统一；勿剪作两极相连</text>
+<rect class="cut" x="79" y="106" width="30" height="14" rx="3"/>
+<text x="79" y="126">C1 干区盖层 ×1 / 30×14 R3</text>
+<rect class="cut" x="147" y="106" width="30" height="14" rx="3"/>
+<text x="147" y="126">S1 加强布 ×1 / 30×14 R3</text>
+<text x="12" y="168" font-size="4.3" font-weight="700">成品定位叠图（不要当作单片裁切图）</text>
+<rect class="cut" x="20" y="179" width="30" height="35" rx="3"/>
+<rect class="guide" x="28.5" y="184" width="5" height="24" rx=".8"/>
+<rect class="guide" x="36.5" y="184" width="5" height="24" rx=".8"/>
+<rect class="guide" x="25" y="182" width="20" height="18"/>
+<path class="guide" d="M20,200h30 M20,204h30"/>
+<text x="66" y="186">坐标原点：正面左上角；X向右，Y向下。</text>
+<text x="66" y="194">E1：X8.5～13.5 / Y5～29；E2：X16.5～21.5 / Y5～29。</text>
+<text x="66" y="202">感应段 Y5～20；截水带 Y21～25；压接 Y25～29。</text>
+<text x="66" y="210">加强布与盖层 Y21～35；线从Y35侧出，外露长300±10。</text>
+<text x="12" y="231">来料目标：316L导电织物0.15～0.35厚；背衬TPU0.15～0.25厚。</text>
+<text x="12" y="239">固定与封装工艺按README；电极间隙3.0，成品控制2.5～3.5。</text>
+<text x="12" y="247">此图未包含刀模间隙及热压收缩补偿；供应商先做首件，再按材料校正工装。</text>
+<path class="cut" d="M15,262h20 M15,259v6 M35,259v6"/>
+<text x="15" y="272">20mm 打印校验标尺</text>
+<text x="12" y="287">TD-C3-PA2-R01 / 2026-11-17 / CERN-OHL-S-2.0 / 详细装配公差见README</text>
+</svg>

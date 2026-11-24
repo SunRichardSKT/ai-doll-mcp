@@ -6,3 +6,6 @@
 *.pdf binary
 *.epro2 -text
 hardware/** -text
+# Build checks the vendor files against their upstream SHA-256.
+clients/operit/vendor/* text eol=lf
+tools/vendor/* text eol=lf

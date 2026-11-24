@@ -1,18 +1,16 @@
 # AI 共感娃娃 _(ai-doll-mcp)_
 
+让 AI 感知娃娃上的触摸、局部温度和湿润变化，并通过手机或 MCP 客户端记录与互动。
+
 [![Release](https://img.shields.io/github/v/release/SunRichardSKT/ai-doll-mcp)](https://github.com/SunRichardSKT/ai-doll-mcp/releases/latest)
 [![Checks](https://img.shields.io/github/actions/workflow/status/SunRichardSKT/ai-doll-mcp/checks.yml?branch=main)](https://github.com/SunRichardSKT/ai-doll-mcp/actions/workflows/checks.yml)
 [![Software License: AGPL v3](https://img.shields.io/badge/software-AGPL--3.0--only-blue)](LICENSE)
 [![Hardware License: CERN OHL S v2](https://img.shields.io/badge/hardware-CERN--OHL--S--2.0-green)](hardware/LICENSE)
-[![Hardware](https://img.shields.io/badge/Hardware-ESP32--C3-blue)](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/rev-v2/README.md)
+[![Hardware](https://img.shields.io/badge/Hardware-ESP32--C3-blue)](hardware/gen1/README.md)
 
-让 AI 感知你对娃娃的真实触摸，在聊天里回应，并留下可查询的互动记录。
+[下载 v0.1.4 内测版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.4) · [完整教程](docs/README.md) · [故障排查](docs/TROUBLESHOOTING.md) · [AI 使用说明书](docs/ai/AI_GUIDE.md)
 
-[下载 v0.1.3 内测版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.3) · [完整教程](docs/README.md) · [故障排查](docs/TROUBLESHOOTING.md) · [AI 使用说明书](docs/ai/AI_GUIDE.md)
-
-当前公开版本为 **内测0.1.3版**，支持三步连接、USB 配网、多个 AI 客户端和自定义部位组合。下表列出客户端、运行环境和现板硬件的适用范围。
-
-Claude Code 专用入口和配置导出已加入 `main` 源码；已发布的0.1.3包可通过原有通用 MCP 配置接入，见下方[兼容用法](#claude-code快速接入)。
+**本版更新。** 一代固件默认使用 10 kΩ B3950 温度探头。传感器类型、位置名称、接入状态在同一张卡片上保存。电脑和服务器提供 Claude Code 专用配置。 [更新说明](CHANGELOG.md)
 
 ## 目录
 
@@ -49,7 +47,7 @@ Claude Code 专用入口和配置导出已加入 `main` 源码；已发布的0.1
 | **Claude Code · 官方 CLI** | 本机 MCP（STDIO）或可达的 HTTP MCP | 安装 Claude Code；本机配置与运行 CLI 的系统对应，可用 `/mcp` 检查连接。[快速接入](#claude-code快速接入) |
 | **Claude · 官方网页／手机** | 自有服务器的 HTTPS MCP | 在连接器设置添加设备地址；连接由 Claude 云端发起，需要公网 HTTPS 443。[远程连接](docs/integrations/OFFICIAL_CLIENTS.md#claude-网页和手机远程连接) |
 | **DeepSeek DSH · 官方 Harness** | 本机 MCP（STDIO）或 HTTP MCP | 适用于 DSH 桌面、Web、CLI profile；在运行 DSH 的主机配置服务。[DSH 配置](docs/integrations/OFFICIAL_CLIENTS.md#deepseek-dsh官方-harness) |
-| **Gemini · 官方网页／手机** | 自有服务器的 HTTPS MCP | 当前要求美国地区、18岁以上个人账号、英文界面及开启 Keep Activity；先在网页添加，连接后手机可用。[Google 条件](https://support.google.com/gemini/answer/17209137?hl=en-45) · [步骤](docs/integrations/OFFICIAL_CLIENTS.md#gemini-官方网页与手机) |
+| **Gemini · 官方网页／手机** | 自有服务器的 HTTPS MCP | 使用 Google 账号已开通的 Connected Apps 自定义 MCP 功能；先在网页添加，连接后手机可用。[Google 条件](https://support.google.com/gemini/answer/17209137?hl=en-45) · [步骤](docs/integrations/OFFICIAL_CLIENTS.md#gemini-官方网页与手机) |
 | **Gemini CLI · Google 官方** | 本机 MCP（STDIO）或 HTTP MCP | 安装 CLI，将配置加入 `.gemini/settings.json`；远程连接使用 `httpUrl`。[CLI 配置](docs/integrations/OFFICIAL_CLIENTS.md#gemini-cli) |
 | **Codex · 本机 MCP** | 本机 MCP（STDIO） | 项目提供 `tools/install_companion_mcp.py --codex` 登记入口；电脑采集保持运行。[开发与配置](docs/developers/DEVELOPER_GUIDE.md) |
 | **其他支持 MCP 的客户端** | 按客户端支持选择本机配置或 HTTP MCP | 添加当前设备对应的配置／地址，并在客户端授权工具调用。[接口说明](docs/integrations/CHAT_MCP.md) |
@@ -77,14 +75,14 @@ Claude Code 专用入口和配置导出已加入 `main` 源码；已发布的0.1
 | 产品代际 | 当前范围 | 资料 |
 | --- | --- | --- |
 | **第一代 · ESP32-C3** | 所有已制带线板、V2／V2.2 PCB修订、最终PA2.0插座板及手焊焊盘改进 | [一代文件总览](hardware/gen1/README.md) |
-| **第二代 · ESP32-S3路线** | 开发板与模块化多媒体核心预研；问卷已有模板及发布记录，原理图／PCB／专用固件尚未交付 | [二代研发进度](hardware/gen2/README.md) |
+| **第二代 · ESP32-S3路线** | 模块化多媒体核心独立研发，详见二代页面 | [二代研发进度](hardware/gen2/README.md) |
 
 适用于第一代 **ESP32-C3 SuperMini 核心**，包括已制带线板及最终 PA2.0 锁扣插座板；外壳按实际 PCB 型号选择。
 
 | 功能或硬件 | 当前支持范围 |
 | --- | --- |
 | **压力／触摸输入** | 标准现板8路薄膜压力输入，支持按压、释放、部位命名、端口开关、阈值校准和互动记录。 |
-| **温度感知** | 两线无源 NTC 10kΩ／B3435 探头，占用一个现有传感器口，感知探头附近温度。 |
+| **温度感知** | 两线无源 NTC 10 kΩ B3950 探头，接任一 PA2.0 两针传感器口。把该口设为温度即可查看探头附近的温度。 |
 | **湿润／擦眼泪互动** | 两片导电材料组成湿润感应片，占用一个现有口，与另一路压力事件共同触发擦眼泪互动。 |
 | **压力＋温度＋湿润组合** | 例如6路压力＋1路 NTC＋1路湿润，共用原有8路接口。[接线与制作](hardware/gen1/expansion/resistive-inputs/README.md) |
 | **干接点开关与独立 ADC** | 固件保留 GPIO21 干接点、GPIO1 独立 ADC 扩展；需按电路另行接线与配置，不是新增的板载插座。[通道说明](docs/daily/SENSOR_CHANNELS.md) |
@@ -99,23 +97,23 @@ Claude Code 专用入口和配置导出已加入 `main` 源码；已发布的0.1
 摸摸娃娃的头，也可以成为聊天的一部分。AI 共感娃娃是硬件和软件的项目名称，`ai-doll-mcp` 是源码仓库。主板使用 ESP32-C3，接入薄膜压力传感器后，由手机、电脑或服务器读取触摸事件。
 
 - **触摸回应**。支持按压与释放识别，连续触摸可排队、合并回应。
-- **自定义部位**。按端口设置是否接入、身体部位和反馈偏好。
+- **自定义部位**。按主板 J 编号找到端口，直接修改传感器类型和位置名称。
 - **组合动作**。自定义前胸＋后背＝拥抱等动作，按同时受压识别，原始记录保留。
 - **互动记录**。支持查询、统计、导出，并在重连后补传设备仍保留的记录。
 - **多种接入方式**。Operit 可在家中直连娃娃。电脑和 Linux 服务器可向兼容客户端提供 MCP 接口。
 
 ## 安装
 
-普通用户从 [v0.1.3 内测版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.3) 下载对应附件。Windows 请下载完整包，GitHub 的 **Download ZIP** 用于获取开发源码。需要核对附件完整性时，使用同版 [SHA256SUMS.txt](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.3/SHA256SUMS.txt)。
+普通用户从 [v0.1.4 内测版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.4) 下载对应附件。Windows 请下载完整包，GitHub 的 **Download ZIP** 用于获取开发源码。需要核对附件完整性时，使用同版 [SHA256SUMS.txt](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.4/SHA256SUMS.txt)。
 
 | 你的使用方式 | 下载 | 使用时需要运行 |
 | --- | --- | --- |
-| 只有安卓手机，使用 Operit | [Operit 工具包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.3/AI_Doll_Operit.toolpkg) | 已烧录的娃娃和同一局域网内的手机 |
-| Windows 采集，接 Operit 或本地 MCP | [Windows 完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.3/AI_Doll_Code_v0.1.3.zip) | 娃娃和运行采集服务的电脑 |
-| Windows 采集，接 ChatGPT | [Windows 完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.3/AI_Doll_Code_v0.1.3.zip) | 娃娃、电脑采集服务和 Secure MCP Tunnel |
-| 自有 Linux 服务器，接 Operit 或其他客户端 | [Linux 服务包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.3/AI_Doll_Server_v0.1.3.tar.gz) | 娃娃和接收服务器 |
+| 只有安卓手机，使用 Operit | [Operit 工具包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.4/AI_Doll_Operit.toolpkg) | 已烧录的娃娃和同一局域网内的手机 |
+| Windows 采集，接 Operit 或本地 MCP | [Windows 完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.4/AI_Doll_Code_v0.1.4.zip) | 娃娃和运行采集服务的电脑 |
+| Windows 采集，接 ChatGPT | [Windows 完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.4/AI_Doll_Code_v0.1.4.zip) | 娃娃、电脑采集服务和 Secure MCP Tunnel |
+| 自有 Linux 服务器，接 Operit 或其他客户端 | [Linux 服务包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.4/AI_Doll_Server_v0.1.4.tar.gz) | 娃娃和接收服务器 |
 
-成品用户可先看[6页图文新手说明书](docs/product/抱抱星_共感娃娃核心_新手说明书.pdf)；[产品介绍与图片](docs/product/README.md)可用于介绍和随包说明。
+成品用户可先看[图文新手说明书（0.1.3 界面）](docs/product/抱抱星_共感娃娃核心_新手说明书.pdf)。新版传感器页面见[端口设置](docs/daily/SENSOR_CHANNELS.md)。
 
 先按上方[适用范围](#适用范围)选择客户端与运行环境，再按[完整平台步骤](docs/integrations/OFFICIAL_CLIENTS.md)连接。
 
@@ -137,24 +135,24 @@ Claude Code 专用入口和配置导出已加入 `main` 源码；已发布的0.1
 
 ### Claude Code快速接入
 
-已下载0.1.3 Windows 完整包时，在解压后的项目目录运行：
+用 `AI_Doll.cmd` 完成娃娃配对后，在 Windows 完整包的目录运行以下命令。
 
 ```powershell
-.\python\python.exe -X utf8 tools/install_companion_mcp.py
-claude --mcp-config ./build/device-lab/mcp-client-config.json
+.\python\python.exe -X utf8 tools/install_companion_mcp.py --client claude_code
+claude --mcp-config ./build/device-lab/AI_Doll_Claude_Code.json
 ```
 
-保持 `AI_Doll.cmd` 启动的采集服务运行，在 Claude Code 输入 `/mcp` 查看 `ai_doll`。当前 `main` 源码还提供 `--client claude_code` 专用导出与管理中心入口；服务器用户可复制 `type: "http"` 配置。[CLI 完整说明](docs/integrations/OFFICIAL_CLIENTS.md#claude-codecli)
+保持采集服务运行，在 Claude Code 输入 `/mcp` 查看 `ai_doll`。服务器用户可从设备卡复制 HTTP 配置。[CLI 完整说明](docs/integrations/OFFICIAL_CLIENTS.md#claude-codecli)
 
 ### Linux 服务器
 
-准备可通过 SSH 访问的 Ubuntu 或 Debian 服务器和已解析的域名。上传服务包与同版 [校验文件](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.3/AI_Doll_Server_v0.1.3.tar.gz.sha256)，在 SSH 终端运行以下命令。
+准备可通过 SSH 访问的 Ubuntu 或 Debian 服务器和已解析的域名。上传服务包与同版 [校验文件](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.4/AI_Doll_Server_v0.1.4.tar.gz.sha256)，在 SSH 终端运行以下命令。
 
 ```bash
-sha256sum -c AI_Doll_Server_v0.1.3.tar.gz.sha256
-mkdir ai-doll-server-0.1.3
-tar -xzf AI_Doll_Server_v0.1.3.tar.gz -C ai-doll-server-0.1.3
-cd ai-doll-server-0.1.3
+sha256sum -c AI_Doll_Server_v0.1.4.tar.gz.sha256
+mkdir ai-doll-server-0.1.4
+tar -xzf AI_Doll_Server_v0.1.4.tar.gz -C ai-doll-server-0.1.4
+cd ai-doll-server-0.1.4
 sudo bash Install_Server.sh
 ```
 
@@ -166,7 +164,7 @@ sudo bash Install_Server.sh
 
 1. **准备设备。** 空白开发板用 Windows 完整包内的 `Flash_ESP32.cmd` 烧录。已有设备先核对版本和连接，保留原校准、配对及历史。 [一键烧录](docs/start/QUICK_FLASH.md)
 2. **确认在线。** 在手机或电脑核对设备 ID。首次无线配网时，连着娃娃热点才能打开 `http://192.168.4.1/setup`。完成配网后，切回家庭网络使用设备。 [配网与找回设备](docs/daily/WIFI_CONNECTION.md)
-3. **试一个部位。** 把实际装好的端口设为“已接入”，填入部位并完成校准。按压并松开一次，检查历史是否出现该部位的记录。 [接线与端口](docs/daily/SENSOR_CHANNELS.md) · [压力校准](docs/daily/CALIBRATION_AND_DAILY_MODE.md)
+3. **试一个部位。** 在“传感器端口”找到主板上的 J 编号，选传感器类型，填位置名称并设为“已接入”，点“保存此端口”。压力端口完成校准后可试一次按压。温度端口会在卡片上显示当前温度。 [接线与端口](docs/daily/SENSOR_CHANNELS.md) · [压力校准](docs/daily/CALIBRATION_AND_DAILY_MODE.md)
 4. **核对聊天接入。** Operit 绑定聊天后可开启“触摸主动回复”。使用 MCP 的客户端可以先让 AI 查询设备，核对返回的 ID。 [MCP 聊天验证](docs/integrations/CHAT_MCP.md)
 
 ### 日常操作
@@ -195,7 +193,7 @@ sudo bash Install_Server.sh
 
 按实际 PCB 选择打印件，核心壳的底壳、托板和上盖配套打印。[结构加固与打印说明](hardware/gen1/enclosure/PRINT_STRENGTHENING.md)提供装配尺寸和建议。
 
-0.1.1 固件支持压力与干接点，0.1.2 增加 NTC 和湿润片。[固件功能](docs/reports/FIRMWARE_INPUTS.md) · [交付文件](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/delivery/README.md) · [检查记录](docs/reports/VALIDATION.md)
+[固件与分区说明](firmware/prebuilt/README.md) · [版本附件](delivery/README.md) · [检查记录](docs/reports/VALIDATION.md)
 
 ## 开发与接口
 

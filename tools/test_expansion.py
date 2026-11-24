@@ -46,6 +46,20 @@ int main(){
  JsonDocument all;deserializeJson(all,"{\"channels\":["+head+","+temp+","+wet+"]}");ChannelConfig original[MAX_CHANNELS];String configError;assert(parseChannels(all.as<JsonVariantConst>(),original,configError));
  JsonDocument encoded;encodeChannels(encoded.to<JsonObject>(),original);ChannelConfig roundtrip[MAX_CHANNELS];assert(parseChannels(encoded.as<JsonVariantConst>(),roundtrip,configError));
  assert(roundtrip[0].on==699&&roundtrip[6].ntc.beta==3435&&roundtrip[6].ntc.series==4700&&roundtrip[7].wet.holdMs==600&&roundtrip[7].wet.pressureChannel==0);
+ all["channels"][1]["options"].remove("beta");
+ ChannelConfig legacy[MAX_CHANNELS],fresh[MAX_CHANNELS];
+ assert(parseChannels(all.as<JsonVariantConst>(),legacy,configError,3435)&&legacy[6].ntc.beta==3435);
+ assert(parseChannels(all.as<JsonVariantConst>(),fresh,configError)&&fresh[6].ntc.beta==3950);
+ for(int i=0;i<MAX_CHANNELS;i++)channels[i]=roundtrip[i];
+ channels[5]=channels[0];channels[5].mux=5;channels[5].enabled=false;
+ JsonDocument change;deserializeJson(change,R"({"channel":5,"name":"palm","mode":"connected","type":"temperature"})");
+ ChannelConfig edited[MAX_CHANNELS];assert(parseChannelUpdate(change.as<JsonVariantConst>(),5,edited,configError));
+ assert(edited[5].name=="palm"&&edited[5].enabled&&edited[5].mux==5&&edited[5].ntc.beta==3950);
+ assert(edited[0].on==699&&edited[0].off==295&&edited[6].ntc.beta==3435&&edited[7].wet.pressureChannel==0);
+ JsonDocument storedEdit;encodeChannels(storedEdit.to<JsonObject>(),edited);ChannelConfig restored[MAX_CHANNELS];
+ assert(parseChannels(storedEdit.as<JsonVariantConst>(),restored,configError,3435)&&restored[5].ntc.beta==3950);
+ ChannelConfig denied[MAX_CHANNELS];assert(!parseChannelUpdate(change.as<JsonVariantConst>(),0,denied,configError));
+ assert(configError=="pressure_channel must reference an existing pressure input"&&channels[0].kind==DeviceKind::PRESSURE);
  assert(accepts(head+","+contact));assert(!accepts(head+","+head));
  for(const char* kind:{"motion","vibration","light"})assert(!accepts(std::string("{\"channel\":8,\"name\":\"removed\",\"type\":\"")+kind+"\",\"driver\":\"simulation\"}"));
  assert(!accepts(R"({"channel":0,"name":"wrong","type":"switch","driver":"gpio_switch","gpio":20})"));
@@ -56,6 +70,7 @@ int main(){
  JsonDocument persisted;encodeChannels(persisted.to<JsonObject>(),next);persisted["retired_channels"]=serialized(retiredChannels);persisted["resume_inputs"]=true;
  std::string savedBlob;serializeJson(persisted,savedBlob);retiredChannels="[]";deserializeJson(persisted,savedBlob);retireUnsupportedChannels(persisted);assert(retiredChannelCount==2&&persisted["channels"].size()==2); // Reboot never duplicates or activates retired rows.
  JsonDocument caps;channelCapabilities(caps.to<JsonObject>());assert(caps["types"].size()==4&&caps["physical_outputs_supported"]==false);
+ assert(caps["port_type_update"]==true&&caps["types"][2]["model"]=="ntc_10k_3950");
 }
 '''
         with tempfile.TemporaryDirectory(prefix='aidoll-config-') as folder:

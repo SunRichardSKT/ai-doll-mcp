@@ -115,10 +115,14 @@ def get_sensor_config() -> dict:
 
 
 @mcp.tool(annotations=ToolAnnotations(readOnlyHint=False, destructiveHint=False))
-def set_channel_state(channel: StrictInt, mode: Literal['off','simulation','connected'] | None = None, name: str | None = None) -> dict:
-    """Patch one installed input port, preserving wiring and calibration. Connected is saved installation intent, not electrical detection."""
-    return call('set_channel_state', dict(channel=channel, **({'mode': mode} if mode is not None else {}),
-                                           **({'name': name} if name is not None else {})))
+def set_channel_state(channel: StrictInt, mode: Literal['off','simulation','connected'] | None = None,
+                      name: str | None = None, type: str | None = None, options: dict | None = None) -> dict:
+    """Edit one port with its existing binding. With port_type_update support, set type and replace options in the same call.
+
+    New temperature ports on current firmware default to NTC 10k/B3950. Connected is the saved installation setting.
+    """
+    changes = {'mode': mode, 'name': name, 'type': type, 'options': options}
+    return call('set_channel_state', {'channel': channel, **{key: value for key, value in changes.items() if value is not None}})
 
 
 @mcp.tool()
@@ -241,16 +245,13 @@ class ChannelConfig(BaseModel):
 def set_channel_config(channels: list[ChannelConfig], schema_version: int = 1) -> dict:
     """Atomically replace ALL 1..16 channels, not a partial patch. First read current config and preserve desired channels.
     pressure/temperature/wetness: input using simulation, mux_adc(port 0..7 unique) or gpio_adc(GPIO1).
-    vibration: output using simulation or gpio_pwm(GPIO6/7/10 unique), requires external motor driver.
-    Temperature preset NTC10k B3950, options r0_ohm/beta_kelvin/pull_down_ohm/series_ohm/supply_mv/offset_c/sample_ms/report_ms.
-    Current firmware: temperature options model=ntc, r25_ohm=10000, beta=3435,
+    Current firmware: temperature options model=ntc, r25_ohm=10000, beta=3950,
     pull_down_ohm=10000, series_ohm=4700, supply_mv=3300, offset_c=0,
     change_c=1, sample_ms=1000, report_ms=30000. Probe temperature, not core body temperature.
     wetness options wet_threshold=500, dry_threshold=250, hold_ms=600, dry_ms=1000,
     pressure_channel=<existing pressure input>. Wet+pressure emits one wipe until dry.
-    Check capabilities before writing; older firmware lacks these types. DS18B20 remains unsupported.
-    motion: lis3dh on GPIO6/7 with address=24 or25, options upright_axis/shake_threshold_g/cooldown_ms/sample_ms. Cannot share PWM6/7.
-    light: gpio_pwm GPIO20 with series current limiting. switch: gpio_switch GPIO21 with external pull-up, options active_low/debounce_ms. These pins cannot also be UART.
+    Check capabilities before writing. For older NTC-capable firmware, pass beta=3950 explicitly.
+    switch: gpio_switch GPIO21 with external pull-up, options active_low/debounce_ms.
     Existing V2 MUX branch has 4.7k series and 10k pull-down. pressure options press_threshold/release_threshold.
     All explicit per-port modes resume declared connected inputs; legacy configs without modes pause inputs. Both stop physical outputs. Unknown types/drivers are rejected.
     """

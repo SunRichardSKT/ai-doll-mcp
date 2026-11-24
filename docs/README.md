@@ -2,11 +2,11 @@
 
 让娃娃连接网络、记录触摸，并在聊天中回应。先按使用环境选一条安装路线。
 
-当前源码为内测0.1.3版，配网后按[ChatGPT、Claude、DeepSeek DSH、Gemini、Operit](integrations/OFFICIAL_CLIENTS.md)选择接入；下载对应0.1.3附件。[改动与检查](reports/ONBOARDING_013.md)
+配网后按[平台连接指南](integrations/OFFICIAL_CLIENTS.md)接入 ChatGPT、Claude、DeepSeek DSH、Gemini 或 Operit。查看[新版端口设置](daily/SENSOR_CHANNELS.md)了解温度探头的安装与读数。
 
-[项目首页](../README.md) · [下载 v0.1.3 内测版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.3) · [更新说明](../CHANGELOG.md)
+[项目首页](../README.md) · [下载 v0.1.4 内测版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.4) · [更新说明](../CHANGELOG.md)
 
-成品用户可直接阅读[图文新手说明书](product/抱抱星_共感娃娃核心_新手说明书.pdf)，产品介绍和美化图片见[产品资料](product/README.md)。
+成品用户可阅读[图文新手说明书（0.1.3 界面）](product/抱抱星_共感娃娃核心_新手说明书.pdf)，产品介绍和美化图片见[产品资料](product/README.md)。
 
 ## 入门
 
@@ -33,7 +33,7 @@
 - [硬件代际与文件入口](../hardware/README.md) · [第一代C3全部资料](../hardware/gen1/README.md) · [第二代S3研发进度](../hardware/gen2/README.md)
 
 - [主板、采购与制造资料](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/gen1/pcb/README.md) · [按板型选择外壳](https://github.com/SunRichardSKT/ai-doll-mcp/blob/main/hardware/gen1/enclosure/README.md)
-- [温度与擦眼泪制作指南](../hardware/gen1/expansion/resistive-inputs/README.md)：0.1.2 支持六路压力＋一路 NTC＋一路湿润片。
+- [温度与擦眼泪制作指南](../hardware/gen1/expansion/resistive-inputs/README.md)，例如六路压力、一路 B3950 和一路湿润片。
 - [现板扩展参考](../hardware/gen1/expansion/current-board/README.md) · [旧版 DS18B20 资料](daily/DIGITAL_TEMPERATURE.md)
 
 ## 开发与接口

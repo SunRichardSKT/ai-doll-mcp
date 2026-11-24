@@ -41,9 +41,9 @@ jobs:
         run: python tools/check_documentation.py --repository .
       - name: Build and audit Linux delivery
         run: |
-          python -c "from pathlib import Path; from package_companion import server_package; server_package(Path('delivery'))"
-          python tools/audit_delivery.py delivery/AI_Doll_Server_v0.1.3.tar.gz
-          python tools/check_documentation.py --archive delivery/AI_Doll_Server_v0.1.3.tar.gz
+          package="$(python -c "from pathlib import Path; from package_companion import server_package; print('delivery/' + server_package(Path('delivery'))['file'])")"
+          python tools/audit_delivery.py "$package"
+          python tools/check_documentation.py --archive "$package"
   firmware:
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -60,6 +60,6 @@ jobs:
       - name: Compile the actual ESP32-C3 application
         run: python -m platformio run -d firmware -e supermini-lab
       - name: Validate flash tool metadata through production serializer and MCP SDK
-        run: python -m unittest test_firmware_tools test_embed_assets test_expansion test_resistive_inputs
+        run: python -m unittest test_firmware_tools test_embed_assets test_expansion test_resistive_inputs test_factory_probe
       - name: Export and check actual image size, hashes and unchanged partitions
         run: python tools/export_firmware.py

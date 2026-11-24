@@ -5,11 +5,13 @@ import json
 from pathlib import Path
 import zipfile
 
+from _source_path import load
 from chat_mcp_gateway import ROOT
 from remote_mcp import CapabilityStore
 from deploy_mcp import DEFAULT, config, verify
 from private_storage import private_directory
 
+VERSION = load('ai_doll.core.version').VERSION
 
 def build_package(folder=DEFAULT, output=None):
     folder=Path(folder).resolve()
@@ -25,7 +27,7 @@ def build_package(folder=DEFAULT, output=None):
     private_directory(output.parent)
     manifest={
         '$schema':'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json',
-        'name':'ai-doll-chat','version':'0.1.3',
+        'name':'ai-doll-chat','version':VERSION,
         'description':'Private MCP connection for doll history and timed interaction in the current conversation.',
         'author':{'name':'SunRichardSKT'},
         'extensions':{'com.openai':{'interface':{

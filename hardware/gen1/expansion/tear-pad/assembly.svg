@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1080" viewBox="0 0 1400 1080">
+<style>text{font-family:"Microsoft YaHei","Noto Sans CJK SC",sans-serif}</style>
+<rect width="1400" height="1080" fill="#f6f9fc"/>
+<text x="55" y="65" font-size="39" fill="#243a4b" text-anchor="start" font-weight="700">泪水感应片 · 现有 C3 主板直插方案</text>
+<text x="55" y="108" font-size="23" fill="#243a4b" text-anchor="start" font-weight="400">TD-C3-PA2-R01  /  结构与接线示意  /  单位 mm  /  2026-11-17</text>
+<rect x="40" y="140" width="660" height="610" rx="18" fill="#ffffff" stroke="#d7e2eb" stroke-width="2" />
+<rect x="725" y="140" width="635" height="610" rx="18" fill="#ffffff" stroke="#d7e2eb" stroke-width="2" />
+<text x="65" y="185" font-size="29" fill="#243a4b" text-anchor="start" font-weight="700">正面尺寸与接线干区</text>
+<rect x="112" y="253" width="330" height="385" rx="33" fill="#ebf2f7" stroke="#54768d" stroke-width="2" />
+<rect x="167" y="286" width="220" height="198" rx="5" fill="#e1f5f8" stroke="#6ab7c7" stroke-width="2" />
+<rect x="205.5" y="308" width="55" height="264" rx="8.8" fill="#98aab5" stroke="#4d6575" stroke-width="2" />
+<rect x="293.5" y="308" width="55" height="264" rx="8.8" fill="#98aab5" stroke="#4d6575" stroke-width="2" />
+<rect x="112" y="484" width="330" height="154" rx="25" fill="#fff0d9" stroke="#ceaa71" stroke-width="2" />
+<rect x="200" y="484" width="154" height="44" rx="2" fill="#e7bf7b" stroke="#bc8a36" stroke-width="2" />
+<rect x="207.7" y="530.2" width="50.599999999999994" height="37.4" rx="3" fill="#d2d7da" stroke="#728a97" stroke-width="2" />
+<rect x="295.7" y="530.2" width="50.599999999999994" height="37.4" rx="3" fill="#d2d7da" stroke="#728a97" stroke-width="2" />
+<path d="M233,566.5L266,693" fill="none" stroke="#b94f62" stroke-width="2" />
+<path d="M321,566.5L299,693" fill="none" stroke="#34485b" stroke-width="2" />
+<text x="233" y="385" font-size="27" fill="#ffffff" text-anchor="middle" font-weight="700">A</text>
+<text x="321" y="385" font-size="27" fill="#ffffff" text-anchor="middle" font-weight="700">B</text>
+<path d="M112,224L442,224" fill="none" stroke="#627b8c" stroke-width="2" />
+<path d="M112,216L112,235" fill="none" stroke="#627b8c" stroke-width="2" />
+<path d="M442,216L442,235" fill="none" stroke="#627b8c" stroke-width="2" />
+<text x="277" y="217" font-size="24" fill="#243a4b" text-anchor="middle" font-weight="400">30 ±0.5</text>
+<path d="M83,253L83,638" fill="none" stroke="#627b8c" stroke-width="2" />
+<path d="M76,253L91,253" fill="none" stroke="#627b8c" stroke-width="2" />
+<path d="M76,638L91,638" fill="none" stroke="#627b8c" stroke-width="2" />
+<text x="69" y="445" transform="rotate(-90 69 445)" font-size="24">35 ±0.5</text>
+<text x="473" y="296" font-size="24" fill="#243a4b" text-anchor="start" font-weight="400">薄亲水面布</text>
+<text x="473" y="329" font-size="24" fill="#243a4b" text-anchor="start" font-weight="400">20×18</text>
+<path d="M448,305L468,305" fill="none" stroke="#627b8c" stroke-width="2" />
+<text x="473" y="384" font-size="24" fill="#243a4b" text-anchor="start" font-weight="400">电极 5×24</text>
+<text x="473" y="417" font-size="23" fill="#243a4b" text-anchor="start" font-weight="400">有效段 5×15</text>
+<text x="473" y="458" font-size="24" fill="#243a4b" text-anchor="start" font-weight="400">金属间距 3</text>
+<text x="473" y="527" font-size="23" fill="#243a4b" text-anchor="start" font-weight="400">截水带 Y21～25</text>
+<text x="473" y="566" font-size="23" fill="#243a4b" text-anchor="start" font-weight="400">压接在密封干区</text>
+<text x="473" y="611" font-size="23" fill="#243a4b" text-anchor="start" font-weight="400">加强布独立固线</text>
+<text x="82" y="716" font-size="23" fill="#243a4b" text-anchor="start" font-weight="400">有效区≤1.5厚；干区≤3厚（均为打样目标）</text>
+<text x="750" y="185" font-size="29" fill="#243a4b" text-anchor="start" font-weight="700">叠层与安装</text>
+<rect x="760" y="250" width="160" height="32" rx="5" fill="#dff2f6" stroke="#778c9c" stroke-width="2" />
+<text x="943" y="277" font-size="24" fill="#243a4b" text-anchor="start" font-weight="400">① 薄亲水接触布</text>
+<rect x="760" y="330" width="160" height="32" rx="5" fill="#a5b4bf" stroke="#778c9c" stroke-width="2" />
+<text x="943" y="357" font-size="24" fill="#243a4b" text-anchor="start" font-weight="400">② 双电极＋绝缘定位框</text>
+<rect x="760" y="410" width="160" height="32" rx="5" fill="#d9e3ee" stroke="#778c9c" stroke-width="2" />
+<text x="943" y="437" font-size="24" fill="#243a4b" text-anchor="start" font-weight="400">③ 不透液 TPU 背衬</text>
+<rect x="760" y="490" width="160" height="32" rx="5" fill="#eee5df" stroke="#778c9c" stroke-width="2" />
+<text x="943" y="517" font-size="24" fill="#243a4b" text-anchor="start" font-weight="400">④ 掌心薄垫布</text>
+<rect x="760" y="570" width="160" height="32" rx="5" fill="#d6eadf" stroke="#778c9c" stroke-width="2" />
+<text x="943" y="597" font-size="24" fill="#243a4b" text-anchor="start" font-weight="400">⑤ 原有掌部 FSR（另一路）</text>
+<text x="760" y="659" font-size="23" fill="#243a4b" text-anchor="start" font-weight="400">感应面露在掌心薄布区，别埋在厚毛绒下。</text>
+<text x="760" y="703" font-size="23" fill="#243a4b" text-anchor="start" font-weight="400">截水带必须浸透纤维全厚度，接点不见水。</text>
+<rect x="40" y="775" width="1320" height="265" rx="18" fill="#ffffff" stroke="#d7e2eb" stroke-width="2" />
+<text x="65" y="819" font-size="28" fill="#243a4b" text-anchor="start" font-weight="700">现板接法：占 J8 / CH7；掌部 FSR 保持独立接口</text>
+<rect x="75" y="853" width="230" height="95" rx="10" fill="#edf5fa" stroke="#698da5" stroke-width="2" />
+<text x="190" y="893" font-size="25" fill="#243a4b" text-anchor="middle" font-weight="700">PA2.0 2P 线端</text>
+<text x="190" y="928" font-size="22" fill="#243a4b" text-anchor="middle" font-weight="400">PAP-02V-S</text>
+<path d="M307,876L396,876" fill="none" stroke="#b94f62" stroke-width="2" />
+<path d="M307,928L396,928" fill="none" stroke="#34485b" stroke-width="2" />
+<text x="417" y="885" font-size="24" fill="#243a4b" text-anchor="start" font-weight="400">1号孔 → A；主板 EXC（已有4.7kΩ激励）</text>
+<text x="417" y="937" font-size="24" fill="#243a4b" text-anchor="start" font-weight="400">2号孔 → B；主板 CH（已有10kΩ下拉及ADC）</text>
+<text x="75" y="999" font-size="24" fill="#243a4b" text-anchor="start" font-weight="400">300±10 软线  ·  按针号通断确认  ·  不接电池／充电板  ·  不在湿区露铜或焊锡</text>
+</svg>

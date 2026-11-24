@@ -2,8 +2,9 @@
 #include <math.h>
 #include <stdint.h>
 
+static constexpr float NTC_DEFAULT_BETA=3950;
 struct NtcOptions {
- float r25=10000,beta=3435,pullDown=10000,series=4700,supplyMv=3300,offset=0,delta=1;
+ float r25=10000,beta=NTC_DEFAULT_BETA,pullDown=10000,series=4700,supplyMv=3300,offset=0,delta=1;
  int reportMs=30000;
 };
 // Board topology: supply -> series -> probe -> ADC -> pullDown -> GND.

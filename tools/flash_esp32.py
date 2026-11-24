@@ -71,9 +71,13 @@ def select_port(ports, explicit=None):
 
 
 def run_tool(arguments, logfile):
-    command = [sys.executable, '-X', 'utf8', '-m', 'esptool'] + arguments
+    if getattr(sys, 'frozen', False):
+        command = [str(Path(sys.executable).parent / '_internal/esptool-worker.exe')] + arguments
+    else:
+        command = [sys.executable, '-X', 'utf8', '-m', 'esptool'] + arguments
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                               text=True, encoding='utf-8', errors='replace')
+                               text=True, encoding='utf-8', errors='replace',
+                               creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
     lines = []
     with logfile.open('a', encoding='utf-8') as log:
         for line in process.stdout:
@@ -253,12 +257,15 @@ def _flash(args, job):
         manifest, pairs = validate_images(args.images)
         job.update(firmware=manifest['firmware'], written_images=manifest['images'],
                    manifest_sha256=hashlib.sha256((args.images/'FLASH_MANIFEST.json').read_bytes()).hexdigest())
-        if importlib.util.find_spec('serial') is None or importlib.util.find_spec('esptool') is None:
+        tool_available = ((Path(sys.executable).parent / '_internal/esptool-worker.exe').is_file()
+                          if getattr(sys, 'frozen', False) else importlib.util.find_spec('esptool') is not None)
+        if importlib.util.find_spec('serial') is None or not tool_available:
             raise RuntimeError('烧录依赖缺失，请使用完整 Windows 软件包。')
         from serial.tools.list_ports import comports
         port = select_port(list(comports()), args.port)
         job.update(port=port)
-        resume = pause_collector(port)
+        if getattr(args, 'manage_companion', True):
+            resume = pause_collector(port)
         previous = capture_existing(port)
         job.update(previous_device_id=previous.get('device_id'), phase='connect')
         job.message('准备烧录：'+port+' → '+manifest['firmware'])
@@ -293,7 +300,8 @@ def _flash(args, job):
                              or state.get('physical_outputs_enabled')
                              or state.get('factory_profile') != 'physical-ch0-v1'):
             raise RuntimeError('恢复出厂后的默认状态检查未通过。')
-        job.update(pairing_refreshed=refresh_pairing(previous,state))
+        job.update(pairing_refreshed=refresh_pairing(previous,state)
+                   if getattr(args, 'manage_companion', True) else False)
         job.update(status='success', phase='done', finished_at=dt.datetime.now(dt.timezone.utc).isoformat())
         job.message('烧录成功：'+state['device_id'])
         job.message(('连接临时热点 ' if state.get('config_ap_open') else '已保留家庭配网。需要设置时，运行中长按 BOOT 约3秒再连接热点 ')+state['configuration_hotspot']+'，浏览器打开 '+SETUP_URL)

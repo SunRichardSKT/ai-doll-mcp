@@ -17,14 +17,18 @@ class ResistiveNativeTests(unittest.TestCase):
 #include "resistive_inputs.h"
 int main(){
  NtcOptions o;float c=0;
+ assert(o.r25==10000&&o.beta==3950);
+ assert(ntcTemperature(289.959f,o,c)&&fabsf(c+19)<.02);
+ assert(ntcTemperature(682.939f,o,c)&&fabsf(c)<.02);
  assert(ntcTemperature(1336.0324f,o,c)&&fabsf(c-25)<.02);
- assert(ntcTemperature(760.294f,o,c)&&fabsf(c)<.02);
- assert(ntcTemperature(1613.001f,o,c)&&fabsf(c-40)<.02);
+ assert(ntcTemperature(1575.833f,o,c)&&fabsf(c-36)<.02);
+ assert(ntcTemperature(1649.879f,o,c)&&fabsf(c-40)<.02);
+ assert(ntcTemperature(2061.042f,o,c)&&fabsf(c-79)<.02);
+ assert(!ntcTemperature(240,o,c)&&!ntcTemperature(2100,o,c));
  assert(!ntcTemperature(0,o,c)&&!ntcTemperature(3300,o,c));
  assert(!ntcTemperature(2244.898f,o,c)); // Shorted probe, 4.7k/10k divider ceiling.
  assert(!ntcTemperature(NAN,o,c));
- o.beta=3950;assert(ntcTemperature(1613.001f,o,c)&&fabsf(c-40)>1);
- o.beta=3435;o.offset=1;assert(ntcTemperature(1336.0324f,o,c)&&fabsf(c-26)<.02);
+ o.offset=1;assert(ntcTemperature(1336.0324f,o,c)&&fabsf(c-26)<.02);
  TemperatureInput t;
  assert(t.sample(25,0,o));assert(!t.sample(25.4,1000,o));
  assert(t.sample(26,2000,o));assert(!t.sample(26.2,31000,o));assert(t.sample(26.2,32000,o));

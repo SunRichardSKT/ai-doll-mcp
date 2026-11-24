@@ -1,0 +1,3 @@
+# Developer-only packaging tools. Production users open the bundled EXE.
+-r requirements-flash.txt
+pyinstaller==6.17.0

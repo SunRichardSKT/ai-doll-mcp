@@ -10,8 +10,10 @@ import os
 from pathlib import Path
 import sys
 import zipfile
+from _source_path import load
 
 ROOT = Path(__file__).resolve().parents[1]
+VERSION = load('ai_doll.core.version').VERSION
 REPOSITORY = 'https://github.com/SunRichardSKT/ai-doll-mcp'
 
 
@@ -22,7 +24,7 @@ def build_package(python: Path, output: Path) -> dict:
         raise ValueError('Python must be an executable file')
     manifest = {
         '$schema': 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json',
-        'name': 'ai-doll-local', 'version': '0.1.3',
+        'name': 'ai-doll-local', 'version': VERSION,
         'description': 'Local Windows MCP connection to the installed AI Doll service. Actual Chat support requires testing.',
         'author': {'name': 'SunRichardSKT'},
         'homepage': REPOSITORY, 'repository': REPOSITORY,

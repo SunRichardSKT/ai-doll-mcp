@@ -22,7 +22,7 @@ def describe(folder, kind, label, **extra):
     manifest, _ = validate_images(folder)
     digest = hashlib.sha256((Path(folder) / MANIFEST).read_bytes()).hexdigest()
     return dict(kind=kind, label=label, firmware=manifest['firmware'],
-                source_id=digest, **extra)
+                factory_sample_revision=manifest.get('factory_sample_revision'), source_id=digest, **extra)
 
 
 def prepare_files(files, cache):

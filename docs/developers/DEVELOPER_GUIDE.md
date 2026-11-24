@@ -2,7 +2,7 @@
 
 从源码构建固件、维护服务与接口，并生成交付包。[教程目录](../README.md) · [完整包安装](../start/AI_INSTALL.md)
 
-当前源码与本地交付包为 **内测0.1.3版／固件0.1.3**。下方为同版下载。[下载](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.3) · [更新说明](../../CHANGELOG.md)。源码中的`delivery/`只保存入口和校验元数据，完整包放在Releases。
+当前配套软件与固件版本为 **0.1.4**。[下载](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.4) · [更新说明](../../CHANGELOG.md)。源码中的`delivery/`只保存入口和校验元数据，完整包放在Releases。
 
 ## 项目结构
 
@@ -90,13 +90,13 @@ Node / Playwright 页面测试需要开发者另装对应环境，运行 `tools/
 
 ```powershell
 .\.venv\Scripts\python.exe -X utf8 tools/build_portable_python.py
-.\.venv\Scripts\python.exe -X utf8 hardware/gen1/enclosure/package_enclosures.py --output delivery/AI_Doll_Enclosures_v0.1.3.zip --stacked-output delivery/AI_Doll_Stacked_Enclosure_v0.1.3.zip
+.\.venv\Scripts\python.exe -X utf8 hardware/gen1/enclosure/package_enclosures.py --output delivery/AI_Doll_Enclosures_v0.1.4.zip --stacked-output delivery/AI_Doll_Stacked_Enclosure_v0.1.4.zip
 .\.venv\Scripts\python.exe -X utf8 tools/package_companion.py
-.\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Code_v0.1.3.zip
-.\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Server_v0.1.3.tar.gz
+.\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Code_v0.1.4.zip
+.\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Server_v0.1.4.tar.gz
 .\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --repository .
-.\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --archive delivery/AI_Doll_Code_v0.1.3.zip
-.\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --archive delivery/AI_Doll_Server_v0.1.3.tar.gz
+.\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --archive delivery/AI_Doll_Code_v0.1.4.zip
+.\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --archive delivery/AI_Doll_Server_v0.1.4.tar.gz
 ```
 
 `build_portable_python.py` 从官方 CPython 和固定 wheel 构建 Windows x64 运行环境，需要联网。已有完整运行环境时先验证并复用，不要再次覆盖运行中的 `python/`；确需重建时，在停止本项目服务后，将整个已有 `python/` 移到项目内明确的备份位置，再恢复源码的 README、许可和版本元数据后构建。不要打包开发用 `.venv`。
@@ -105,7 +105,7 @@ Node / Playwright 页面测试需要开发者另装对应环境，运行 `tools/
 
 上述命令不重新编译固件；默认使用仓库中已配套校验的四个预编译镜像。只有修改了固件源码时，才先完成“编译固件”与导出清单，再打包。ZIP / TAR 内 `MANIFEST.json` 是逐文件 SHA-256，ToolPkg 使用 `CHECKSUMS.json`。`DELIVERY_MANIFEST.json` 和 `SHA256SUMS.txt` 记录 Windows、Linux、PCB 与独立手机工具包的哈希。
 
-完整包发布到 GitHub Releases；源码中的 delivery 只保存当前下载入口与校验清单。Linux 安装器从相同版本的 Release 下载包和校验文件。历史版的校验应使用该版 Release 附带的 `SHA256SUMS.txt` / `DELIVERY_MANIFEST.json`，不能使用滚动更新的 main 清单。目录与冗余清理规则见 [项目结构](REPOSITORY_LAYOUT.md)。
+完整包发布到 GitHub Releases。维护工位的独立包按其[打包指南](../start/FACTORY_CHECK.md)构建。源码中的 `delivery/` 保存下载入口与校验清单。Linux 安装器从相同版本的 Release 下载包和校验文件。历史版的校验应使用该版 Release 附带的 `SHA256SUMS.txt` / `DELIVERY_MANIFEST.json`，不能使用滚动更新的 main 清单。目录与冗余清理规则见 [项目结构](REPOSITORY_LAYOUT.md)。
 
 首页与使用指南维护在源文件中，打包复用相同文档；不得将配对、个人历史、隧道令牌或日志加入允许清单。发布前验证所有 Markdown 链接、实际下载校验、固件 / PCB 非文档文件未意外改变。
 
