@@ -24,6 +24,7 @@ def main():
     if revision:manifest['network_revision']=int(revision[1])
     factory_revision=re.search(r'o\["factory_sample_revision"\]=(\d+)',source)
     if factory_revision:manifest['factory_sample_revision']=int(factory_revision[1])
+    if 'o["factory_sample_millivolts"]=true' in source:manifest['factory_sample_millivolts']=True
     for item in manifest['images']:
         data=(out/item['file']).read_bytes()
         item.update(bytes=len(data),sha256=hashlib.sha256(data).hexdigest())

@@ -40,6 +40,9 @@ int main(){
  std::string temp=R"({"channel":6,"name":"surface","type":"temperature","driver":"mux_adc","mux_port":6,"mode":"connected","options":{"model":"ntc","beta":3435}})";
  std::string wet=R"({"channel":7,"name":"paw","type":"wetness","driver":"mux_adc","mux_port":7,"mode":"connected","options":{"pressure_channel":0}})";
  assert(accepts(head+","+temp+","+wet));assert(!accepts(wet));
+ std::string standalone=R"({"channel":7,"name":"paw","type":"wetness","driver":"mux_adc","mux_port":7,"options":{"pressure_channel":-1}})";
+ assert(accepts(standalone));
+ assert(accepts(R"({"channel":7,"name":"paw","type":"wetness","driver":"mux_adc","mux_port":7})"));
  assert(!accepts(head+","+std::string(R"({"channel":7,"name":"bad","type":"wetness","driver":"mux_adc","mux_port":0})")));
  assert(!accepts(R"({"channel":6,"name":"bad","type":"temperature","driver":"mux_adc","mux_port":6,"options":{"beta":0}})"));
  assert(!accepts(R"({"channel":6,"name":"bad","type":"temperature","driver":"mux_adc","mux_port":6,"options":{"model":"ds18b20"}})"));
@@ -50,6 +53,19 @@ int main(){
  ChannelConfig legacy[MAX_CHANNELS],fresh[MAX_CHANNELS];
  assert(parseChannels(all.as<JsonVariantConst>(),legacy,configError,3435)&&legacy[6].ntc.beta==3435);
  assert(parseChannels(all.as<JsonVariantConst>(),fresh,configError)&&fresh[6].ntc.beta==3950);
+ JsonDocument curve;assert(!deserializeJson(curve,R"({"channels":[{"channel":6,"name":"NTC","type":"temperature","driver":"mux_adc","mux_port":6,"options":{"offset_c":1.25,"curve":[{"temp_c":15,"resistance_ohm":15500},{"temp_c":25,"resistance_ohm":10000},{"temp_c":40,"resistance_ohm":5400}]}},)"+standalone+"]}"));
+ ChannelConfig calibrated[MAX_CHANNELS];assert(parseChannels(curve.as<JsonVariantConst>(),calibrated,configError));
+ assert(calibrated[6].ntc.curveCount==3&&calibrated[6].ntc.offset==1.25f&&!calibrated[7].wet.needsPressure());
+ JsonDocument curveStored;encodeChannels(curveStored.to<JsonObject>(),calibrated);
+ std::string curveBlob;serializeJson(curveStored,curveBlob);
+ assert(!deserializeJson(curveStored,curveBlob));ChannelConfig curveRestored[MAX_CHANNELS];
+ assert(parseChannels(curveStored.as<JsonVariantConst>(),curveRestored,configError,3435));
+ assert(curveRestored[6].ntc.curve[2].ohm==5400&&curveRestored[7].wet.pressureChannel==-1);
+ curve["channels"][0]["options"]["curve"][2]["resistance_ohm"]=10000;
+ ChannelConfig invalid[MAX_CHANNELS];assert(!parseChannels(curve.as<JsonVariantConst>(),invalid,configError));
+ curve["channels"][0]["options"]["curve"].as<JsonArray>().remove(2);
+ curve["channels"][0]["options"]["curve"].as<JsonArray>().remove(1);
+ assert(!parseChannels(curve.as<JsonVariantConst>(),invalid,configError));
  for(int i=0;i<MAX_CHANNELS;i++)channels[i]=roundtrip[i];
  channels[5]=channels[0];channels[5].mux=5;channels[5].enabled=false;
  JsonDocument change;deserializeJson(change,R"({"channel":5,"name":"palm","mode":"connected","type":"temperature"})");
@@ -63,6 +79,8 @@ int main(){
  assert(accepts(head+","+contact));assert(!accepts(head+","+head));
  for(const char* kind:{"motion","vibration","light"})assert(!accepts(std::string("{\"channel\":8,\"name\":\"removed\",\"type\":\"")+kind+"\",\"driver\":\"simulation\"}"));
  assert(!accepts(R"({"channel":0,"name":"wrong","type":"switch","driver":"gpio_switch","gpio":20})"));
+ assert(!accepts(R"({"channel":0,"name":"wrong","type":"switch","driver":"gpio_switch","gpio":277})"));
+ assert(!accepts(R"({"channel":0,"name":"wrong","type":"pressure","driver":"mux_adc","mux_port":256})"));
  JsonDocument saved;deserializeJson(saved,"{\"channels\":["+head+","+contact+R"(,{"channel":8,"name":"probe","type":"temperature","driver":"ds18b20","gpio":1,"rom":"savedROM"},{"channel":11,"name":"motor","type":"vibration","driver":"gpio_pwm","gpio":10}]})");
  retireUnsupportedChannels(saved);assert(saved["channels"].size()==2&&retiredChannelCount==2);
  ChannelConfig next[MAX_CHANNELS];String error;assert(parseChannels(saved.as<JsonVariantConst>(),next,error));assert(next[0].on==699&&next[0].off==295&&next[0].name=="head"&&next[13].gpio==21);
@@ -71,6 +89,7 @@ int main(){
  std::string savedBlob;serializeJson(persisted,savedBlob);retiredChannels="[]";deserializeJson(persisted,savedBlob);retireUnsupportedChannels(persisted);assert(retiredChannelCount==2&&persisted["channels"].size()==2); // Reboot never duplicates or activates retired rows.
  JsonDocument caps;channelCapabilities(caps.to<JsonObject>());assert(caps["types"].size()==4&&caps["physical_outputs_supported"]==false);
  assert(caps["port_type_update"]==true&&caps["types"][2]["model"]=="ntc_10k_3950");
+ assert(caps["ntc_curve_max_points"]==4&&caps["wetness_standalone"]==true);
 }
 '''
         with tempfile.TemporaryDirectory(prefix='aidoll-config-') as folder:

@@ -135,7 +135,7 @@
   },
   {
     "name": "set_channel_state",
-    "description": "Persist one input port's name, mode, compatible sensor type and options. Keep its binding and all other ports. Options replace that port's parameters. New temperature ports default to NTC 10k/B3950. Check port_type_update for type and options support.",
+    "description": "Persist one input port's name, mode, compatible sensor type and options. Keep its binding and all other ports. Options replace that port's parameters. New temperature ports default to NTC 10k/B3950. Check channel capabilities for type, options and custom curve support.",
     "inputSchema": {
       "type": "object",
       "properties": {
@@ -176,7 +176,7 @@
   },
   {
     "name": "read_channel_values",
-    "description": "Read typed values with units, source, quality and age. Output readings report commanded state, not motor feedback.",
+    "description": "Read input values with units, source, quality and age. Physical NTC reports calibrated adc_mv and the divider-derived resistance_ohm when available.",
     "inputSchema": {
       "type": "object",
       "properties": {},
@@ -257,7 +257,7 @@
   },
   {
     "name": "set_channel_config",
-    "description": "Replace the full input configuration. Include existing rows and their calibrations. NTC defaults to 10k/B3950 with the board's 4.7k/10k divider. A wetness port references an existing pressure channel.",
+    "description": "Replace the full input configuration. Include existing rows and their calibrations. NTC defaults to 10k/B3950. Optional curve points contain temp_c and resistance_ohm. A wetness port can use pressure_channel=-1 for standalone operation or reference an existing pressure channel.",
     "inputSchema": {
       "type": "object",
       "properties": {

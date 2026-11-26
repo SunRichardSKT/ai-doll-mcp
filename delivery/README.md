@@ -1,20 +1,20 @@
 # 下载与交付文件
 
-[内测 v0.1.4](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.4)
+[内测 v0.1.5](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.5)
 
-一代固件默认支持 10 kΩ B3950。在同一张端口卡片上选择类型、填写位置并保存，温度会直接刷新。Windows 和 Linux 包均提供 Claude Code 连接入口。[端口设置](../docs/daily/SENSOR_CHANNELS.md) · [更新说明](../CHANGELOG.md)
+一代固件默认使用 10 kΩ B3950，支持自定义阻温曲线和独立湿润触发。Windows 和 Linux 包均提供 Claude Code 连接入口。[端口设置](../docs/daily/SENSOR_CHANNELS.md) · [更新说明](../CHANGELOG.md)
 
 ## 应该下载哪个
 
 | 包 | 适合谁 | 解压后做什么 |
 | --- | --- | --- |
-| [AI_Doll_Code_v0.1.4.zip](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.4/AI_Doll_Code_v0.1.4.zip) · 40.61 MiB | Windows 用户 / 软件开发者 | 普通 Chat 双击 AI_Doll.cmd；自建应用本机接收双击 AI_Doll_Server.cmd |
-| [AI_Doll_Firmware_v0.1.4.zip](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.4/AI_Doll_Firmware_v0.1.4.zip) · 0.76 MiB | 已有软件／仅升级开发板 | 按固件说明使用OTA应用镜像或配套烧录工具，不全片擦除 |
-| [AI_Doll_PCB_v0.1.4.zip](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.4/AI_Doll_PCB_v0.1.4.zip) · 11.10 MiB | 采购和手工焊接主板 | 按实物版本选择工程、BOM与制造文件，下单前复核 |
-| [AI_Doll_Server_v0.1.4.tar.gz](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.4/AI_Doll_Server_v0.1.4.tar.gz) · 0.35 MiB | 远程 Linux 服务器 | 运行 sudo bash Install_Server.sh，按提示填写域名 |
-| [AI_Doll_Operit.toolpkg](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.4/AI_Doll_Operit.toolpkg) · 0.22 MiB | Operit 安卓用户 | 在包管理中导入，选择电脑、服务器或仅手机连接，按标题绑定原聊天 |
-| [AI_Doll_Enclosures_v0.1.4.zip](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.4/AI_Doll_Enclosures_v0.1.4.zip) · 4.93 MiB | 3D打印与机械修改 | 最终插座板、已制带线板及独立充电模块的加固壳；按实物选STL或STEP |
-| [AI_Doll_Stacked_Enclosure_v0.1.4.zip](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.4/AI_Doll_Stacked_Enclosure_v0.1.4.zip) · 1.11 MiB | 已制带线板上下堆叠壳 | 长宽46.29×56.45mm，总高35.6mm；底壳、绝缘托板、上盖整套打印 |
+| [AI_Doll_Code_v0.1.5.zip](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.5/AI_Doll_Code_v0.1.5.zip) · 40.61 MiB | Windows 用户 / 软件开发者 | 普通 Chat 双击 AI_Doll.cmd；自建应用本机接收双击 AI_Doll_Server.cmd |
+| [AI_Doll_Firmware_v0.1.5.zip](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.5/AI_Doll_Firmware_v0.1.5.zip) · 0.77 MiB | 已有软件／仅升级开发板 | 按固件说明使用OTA应用镜像或配套烧录工具，不全片擦除 |
+| [AI_Doll_PCB_v0.1.5.zip](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.5/AI_Doll_PCB_v0.1.5.zip) · 11.10 MiB | 采购和手工焊接主板 | 按实物版本选择工程、BOM与制造文件，下单前复核 |
+| [AI_Doll_Server_v0.1.5.tar.gz](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.5/AI_Doll_Server_v0.1.5.tar.gz) · 0.35 MiB | 远程 Linux 服务器 | 运行 sudo bash Install_Server.sh，按提示填写域名 |
+| [AI_Doll_Operit.toolpkg](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.5/AI_Doll_Operit.toolpkg) · 0.22 MiB | Operit 安卓用户 | 在包管理中导入，选择电脑、服务器或仅手机连接，按标题绑定原聊天 |
+| [AI_Doll_Enclosures_v0.1.5.zip](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.5/AI_Doll_Enclosures_v0.1.5.zip) · 4.93 MiB | 3D打印与机械修改 | 最终插座板、已制带线板及独立充电模块的加固壳；按实物选STL或STEP |
+| [AI_Doll_Stacked_Enclosure_v0.1.5.zip](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.5/AI_Doll_Stacked_Enclosure_v0.1.5.zip) · 1.11 MiB | 已制带线板上下堆叠壳 | 长宽46.29×56.45mm，总高35.6mm；底壳、绝缘托板、上盖整套打印 |
 
 Operit 无需为了取得手机工具包下载 Windows 包。服务器管理页可导出连接文件、连接码与临时二维码；仅手机模式默认从设备热点读取，不要求实体标签。原电脑入口继续兼容，完整包内含相同工具包。[统一安装](../docs/integrations/OPERIT_SETUP.md) · [免电脑指南](../docs/integrations/OPERIT_NO_PC.md)。
 

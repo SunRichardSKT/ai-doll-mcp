@@ -36,7 +36,7 @@ Windows 配置位于 `%APPDATA%\Claude\claude_desktop_config.json`。未安装�
 
 ### 电脑采集：下载配置即可使用
 
-从 v0.1.4 的 Windows 管理中心直接下载 Claude Code 配置。
+从 v0.1.5 的 Windows 管理中心直接下载 Claude Code 配置。
 
 1. 启动 `AI_Doll.cmd`，完成娃娃连接，让电脑采集保持运行。
 2. 在 AI 接入步骤选择“Claude Code · 命令行”，下载 `AI_Doll_Claude_Code.json`。

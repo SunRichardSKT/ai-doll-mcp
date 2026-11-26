@@ -56,7 +56,7 @@ def main():
     source_url = f'https://github.com/SunRichardSKT/ai-doll-mcp/blob/{tag}/'
     guide=guide.replace('(../README.md)',f'({source_url}docs/README.md)')
     guide=guide.replace('(../../hardware/gen1/README.md)',f'({source_url}hardware/gen1/README.md)')
-    guide=guide.replace('(SINGLE_CHANNEL_TEST.md)', '(对应源码/docs/start/SINGLE_CHANNEL_TEST.md)')
+    guide=re.sub(r'\(SINGLE_CHANNEL_TEST\.md(?:#[^)]+)?\)', '(对应源码/docs/start/SINGLE_CHANNEL_TEST.md)', guide)
     guide=re.sub(r'\[([^\]]+)\]\(([^)]+)\)',r'\1（\2）',guide)
     guide=re.sub(r'^#{1,6}\s+', '', guide, flags=re.M).replace('**','').replace('`','')
     (package/'使用说明.txt').write_text(guide,encoding='utf-8-sig')

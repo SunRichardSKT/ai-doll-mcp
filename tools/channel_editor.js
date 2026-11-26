@@ -7,7 +7,18 @@ let savingPorts=false;
 
 function resistiveDefaults(type,channel){
  return type==='temperature'?{...ntcProbe,pull_down_ohm:10000,series_ohm:4700,supply_mv:3300,offset_c:0,change_c:1,sample_ms:1000,report_ms:30000}:
-  type==='wetness'?{wet_threshold:500,dry_threshold:250,hold_ms:600,dry_ms:1000,pressure_channel:channelDraft.find(c=>c.channel!==channel&&c.type==='pressure')?.channel??0}:{};
+  type==='wetness'?{wet_threshold:500,dry_threshold:250,hold_ms:600,dry_ms:1000,pressure_channel:channelCapabilities.wetness_standalone?-1:(channelDraft.find(c=>c.channel!==channel&&c.type==='pressure')?.channel??0)}:{};
+}
+function readTemperatureCurve(text,maxPoints){
+ const rows=text.split('\n').map(row=>row.trim()).filter(Boolean);
+ if(!rows.length)return [];
+ if(rows.length<2||rows.length>maxPoints)throw Error('请填写 2～'+maxPoints+' 个温度标定点。');
+ return rows.map((row,index)=>{
+  const pair=row.split(/[,，]/).map(value=>value.trim());
+  if(pair.length!==2||pair.some(value=>!value||!Number.isFinite(Number(value))))throw Error('第 '+(index+1)+' 行请填写温度和阻值，用逗号分隔。');
+  const [temp_c,resistance_ohm]=pair.map(Number);
+  return {temp_c,resistance_ohm};
+ });
 }
 const isOutput=c=>c.type==='vibration'||c.type==='light';
 const portModeLabels={off:'关闭',simulation:'模拟',connected:'已接入'};
@@ -21,6 +32,11 @@ function readChannelRow(c){
  let options;
  try{options=JSON.parse($('options'+ch).value||'{}');}catch(e){throw Error('请检查高级设置中的参数格式。');}
  if(!options||typeof options!=='object'||Array.isArray(options))throw Error('传感器参数应为 JSON 对象。');
+ if(type==='temperature'&&channelCapabilities.ntc_curve_max_points){
+  const curve=readTemperatureCurve($('ntcCurve'+ch).value,channelCapabilities.ntc_curve_max_points);
+  if(curve.length)options.curve=curve;else delete options.curve;
+ }
+ if(type==='wetness'&&channelCapabilities.wetness_standalone)options.pressure_channel=Number($('wetPressure'+ch).value);
  const result={channel:ch,name,type,driver,enabled:mode!=='off',mode,options};
  if(driver==='mux_adc')result.mux_port=Number($('binding'+ch).value);
  if(['gpio_adc','gpio_pwm','ds18b20','gpio_switch'].includes(driver))result.gpio=Number($('binding'+ch).value);
@@ -114,10 +130,26 @@ function renderPort(c){
  box.append(controls,portField('位置名称',name));
 
  const temperature=document.createElement('div');
- const probeLabel=document.createElement('small'),reading=document.createElement('output'),usePreset=document.createElement('button');
+ const probeLabel=document.createElement('small'),reading=document.createElement('output'),diagnosis=document.createElement('small'),usePreset=document.createElement('button');
  reading.id='temperatureReading'+ch;
+ diagnosis.id='temperatureDiagnosis'+ch;
  usePreset.type='button';usePreset.textContent='使用 10K B3950';
- temperature.append(probeLabel,usePreset,reading);box.append(temperature);
+ const curveSettings=document.createElement('details'),curveTitle=document.createElement('summary'),curve=document.createElement('textarea');
+ curveSettings.id='ntcCurveSettings'+ch;curveSettings.hidden=!channelCapabilities.ntc_curve_max_points;
+ curveTitle.textContent='自定义曲线';curve.id='ntcCurve'+ch;curve.rows=4;curve.placeholder='温度, 阻值';
+ curveSettings.append(curveTitle,portField('每行一个标定点（℃, Ω）。填 2～'+channelCapabilities.ntc_curve_max_points+' 行，从低温到高温，留空使用探头参数。',curve));
+ temperature.append(probeLabel,reading,diagnosis,usePreset,curveSettings);box.append(temperature);
+ const wetPressure=document.createElement('select');wetPressure.id='wetPressure'+ch;
+ const wetField=portField('湿润片触发方式',wetPressure);box.append(wetField);
+ const fillWetPressure=selected=>{
+  wetPressure.replaceChildren(new Option('仅湿润触发',-1));
+  for(const port of channelDraft.filter(p=>p.channel!==ch&&p.type==='pressure')){
+   wetPressure.add(new Option('湿润并按下 CH'+port.channel+' · '+port.name,port.channel));
+  }
+  if(selected>=0&&!Array.from(wetPressure.options).some(o=>Number(o.value)===selected))wetPressure.add(new Option('已关联 CH'+selected,selected));
+  wetPressure.value=String(selected);
+ };
+ wetPressure.onfocus=()=>fillWetPressure(Number(wetPressure.value));
 
  const save=document.createElement('button'),message=document.createElement('small');
  save.textContent='保存此端口';save.type='button';save.id='savePort'+ch;
@@ -132,17 +164,22 @@ function renderPort(c){
    fields.forEach(field=>{field.disabled=true;});
    const saved=await pending;
    const replacement=renderPort(saved);
-   replacement.querySelector('details').open=hardware.open;
+   replacement.querySelector('#'+hardware.id).open=hardware.open;
+   replacement.querySelector('#'+curveSettings.id).open=curveSettings.open;
    box.replaceWith(replacement);
    $('portResult'+ch).textContent='已保存';$('savePort'+ch).focus({preventScroll:true});
    fillChannelSelects();if($('calibrationChannel'))fillCalibrationChannels();
-  }catch(e){message.textContent=e.message==='pressure_channel must reference an existing pressure input'?'有湿润端口引用此压力通道，请先调整湿润端口的关联。':e.message;}
+  }catch(e){message.textContent={
+   'pressure_channel must reference an existing pressure input':'有湿润端口引用此压力通道，请先调整湿润端口的关联。',
+   'NTC points must be within -20..80 degC and at least 100 ohms':'标定点温度需在 −20～80 ℃ 内，阻值至少为 100 Ω。',
+   'NTC points must increase in temperature and decrease in resistance':'请按温度从低到高填写标定点，阻值应逐行降低。'
+  }[e.message]||e.message;}
   finally{fields.forEach(field=>{field.disabled=false;});}
  };
  name.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();save.click();}};
  box.append(save,message);
 
- const hardware=document.createElement('details'),hardwareTitle=document.createElement('summary');hardwareTitle.textContent='高级设置';hardware.append(hardwareTitle);box.append(hardware);
+ const hardware=document.createElement('details'),hardwareTitle=document.createElement('summary');hardware.id='portHardware'+ch;hardwareTitle.textContent='高级设置';hardware.append(hardwareTitle);box.append(hardware);
  const driver=document.createElement('select');driver.id='driver'+ch;hardware.append(portField('接线方式',driver));
  const driversFor=kind=>channelCapabilities.types.find(t=>t.type===kind)?.drivers||[];
  const fillTypes=(kind,bindingType)=>{
@@ -163,19 +200,41 @@ function renderPort(c){
   found.onchange=()=>{if(found.value)rom.value=found.value};
   scan.onclick=async()=>{scan.disabled=true;try{const result=await tool('scan_input_devices',{driver:'ds18b20',gpio:Number(binding.value)});found.replaceChildren(new Option('选择探头地址',''));for(const probe of result.devices)found.add(new Option(probe.rom,probe.rom));scanNote.textContent=result.devices.length?'找到 '+result.devices.length+' 个探头；选择地址并保存。':'未发现探头，请检查外部 3.3V 供电、上拉和接线。';if(result.truncated)scanNote.textContent+=' 扫描达到上限。'}catch(e){scanNote.textContent=e.message}finally{scan.disabled=false}};
   const updateBinding=()=>{caption.textContent=driver.value==='mux_adc'?'4051 端口（0～7）':driver.value==='lis3dh'?'I²C 地址（24 或 25，SDA6 / SCL7）':'GPIO 编号';bindingLabel.hidden=driver.value==='simulation';romBox.hidden=driver.value!=='ds18b20';state.querySelector('[value="connected"]').disabled=driver.value==='simulation';};
-  const advanced=document.createElement('details'),summary=document.createElement('summary'),options=document.createElement('textarea');summary.textContent='传感器参数';options.id='options'+ch;options.value=JSON.stringify(c.options||{},null,2);options.rows=5;options.setAttribute('aria-label','传感器参数');advanced.append(summary,options);hardware.append(advanced);
-  const updateTemperature=()=>{
+  const advanced=document.createElement('details'),summary=document.createElement('summary'),options=document.createElement('textarea');summary.textContent='传感器参数';options.id='options'+ch;options.rows=5;options.setAttribute('aria-label','传感器参数');advanced.append(summary,options);hardware.append(advanced);
+  const updateProbeLabel=()=>{
+   let probe;try{probe=JSON.parse(options.value||'{}');}catch(e){return;}
+   const customCurve=!!curve.value.trim();
+   const matches=probe?.r25_ohm===ntcProbe.r25_ohm&&probe?.beta===ntcProbe.beta;
+   probeLabel.textContent=customCurve?'探头使用自定义曲线':matches?'探头规格 10K B3950':'探头使用自定义参数';
+   usePreset.hidden=matches&&!customCurve;
+  };
+  const updateSensorFields=()=>{
+   wetField.hidden=type.value!=='wetness'||!channelCapabilities.wetness_standalone;
    temperature.hidden=type.value!=='temperature'||driver.value==='ds18b20'||!driversFor('temperature').some(d=>d==='mux_adc'||d==='gpio_adc');
    if(temperature.hidden)return;
-   let probe;try{probe=JSON.parse(options.value||'{}');}catch(e){return;}
-   const matches=probe?.r25_ohm===ntcProbe.r25_ohm&&probe?.beta===ntcProbe.beta;
-   probeLabel.textContent=matches?'探头规格 10K B3950':'探头使用自定义参数';
-   usePreset.hidden=matches;
+   updateProbeLabel();
    reading.textContent=c.type!=='temperature'?'保存后开始读取':portMode(c)==='off'?'端口已关闭':'等待读数…';
+   diagnosis.textContent='';
   };
-  usePreset.onclick=()=>{try{options.value=JSON.stringify({...resistiveDefaults('temperature'),...JSON.parse(options.value||'{}'),...ntcProbe},null,2);updateTemperature();message.textContent='点击保存此端口应用。';}catch(e){message.textContent='请检查高级设置中的参数格式。';}};
-  options.onchange=updateTemperature;
-  updateBinding();updateTemperature();
+  const showOptions=data=>{
+   const settings={...data};
+   if(type.value==='temperature'&&channelCapabilities.ntc_curve_max_points){
+    curve.value=(settings.curve||[]).map(point=>point.temp_c+', '+point.resistance_ohm).join('\n');
+    delete settings.curve;
+   }
+   if(type.value==='wetness'&&channelCapabilities.wetness_standalone){
+    fillWetPressure(settings.pressure_channel??-1);
+    delete settings.pressure_channel;
+   }
+   options.value=JSON.stringify(settings,null,2);
+   updateSensorFields();
+  };
+  usePreset.onclick=()=>{try{
+   const settings={...resistiveDefaults('temperature'),...JSON.parse(options.value||'{}'),...ntcProbe};
+   delete settings.curve;showOptions(settings);message.textContent='点击保存此端口应用。';
+  }catch(e){message.textContent='请检查高级设置中的参数格式。';}};
+  options.onchange=curve.oninput=updateProbeLabel;
+  updateBinding();showOptions(c.options);
   const remove=document.createElement('button');remove.type='button';remove.textContent='移除此通道';remove.disabled=channelDraft.length<=1;
   remove.onclick=()=>{
    if(savingPorts)return;
@@ -193,7 +252,7 @@ function renderPort(c){
    else if(current.model==='ds18b20')options.value=JSON.stringify(resistiveDefaults('temperature'),null,2);
    if(type.value==='motion')options.value=JSON.stringify({shake_threshold_g:.6,cooldown_ms:2000,sample_ms:40},null,2);
    if(type.value==='switch')options.value=JSON.stringify({active_low:true,debounce_ms:40},null,2);
-   fillTypes(type.value,driver.value);updateBinding();updateTemperature();
+   fillTypes(type.value,driver.value);updateBinding();updateSensorFields();
   }catch(e){message.textContent=e.message;}};
   type.onchange=()=>{
    const selected=type.value,back=selected===c.type;
@@ -202,8 +261,7 @@ function renderPort(c){
    fillDrivers(selected,nextDriver);
    if(nextDriver!==oldDriver&&state.value==='connected')state.value='off';
    if(nextDriver!==oldDriver&&nextDriver===c.driver)binding.value=c.mux_port??c.gpio??c.address??0;
-   options.value=JSON.stringify(back?c.options||{}:resistiveDefaults(selected,ch),null,2);
-   updateBinding();updateTemperature();message.textContent='';
+   updateBinding();showOptions(back?c.options:resistiveDefaults(selected,ch));message.textContent='';
   };
  return box;
 }
@@ -273,6 +331,7 @@ async function updateChannelReadings(){
  catch(error){
   for(const c of channelDraft)if(c.type==='temperature'&&portMode(c)!=='off'){
    const reading=$('temperatureReading'+c.channel);if(reading)reading.textContent='连接中断，温度待更新';
+   const diagnosis=$('temperatureDiagnosis'+c.channel);if(diagnosis)diagnosis.textContent='';
   }
   throw error;
  }
@@ -280,10 +339,14 @@ async function updateChannelReadings(){
   const reading=$('temperatureReading'+v.channel);
   if(!reading||v.type!=='temperature')continue;
   if(v.value!=null&&v.quality==='ok')reading.textContent=v.value.toFixed(1)+' ℃'+(v.source==='simulation'?' · 模拟':'');
+  else if(v.quality==='temperature_outside_curve')reading.textContent='超出自定义曲线或温度量程，请检查标定点。';
   else if(v.quality==='probe_open_short_or_out_of_range')reading.textContent='温度无效，请检查探头和插头。';
   else if(v.mode==='off'||v.quality==='disabled')reading.textContent='端口已关闭';
   else if(v.mode==='connected'&&d.physical_inputs_enabled===false)reading.textContent='采样已暂停';
   else reading.textContent=v.quality==='stale'?'温度读数待更新':'等待读数…';
+  const diagnosis=$('temperatureDiagnosis'+v.channel);
+  if(diagnosis)diagnosis.textContent=v.source==='sensor'&&v.mode!=='off'&&d.physical_inputs_enabled!==false&&Number.isFinite(v.adc_mv)?
+   'ADC '+v.adc_mv+' mV'+(Number.isFinite(v.resistance_ohm)?' · 换算阻值 '+(v.resistance_ohm/1000).toFixed(2)+' kΩ':''):'';
  }
  if($('values'))$('values').textContent=d.values.map(v=>'CH'+v.channel+' '+v.name+' · '+(channelTypeLabels[v.type]||v.type)+' · '+(v.value==null?'暂无有效值':v.value+' '+v.unit)+' · '+v.source+' / '+v.quality).join('\n');
  const selected=channelDraft.find(c=>c.channel===Number($('channel').value));

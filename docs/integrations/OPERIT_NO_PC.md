@@ -1,6 +1,6 @@
 # Operit：服务器或仅安卓手机使用
 
-手机可以直接采集娃娃的触摸，也可以从自己的服务器读取记录。两条路线使用同一个 [AI_Doll_Operit.toolpkg](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.4/AI_Doll_Operit.toolpkg)。
+手机可以直接采集娃娃的触摸，也可以从自己的服务器读取记录。两条路线使用同一个 [AI_Doll_Operit.toolpkg](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.5/AI_Doll_Operit.toolpkg)。
 
 下载同版工具包和固件。温度探头和湿润片的接线见[制作指南](../../hardware/gen1/expansion/resistive-inputs/README.md)。
 

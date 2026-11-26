@@ -182,6 +182,10 @@ static void readChannels(JsonObject out){
   String quality=!c.enabled?"disabled":!s.sampled?"not_sampled":(s.source=="sensor"&&!sensorEnabled)?"inputs_disabled":!s.valid?s.fault:((s.source=="sensor"&&now-s.at>max(5000,c.sampleMs*3))?"stale":"ok");p["quality"]=quality;
   if(quality=="ok")p["value"]=s.value;else p["value"]=nullptr;
   p["raw"]=s.raw;if(s.mv>=0)p["adc_mv"]=s.mv;else p["adc_mv"]=nullptr;
+  if(c.kind==DeviceKind::TEMPERATURE){
+   float resistance=ntcResistance(s.mv,c.ntc);
+   if(isfinite(resistance))p["resistance_ohm"]=resistance;else p["resistance_ohm"]=nullptr;
+  }
   if(c.kind==DeviceKind::SWITCH||c.kind==DeviceKind::WETNESS)p["active"]=s.value>=0.5f;
   if(c.kind==DeviceKind::PRESSURE){p["active"]=touches[ch].active;p["press_threshold"]=c.on;p["release_threshold"]=c.off;p["calibrating"]=calibration.engaged&&calibration.channel==ch;}
  }
@@ -210,10 +214,10 @@ static bool simulateInput(JsonVariantConst a,String &error){
   readings[ch].mv=-1;readings[ch].raw=0;expansionRecord(ch,"sample",value,"simulation");
  }else if(channels[ch].kind==DeviceKind::WETNESS){
   if(unit!="boolean"||(value!=0&&value!=1)){error="Wetness: boolean 0 dry or 1 wet";return false;}
-  // Tests of the wet pad alone are records; a wipe also needs a simulated pressure.
   bool rising=value&&readings[ch].value<.5f;expansionRecord(ch,value?"wet":"dry",value,"simulation");
-  int pc=channels[ch].wet.pressureChannel;
-  if(rising&&validChannel(pc)&&touches[pc].active&&touches[pc].simulated)expansionRecord(ch,"wipe",1,"simulation");
+  const auto &wet=channels[ch].wet;
+  int pc=wet.pressureChannel;
+  if(rising&&(!wet.needsPressure()||(validChannel(pc)&&touches[pc].active&&touches[pc].simulated)))expansionRecord(ch,"wipe",1,"simulation");
  }else{error="Unsupported simulation input";return false;}
  return true;
 }
@@ -304,8 +308,9 @@ static void touchTick(){
   bool previouslyValid=v.valid;v.sampled=true;v.valid=true;v.value=raw;v.at=now;v.source="sensor";v.fault="";
   if(c.kind==DeviceKind::TEMPERATURE){
    uint32_t millivolts=0;for(int j=0;j<4;j++)millivolts+=analogReadMilliVolts(gpio);v.mv=millivolts/4;
-   float temperature=0;
-   if(!ntcTemperature(v.mv,c.ntc,temperature)){v.valid=false;v.fault="probe_open_short_or_out_of_range";temperatures[ch]=TemperatureInput();
+   float resistance=ntcResistance(v.mv,c.ntc),temperature=0;
+   if(!ntcTemperatureFromResistance(resistance,c.ntc,temperature)){
+    v.valid=false;v.fault=isfinite(resistance)&&c.ntc.curveCount?"temperature_outside_curve":"probe_open_short_or_out_of_range";temperatures[ch]=TemperatureInput();
     if(previouslyValid)expansionRecord(ch,"fault",0,"sensor",false,v.fault);
    }else{v.value=temperature;bool initial=!temperatures[ch].ready;if(temperatures[ch].sample(temperature,now,c.ntc))expansionRecord(ch,initial?"baseline":"sample",temperature,"sensor");}
    continue;

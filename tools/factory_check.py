@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import queue
+from statistics import median
 import sys
 import threading
 from types import SimpleNamespace
@@ -23,6 +24,11 @@ if getattr(sys, 'frozen', False):
     ROOT = Path(sys.executable).resolve().parent
     flash_esp32.ROOT = ROOT
 IMAGES = Path(sys._MEIPASS) / 'firmware/prebuilt' if getattr(sys, 'frozen', False) else ROOT / 'firmware/prebuilt'
+FIXTURE_MODE = '10 kΩ 定值快检'
+OBSERVE_MODE = '实时观察'
+FIXTURE_LIMITS_MV = (1240, 1430)
+EMPTY_MAX_MV = 150
+CAPTURE_FRAMES = 5
 
 
 class LiveReadings:
@@ -51,9 +57,24 @@ class LiveReadings:
         return [dict(row) for row in self.channels]
 
 
-def monitor_sensors(port, cancel, emit, report):
+def fixture_error(voltages, channel, fixture):
+    problems = []
+    if channel is not None:
+        low, high = fixture['minimum_mv'], fixture['maximum_mv']
+        if not low <= voltages[channel] <= high:
+            problems.append(f'J{channel + 1} 为 {voltages[channel]} mV，合格范围 {low}～{high} mV')
+    other_ports = [f'J{i + 1} {mv} mV' for i, mv in enumerate(voltages)
+                   if i != channel and mv > EMPTY_MAX_MV]
+    if other_ports:
+        problems.append(f'应为空载的端口超过 {EMPTY_MAX_MV} mV（' + '、'.join(other_ports) + '）')
+    return '。'.join(problems)
+
+
+def monitor_sensors(port, cancel, emit, report, capture=None):
     link = SerialLink(port)
     readings = LiveReadings()
+    fixture = report.get('fixture')
+    samples = []
     try:
         state = link.exchange({'cmd': 'status'})
         if state.get('error'):
@@ -66,18 +87,59 @@ def monitor_sensors(port, cancel, emit, report):
         if state.get('factory_sample_revision') != 1:
             prefix = '烧录已成功。' if report.get('flash_succeeded') else ''
             raise ValueError(prefix + '该固件不支持八路实时采样，请选用含 factory_sample 入口的配套固件')
-        emit('prompt', '八路实时采样中，可自由按压任意传感器；点击“停止采样”结束并保存记录。')
+        if fixture is not None:
+            if state.get('factory_sample_millivolts') is not True:
+                raise ValueError('定值快检需要支持毫伏采样的固件。可先选择实时观察，或更新固件后再快检。')
+            emit('fixture_ready', '拔下 J1～J8 的所有传感器线，留空后点击“记录本步”。')
+        else:
+            emit('prompt', '八路实时采样中，可自由按压任意传感器。点击“停止采样”结束并保存记录。')
         while not cancel.is_set():
-            frame = link.exchange({'cmd': 'factory_sample'}, timeout=3)
+            taking_sample = capture is not None and capture.is_set()
+            request = {'cmd': 'factory_sample'}
+            if taking_sample:
+                request['millivolts'] = True
+            frame = link.exchange(request, timeout=3)
             if frame.get('error'):
                 raise ValueError(str(frame['error']))
             if (frame.get('device_id'), frame.get('boot_id')) != identity:
                 raise ValueError('设备身份变化或重启，请重新连接采样')
             rows = readings.feed(frame)
+            finished = False
+            if taking_sample and not cancel.is_set():
+                voltages = frame.get('adc_mv')
+                if (not isinstance(voltages, list) or len(voltages) != 8
+                        or any(type(mv) is not int or not 0 <= mv <= 3600 for mv in voltages)):
+                    raise ValueError('设备未返回有效的八路 ADC 毫伏读数')
+                samples.append(voltages)
+                if len(samples) == CAPTURE_FRAMES:
+                    capture.clear()
+                    measured = [median(column) for column in zip(*samples)]
+                    samples.clear()
+                    ports = fixture['ports']
+                    channel = len(ports) if 'empty_mv' in fixture else None
+                    error = fixture_error(measured, channel, fixture)
+                    if channel is None:
+                        fixture['empty_mv'] = measured
+                        fixture['empty_error'] = error
+                    else:
+                        ports.append(dict(channel=channel, adc_mv=measured, passed=not error, error=error))
+                    finished = bool(fixture['empty_error']) or len(ports) == 8
+                    if finished:
+                        failures = [failure for failure in [fixture['empty_error'], *(p['error'] for p in ports)] if failure]
+                        report.update(status='failed' if failures else 'passed', passed=not failures, error='。'.join(failures))
+                    else:
+                        port_number = len(ports) + 1
+                        emit('fixture_ready', f'将同一个 10 kΩ 测试插头移到 J{port_number}，其余口留空。点击“记录本步”。')
+            if fixture is not None:
+                for step in fixture['ports']:
+                    channel = step['channel']
+                    rows[channel].update(fixture_mv=step['adc_mv'][channel], passed=step['passed'])
             report.update(channels=rows, last_raw=frame['raw'], sample_count=readings.samples)
             emit('sample', rows)
+            if finished:
+                return
             cancel.wait(.1)
-        report['status'] = 'observed' if readings.samples else 'cancelled'
+        report['status'] = 'observed' if fixture is None and readings.samples else 'cancelled'
     finally:
         link.close()
 
@@ -119,7 +181,8 @@ def save_record(folder, report):
                 if new:
                     writer.writerow(columns)
                 if report.get('schema_version', 1) >= 2:
-                    result = {'observed': '已记录', 'cancelled': '已停止', 'error': '异常'}.get(report['status'], '异常')
+                    result = {'observed': '已记录', 'cancelled': '已停止', 'passed': '通过',
+                              'failed': '未通过', 'error': '异常'}.get(report['status'], '异常')
                 else:
                     result = '通过' if report['passed'] else '未通过'
                 values = [report['finished_at'], report.get('label', ''), result,
@@ -139,11 +202,12 @@ def save_record(folder, report):
 class Station:
     def __init__(self, window):
         self.window = window
-        window.title('AI Doll · 一代批量烧录与八路实时数据')
-        window.geometry('1020x760')
-        window.minsize(940, 710)
+        window.title('AI Doll · 一代批量烧录与检测')
+        window.geometry('1040x800')
+        window.minsize(960, 750)
         self.messages = queue.Queue()
         self.cancel = threading.Event()
+        self.capture = threading.Event()
         self.busy = False
         self.active_phase = 'idle'
         self.port_user_selected = False
@@ -151,8 +215,8 @@ class Station:
         self.source_info = describe(IMAGES, 'bundled', '随包固件')
         panel = ttk.Frame(window, padding=18)
         panel.pack(fill='both', expand=True)
-        ttk.Label(panel, text='一代 C3 · 烧录与八路实时数据', font=('Microsoft YaHei UI', 18, 'bold')).pack(anchor='w')
-        ttk.Label(panel, text='连接主板 → 选择固件 / 填写设备名称 → 烧录或直接采样 → 自由按压观察 → 手动停止换板').pack(anchor='w', pady=8)
+        ttk.Label(panel, text='一代 C3 · 烧录与八路检测', font=('Microsoft YaHei UI', 18, 'bold')).pack(anchor='w')
+        ttk.Label(panel, text='连接主板后选择实时观察或定值快检，可以先烧录，也可以直接检测。').pack(anchor='w', pady=8)
         row = ttk.Frame(panel)
         row.pack(fill='x', pady=6)
         ttk.Label(row, text='串口').pack(side='left')
@@ -184,15 +248,30 @@ class Station:
             self.source_buttons.append(button)
         self.source_text = tk.StringVar(value=self.source_label())
         ttk.Label(panel, textvariable=self.source_text, wraplength=970).pack(anchor='w', pady=4)
+        row = ttk.Frame(panel)
+        row.pack(fill='x', pady=6)
+        ttk.Label(row, text='检测方式').pack(side='left')
+        self.mode = ttk.Combobox(row, width=17, state='readonly', values=(OBSERVE_MODE, FIXTURE_MODE))
+        self.mode.set(OBSERVE_MODE)
+        self.mode.bind('<<ComboboxSelected>>', self.show_mode)
+        self.mode.pack(side='left', padx=8)
+        ttk.Label(row, text='定值通过范围（mV）').pack(side='left', padx=(12, 4))
+        self.limit_inputs = [ttk.Entry(row, width=7) for _ in FIXTURE_LIMITS_MV]
+        for index, (field, value) in enumerate(zip(self.limit_inputs, FIXTURE_LIMITS_MV)):
+            if index == 1:
+                ttk.Label(row, text='～').pack(side='left')
+            field.insert(0, str(value))
+            field.pack(side='left', padx=4)
         self.prompt = tk.StringVar(value='就绪。可直接开始八路采样，手动停止后保存本次读数。')
         self.prompt_label = ttk.Label(panel, textvariable=self.prompt, wraplength=970, font=('Microsoft YaHei UI', 12, 'bold'))
         self.prompt_label.pack(anchor='w', pady=10)
         self.device = tk.StringVar(value='尚未读取设备')
         ttk.Label(panel, textvariable=self.device).pack(anchor='w')
-        self.table = ttk.Treeview(panel, columns=('port', 'raw', 'min', 'max', 'range', 'bar'), show='headings', height=8)
-        for key, title, width in [('port', '通道 / 插座', 110), ('raw', '实时 ADC', 100),
-                                  ('min', '本次最低', 100), ('max', '本次最高', 100),
-                                  ('range', '变化范围', 100), ('bar', '电平 0～4095', 300)]:
+        self.table = ttk.Treeview(panel, columns=('port', 'raw', 'min', 'max', 'range', 'bar', 'fixture'), show='headings', height=8)
+        for key, title, width in [('port', '通道 / 插座', 100), ('raw', '实时 ADC', 85),
+                                  ('min', '本次最低', 85), ('max', '本次最高', 85),
+                                  ('range', '变化范围', 85), ('bar', '电平 0～4095', 220),
+                                  ('fixture', '定值快检', 175)]:
             self.table.heading(key, text=title)
             self.table.column(key, width=width, anchor='center')
         self.clear_table()
@@ -203,6 +282,8 @@ class Station:
         self.flash_button.pack(side='left', padx=4)
         self.test_button = ttk.Button(row, text='开始实时采样', command=lambda: self.start(False))
         self.test_button.pack(side='left', padx=4)
+        self.capture_button = ttk.Button(row, text='记录本步', command=self.capture_step, state='disabled')
+        self.capture_button.pack(side='left', padx=4)
         self.stop_button = ttk.Button(row, text='停止采样', command=self.cancel.set, state='disabled')
         self.stop_button.pack(side='left', padx=4)
         ttk.Button(row, text='打开本地记录', command=self.open_records).pack(side='right')
@@ -211,22 +292,38 @@ class Station:
         self.flash_log = tk.Text(panel, height=5, wrap='word', state='disabled', font=('Consolas', 9))
         self.flash_log.pack(fill='both', expand=True)
         self.controls = [self.flash_button, self.test_button, self.refresh_button, self.name, self.label,
-                         self.port, self.baud, *self.source_buttons]
+                         self.port, self.baud, self.mode, *self.limit_inputs, *self.source_buttons]
         self.close_pending = False
+        self.show_mode()
         window.protocol('WM_DELETE_WINDOW', self.close)
         self.refresh()
         window.after(100, self.poll)
         window.after(1500, self.refresh_idle)
 
     def source_label(self):
-        support = '支持八路采样' if self.source_info.get('factory_sample_revision') == 1 else '未声明八路采样入口'
+        if self.source_info.get('factory_sample_millivolts'):
+            support = '支持定值快检'
+        else:
+            support = '支持实时观察' if self.source_info.get('factory_sample_revision') == 1 else '未声明八路采样入口'
         return f"当前来源 · {self.source_info['label']} · {self.source_info['firmware']} · {support}"
 
     def clear_table(self):
         for item in self.table.get_children():
             self.table.delete(item)
         for c in range(8):
-            self.table.insert('', 'end', iid=str(c), values=(f'CH{c} / J{c + 1}', '—', '—', '—', '—', ''))
+            self.table.insert('', 'end', iid=str(c), values=(f'CH{c} / J{c + 1}', '—', '—', '—', '—', '', '—'))
+
+    def show_mode(self, _event=None):
+        fixture = self.mode.get() == FIXTURE_MODE
+        for field in self.limit_inputs:
+            field.configure(state='normal' if fixture and not self.busy else 'disabled')
+        self.flash_button.configure(text='烧录并定值快检' if fixture else '烧录并实时采样')
+        self.test_button.configure(text='开始定值快检' if fixture else '开始实时采样')
+
+    def capture_step(self):
+        self.capture_button.configure(state='disabled')
+        self.prompt.set('正在采样，请保持测试插头位置。')
+        self.capture.set()
 
     def set_busy(self, value):
         self.busy = value
@@ -235,6 +332,8 @@ class Station:
         if not value:
             self.port.configure(state='readonly')
             self.baud.configure(state='readonly')
+            self.mode.configure(state='readonly')
+            self.show_mode()
 
     def choose_zip(self):
         value = filedialog.askopenfilename(title='选择完整固件包', filetypes=[('固件 ZIP', '*.zip')])
@@ -298,12 +397,25 @@ class Station:
             if not port:
                 raise ValueError('请连接开发板并选择串口')
             name = validate_name(self.name.get()) if write and self.name.get().strip() else None
+            fixture = None
+            if self.mode.get() == FIXTURE_MODE:
+                try:
+                    low, high = (int(field.get()) for field in self.limit_inputs)
+                    if not EMPTY_MAX_MV < low < high <= 2500:
+                        raise ValueError()
+                except ValueError:
+                    raise ValueError(f'请输入 {EMPTY_MAX_MV}～2500 mV 内的整数，且上限大于下限。') from None
+                fixture = dict(resistance_ohm=10000, minimum_mv=low, maximum_mv=high, empty_max_mv=EMPTY_MAX_MV,
+                               frames_per_step=CAPTURE_FRAMES, ports=[])
             if write:
-                validate_images(self.images)
+                manifest, _ = validate_images(self.images)
+                if fixture is not None and manifest.get('factory_sample_millivolts') is not True:
+                    raise ValueError('所选固件只支持实时观察。定值快检请选择随包固件或支持毫伏采样的新版。')
         except (ValueError, OSError) as error:
             self.prompt.set(str(error))
             return
         self.cancel.clear()
+        self.capture.clear()
         self.set_busy(True)
         self.job = None
         self.device.set('正在读取本次设备…')
@@ -317,16 +429,18 @@ class Station:
         self.flash_log.configure(state='normal')
         self.flash_log.delete('1.0', 'end')
         self.flash_log.configure(state='disabled')
-        threading.Thread(target=self.run, args=(write, port), daemon=False).start()
+        threading.Thread(target=self.run, args=(write, port, fixture), daemon=False).start()
 
     def emit(self, kind, value):
         self.messages.put((kind, value))
 
-    def run(self, write, port):
+    def run(self, write, port, fixture=None):
         report = dict(schema_version=2, run_id=uuid.uuid4().hex,
                       started_at=dt.datetime.now(dt.timezone.utc).isoformat(), selected_channels=list(range(8)),
                       label=self.run_label, requested_name=self.run_name, passed=False,
                       status='running', flash_requested=write, flash_succeeded=False, channels=[], sample_count=0)
+        if fixture is not None:
+            report['fixture'] = fixture
         try:
             with ServiceLease(ROOT / 'build/flash-active.lock'):
                 if write:
@@ -344,9 +458,9 @@ class Station:
                                   mac=result.get('mac'), manifest_sha256=result.get('manifest_sha256'))
                 report['port'] = port
                 self.emit('testing', True)
-                monitor_sensors(port, self.cancel, self.emit, report)
+                monitor_sensors(port, self.cancel, self.emit, report, self.capture if fixture is not None else None)
         except Exception as error:
-            report.update(status='error', error=str(error))
+            report.update(passed=False, status='error', error=str(error))
         finally:
             report['finished_at'] = dt.datetime.now(dt.timezone(dt.timedelta(hours=8))).isoformat()
             try:
@@ -362,13 +476,19 @@ class Station:
                 kind, value = self.messages.get_nowait()
                 if kind == 'prompt':
                     self.prompt.set(value)
+                elif kind == 'fixture_ready' and not self.cancel.is_set():
+                    self.prompt.set(value)
+                    self.capture_button.configure(state='normal')
                 elif kind == 'device':
                     self.device.set(value)
                 elif kind == 'sample':
                     for row in value:
                         level = '█' * round(row['last'] / 4095 * 24)
+                        result = '—'
+                        if 'fixture_mv' in row:
+                            result = f"{row['fixture_mv']} mV · " + ('通过' if row['passed'] else '待复查')
                         self.table.item(str(row['channel']), values=(f"CH{row['channel']} / {row['connector']}",
-                                        row['last'], row['minimum'], row['maximum'], row['maximum'] - row['minimum'], level))
+                                        row['last'], row['minimum'], row['maximum'], row['maximum'] - row['minimum'], level, result))
                 elif kind == 'flash_job':
                     self.job = value
                 elif kind == 'testing':
@@ -392,7 +512,13 @@ class Station:
                     self.set_busy(False)
                     self.active_phase = 'idle'
                     self.stop_button.configure(state='disabled')
-                    self.prompt.set('采样已停止，可换板后重新开始。' if value['status'] != 'error' else value['error'])
+                    self.capture_button.configure(state='disabled')
+                    if value['status'] == 'passed':
+                        self.prompt.set('八路定值快检通过。拔下测试插头后可换板。')
+                    elif value['status'] == 'failed':
+                        self.prompt.set('定值快检未通过。' + value['error'])
+                    else:
+                        self.prompt.set('采样已停止，可换板后重新开始。' if value['status'] != 'error' else value['error'])
                     self.refresh()
                     if self.close_pending:
                         self.window.destroy()

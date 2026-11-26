@@ -1,8 +1,8 @@
-# 第一代 ESP32-C3 预编译固件 0.1.4
+# 第一代 ESP32-C3 预编译固件 0.1.5
 
-本项目固件及源码使用 AGPL-3.0-only，第三方组件保留原许可，范围见 [项目许可](../../LICENSING.md)。0.1.4 为新温度端口使用 10 kΩ B3950 预设，可在同一张卡片上保存类型、位置和状态。
+本项目固件及源码使用 AGPL-3.0-only，第三方组件保留原许可，范围见 [项目许可](../../LICENSING.md)。0.1.5 在 10 kΩ B3950 预设之外增加 2～4 点自定义曲线。温度端口显示 ADC 毫伏和换算阻值，湿润片可独立触发或与压力联动。
 
-[本版附件](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.4) · [对应源码](https://github.com/SunRichardSKT/ai-doll-mcp/tree/v0.1.4) · [构建指南](../../docs/developers/DEVELOPER_GUIDE.md) · [烧录教程](../../docs/start/QUICK_FLASH.md)
+[本版附件](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.5) · [对应源码](https://github.com/SunRichardSKT/ai-doll-mcp/tree/v0.1.5) · [构建指南](../../docs/developers/DEVELOPER_GUIDE.md) · [烧录教程](../../docs/start/QUICK_FLASH.md)
 
 ## 完整四文件
 
@@ -24,7 +24,7 @@
 
 ## 构建与空间
 
-应用镜像 **1,211,376 字节**，单个 OTA 槽 **1,310,720 字节**，剩余 **99,344 字节**。设置网页和工具清单在构建时压缩，SuperMini 无线功率为 8.5 dBm。
+应用镜像 **1,215,488 字节**，单个 OTA 槽 **1,310,720 字节**，剩余 **95,232 字节**。设置网页和工具清单在构建时压缩，SuperMini 无线功率为 8.5 dBm。
 
 导出门禁：OTA余量低于24KiB阻止交付，低于32KiB告警。不能缩减历史分区换空间。源码修改后按[开发指南](../../docs/developers/DEVELOPER_GUIDE.md)重新编译，再运行`tools/export_firmware.py`更新四文件与清单。局域网升级见[OTA教程](../../docs/daily/OTA_UPDATE.md)。
 

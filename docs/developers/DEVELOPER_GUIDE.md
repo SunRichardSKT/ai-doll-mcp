@@ -2,7 +2,7 @@
 
 从源码构建固件、维护服务与接口，并生成交付包。[教程目录](../README.md) · [完整包安装](../start/AI_INSTALL.md)
 
-当前配套软件与固件版本为 **0.1.4**。[下载](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.4) · [更新说明](../../CHANGELOG.md)。源码中的`delivery/`只保存入口和校验元数据，完整包放在Releases。
+当前配套软件与固件版本为 **0.1.5**。[下载](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.5) · [更新说明](../../CHANGELOG.md)。源码中的`delivery/`只保存入口和校验元数据，完整包放在Releases。
 
 ## 项目结构
 
@@ -90,13 +90,13 @@ Node / Playwright 页面测试需要开发者另装对应环境，运行 `tools/
 
 ```powershell
 .\.venv\Scripts\python.exe -X utf8 tools/build_portable_python.py
-.\.venv\Scripts\python.exe -X utf8 hardware/gen1/enclosure/package_enclosures.py --output delivery/AI_Doll_Enclosures_v0.1.4.zip --stacked-output delivery/AI_Doll_Stacked_Enclosure_v0.1.4.zip
+.\.venv\Scripts\python.exe -X utf8 hardware/gen1/enclosure/package_enclosures.py --output delivery/AI_Doll_Enclosures_v0.1.5.zip --stacked-output delivery/AI_Doll_Stacked_Enclosure_v0.1.5.zip
 .\.venv\Scripts\python.exe -X utf8 tools/package_companion.py
-.\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Code_v0.1.4.zip
-.\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Server_v0.1.4.tar.gz
+.\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Code_v0.1.5.zip
+.\.venv\Scripts\python.exe -X utf8 tools/audit_delivery.py delivery/AI_Doll_Server_v0.1.5.tar.gz
 .\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --repository .
-.\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --archive delivery/AI_Doll_Code_v0.1.4.zip
-.\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --archive delivery/AI_Doll_Server_v0.1.4.tar.gz
+.\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --archive delivery/AI_Doll_Code_v0.1.5.zip
+.\.venv\Scripts\python.exe -X utf8 tools/check_documentation.py --archive delivery/AI_Doll_Server_v0.1.5.tar.gz
 ```
 
 `build_portable_python.py` 从官方 CPython 和固定 wheel 构建 Windows x64 运行环境，需要联网。已有完整运行环境时先验证并复用，不要再次覆盖运行中的 `python/`；确需重建时，在停止本项目服务后，将整个已有 `python/` 移到项目内明确的备份位置，再恢复源码的 README、许可和版本元数据后构建。不要打包开发用 `.venv`。
@@ -163,7 +163,7 @@ Claude Code 本机配置通过 `tools/install_companion_mcp.py --client claude_c
 
 ## 0.1.2电阻扩展
 
-实现位置为`firmware/src/resistive_inputs.h`（纯换算与时序）、`channel_devices.h`（能力／配置）、`touch_events.h`（实际采样）。`test_resistive_inputs.py`编译生产状态机，`test_expansion.py`编译真实配置解析；`test_resistive_ui.cjs`检查端口转换与阈值保留。手机与电脑以`wetness/wipe`为唯一擦眼泪回复阶段，wet/dry仅归档。详见[实现报告](../reports/RESISTIVE_INPUTS_012.md)。
+实现位置为 `firmware/src/resistive_inputs.h`（换算与时序）、`channel_devices.h`（能力与配置）、`touch_events.h`（采样）。0.1.5 将自定义阻温标定点保存在原通道配置中。设备先换算阻值，再按相邻标定点的对数阻值和开尔文温度倒数插值。新湿润通道默认独立触发，已保存的压力联动继续使用。两种模式沿用 `wetness/wipe` 作为回复事件。`test_resistive_inputs.py`、`test_expansion.py` 和 `test_resistive_ui.cjs` 分别检查换算与触发、配置往返和手机网页。
 
 ## 0.1.3 首次连接
 

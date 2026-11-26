@@ -8,7 +8,7 @@ Windows 电脑采集并保存触摸记录，通过 MCP 提供给聊天客户端�
 
 - 一台 Windows 64 位电脑，能联网。
 - 已烧录并供电的娃娃；空白开发板先按 [一键烧录](QUICK_FLASH.md)。
-- [Windows完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.4/AI_Doll_Code_v0.1.4.zip)，按本版Release的`SHA256SUMS.txt`校验后完整解压，保留 `python/`、`src/`、`tools/`、`clients/`、`delivery/`。GitHub 的“Download ZIP”是源码，不能替代自带运行环境的完整包。
+- [Windows完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.5/AI_Doll_Code_v0.1.5.zip)，按本版Release的`SHA256SUMS.txt`校验后完整解压，保留 `python/`、`src/`、`tools/`、`clients/`、`delivery/`。GitHub 的“Download ZIP”是源码，不能替代自带运行环境的完整包。
 
 ## 第一步：打开管理中心
 

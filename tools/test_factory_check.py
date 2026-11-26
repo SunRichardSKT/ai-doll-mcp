@@ -9,7 +9,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
-from factory_check import LiveReadings, Station, monitor_sensors, prepare_source, save_record
+from factory_check import CAPTURE_FRAMES, LiveReadings, Station, monitor_sensors, prepare_source, save_record
 from flash_esp32 import ROOT, validate_name
 from service_lifecycle import ServiceLease, ServiceAlreadyRunning
 
@@ -80,6 +80,72 @@ class LiveTests(unittest.TestCase):
                 monitor_sensors('COM9', threading.Event(), lambda *a: None, report)
         self.assertTrue(report['flash_succeeded'])
 
+    def capture_fixture(self, voltages, *, stop_after=None):
+        report = dict(fixture=dict(minimum_mv=1240, maximum_mv=1430, ports=[]))
+        capture, cancel = threading.Event(), threading.Event()
+        def emit(kind, value):
+            if kind == 'fixture_ready':
+                if len(report['fixture']['ports']) == stop_after:
+                    cancel.set()
+                else:
+                    capture.set()
+        state = dict(device_id='device', boot_id='boot', firmware='test',
+                     factory_sample_revision=1, factory_sample_millivolts=True)
+        frames = [self.frame(tick=200+index*100, adc_mv=mv)
+                  for index, mv in enumerate(voltages)]
+        with patch('factory_check.SerialLink') as serial, patch.object(cancel, 'wait'):
+            serial.return_value.exchange.side_effect = [state, *frames]
+            monitor_sensors('COM9', cancel, emit, report, capture)
+            serial.return_value.close.assert_called_once()
+            if frames:
+                self.assertEqual(serial.return_value.exchange.call_args.args[0], {'cmd': 'factory_sample', 'millivolts': True})
+        return report
+
+    def test_fixture_checks_empty_then_each_port_with_fresh_median(self):
+        frames = [[0]*8]*CAPTURE_FRAMES
+        # Keep one transient out of the median.
+        for channel in range(8):
+            for mv in (100, 1335, 1336, 1337, 1338):
+                row = [0]*8
+                row[channel] = mv
+                frames.append(row)
+        report = self.capture_fixture(frames)
+        self.assertEqual(report['status'], 'passed')
+        self.assertTrue(report['passed'])
+        self.assertEqual(report['sample_count'], 45)
+        self.assertTrue(all(row['passed'] and row['fixture_mv'] == 1336 for row in report['channels']))
+
+    def test_fixture_fails_wrong_series_resistor_and_cross_talk(self):
+        frames = [[0]*8]*CAPTURE_FRAMES
+        for channel in range(8):
+            row = [0]*8
+            row[channel] = 1574 if channel == 4 else 1336
+            if channel == 2:
+                row[3] = 350
+            frames.extend([row]*CAPTURE_FRAMES)
+        report = self.capture_fixture(frames)
+        self.assertEqual(report['status'], 'failed')
+        self.assertIn('J5 为 1574 mV', report['error'])
+        self.assertIn('J4 350 mV', report['error'])
+        self.assertEqual([row['channel'] for row in report['channels'] if not row['passed']], [2, 4])
+
+    def test_fixture_high_empty_voltage_and_cancel_are_distinct(self):
+        report = self.capture_fixture([[1400]+[0]*7]*CAPTURE_FRAMES)
+        self.assertEqual(report['status'], 'failed')
+        self.assertIn('J1 1400 mV', report['error'])
+        self.assertEqual(report['fixture']['ports'], [])
+        report = self.capture_fixture([], stop_after=0)
+        self.assertEqual(report['status'], 'cancelled')
+        self.assertNotIn('empty_mv', report['fixture'])
+
+    def test_fixture_requires_calibrated_sampling_capability(self):
+        state = dict(device_id='device', boot_id='boot', firmware='old', factory_sample_revision=1)
+        with patch('factory_check.SerialLink') as serial:
+            serial.return_value.exchange.return_value = state
+            with self.assertRaisesRegex(ValueError, '毫伏采样'):
+                monitor_sensors('COM9', threading.Event(), lambda *a: None, {'fixture': {}}, threading.Event())
+            serial.return_value.exchange.assert_called_once_with({'cmd': 'status'})
+
 
 class StationTests(unittest.TestCase):
     def station(self):
@@ -97,7 +163,7 @@ class StationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             station = self.station()
-            def monitor(port, cancel, emit, report):
+            def monitor(port, cancel, emit, report, capture=None):
                 self.assertEqual(port, 'COM12')
                 self.assertEqual(report['expected_device_id'], 'fresh')
                 with self.assertRaises(ServiceAlreadyRunning):
@@ -157,12 +223,16 @@ class StationTests(unittest.TestCase):
             save_record(folder, dict(common, run_id='old', passed=True, channels=[dict(channel=0, passed=True)]))
             save_record(folder, dict(common, run_id='new', schema_version=2, passed=False,
                                      status='observed', channels=[dict(channel=0, minimum=5, maximum=2000)]))
+            save_record(folder, dict(common, run_id='fixture', schema_version=2, passed=False,
+                                     status='failed', channels=[dict(channel=0, passed=True)], error='J2 未通过'))
             with (folder / '检测汇总.csv').open(encoding='utf-8-sig', newline='') as stream:
                 rows = list(csv.reader(stream))
             self.assertEqual(rows[1][2], '通过')
             self.assertEqual(rows[2][2], '已记录')
             self.assertEqual(rows[2][7], '')
             self.assertEqual(rows[2][1], "'=1+1")
+            self.assertEqual(rows[3][2], '未通过')
+            self.assertEqual(rows[3][7:9], ['CH0', 'J2 未通过'])
 
     def test_csv_busy_keeps_error_in_json(self):
         with tempfile.TemporaryDirectory() as temporary:

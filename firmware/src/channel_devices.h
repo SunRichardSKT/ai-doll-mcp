@@ -3,12 +3,13 @@
 #include "expansion_inputs.h"
 #include "resistive_inputs.h"
 static constexpr int MAX_CHANNELS=16;
-enum class DeviceKind { PRESSURE, TEMPERATURE, VIBRATION, MOTION, LIGHT, SWITCH, WETNESS };
-enum class ChannelDriver { MUX_ADC, GPIO_ADC, SIMULATION, GPIO_PWM, DS18B20, LIS3DH, GPIO_SWITCH };
+enum class DeviceKind : uint8_t { PRESSURE, TEMPERATURE, VIBRATION, MOTION, LIGHT, SWITCH, WETNESS };
+enum class ChannelDriver : uint8_t { MUX_ADC, GPIO_ADC, SIMULATION, GPIO_PWM, DS18B20, LIS3DH, GPIO_SWITCH };
 struct ChannelConfig {
- bool configured=false,enabled=true,simulate=false;
+ bool configured=false,enabled=true,simulate=false,activeLow=true;
  String name;DeviceKind kind=DeviceKind::PRESSURE;ChannelDriver driver=ChannelDriver::MUX_ADC;
- int mux=-1,gpio=-1,on=1200,off=800,sampleMs=1000,debounceMs=40;bool activeLow=true;
+ int8_t mux=-1,gpio=-1;
+ uint16_t on=1200,off=800,sampleMs=1000,debounceMs=40;
  NtcOptions ntc;WetOptions wet;
 };
 struct ChannelReading {bool valid=false,sampled=false;float value=0;int raw=0,mv=-1;uint64_t at=0;String source="simulation",fault;};
@@ -33,14 +34,53 @@ static void encodeChannels(JsonObject out,const ChannelConfig *list=channels){
  if(c.driver==ChannelDriver::MUX_ADC)p["mux_port"]=c.mux;
  if(c.driver==ChannelDriver::GPIO_ADC||c.driver==ChannelDriver::GPIO_SWITCH)p["gpio"]=c.gpio;
  JsonObject o=p["options"].to<JsonObject>();if(c.kind==DeviceKind::PRESSURE){o["press_threshold"]=c.on;o["release_threshold"]=c.off;}else if(c.kind==DeviceKind::TEMPERATURE){o["model"]="ntc";o["r25_ohm"]=c.ntc.r25;o["beta"]=c.ntc.beta;o["pull_down_ohm"]=c.ntc.pullDown;o["series_ohm"]=c.ntc.series;o["supply_mv"]=c.ntc.supplyMv;o["offset_c"]=c.ntc.offset;o["change_c"]=c.ntc.delta;o["sample_ms"]=c.sampleMs;o["report_ms"]=c.ntc.reportMs;
+  if(c.ntc.curveCount){
+   JsonArray points=o["curve"].to<JsonArray>();
+   for(int j=0;j<c.ntc.curveCount;j++){
+    JsonObject point=points.add<JsonObject>();
+    point["temp_c"]=c.ntc.curve[j].tempC;
+    point["resistance_ohm"]=c.ntc.curve[j].ohm;
+   }
+  }
  }else if(c.kind==DeviceKind::WETNESS){o["wet_threshold"]=c.on;o["dry_threshold"]=c.off;o["hold_ms"]=c.wet.holdMs;o["dry_ms"]=c.wet.dryMs;o["pressure_channel"]=c.wet.pressureChannel;
  }else{o["active_low"]=c.activeLow;o["debounce_ms"]=c.debounceMs;}}
 }
-static bool intOption(JsonObjectConst o,const char* key,int &dst,int lo,int hi,String &error){if(o[key].isNull())return true;if(!o[key].is<int>()){error=String(key)+" must be integer";return false;}int v=o[key];if(v<lo||v>hi){error=String(key)+" is outside supported range";return false;}dst=v;return true;}
+template<typename Int>
+static bool intOption(JsonObjectConst o,const char* key,Int &dst,int lo,int hi,String &error){
+ if(o[key].isNull())return true;
+ if(!o[key].is<int>()){error=String(key)+" must be integer";return false;}
+ int value=o[key];
+ if(value<lo||value>hi){error=String(key)+" is outside supported range";return false;}
+ dst=static_cast<Int>(value);
+ return true;
+}
 static bool floatOption(JsonObjectConst o,const char* key,float &dst,float lo,float hi,String &error){
  if(o[key].isNull())return true;
  if(!o[key].is<float>()){error=String(key)+" must be numeric";return false;}
  float v=o[key];if(!isfinite(v)||v<lo||v>hi){error=String(key)+" is outside supported range";return false;}dst=v;return true;
+}
+static bool parseNtcCurve(JsonVariantConst value,NtcOptions &ntc,String &error){
+ if(value.isNull())return true;
+ if(!value.is<JsonArrayConst>()||value.size()<2||value.size()>NTC_MAX_CURVE_POINTS){
+  error="NTC curve needs 2..4 points";return false;
+ }
+ for(JsonVariantConst point:value.as<JsonArrayConst>()){
+  if(!point["temp_c"].is<float>()||!point["resistance_ohm"].is<float>()){
+   error="Each NTC point needs numeric temp_c and resistance_ohm";return false;
+  }
+  float temp=point["temp_c"],ohm=point["resistance_ohm"];
+  if(!isfinite(temp)||temp<-20||temp>80||!isfinite(ohm)||ohm<100){
+   error="NTC points must be within -20..80 degC and at least 100 ohms";return false;
+  }
+  if(ntc.curveCount){
+   const auto &previous=ntc.curve[ntc.curveCount-1];
+   if(temp<=previous.tempC||ohm>=previous.ohm){
+    error="NTC points must increase in temperature and decrease in resistance";return false;
+   }
+  }
+  ntc.curve[ntc.curveCount++]={temp,ohm};
+ }
+ return true;
 }
 static bool parseChannels(JsonVariantConst a,ChannelConfig *next,String &error,float defaultNtcBeta=NTC_DEFAULT_BETA){
  if(!a["channels"].is<JsonArrayConst>()||a["channels"].size()<1||a["channels"].size()>MAX_CHANNELS){error="Provide 1..16 channel configurations";return false;}
@@ -57,25 +97,36 @@ static bool parseChannels(JsonVariantConst a,ChannelConfig *next,String &error,f
  if(driver=="simulation")c.driver=ChannelDriver::SIMULATION;else if(type!="switch"&&driver=="mux_adc")c.driver=ChannelDriver::MUX_ADC;else if(type!="switch"&&driver=="gpio_adc")c.driver=ChannelDriver::GPIO_ADC;else if(type=="switch"&&driver=="gpio_switch")c.driver=ChannelDriver::GPIO_SWITCH;else{error="Unsupported input driver";return false;}
  if(!p["mode"].isNull()){if(!p["mode"].is<String>()){error="mode must be a string";return false;}String mode=p["mode"].as<String>();if(mode!="off"&&mode!="simulation"&&mode!="connected"){error="mode must be off, simulation or connected";return false;}if(!p["enabled"].isNull()&&p["enabled"].as<bool>()!=(mode!="off")){error="enabled conflicts with mode";return false;}if(mode=="connected"&&c.driver==ChannelDriver::SIMULATION){error="Physical binding required";return false;}c.enabled=mode!="off";c.simulate=mode=="simulation";}
  if(!p["direction"].isNull()&&p["direction"]!="input"){error="Only input channels are supported";return false;}
- if(c.driver==ChannelDriver::MUX_ADC){if(!p["mux_port"].is<int>()){error="mux_port 0..7 required";return false;}c.mux=p["mux_port"];if(c.mux<0||c.mux>7||muxUsed[c.mux]){error="4051 ports must be unique, 0..7";return false;}muxUsed[c.mux]=true;}
- if(c.driver==ChannelDriver::GPIO_ADC||c.driver==ChannelDriver::GPIO_SWITCH){if(!p["gpio"].is<int>()){error="gpio required";return false;}c.gpio=p["gpio"];if(c.gpio!=(c.driver==ChannelDriver::GPIO_ADC?1:21)||gpioUsed[c.gpio]){error="GPIO resource conflict; ADC=1, switch=21";return false;}gpioUsed[c.gpio]=true;}
+ if(c.driver==ChannelDriver::MUX_ADC){
+  if(!p["mux_port"].is<int>()){error="mux_port 0..7 required";return false;}
+  int port=p["mux_port"];
+  if(port<0||port>7||muxUsed[port]){error="4051 ports must be unique, 0..7";return false;}
+  muxUsed[port]=true;c.mux=port;
+ }
+ if(c.driver==ChannelDriver::GPIO_ADC||c.driver==ChannelDriver::GPIO_SWITCH){
+  if(!p["gpio"].is<int>()){error="gpio required";return false;}
+  int pin=p["gpio"];
+  if(pin!=(c.driver==ChannelDriver::GPIO_ADC?1:21)||gpioUsed[pin]){error="GPIO resource conflict; ADC=1, switch=21";return false;}
+  gpioUsed[pin]=true;c.gpio=pin;
+ }
  if(!p["options"].isNull()&&!p["options"].is<JsonObjectConst>()){error="options must be object";return false;}JsonObjectConst o=p["options"].as<JsonObjectConst>();
- const char* allowed=c.kind==DeviceKind::PRESSURE?"|press_threshold|release_threshold|":c.kind==DeviceKind::TEMPERATURE?"|model|r25_ohm|beta|pull_down_ohm|series_ohm|supply_mv|offset_c|change_c|sample_ms|report_ms|":c.kind==DeviceKind::WETNESS?"|wet_threshold|dry_threshold|hold_ms|dry_ms|pressure_channel|":"|active_low|debounce_ms|";
+ const char* allowed=c.kind==DeviceKind::PRESSURE?"|press_threshold|release_threshold|":c.kind==DeviceKind::TEMPERATURE?"|model|r25_ohm|beta|pull_down_ohm|series_ohm|supply_mv|offset_c|change_c|sample_ms|report_ms|curve|":c.kind==DeviceKind::WETNESS?"|wet_threshold|dry_threshold|hold_ms|dry_ms|pressure_channel|":"|active_low|debounce_ms|";
  for(JsonPairConst option:o){String token=String("|")+option.key().c_str()+"|";if(String(allowed).indexOf(token)<0){error=String("Unknown option: ")+option.key().c_str();return false;}}
  if(c.kind==DeviceKind::PRESSURE||c.kind==DeviceKind::WETNESS){
   if(!intOption(o,c.kind==DeviceKind::PRESSURE?"press_threshold":"wet_threshold",c.on,1,4095,error)||!intOption(o,c.kind==DeviceKind::PRESSURE?"release_threshold":"dry_threshold",c.off,0,4094,error))return false;
   if(c.off>=c.on){error="Lower threshold must be below upper threshold";return false;}
-  if(c.kind==DeviceKind::WETNESS&&(!intOption(o,"hold_ms",c.wet.holdMs,100,10000,error)||!intOption(o,"dry_ms",c.wet.dryMs,100,10000,error)||!intOption(o,"pressure_channel",c.wet.pressureChannel,0,15,error)))return false;
+  if(c.kind==DeviceKind::WETNESS&&(!intOption(o,"hold_ms",c.wet.holdMs,100,10000,error)||!intOption(o,"dry_ms",c.wet.dryMs,100,10000,error)||!intOption(o,"pressure_channel",c.wet.pressureChannel,-1,MAX_CHANNELS-1,error)))return false;
  }else if(c.kind==DeviceKind::TEMPERATURE){
   c.ntc.beta=defaultNtcBeta;
   if(!o["model"].isNull()&&o["model"]!="ntc"){error="Only two-wire NTC temperature probes supported";return false;}
   if(!floatOption(o,"r25_ohm",c.ntc.r25,1000,100000,error)||!floatOption(o,"beta",c.ntc.beta,2000,5000,error)||!floatOption(o,"pull_down_ohm",c.ntc.pullDown,1000,100000,error)||!floatOption(o,"series_ohm",c.ntc.series,0,100000,error)||!floatOption(o,"supply_mv",c.ntc.supplyMv,3000,3600,error)||!floatOption(o,"offset_c",c.ntc.offset,-10,10,error)||!floatOption(o,"change_c",c.ntc.delta,.1,30,error)||!intOption(o,"sample_ms",c.sampleMs,250,10000,error)||!intOption(o,"report_ms",c.ntc.reportMs,1000,3600000,error))return false;
   if(c.ntc.reportMs<c.sampleMs){error="report_ms must be >= sample_ms";return false;}
+  if(!parseNtcCurve(o["curve"],c.ntc,error))return false;
  }else{if(!o["active_low"].isNull()&&!o["active_low"].is<bool>()){error="active_low boolean required";return false;}c.activeLow=o["active_low"]|true;if(!intOption(o,"debounce_ms",c.debounceMs,20,500,error))return false;}
  for(JsonPairConst prop:p){String key=prop.key().c_str();if(key!="channel"&&key!="name"&&key!="type"&&key!="driver"&&key!="direction"&&key!="enabled"&&key!="mode"&&key!="mux_port"&&key!="gpio"&&key!="options"){error="Unknown channel field: "+key;return false;}}
  if((!p["gpio"].isNull()&&c.driver!=ChannelDriver::GPIO_ADC&&c.driver!=ChannelDriver::GPIO_SWITCH)||(!p["mux_port"].isNull()&&c.driver!=ChannelDriver::MUX_ADC)){error="Remove unused binding fields";return false;}next[id]=c;
  }
- for(int id=0;id<MAX_CHANNELS;id++)if(next[id].configured&&next[id].kind==DeviceKind::WETNESS){
+ for(int id=0;id<MAX_CHANNELS;id++)if(next[id].configured&&next[id].kind==DeviceKind::WETNESS&&next[id].wet.needsPressure()){
   const auto &pressure=next[next[id].wet.pressureChannel];if(!pressure.configured||pressure.kind!=DeviceKind::PRESSURE){error="pressure_channel must reference an existing pressure input";return false;}
  }
  return true;
@@ -118,6 +169,7 @@ static void channelCapabilities(JsonObject out){
  out["schema_version"]=1;out["max_channels"]=MAX_CHANNELS;out["mux_ports"]=8;out["adc_gpio"]=0;out["port_state_model"]="per_port_v1";out["presence_source"]="saved_installation_config";out["electrical_presence_detection"]=false;
  out["physical_inputs_enabled"]=sensorEnabled;out["physical_outputs_enabled"]=false;out["physical_outputs_supported"]=false;out["retired_channel_count"]=retiredChannelCount;
  out["port_type_update"]=true;
+ out["ntc_curve_max_points"]=NTC_MAX_CURVE_POINTS;out["wetness_standalone"]=true;
  JsonArray types=out["types"].to<JsonArray>();for(auto k:{DeviceKind::PRESSURE,DeviceKind::SWITCH,DeviceKind::TEMPERATURE,DeviceKind::WETNESS}){JsonObject t=types.add<JsonObject>();t["type"]=kindName(k);t["direction"]="input";t["unit"]=unitName(k);t["model"]=k==DeviceKind::PRESSURE?"fsr_adc":k==DeviceKind::TEMPERATURE?"ntc_10k_3950":k==DeviceKind::WETNESS?"conductive_pad":"dry_contact";JsonArray d=t["drivers"].to<JsonArray>();d.add("simulation");if(k!=DeviceKind::SWITCH){d.add("mux_adc");d.add("gpio_adc");}else d.add("gpio_switch");}
  out["direct_adc_gpio"]=1;out["switch_gpio"]=21;out["expansion"]="Pressure, NTC temperature and wetness share eight resistor ports; dry-contact switch on GPIO21. No motion or actuator drivers.";
 }

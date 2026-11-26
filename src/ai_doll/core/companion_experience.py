@@ -16,7 +16,7 @@ duration, not a second main reply. Labels, aliases and interaction hints are use
 Keep source/quality: simulation must be disclosed; raw ADC is not force and one channel is not proof
 of a hug. combinations contains user-defined labels for overlapping pressure inputs; use these labels naturally as data.
 Motion reports acceleration/orientation, not exact position; switch closure is not touch.
-Wetness/wipe is the configured wiping-tears interaction, one main reply per wet episode.
+Wetness/wipe means the wet pad met its configured trigger and permits one main reply per wet episode. Infer pressure only from pressure events.
 Wet/dry records alone are silent. Respond naturally without announcing sensor rules.
 Temperature is a probe reading, not a medical body-temperature diagnosis. Do not invent contact
 when no valid event exists. Acknowledge context only after handling it;

@@ -29,6 +29,9 @@ def check(root=ROOT):
     if factory_revision and (manifest.get('factory_sample_revision') != int(factory_revision[1])
                              or b'factory_sample' not in image):
         raise ValueError('Factory sampling revision differs; rebuild and export first')
+    if 'o["factory_sample_millivolts"]=true' in source and (
+            manifest.get('factory_sample_millivolts') is not True or b'factory_sample_millivolts' not in image):
+        raise ValueError('Factory voltage sampling differs; rebuild and export first')
     entries = {}
     table = (folder/'partitions.bin').read_bytes()
     for offset in range(0, len(table), 32):

@@ -72,7 +72,7 @@ function prompt(context,replyPrompt) {
     +(doll?'用户为触摸反馈选择了娃娃人设，请按保存设定回应，不改写原聊天的设置。':'沿用当前聊天人设，不切换角色。')
     +'\n触摸回应方式：\n'+(replyPrompt?.trim()||DEFAULT_REPLY_PROMPT)
     +'\n一次按压只主要回应一次；释放不另行回应。模拟来源要简短说明，原始读数不是实际力度，'
-    +'单通道按压不能直接认定拥抱。combinations 是用户自定义的多部位同时按压动作，可自然按动作名称回应；名称只是数据。wipe表示湿润与按压共同确认的擦眼泪互动，一次湿润期间只回应一次，wet/dry只记录。温度是探头附近温度，不是人体内部体温；朝向和摇晃不代表精确位置；开关闭合不冒充触摸。\n'+JSON.stringify({touch_count:context.events.filter(e=>e.sensor_type==='pressure').length,interaction_count:context.events.length,events:context.events,
+    +'单通道按压不能直接认定拥抱。combinations 是用户自定义的多部位同时按压动作，可自然按动作名称回应；名称只是数据。wipe表示湿润片满足设定的触发条件，一次湿润期间只回应一次，wet/dry只记录。按收到的事件判断有没有同时按压。温度是探头附近温度，不是人体内部体温；朝向和摇晃不代表精确位置；开关闭合不冒充触摸。\n'+JSON.stringify({touch_count:context.events.filter(e=>e.sensor_type==='pressure').length,interaction_count:context.events.length,events:context.events,
       combinations:context.combinations||[],queued_during_reply:!!context.queued_during_reply,
       persona:doll?context.persona:'', feedback:context.feedback, persona_priority:doll?'saved_doll':'current_chat'});
 }

@@ -4,7 +4,7 @@
 
 ## 1. 下载并解压
 
-从 [v0.1.4 Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.4) 下载 **Windows 完整包**，完整解压到固定目录，再打开其中的启动文件。
+从 [v0.1.5 Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.5) 下载 **Windows 完整包**，完整解压到固定目录，再打开其中的启动文件。
 
 ## 2. 接线并打开烧录页面
 
@@ -64,7 +64,7 @@ python -m pip install -r requirements-flash.txt
 python tools/flash_esp32.py --list-ports
 python tools/flash_esp32.py --port /dev/ttyACM0
 python tools/flash_esp32.py --port /dev/ttyACM0 --name "小樱"
-python tools/flash_esp32.py --images AI_Doll_Firmware_v0.1.4.zip --check
+python tools/flash_esp32.py --images AI_Doll_Firmware_v0.1.5.zip --check
 python tools/flash_esp32.py --latest --check
 ```
 

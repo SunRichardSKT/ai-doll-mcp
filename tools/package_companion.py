@@ -452,7 +452,7 @@ def main(include_factory=False):
     outputs = [package(delivery/f'AI_Doll_Code_v{VERSION}.zip', files, CODE_README, f'doll-bridge-{VERSION}')]
     firmware_readme = (f'# AI Doll 固件 · 内测{VERSION}\n\n'
                        '第一代 ESP32-C3 配套固件，支持压力、10 kΩ B3950 温度、湿润感应片和干接点。'
-                       '在传感器端口选择类型、填写位置并保存。\n\n'
+                       '在温度端口可添加自定义曲线，湿润片可单独触发。\n\n'
                        '[镜像与地址](firmware/prebuilt/README.md) · [OTA 升级](docs/daily/OTA_UPDATE.md)\n')
     firmware_files = [ROOT/'firmware/prebuilt'/name for name in PREBUILT] + [ROOT/'LICENSE', ROOT/'docs/daily/OTA_UPDATE.md']
     outputs.append(package(delivery/f'AI_Doll_Firmware_v{VERSION}.zip', firmware_files, firmware_readme, f'doll-lab-{VERSION}'))
@@ -485,7 +485,7 @@ def main(include_factory=False):
     checksums['Install_Server.sh'] = hashlib.sha256((ROOT/'Install_Server.sh').read_bytes()).hexdigest()
     (delivery/'SHA256SUMS.txt').write_text(''.join(digest+'  '+name+'\n' for name,digest in sorted(checksums.items())), encoding='ascii',newline='\n')
     readme = (f'# 下载与交付文件\n\n[内测 v{VERSION}](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v{VERSION})\n\n'
-              '一代固件默认支持 10 kΩ B3950。在同一张端口卡片上选择类型、填写位置并保存，温度会直接刷新。'
+              '一代固件默认使用 10 kΩ B3950，支持自定义阻温曲线和独立湿润触发。'
               'Windows 和 Linux 包均提供 Claude Code 连接入口。'
               '[端口设置](../docs/daily/SENSOR_CHANNELS.md) · [更新说明](../CHANGELOG.md)\n\n')
     readme += '## 应该下载哪个\n\n| 包 | 适合谁 | 解压后做什么 |\n| --- | --- | --- |\n'

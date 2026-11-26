@@ -17,22 +17,31 @@ class ResistiveNativeTests(unittest.TestCase):
 #include "resistive_inputs.h"
 int main(){
  NtcOptions o;float c=0;
+ const auto read=[&](float mv){return ntcTemperatureFromResistance(ntcResistance(mv,o),o,c);};
  assert(o.r25==10000&&o.beta==3950);
- assert(ntcTemperature(289.959f,o,c)&&fabsf(c+19)<.02);
- assert(ntcTemperature(682.939f,o,c)&&fabsf(c)<.02);
- assert(ntcTemperature(1336.0324f,o,c)&&fabsf(c-25)<.02);
- assert(ntcTemperature(1575.833f,o,c)&&fabsf(c-36)<.02);
- assert(ntcTemperature(1649.879f,o,c)&&fabsf(c-40)<.02);
- assert(ntcTemperature(2061.042f,o,c)&&fabsf(c-79)<.02);
- assert(!ntcTemperature(240,o,c)&&!ntcTemperature(2100,o,c));
- assert(!ntcTemperature(0,o,c)&&!ntcTemperature(3300,o,c));
- assert(!ntcTemperature(2244.898f,o,c)); // Shorted probe, 4.7k/10k divider ceiling.
- assert(!ntcTemperature(NAN,o,c));
- o.offset=1;assert(ntcTemperature(1336.0324f,o,c)&&fabsf(c-26)<.02);
+ assert(read(289.959f)&&fabsf(c+19)<.02);
+ assert(read(682.939f)&&fabsf(c)<.02);
+ assert(read(1336.0324f)&&fabsf(c-25)<.02);
+ assert(read(1575.833f)&&fabsf(c-36)<.02);
+ assert(read(1649.879f)&&fabsf(c-40)<.02);
+ assert(read(2061.042f)&&fabsf(c-79)<.02);
+ assert(!read(240)&&!read(2100));
+ assert(!read(0)&&!read(3300));
+ assert(!read(2244.898f)); // Shorted probe, 4.7k/10k divider ceiling.
+ assert(!read(NAN));
+ o.offset=1;assert(read(1336.0324f)&&fabsf(c-26)<.02);
+ assert(fabsf(ntcResistance(1336.0324f,o)-10000)<.1);
+ o.curveCount=4;o.curve[0]={20,18000};o.curve[1]={25,12000};o.curve[2]={35,6800};o.curve[3]={50,3200};
+ assert(read(1235.9551f)&&fabsf(c-26)<.02); // ADC conversion uses the custom 12 kΩ point.
+ assert(ntcTemperatureFromResistance(9033.2718f,o,c)&&fabsf(c-30.9175)<.02);
+ assert(ntcTemperatureFromResistance(18000,o,c)&&c==21);
+ assert(ntcTemperatureFromResistance(3200,o,c)&&c==51);
+ assert(!ntcTemperatureFromResistance(18001,o,c)&&!ntcTemperatureFromResistance(3199,o,c));
+ o.curveCount=0;assert(read(1336.0324f)&&fabsf(c-26)<.02);
  TemperatureInput t;
  assert(t.sample(25,0,o));assert(!t.sample(25.4,1000,o));
  assert(t.sample(26,2000,o));assert(!t.sample(26.2,31000,o));assert(t.sample(26.2,32000,o));
- WetInput w;WetOptions p;
+ WetInput w;WetOptions p;p.pressureChannel=0;
  assert(!w.sample(0,500,250,true,0,p));
  assert(!w.sample(1000,500,250,true,1,p));assert(!w.sample(1000,500,250,true,600,p));
  assert(w.sample(1000,500,250,false,601,p)==1); // Confirm wet without any pressure reply.
@@ -46,6 +55,14 @@ int main(){
  assert(!noise.sample(1000,500,250,true,0,p));assert(!noise.sample(300,500,250,true,599,p));
  assert(!noise.sample(1000,500,250,true,600,p));assert(!noise.sample(1000,500,250,true,1199,p));
  assert(noise.sample(1000,500,250,true,1200,p)==3);
+ WetInput standalone;WetOptions pad;
+ assert(!standalone.sample(1000,500,250,false,0,pad));
+ assert(standalone.sample(1000,500,250,false,600,pad)==3);
+ assert(!standalone.sample(1000,500,250,false,1200,pad));
+ assert(!standalone.sample(0,500,250,false,1300,pad));
+ assert(standalone.sample(0,500,250,false,2300,pad)==4);
+ assert(!standalone.sample(1000,500,250,false,2400,pad));
+ assert(standalone.sample(1000,500,250,false,3000,pad)==3);
 }
 '''
         with tempfile.TemporaryDirectory(prefix='aidoll-resistive-') as folder:

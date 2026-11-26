@@ -8,9 +8,9 @@
 [![Hardware License: CERN OHL S v2](https://img.shields.io/badge/hardware-CERN--OHL--S--2.0-green)](hardware/LICENSE)
 [![Hardware](https://img.shields.io/badge/Hardware-ESP32--C3-blue)](hardware/gen1/README.md)
 
-[下载 v0.1.4 内测版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.4) · [完整教程](docs/README.md) · [故障排查](docs/TROUBLESHOOTING.md) · [AI 使用说明书](docs/ai/AI_GUIDE.md)
+[下载 v0.1.5 内测版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.5) · [完整教程](docs/README.md) · [故障排查](docs/TROUBLESHOOTING.md) · [AI 使用说明书](docs/ai/AI_GUIDE.md)
 
-**本版更新。** 一代固件默认使用 10 kΩ B3950 温度探头。传感器类型、位置名称、接入状态在同一张卡片上保存。电脑和服务器提供 Claude Code 专用配置。 [更新说明](CHANGELOG.md)
+**本版更新。** 一代温度端口默认使用 10 kΩ B3950，支持自定义阻温曲线，并显示 ADC 电压和换算阻值。湿润片可独立触发或与压力联动。 [更新说明](CHANGELOG.md)
 
 ## 目录
 
@@ -104,14 +104,14 @@
 
 ## 安装
 
-普通用户从 [v0.1.4 内测版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.4) 下载对应附件。Windows 请下载完整包，GitHub 的 **Download ZIP** 用于获取开发源码。需要核对附件完整性时，使用同版 [SHA256SUMS.txt](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.4/SHA256SUMS.txt)。
+普通用户从 [v0.1.5 内测版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.5) 下载对应附件。Windows 请下载完整包，GitHub 的 **Download ZIP** 用于获取开发源码。需要核对附件完整性时，使用同版 [SHA256SUMS.txt](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.5/SHA256SUMS.txt)。
 
 | 你的使用方式 | 下载 | 使用时需要运行 |
 | --- | --- | --- |
-| 只有安卓手机，使用 Operit | [Operit 工具包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.4/AI_Doll_Operit.toolpkg) | 已烧录的娃娃和同一局域网内的手机 |
-| Windows 采集，接 Operit 或本地 MCP | [Windows 完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.4/AI_Doll_Code_v0.1.4.zip) | 娃娃和运行采集服务的电脑 |
-| Windows 采集，接 ChatGPT | [Windows 完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.4/AI_Doll_Code_v0.1.4.zip) | 娃娃、电脑采集服务和 Secure MCP Tunnel |
-| 自有 Linux 服务器，接 Operit 或其他客户端 | [Linux 服务包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.4/AI_Doll_Server_v0.1.4.tar.gz) | 娃娃和接收服务器 |
+| 只有安卓手机，使用 Operit | [Operit 工具包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.5/AI_Doll_Operit.toolpkg) | 已烧录的娃娃和同一局域网内的手机 |
+| Windows 采集，接 Operit 或本地 MCP | [Windows 完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.5/AI_Doll_Code_v0.1.5.zip) | 娃娃和运行采集服务的电脑 |
+| Windows 采集，接 ChatGPT | [Windows 完整包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.5/AI_Doll_Code_v0.1.5.zip) | 娃娃、电脑采集服务和 Secure MCP Tunnel |
+| 自有 Linux 服务器，接 Operit 或其他客户端 | [Linux 服务包](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.5/AI_Doll_Server_v0.1.5.tar.gz) | 娃娃和接收服务器 |
 
 成品用户可先看[图文新手说明书（0.1.3 界面）](docs/product/抱抱星_共感娃娃核心_新手说明书.pdf)。新版传感器页面见[端口设置](docs/daily/SENSOR_CHANNELS.md)。
 
@@ -146,13 +146,13 @@ claude --mcp-config ./build/device-lab/AI_Doll_Claude_Code.json
 
 ### Linux 服务器
 
-准备可通过 SSH 访问的 Ubuntu 或 Debian 服务器和已解析的域名。上传服务包与同版 [校验文件](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.4/AI_Doll_Server_v0.1.4.tar.gz.sha256)，在 SSH 终端运行以下命令。
+准备可通过 SSH 访问的 Ubuntu 或 Debian 服务器和已解析的域名。上传服务包与同版 [校验文件](https://github.com/SunRichardSKT/ai-doll-mcp/releases/download/v0.1.5/AI_Doll_Server_v0.1.5.tar.gz.sha256)，在 SSH 终端运行以下命令。
 
 ```bash
-sha256sum -c AI_Doll_Server_v0.1.4.tar.gz.sha256
-mkdir ai-doll-server-0.1.4
-tar -xzf AI_Doll_Server_v0.1.4.tar.gz -C ai-doll-server-0.1.4
-cd ai-doll-server-0.1.4
+sha256sum -c AI_Doll_Server_v0.1.5.tar.gz.sha256
+mkdir ai-doll-server-0.1.5
+tar -xzf AI_Doll_Server_v0.1.5.tar.gz -C ai-doll-server-0.1.5
+cd ai-doll-server-0.1.5
 sudo bash Install_Server.sh
 ```
 

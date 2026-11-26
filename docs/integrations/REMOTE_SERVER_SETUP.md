@@ -2,7 +2,7 @@
 
 在自己的 Linux 服务器接收娃娃上传、保存历史，并向手机提供 MCP 连接。使用小型服务包即可。[教程目录](../README.md) · [选择连接方式](../start/MCP_TRANSPORT_DECISION.md)
 
-本页对应 **v0.1.4 内测版**。从[同一 Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.4)下载 Linux 包、安装器和 Operit 工具包，在解压目录运行安装器；升级保留原部署目录与数据卷。[更新说明](../../CHANGELOG.md)
+本页对应 **v0.1.5 内测版**。从[同一 Release](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.5)下载 Linux 包、安装器和 Operit 工具包，在解压目录运行安装器；升级保留原部署目录与数据卷。[更新说明](../../CHANGELOG.md)
 
 整个流程是：**准备服务器和域名 → 运行安装入口 → 打开管理页面 → 手机连接娃娃 → 将 MCP 地址接入原聊天**。小型包同时包含接收服务和 MCP，原前端与 MCP 可以部署在同一台服务器。
 
@@ -20,13 +20,13 @@ Operit 用户部署后可直接在服务器管理页下载手机工具包与设�
 
 ## 2. 上传并运行发布包
 
-将本机 `delivery/AI_Doll_Server_v0.1.4.tar.gz` 与同目录的 `.sha256` 文件上传到服务器同一目录。在 SSH 终端校验、解压，然后运行**包内**入口：
+将本机 `delivery/AI_Doll_Server_v0.1.5.tar.gz` 与同目录的 `.sha256` 文件上传到服务器同一目录。在 SSH 终端校验、解压，然后运行**包内**入口：
 
 ```bash
-sha256sum -c AI_Doll_Server_v0.1.4.tar.gz.sha256
-mkdir ai-doll-server-0.1.4
-tar -xzf AI_Doll_Server_v0.1.4.tar.gz -C ai-doll-server-0.1.4
-cd ai-doll-server-0.1.4
+sha256sum -c AI_Doll_Server_v0.1.5.tar.gz.sha256
+mkdir ai-doll-server-0.1.5
+tar -xzf AI_Doll_Server_v0.1.5.tar.gz -C ai-doll-server-0.1.5
+cd ai-doll-server-0.1.5
 sudo bash Install_Server.sh
 ```
 

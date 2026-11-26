@@ -21,7 +21,7 @@ static bool otaActive=false,otaCommitted=false,sensorEnabled=false;
 static struct {bool engaged=false;} calibration;
 static const char *apName="test-device",*touchBoot="test-boot";
 static constexpr int OUTPUT=1,INPUT=0,ADC_11db=3;
-static int pins[8]={},modes[8]={},reads=0,resolution=0,attenuation=0;
+static int pins[8]={},modes[8]={},reads=0,mvReads=0,resolution=0,attenuation=0;
 static int digitalRead(int p){return pins[p];}
 static void digitalWrite(int p,int v){pins[p]=v;}
 static void pinMode(int p,int v){modes[p]=v;}
@@ -33,16 +33,26 @@ static int analogRead(int p){
  assert(p==0&&modes[3]==OUTPUT&&modes[4]==OUTPUT&&modes[5]==OUTPUT);
  ++reads;return 50+100*(pins[3]+2*pins[4]+4*pins[5]);
 }
-void probe(JsonDocument &out){
+static unsigned analogReadMilliVolts(int p){
+ assert(p==0&&modes[3]==OUTPUT&&modes[4]==OUTPUT&&modes[5]==OUTPUT);
+ ++mvReads;return 1100+50*(pins[3]+2*pins[4]+4*pins[5]);
+}
+void probe(JsonDocument &out,bool requestMillivolts=false){
+ JsonDocument in;
+ if(requestMillivolts)in["millivolts"]=true;
 '''
         checks=r'''
 }
 int main(){
- JsonDocument out;probe(out);assert(!sensorEnabled&&reads==40);
+ JsonDocument out;probe(out);assert(!sensorEnabled&&reads==40&&mvReads==0&&out["adc_mv"].isNull());
  assert(resolution==12&&attenuation==ADC_11db);
  assert(modes[3]==INPUT&&modes[4]==INPUT&&modes[5]==INPUT);
  assert(out["raw"].size()==8&&out["source"]=="sensor");
  for(int i=0;i<8;i++)assert(out["raw"][i]==50+i*100);
+ out.clear();probe(out,true);assert(!sensorEnabled&&reads==80&&mvReads==32);
+ assert(out["raw"].size()==8&&out["adc_mv"].size()==8);
+ for(int i=0;i<8;i++)assert(out["adc_mv"][i]==1100+i*50&&out["raw"][i]==50+i*100);
+ assert(modes[3]==INPUT&&modes[4]==INPUT&&modes[5]==INPUT);
  sensorEnabled=true;modes[3]=modes[4]=modes[5]=OUTPUT;
  pins[3]=1;pins[4]=0;pins[5]=1;out.clear();probe(out);
  assert(sensorEnabled&&pins[3]==1&&pins[4]==0&&pins[5]==1);

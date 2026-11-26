@@ -19,7 +19,7 @@ static int lastWifi=-1;
 static constexpr int LED_PIN=8; // Common SuperMini blue LED, active low.
 static bool scanBusy=false;
 static uint32_t scanStartedAt=0;
-static const char* VERSION="doll-lab-0.1.4";
+static const char* VERSION="doll-lab-0.1.5";
 static const char* PROTOCOL="2025-11-25";
 
 static String encode(const JsonDocument &d){String s;serializeJson(d,s);return s;}
@@ -48,7 +48,7 @@ static void status(JsonObject o){
  o["boot_id"]=touchBoot;o["event_cursor"]=touchSeq;
  o["firmware"]=VERSION;o["device_id"]=apName;o["uptime_ms"]=millis();o["free_heap"]=ESP.getFreeHeap();
  o["minimum_free_heap"]=ESP.getMinFreeHeap();o["largest_free_block"]=ESP.getMaxAllocHeap();o["retired_channel_count"]=retiredChannelCount;
- o["feature_set"]="resistive-inputs-v1";o["factory_sample_revision"]=1;
+ o["feature_set"]="resistive-inputs-v1";o["factory_sample_revision"]=1;o["factory_sample_millivolts"]=true;
  o["flash_id"]=prefs.getString("flash_id","");o["factory_profile"]=prefs.getString("profile","legacy");
  o["configuration_url"]="http://192.168.4.1/setup";o["configuration_hotspot"]=deviceName;o["device_name"]=deviceName;
  o["wifi_connected"]=networkReady();o["wifi_associated"]=WiFi.status()==WL_CONNECTED;o["wifi_status"]=(int)WiFi.status();o["ssid"]=ssid;
@@ -138,7 +138,7 @@ static JsonDocument rpc(const JsonDocument &in){
   else if(name=="apply_pressure_calibration"){String error;if(!applyCalibration(error)){rpcError(out,-32602,error.c_str());return out;}calibrationStatus(data.to<JsonObject>());}
   else if(name=="cancel_pressure_calibration"){calibration.engaged=false;calibration.capturing=false;calibrationStatus(data.to<JsonObject>());}
   else if(name=="simulate_channel_input"){String error;if(!simulateInput(a,error)){rpcError(out,-32602,error.c_str());return out;}readChannels(data.to<JsonObject>());}
-  else if(name=="set_output_enabled"||name=="set_vibration"||name=="set_light"||name=="scan_input_devices"){rpcError(out,-32601,"Temperature, motion and physical outputs are removed from this firmware");return out;}
+  else if(name=="set_output_enabled"||name=="set_vibration"||name=="set_light"||name=="scan_input_devices"){rpcError(out,-32601,"Digital probe scanning and physical output controls are unavailable on this firmware");return out;}
   else if(name=="get_sensor_config"){sensorConfig(data.to<JsonObject>());}
   else if(name=="set_sensor_config"){String error;if(!setSensors(a,error)){rpcError(out,-32602,error.c_str());return out;}sensorConfig(data.to<JsonObject>());}
   else if(name=="get_body_map"){bodyMap(data.to<JsonObject>());}
@@ -205,9 +205,17 @@ static void serialCommand(const String &line){
    if(temporaryPins){pinMode(3,OUTPUT);pinMode(4,OUTPUT);pinMode(5,OUTPUT);analogReadResolution(12);analogSetPinAttenuation(0,ADC_11db);}
    out["device_id"]=apName;out["boot_id"]=touchBoot;out["source"]="sensor";out["uptime_ms"]=millis();
    JsonArray raw=out["raw"].to<JsonArray>();
+   const bool withMillivolts=in["millivolts"]==true;
+   JsonArray millivolts;
+   if(withMillivolts)millivolts=out["adc_mv"].to<JsonArray>();
    for(int port=0;port<8;port++){
     digitalWrite(3,port&1);digitalWrite(4,(port>>1)&1);digitalWrite(5,(port>>2)&1);delayMicroseconds(500);
     analogRead(0);int sum=0;for(int j=0;j<4;j++)sum+=analogRead(0);raw.add(sum/4);
+    if(withMillivolts){
+     uint32_t sumMv=0;
+     for(int j=0;j<4;j++)sumMv+=analogReadMilliVolts(0);
+     millivolts.add(sumMv/4);
+    }
    }
    digitalWrite(3,s0);digitalWrite(4,s1);digitalWrite(5,s2);delayMicroseconds(500);
    if(temporaryPins){pinMode(3,INPUT);pinMode(4,INPUT);pinMode(5,INPUT);}

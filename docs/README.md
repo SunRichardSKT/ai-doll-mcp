@@ -4,7 +4,7 @@
 
 配网后按[平台连接指南](integrations/OFFICIAL_CLIENTS.md)接入 ChatGPT、Claude、DeepSeek DSH、Gemini 或 Operit。查看[新版端口设置](daily/SENSOR_CHANNELS.md)了解温度探头的安装与读数。
 
-[项目首页](../README.md) · [下载 v0.1.4 内测版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.4) · [更新说明](../CHANGELOG.md)
+[项目首页](../README.md) · [下载 v0.1.5 内测版](https://github.com/SunRichardSKT/ai-doll-mcp/releases/tag/v0.1.5) · [更新说明](../CHANGELOG.md)
 
 成品用户可阅读[图文新手说明书（0.1.3 界面）](product/抱抱星_共感娃娃核心_新手说明书.pdf)，产品介绍和美化图片见[产品资料](product/README.md)。
 
